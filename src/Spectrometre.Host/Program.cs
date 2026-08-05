@@ -4,10 +4,12 @@ using Spectrometre.Core;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Recruitment;
 using Spectrometre.Host.Components;
 using Spectrometre.Host.Onboarding;
 using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.PostesRecrutement;
+using Spectrometre.Modules.PostesRecrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
 using Spectrometre.Modules.ProfilEntreprise;
 using Spectrometre.Modules.Vivier;
@@ -26,6 +28,13 @@ builder.Services.AddProfilEntrepriseModule(builder.Configuration);
 builder.Services.AddCompatibiliteModule(builder.Configuration);
 builder.Services.AddPostesRecrutementModule(builder.Configuration);
 builder.Services.AddVivierModule();
+
+// Inversion de dépendance : Compatibilite consomme ICandidatureExistenceChecker (défini dans Core) sans
+// connaître son implémentation. C'est ICI, dans Host — le seul projet qui référence à la fois Compatibilite
+// et PostesRecrutement — qu'on branche l'implémentation réelle, jamais depuis Compatibilite lui-même
+// (qui ne doit pas obtenir de référence de projet vers PostesRecrutement : le manifeste déclare déjà la
+// dépendance dans l'autre sens via Vivier, et un module ne dépend jamais de ce qui dépend de lui).
+builder.Services.AddScoped<ICandidatureExistenceChecker, CandidatureExistenceChecker>();
 
 builder.Services.AddScoped<CompanyOnboardingService>();
 

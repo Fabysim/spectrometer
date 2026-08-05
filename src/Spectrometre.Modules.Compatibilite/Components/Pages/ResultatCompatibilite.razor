@@ -17,9 +17,15 @@
 
 <PageTitle>Résultat de compatibilité</PageTitle>
 
-@if (_result is null)
+@if (!_resolu)
 {
     <p>Calcul en cours…</p>
+}
+else if (_result is null)
+{
+    @* Réponse volontairement générique : ne jamais confirmer à un tiers qu'un résultat existe pour cet
+       identifiant candidat s'il n'y a pas droit — voir CompatibiliteService.GetResultatAutorisePourUtilisateurAsync. *@
+    <p class="hint">Résultat introuvable.</p>
 }
 else
 {
@@ -74,29 +80,36 @@ else
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
     [Parameter] public int CandidateProfileId { get; set; }
 
+    private bool _resolu;
     private CompatibiliteResultView? _result;
 
     protected override async Task OnInitializedAsync()
     {
-        // Résout l'entreprise active si ce n'est pas déjà fait dans ce circuit (ex. accès direct à cette
-        // page sans passer d'abord par /entreprise/profil) — même logique que ProfilEntreprisePage.
-        if (TenantContext.ActiveCompanyId is null)
+        var userId = AuthenticationStateTask is not null
+            ? (await AuthenticationStateTask).User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            : null;
+
+        if (string.IsNullOrEmpty(userId))
         {
-            var userId = AuthenticationStateTask is not null
-                ? (await AuthenticationStateTask).User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                : null;
-
-            if (string.IsNullOrEmpty(userId))
-                return;
-
-            var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
-            if (companies.Count == 0)
-                return;
-
-            TenantContext.SetActiveCompany(companies[0].Id, companies[0].SchemaName);
+            _resolu = true;
+            return;
         }
 
-        var companyProfileId = await CompanyProfileService.GetOrCreateProfileIdAsync();
-        _result = await CompatibiliteService.CalculerCompatibiliteAsync(CandidateProfileId, companyProfileId);
+        // Résout une entreprise active si ce n'est pas déjà fait dans ce circuit (ex. accès direct à cette
+        // page sans passer d'abord par /entreprise/profil) — simple confort d'navigation : la décision
+        // d'autorisation elle-même est prise par CompatibiliteService, qui recherche au besoin PARMI TOUTES
+        // les entreprises gérées par l'utilisateur, pas seulement celle-ci.
+        if (TenantContext.ActiveCompanyId is null)
+        {
+            var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
+            if (companies.Count > 0)
+                TenantContext.SetActiveCompany(companies[0].Id, companies[0].SchemaName);
+        }
+
+        // Garde de confidentialité : ne renvoie un résultat que si l'utilisateur est le candidat concerné,
+        // ou gère une entreprise pour laquelle une candidature réelle existe pour ce candidat — null dans
+        // tous les autres cas (voir CompatibiliteService.GetResultatAutorisePourUtilisateurAsync).
+        _result = await CompatibiliteService.GetResultatAutorisePourUtilisateurAsync(CandidateProfileId, userId);
+        _resolu = true;
     }
 }

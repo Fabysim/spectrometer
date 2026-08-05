@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Data;
+using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Compatibilite.Data;
 using Spectrometre.Modules.Compatibilite.Entities;
@@ -12,7 +14,10 @@ public sealed class CompatibiliteService(
     IDbContextFactory<CompatibiliteDbContext> dbFactory,
     ITenantContext tenantContext,
     ICandidateProfileService candidateProfileService,
-    ICompanyProfileService companyProfileService) : ICompatibiliteService
+    ICompanyProfileService companyProfileService,
+    ICompanyProvisioningService companyProvisioningService,
+    ICandidatureExistenceChecker candidatureExistenceChecker,
+    CoreDbContext coreDb) : ICompatibiliteService
 {
     private const int SeuilVigilance = 50;
 
@@ -114,6 +119,50 @@ public sealed class CompatibiliteService(
         };
 
         return ToView(result, scores);
+    }
+
+    /// <summary>
+    /// Voir le commentaire sur <see cref="ICompatibiliteService.GetResultatAutorisePourUtilisateurAsync"/>.
+    /// </summary>
+    /// <remarks>
+    /// Cas 1 (le candidat consulte son propre résultat) : un résultat de compatibilité est toujours relatif
+    /// à UNE entreprise, or cette page n'a jamais reçu d'identifiant d'entreprise dans son URL — seule
+    /// l'entreprise déjà active dans ce circuit (<see cref="ITenantContext.ActiveCompanyId"/>) peut servir
+    /// de contexte. Si aucune entreprise n'est active, on retourne <c>null</c> : ce n'est pas un refus
+    /// d'accès (le candidat garde le droit de voir SES résultats), simplement l'absence de contexte
+    /// permettant d'en calculer un — documenté ici plutôt que de fabriquer un résultat arbitraire.
+    /// <para/>
+    /// Cas 2 (un gestionnaire d'entreprise consulte le résultat d'un candidat) : on cherche parmi TOUTES
+    /// les entreprises que l'utilisateur gère (pas seulement celle déjà active) celle, s'il en existe une,
+    /// pour laquelle une candidature réelle existe pour ce candidat — un gestionnaire de plusieurs
+    /// entreprises ne doit pas être refusé à tort simplement parce que la mauvaise entreprise était active
+    /// au moment de la requête.
+    /// </remarks>
+    public async Task<CompatibiliteResultView?> GetResultatAutorisePourUtilisateurAsync(int candidateProfileId, string requestingUserId, CancellationToken cancellationToken = default)
+    {
+        var ownCandidateProfileId = await candidateProfileService.GetOrCreateProfileIdAsync(requestingUserId, cancellationToken);
+
+        if (ownCandidateProfileId == candidateProfileId)
+        {
+            if (tenantContext.ActiveCompanyId is null)
+                return null;
+
+            var ownCompanyProfileId = await companyProfileService.GetOrCreateProfileIdAsync(cancellationToken);
+            return await CalculerCompatibiliteAsync(candidateProfileId, ownCompanyProfileId, cancellationToken);
+        }
+
+        var companies = await companyProvisioningService.GetCompaniesForUserAsync(requestingUserId, coreDb, cancellationToken);
+        foreach (var company in companies)
+        {
+            if (!await candidatureExistenceChecker.ExisteCandidatureReelleAsync(candidateProfileId, company.Id, cancellationToken))
+                continue;
+
+            tenantContext.SetActiveCompany(company.Id, company.SchemaName);
+            var companyProfileId = await companyProfileService.GetOrCreateProfileIdAsync(cancellationToken);
+            return await CalculerCompatibiliteAsync(candidateProfileId, companyProfileId, cancellationToken);
+        }
+
+        return null;
     }
 
     private static CompatibiliteResultView ToView(CompatibilityResult result, Dictionary<CompatibilityAxis, int> scores) =>
