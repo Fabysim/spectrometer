@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Compatibility;
+using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.ProfilEntreprise.Data;
 using Spectrometre.Modules.ProfilEntreprise.Entities;
@@ -13,7 +14,7 @@ namespace Spectrometre.Modules.ProfilEntreprise.Services;
 /// figerait son modèle EF (schéma tenant) sur la première entreprise active de la session. Le schéma
 /// courant (<see cref="ITenantContext"/>, lui-même scoped) est appliqué juste après la création.
 /// </summary>
-public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbContext> dbFactory, ITenantContext tenantContext) : ICompanyProfileService
+public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbContext> dbFactory, ITenantContext tenantContext, IProfileChangeRecorder changeRecorder) : ICompanyProfileService
 {
     private async Task<ProfilEntrepriseDbContext> CreateDbAsync(CancellationToken cancellationToken)
     {
@@ -79,19 +80,43 @@ public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbCo
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ToggleTagAsync(int companyProfileId, CriteriaField field, string tag, bool isChecked, CancellationToken cancellationToken = default) =>
-        await MutateCriteriaAsync(companyProfileId, entity =>
+    public async Task ToggleTagAsync(int companyProfileId, CriteriaField field, string tag, bool isChecked, CancellationToken cancellationToken = default)
+    {
+        var (oldValue, newValue) = await MutateCriteriaAsync(companyProfileId, entity =>
         {
             var tags = TagsFor(entity, field);
+            var before = string.Join(", ", tags);
             if (isChecked) { if (!tags.Contains(tag)) tags.Add(tag); }
             else tags.Remove(tag);
+            return (before, string.Join(", ", tags));
         }, cancellationToken);
 
-    public async Task SetRythmeTravailAsync(int companyProfileId, int? rythme, CancellationToken cancellationToken = default) =>
-        await MutateCriteriaAsync(companyProfileId, entity => entity.RythmeTravail = rythme, cancellationToken);
+        await changeRecorder.RecordChangeAsync(companyProfileId, ProfileOwnerType.Entreprise, $"{field}.Tags", oldValue, newValue, DateTimeOffset.UtcNow, cancellationToken);
+    }
 
-    public async Task SetNotesAsync(int companyProfileId, CriteriaField field, string? notes, CancellationToken cancellationToken = default) =>
-        await MutateCriteriaAsync(companyProfileId, entity => SetNotesFor(entity, field, notes), cancellationToken);
+    public async Task SetRythmeTravailAsync(int companyProfileId, int? rythme, CancellationToken cancellationToken = default)
+    {
+        var (oldValue, newValue) = await MutateCriteriaAsync(companyProfileId, entity =>
+        {
+            var before = entity.RythmeTravail?.ToString();
+            entity.RythmeTravail = rythme;
+            return (before, rythme?.ToString());
+        }, cancellationToken);
+
+        await changeRecorder.RecordChangeAsync(companyProfileId, ProfileOwnerType.Entreprise, "Organisationnelle.Rythme", oldValue, newValue, DateTimeOffset.UtcNow, cancellationToken);
+    }
+
+    public async Task SetNotesAsync(int companyProfileId, CriteriaField field, string? notes, CancellationToken cancellationToken = default)
+    {
+        var (oldValue, newValue) = await MutateCriteriaAsync(companyProfileId, entity =>
+        {
+            var before = NotesFor(entity, field);
+            SetNotesFor(entity, field, notes);
+            return (before, notes);
+        }, cancellationToken);
+
+        await changeRecorder.RecordChangeAsync(companyProfileId, ProfileOwnerType.Entreprise, $"{field}.Notes", oldValue, newValue, DateTimeOffset.UtcNow, cancellationToken);
+    }
 
     private static List<string> TagsFor(CompanyCompatibilityCriteria entity, CriteriaField field) => field switch
     {
@@ -117,6 +142,17 @@ public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbCo
         }
     }
 
+    private static string? NotesFor(CompanyCompatibilityCriteria entity, CriteriaField field) => field switch
+    {
+        CriteriaField.Technique => entity.TechniqueNotes,
+        CriteriaField.Comportementale => entity.ComportementaleNotes,
+        CriteriaField.Culturelle => entity.CulturelleNotes,
+        CriteriaField.Organisationnelle => entity.OrganisationnelleNotes,
+        CriteriaField.Motivationnelle => entity.MotivationnelleNotes,
+        CriteriaField.PointsVigilance => entity.PointsVigilanceNotes,
+        _ => throw new ArgumentOutOfRangeException(nameof(field), field, null),
+    };
+
     /// <summary>
     /// Voir le commentaire détaillé sur <c>CandidateProfileService.MutateCriteriaAsync</c> (module Profil
     /// Candidat) : même correctif de perte de mise à jour, même stratégie (mutation ciblée sur un seul
@@ -125,7 +161,12 @@ public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbCo
     /// le multi-tenant) : le bug ici était donc purement une course entre plusieurs requêtes concurrentes,
     /// pas un usage concurrent d'un même DbContext.
     /// </summary>
-    private async Task MutateCriteriaAsync(int companyProfileId, Action<CompanyCompatibilityCriteria> applyChange, CancellationToken cancellationToken)
+    /// <summary>
+    /// <paramref name="applyChange"/> retourne (ancienne valeur, nouvelle valeur) EN TEXTE, capturées sur
+    /// la tentative qui réussit réellement — utilisées par l'appelant pour tracer le changement via
+    /// <see cref="IProfileChangeRecorder"/> (module Suivi Évolutif) sans dupliquer la logique de sauvegarde.
+    /// </summary>
+    private async Task<(string? Old, string? New)> MutateCriteriaAsync(int companyProfileId, Func<CompanyCompatibilityCriteria, (string? Old, string? New)> applyChange, CancellationToken cancellationToken)
     {
         // Voir le commentaire équivalent côté CandidateProfileService.MutateCriteriaAsync : maxAttempts
         // généreux + délai aléatoire entre tentatives pour désynchroniser les conflits sous forte contention.
@@ -146,13 +187,13 @@ public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbCo
                 db.CompanyCompatibilityCriteria.Add(entity);
             }
 
-            applyChange(entity);
+            var changeValues = applyChange(entity);
             entity.UpdatedAt = DateTimeOffset.UtcNow;
 
             try
             {
                 await db.SaveChangesAsync(cancellationToken);
-                return;
+                return changeValues;
             }
             catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
             {

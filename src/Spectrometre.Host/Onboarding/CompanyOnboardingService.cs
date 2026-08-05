@@ -8,6 +8,7 @@ using CompatibiliteModule = Spectrometre.Modules.Compatibilite.ServiceCollection
 using PostesRecrutementModule = Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions;
 using VivierModule = Spectrometre.Modules.Vivier.ServiceCollectionExtensions;
 using EntretienModule = Spectrometre.Modules.Entretien.ServiceCollectionExtensions;
+using SuiviEvolutifModule = Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -52,6 +53,7 @@ public sealed class CompanyOnboardingService(
                      // provisionner via ITenantSchemaProvisioner, seulement l'activation ci-dessous.
                      VivierModule.Manifest,
                      EntretienModule.Manifest,
+                     SuiviEvolutifModule.Manifest,
                  })
         {
             if (await moduleRegistry.IsActiveAsync(company.Id, manifest.Code, coreDb, cancellationToken))

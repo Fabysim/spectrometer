@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Compatibility;
+using Spectrometre.Core.Suivi;
 using Spectrometre.Modules.ProfilCandidat.Data;
 using Spectrometre.Modules.ProfilCandidat.Entities;
 
@@ -13,7 +14,7 @@ namespace Spectrometre.Modules.ProfilCandidat.Services;
 /// grille H cochées rapidement l'une après l'autre, avant que la première sauvegarde n'ait terminé) —
 /// ce qu'EF Core interdit explicitement sur une même instance de DbContext.
 /// </summary>
-public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbContext> dbFactory) : ICandidateProfileService
+public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbContext> dbFactory, IProfileChangeRecorder changeRecorder) : ICandidateProfileService
 {
     public async Task<int> GetOrCreateProfileIdAsync(string userId, CancellationToken cancellationToken = default)
     {
@@ -163,19 +164,43 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
         return new CandidateSynthesisView(byCategory, DateTimeOffset.UtcNow);
     }
 
-    public async Task ToggleTagAsync(int candidateProfileId, CriteriaField field, string tag, bool isChecked, CancellationToken cancellationToken = default) =>
-        await MutateCriteriaAsync(candidateProfileId, entity =>
+    public async Task ToggleTagAsync(int candidateProfileId, CriteriaField field, string tag, bool isChecked, CancellationToken cancellationToken = default)
+    {
+        var (oldValue, newValue) = await MutateCriteriaAsync(candidateProfileId, entity =>
         {
             var tags = TagsFor(entity, field);
+            var before = string.Join(", ", tags);
             if (isChecked) { if (!tags.Contains(tag)) tags.Add(tag); }
             else tags.Remove(tag);
+            return (before, string.Join(", ", tags));
         }, cancellationToken);
 
-    public async Task SetRythmeTravailAsync(int candidateProfileId, int? rythme, CancellationToken cancellationToken = default) =>
-        await MutateCriteriaAsync(candidateProfileId, entity => entity.RythmeTravail = rythme, cancellationToken);
+        await changeRecorder.RecordChangeAsync(candidateProfileId, ProfileOwnerType.Candidat, $"{field}.Tags", oldValue, newValue, DateTimeOffset.UtcNow, cancellationToken);
+    }
 
-    public async Task SetNotesAsync(int candidateProfileId, CriteriaField field, string? notes, CancellationToken cancellationToken = default) =>
-        await MutateCriteriaAsync(candidateProfileId, entity => SetNotesFor(entity, field, notes), cancellationToken);
+    public async Task SetRythmeTravailAsync(int candidateProfileId, int? rythme, CancellationToken cancellationToken = default)
+    {
+        var (oldValue, newValue) = await MutateCriteriaAsync(candidateProfileId, entity =>
+        {
+            var before = entity.RythmeTravail?.ToString();
+            entity.RythmeTravail = rythme;
+            return (before, rythme?.ToString());
+        }, cancellationToken);
+
+        await changeRecorder.RecordChangeAsync(candidateProfileId, ProfileOwnerType.Candidat, "Organisationnelle.Rythme", oldValue, newValue, DateTimeOffset.UtcNow, cancellationToken);
+    }
+
+    public async Task SetNotesAsync(int candidateProfileId, CriteriaField field, string? notes, CancellationToken cancellationToken = default)
+    {
+        var (oldValue, newValue) = await MutateCriteriaAsync(candidateProfileId, entity =>
+        {
+            var before = NotesFor(entity, field);
+            SetNotesFor(entity, field, notes);
+            return (before, notes);
+        }, cancellationToken);
+
+        await changeRecorder.RecordChangeAsync(candidateProfileId, ProfileOwnerType.Candidat, $"{field}.Notes", oldValue, newValue, DateTimeOffset.UtcNow, cancellationToken);
+    }
 
     private static List<string> TagsFor(CandidateCompatibilityCriteria entity, CriteriaField field) => field switch
     {
@@ -201,6 +226,17 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
         }
     }
 
+    private static string? NotesFor(CandidateCompatibilityCriteria entity, CriteriaField field) => field switch
+    {
+        CriteriaField.Technique => entity.TechniqueNotes,
+        CriteriaField.Comportementale => entity.ComportementaleNotes,
+        CriteriaField.Culturelle => entity.CulturelleNotes,
+        CriteriaField.Organisationnelle => entity.OrganisationnelleNotes,
+        CriteriaField.Motivationnelle => entity.MotivationnelleNotes,
+        CriteriaField.PointsVigilance => entity.PointsVigilanceNotes,
+        _ => throw new ArgumentOutOfRangeException(nameof(field), field, null),
+    };
+
     /// <summary>
     /// Applique une mutation CIBLÉE (un tag, le rythme, ou une note — jamais toute la grille) sur la ligne
     /// de critères du candidat, avec relecture + réapplication en cas de conflit de concurrence.
@@ -221,7 +257,12 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
     /// couvre le cas plus rare où deux créations concurrentes de la ligne (candidat n'ayant encore aucun
     /// critère enregistré) tentent chacune un INSERT — un jeton de concurrence ne protège que l'UPDATE.
     /// </remarks>
-    private async Task MutateCriteriaAsync(int candidateProfileId, Action<CandidateCompatibilityCriteria> applyChange, CancellationToken cancellationToken)
+    /// <summary>
+    /// <paramref name="applyChange"/> retourne (ancienne valeur, nouvelle valeur) EN TEXTE, capturées sur
+    /// la tentative qui réussit réellement — utilisées par l'appelant pour tracer le changement via
+    /// <see cref="IProfileChangeRecorder"/> (module Suivi Évolutif) sans dupliquer la logique de sauvegarde.
+    /// </summary>
+    private async Task<(string? Old, string? New)> MutateCriteriaAsync(int candidateProfileId, Func<CandidateCompatibilityCriteria, (string? Old, string? New)> applyChange, CancellationToken cancellationToken)
     {
         // maxAttempts volontairement généreux : sous forte contention (ex. test de concurrence avec une
         // dizaine d'écritures simultanées sur la MÊME ligne), chaque conflit ne coûte qu'un aller-retour DB
@@ -244,13 +285,13 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
                 db.CandidateCompatibilityCriteria.Add(entity);
             }
 
-            applyChange(entity);
+            var changeValues = applyChange(entity);
             entity.UpdatedAt = DateTimeOffset.UtcNow;
 
             try
             {
                 await db.SaveChangesAsync(cancellationToken);
-                return;
+                return changeValues;
             }
             catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
             {

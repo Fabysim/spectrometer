@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
+using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Compatibilite.Data;
@@ -17,6 +18,9 @@ using Spectrometre.Modules.ProfilCandidat;
 using Spectrometre.Modules.ProfilCandidat.Data;
 using Spectrometre.Modules.ProfilEntreprise;
 using Spectrometre.Modules.ProfilEntreprise.Data;
+using Spectrometre.Modules.SuiviEvolutif;
+using Spectrometre.Modules.SuiviEvolutif.Data;
+using Spectrometre.Modules.SuiviEvolutif.Services;
 using Xunit;
 
 namespace Spectrometre.Concurrency.Tests;
@@ -70,10 +74,15 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddCompatibiliteModule(config);
         services.AddPostesRecrutementModule(config);
         services.AddEntretienModule(config);
+        services.AddSuiviEvolutifModule(config);
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
         // PostesRecrutement mais enregistrée ici (pas depuis Compatibilite).
         services.AddScoped<ICandidatureExistenceChecker, CandidatureExistenceChecker>();
+
+        // Idem pour ProfilCandidat/ProfilEntreprise → SuiviEvolutif : implémentation réelle par-dessus le
+        // no-op (absent ici puisqu'on n'appelle pas AddSpectrometreCore — on l'enregistre directement).
+        services.AddScoped<IProfileChangeRecorder, ProfileChangeRecorder>();
 
         Services = services.BuildServiceProvider();
 
@@ -85,6 +94,7 @@ public sealed class ServiceFixture : IAsyncLifetime
             moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
 
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
             await coreDb.Database.MigrateAsync();
@@ -107,6 +117,12 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         await using var entretienDb = await Services.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync();
         await entretienDb.Database.MigrateAsync();
+
+        await using var suiviCandidatDb = await Services.GetRequiredService<IDbContextFactory<SuiviEvolutifCandidatDbContext>>().CreateDbContextAsync();
+        await suiviCandidatDb.Database.MigrateAsync();
+
+        await using var suiviEntrepriseDb = await Services.GetRequiredService<IDbContextFactory<SuiviEvolutifEntrepriseDbContext>>().CreateDbContextAsync();
+        await suiviEntrepriseDb.Database.MigrateAsync();
     }
 
     /// <summary>
@@ -124,6 +140,8 @@ public sealed class ServiceFixture : IAsyncLifetime
             async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>().CreateDbContextAsync(ct)),
         new(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest.Code,
             async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync(ct)),
+        new(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest.Code,
+            async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<SuiviEvolutifEntrepriseDbContext>>().CreateDbContextAsync(ct)),
     ];
 
     /// <summary>
@@ -163,6 +181,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest.Code, coreDb);
+        await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest.Code, coreDb);
 
         return company;
     }

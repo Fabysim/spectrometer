@@ -7,6 +7,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
+using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
 
 namespace Spectrometre.Core;
@@ -43,6 +44,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantSchemaProvisioner, TenantSchemaProvisioner>();
         services.AddSingleton<IModuleRegistry, ModuleRegistry>();
         services.AddScoped<IRecruitmentIndexService, RecruitmentIndexService>();
+
+        // Filet de sécurité : voir NoOpProfileChangeRecorder. Program.cs branche l'implémentation réelle
+        // de SuiviEvolutif PAR-DESSUS cet enregistrement (la dernière inscription gagne à la résolution).
+        services.AddScoped<IProfileChangeRecorder, NoOpProfileChangeRecorder>();
 
         return services;
     }

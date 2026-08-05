@@ -1,0 +1,120 @@
+@page "/entreprise/historique"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.ProfilEntreprise.Services
+@using Spectrometre.Modules.SuiviEvolutif.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICompanyProfileService CompanyProfileService
+@inject ISuiviEvolutifService SuiviEvolutifService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+
+<PageTitle>Historique du profil entreprise</PageTitle>
+
+<h1>Historique du profil</h1>
+<p class="hint">Les modifications apportées à la grille de compatibilité de l'entreprise, les plus récentes en premier.</p>
+
+@if (_companies is null)
+{
+    <p>Chargement…</p>
+}
+else if (_companies.Count == 0)
+{
+    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+}
+else
+{
+    <div class="entreprise-header">
+        @if (_companies.Count > 1)
+        {
+            <label>
+                Entreprise active :
+                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+                    @foreach (var company in _companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+            </label>
+        }
+        else
+        {
+            <strong>@_companies[0].Name</strong>
+        }
+    </div>
+
+    @if (_historique is null)
+    {
+        <p>Chargement…</p>
+    }
+    else if (_historique.Count == 0)
+    {
+        <p class="hint">Aucune modification enregistrée pour le moment.</p>
+    }
+    else
+    {
+        <ul class="historique-liste">
+            @foreach (var entree in _historique)
+            {
+                <li class="historique-entree">
+                    <span class="historique-date">@entree.Horodatage.LocalDateTime.ToString("d MMMM yyyy à HH:mm")</span>
+                    <p>@Phrase(entree)</p>
+                </li>
+            }
+        </ul>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private List<Company>? _companies;
+    private int _selectedCompanyId;
+    private List<HistoriqueEntreeView>? _historique;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        // Même sélecteur multi-entreprises que /entreprise/profil : la liste ne contient déjà que les
+        // entreprises que cet utilisateur gère (GetCompaniesForUserAsync), donc pas de nouveau mécanisme
+        // d'accès à inventer — un manager ne peut par construction sélectionner que ses propres entreprises.
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        if (_companies.Count > 0)
+            await ActivateCompanyAsync(_companies[0]);
+    }
+
+    private async Task ActivateCompanyAsync(Company company)
+    {
+        _selectedCompanyId = company.Id;
+        TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+        var companyProfileId = await CompanyProfileService.GetOrCreateProfileIdAsync();
+        _historique = (await SuiviEvolutifService.GetHistoriqueEntrepriseAsync(companyProfileId)).ToList();
+    }
+
+    private async Task OnCompanyChangedAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var company = _companies!.First(c => c.Id == id);
+            await ActivateCompanyAsync(company);
+        }
+    }
+
+    private static string Phrase(HistoriqueEntreeView entree)
+    {
+        var ancien = string.IsNullOrEmpty(entree.AncienneValeur) ? "(aucun)" : entree.AncienneValeur;
+        var nouveau = string.IsNullOrEmpty(entree.NouvelleValeur) ? "(aucun)" : entree.NouvelleValeur;
+        return $"{entree.Description} : « {ancien} » → « {nouveau} ».";
+    }
+}

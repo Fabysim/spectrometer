@@ -1,0 +1,70 @@
+@page "/candidat/historique"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Modules.ProfilCandidat.Services
+@using Spectrometre.Modules.SuiviEvolutif.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICandidateProfileService CandidateProfileService
+@inject ISuiviEvolutifService SuiviEvolutifService
+
+<PageTitle>Historique de mon profil</PageTitle>
+
+<h1>Historique de mon profil</h1>
+<p class="hint">Les modifications apportées à votre grille de compatibilité, les plus récentes en premier.</p>
+
+@if (_historique is null)
+{
+    <p>Chargement…</p>
+}
+else if (_historique.Count == 0)
+{
+    <p class="hint">Aucune modification enregistrée pour le moment.</p>
+}
+else
+{
+    <ul class="historique-liste">
+        @foreach (var entree in _historique)
+        {
+            <li class="historique-entree">
+                <span class="historique-date">@entree.Horodatage.LocalDateTime.ToString("d MMMM yyyy à HH:mm")</span>
+                <p>@Phrase(entree)</p>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private List<HistoriqueEntreeView>? _historique;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        // Toujours SON PROPRE profil, résolu depuis les claims de l'utilisateur connecté — même pattern
+        // que /candidat/questionnaire, jamais un identifiant pris ailleurs : par construction, un candidat
+        // ne peut donc jamais voir l'historique de quelqu'un d'autre.
+        var candidateProfileId = await CandidateProfileService.GetOrCreateProfileIdAsync(userId);
+        _historique = (await SuiviEvolutifService.GetHistoriqueCandidatAsync(candidateProfileId)).ToList();
+    }
+
+    /// <summary>
+    /// Phrase en langage courant — jamais de nom de champ technique. Pour un axe à tags, ancienne/nouvelle
+    /// valeur sont la liste complète avant/après (pas seulement le tag modifié) : afficher l'état complet
+    /// des deux côtés reste honnête et lisible, plutôt que de prétendre isoler « le » changement.
+    /// </summary>
+    private static string Phrase(HistoriqueEntreeView entree)
+    {
+        var ancien = string.IsNullOrEmpty(entree.AncienneValeur) ? "(aucun)" : entree.AncienneValeur;
+        var nouveau = string.IsNullOrEmpty(entree.NouvelleValeur) ? "(aucun)" : entree.NouvelleValeur;
+        return $"{entree.Description} : « {ancien} » → « {nouveau} ».";
+    }
+}

@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\src\Spectrometre.Modules.Compatibilite\Spectrometre.Modules.Compatibilite.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.PostesRecrutement\Spectrometre.Modules.PostesRecrutement.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.Entretien\Spectrometre.Modules.Entretien.csproj" />
+    <ProjectReference Include="..\..\src\Spectrometre.Modules.SuiviEvolutif\Spectrometre.Modules.SuiviEvolutif.csproj" />
   </ItemGroup>
 
 </Project>

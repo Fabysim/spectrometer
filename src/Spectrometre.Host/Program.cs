@@ -5,6 +5,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
+using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Host.Components;
 using Spectrometre.Host.Onboarding;
@@ -14,6 +15,8 @@ using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
 using Spectrometre.Modules.ProfilEntreprise;
+using Spectrometre.Modules.SuiviEvolutif;
+using Spectrometre.Modules.SuiviEvolutif.Services;
 using Spectrometre.Modules.Vivier;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +34,7 @@ builder.Services.AddCompatibiliteModule(builder.Configuration);
 builder.Services.AddPostesRecrutementModule(builder.Configuration);
 builder.Services.AddVivierModule();
 builder.Services.AddEntretienModule(builder.Configuration);
+builder.Services.AddSuiviEvolutifModule(builder.Configuration);
 
 // Inversion de dépendance : Compatibilite consomme ICandidatureExistenceChecker (défini dans Core) sans
 // connaître son implémentation. C'est ICI, dans Host — le seul projet qui référence à la fois Compatibilite
@@ -38,6 +42,11 @@ builder.Services.AddEntretienModule(builder.Configuration);
 // (qui ne doit pas obtenir de référence de projet vers PostesRecrutement : le manifeste déclare déjà la
 // dépendance dans l'autre sens via Vivier, et un module ne dépend jamais de ce qui dépend de lui).
 builder.Services.AddScoped<ICandidatureExistenceChecker, CandidatureExistenceChecker>();
+
+// Même inversion de dépendance pour ProfilCandidat/ProfilEntreprise → SuiviEvolutif : l'implémentation
+// réelle remplace ici le NoOpProfileChangeRecorder enregistré par AddSpectrometreCore (la dernière
+// inscription d'un service gagne à la résolution).
+builder.Services.AddScoped<IProfileChangeRecorder, ProfileChangeRecorder>();
 
 builder.Services.AddScoped<CompanyOnboardingService>();
 
@@ -63,6 +72,7 @@ using (var startupScope = app.Services.CreateScope())
     moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Vivier.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
 
     // Migrations appliquées globalement pour le noyau et Profil Candidat (schémas fixes, non tenant-scopés).
     // Profil Entreprise / Compatibilité sont tenant-scopés : leur schéma est appliqué par tenant lors
@@ -76,6 +86,15 @@ using (var startupScope = app.Services.CreateScope())
                .CreateDbContext())
     {
         profilCandidatDb.Database.Migrate();
+    }
+
+    // SuiviEvolutif candidat : schéma fixe non tenant-scopé, comme ProfilCandidat — migré globalement ici,
+    // pas via TenantSchemaSynchronizer (réservé aux schémas PAR ENTREPRISE).
+    using (var suiviEvolutifCandidatDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<Spectrometre.Modules.SuiviEvolutif.Data.SuiviEvolutifCandidatDbContext>>()
+               .CreateDbContext())
+    {
+        suiviEvolutifCandidatDb.Database.Migrate();
     }
 
     // Comble rétroactivement le schéma de tout module tenant-scopé marqué actif pour une entreprise
@@ -115,6 +134,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Vivier.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.Entretien.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.Entretien.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions).Assembly);
 
 app.Run();

@@ -8,6 +8,7 @@
     <Project Path="src/Spectrometre.Modules.PostesRecrutement/Spectrometre.Modules.PostesRecrutement.csproj" />
     <Project Path="src/Spectrometre.Modules.ProfilCandidat/Spectrometre.Modules.ProfilCandidat.csproj" />
     <Project Path="src/Spectrometre.Modules.ProfilEntreprise/Spectrometre.Modules.ProfilEntreprise.csproj" />
+    <Project Path="src/Spectrometre.Modules.SuiviEvolutif/Spectrometre.Modules.SuiviEvolutif.csproj" />
     <Project Path="src/Spectrometre.Modules.Vivier/Spectrometre.Modules.Vivier.csproj" />
   </Folder>
   <Folder Name="/tests/">
