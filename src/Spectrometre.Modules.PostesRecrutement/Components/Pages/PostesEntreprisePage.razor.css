@@ -1,0 +1,70 @@
+.poste-form {
+    border: 1px solid #ccd6f6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    max-width: 500px;
+}
+
+.champ {
+    margin-bottom: 0.75rem;
+}
+
+.champ label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.champ input, .champ textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.poste-carte {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.poste-entete {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.statut {
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.8rem;
+}
+
+.statut.ouvert {
+    background: #e3f5e6;
+    color: #1e7a34;
+}
+
+.statut.ferme {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.poste-departement {
+    color: #555;
+    font-size: 0.9rem;
+    margin: 0.3rem 0;
+}
+
+.candidatures table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.75rem;
+}
+
+.candidatures th, .candidatures td {
+    text-align: left;
+    padding: 0.4rem;
+    border-bottom: 1px solid #eee;
+}

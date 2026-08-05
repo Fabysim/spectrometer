@@ -7,6 +7,7 @@ using Spectrometre.Core.Modules;
 using Spectrometre.Host.Components;
 using Spectrometre.Host.Onboarding;
 using Spectrometre.Modules.Compatibilite;
+using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.ProfilCandidat;
 using Spectrometre.Modules.ProfilEntreprise;
 
@@ -22,6 +23,7 @@ builder.Services.AddSpectrometreCore(builder.Configuration);
 builder.Services.AddProfilCandidatModule(builder.Configuration);
 builder.Services.AddProfilEntrepriseModule(builder.Configuration);
 builder.Services.AddCompatibiliteModule(builder.Configuration);
+builder.Services.AddPostesRecrutementModule(builder.Configuration);
 
 builder.Services.AddScoped<CompanyOnboardingService>();
 
@@ -44,6 +46,7 @@ using (var startupScope = app.Services.CreateScope())
     moduleRegistry.Register(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
 
     // Migrations appliquées globalement pour le noyau et Profil Candidat (schémas fixes, non tenant-scopés).
     // Profil Entreprise / Compatibilité sont tenant-scopés : leur schéma est appliqué par tenant lors
@@ -76,6 +79,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Host.Client._Imports).Assembly,
         typeof(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions).Assembly);
 
 app.Run();

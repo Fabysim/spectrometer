@@ -1,0 +1,29 @@
+.poste-carte {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    max-width: 600px;
+}
+
+.poste-entete {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.entreprise {
+    color: #1a3d7c;
+    font-size: 0.9rem;
+}
+
+.poste-departement {
+    color: #555;
+    font-size: 0.9rem;
+    margin: 0.3rem 0;
+}
+
+.deja-postule {
+    color: #1e7a34;
+    font-weight: 600;
+}

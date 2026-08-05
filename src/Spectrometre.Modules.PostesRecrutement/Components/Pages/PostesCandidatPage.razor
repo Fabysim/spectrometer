@@ -1,0 +1,78 @@
+@page "/candidat/postes"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Modules.PostesRecrutement.Services
+@using Spectrometre.Modules.ProfilCandidat.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IPosteService PosteService
+@inject ICandidateProfileService CandidateProfileService
+
+<PageTitle>Postes ouverts</PageTitle>
+
+<h1>Postes ouverts</h1>
+<p class="hint">Tous les postes ouverts, tous employeurs confondus.</p>
+
+@if (_postes is null)
+{
+    <p>Chargement…</p>
+}
+else if (_postes.Count == 0)
+{
+    <p>Aucun poste ouvert pour le moment.</p>
+}
+else
+{
+    @foreach (var poste in _postes)
+    {
+        <div class="poste-carte">
+            <div class="poste-entete">
+                <strong>@poste.Titre</strong>
+                <span class="entreprise">@poste.CompanyName</span>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(poste.Departement))
+            {
+                <p class="poste-departement">@poste.Departement</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(poste.Description))
+            {
+                <p class="poste-description">@poste.Description</p>
+            }
+            @if (poste.DejaPostule)
+            {
+                <span class="deja-postule">✅ Candidature envoyée</span>
+            }
+            else
+            {
+                <button @onclick="() => PostulerAsync(poste)">Postuler</button>
+            }
+        </div>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private List<PosteOuvertView>? _postes;
+    private int _candidateProfileId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _candidateProfileId = await CandidateProfileService.GetOrCreateProfileIdAsync(userId);
+        _postes = (await PosteService.GetPostesOuvertsAsync(_candidateProfileId)).ToList();
+    }
+
+    private async Task PostulerAsync(PosteOuvertView poste)
+    {
+        await PosteService.PostulerAsync(poste.CompanyId, poste.PosteId, _candidateProfileId);
+        _postes = (await PosteService.GetPostesOuvertsAsync(_candidateProfileId)).ToList();
+    }
+}

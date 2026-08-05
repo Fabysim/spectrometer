@@ -1,0 +1,237 @@
+@page "/entreprise/postes"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.PostesRecrutement.Entities
+@using Spectrometre.Modules.PostesRecrutement.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IPosteService PosteService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+
+<PageTitle>Postes & recrutement</PageTitle>
+
+@if (_companies is null)
+{
+    <p>Chargement…</p>
+}
+else if (_companies.Count == 0)
+{
+    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+}
+else
+{
+    <div class="entreprise-header">
+        @if (_companies.Count > 1)
+        {
+            <label>
+                Entreprise active :
+                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+                    @foreach (var company in _companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+            </label>
+        }
+        else
+        {
+            <strong>@_companies[0].Name</strong>
+        }
+    </div>
+
+    <section class="poste-form">
+        <h3>Nouveau poste</h3>
+        <div class="champ">
+            <label>Titre</label>
+            <input @bind="_nouveauTitre" @bind:event="oninput" />
+        </div>
+        <div class="champ">
+            <label>Département</label>
+            <input @bind="_nouveauDepartement" @bind:event="oninput" />
+        </div>
+        <div class="champ">
+            <label>Description</label>
+            <textarea @bind="_nouvelleDescription" @bind:event="oninput" rows="2"></textarea>
+        </div>
+        <button @onclick="CreerPosteAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauTitre)">Créer le poste</button>
+    </section>
+
+    @if (_postes is not null)
+    {
+        <section class="postes-liste">
+            <h3>Postes de l'entreprise</h3>
+            @if (_postes.Count == 0)
+            {
+                <p class="hint">Aucun poste créé pour le moment.</p>
+            }
+            @foreach (var poste in _postes)
+            {
+                <div class="poste-carte">
+                    <div class="poste-entete">
+                        <strong>@poste.Titre</strong>
+                        <span class="statut @(poste.Statut == PosteStatut.Ouvert ? "ouvert" : "ferme")">
+                            @(poste.Statut == PosteStatut.Ouvert ? "Ouvert" : "Fermé")
+                        </span>
+                        <button @onclick="() => ToggleStatutAsync(poste)">
+                            @(poste.Statut == PosteStatut.Ouvert ? "Fermer" : "Rouvrir")
+                        </button>
+                        <button @onclick="() => ToggleCandidaturesAsync(poste.Id)">
+                            @(_posteIdOuvert == poste.Id ? "Masquer les candidatures" : "Voir les candidatures")
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(poste.Departement))
+                    {
+                        <p class="poste-departement">@poste.Departement</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(poste.Description))
+                    {
+                        <p class="poste-description">@poste.Description</p>
+                    }
+
+                    @if (_posteIdOuvert == poste.Id)
+                    {
+                        <div class="candidatures">
+                            @if (_candidatures is null)
+                            {
+                                <p>Chargement des candidatures…</p>
+                            }
+                            else if (_candidatures.Count == 0)
+                            {
+                                <p class="hint">Aucune candidature reçue pour ce poste.</p>
+                            }
+                            else
+                            {
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Candidat (profil)</th>
+                                            <th>Statut</th>
+                                            <th>Compatibilité</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var candidature in _candidatures)
+                                        {
+                                            <tr>
+                                                <td>#@candidature.CandidateProfileId</td>
+                                                <td>
+                                                    <select value="@candidature.Statut" @onchange="e => ChangerStatutCandidatureAsync(candidature.Id, e.Value)">
+                                                        @foreach (var statut in Enum.GetValues<CandidatureStatut>())
+                                                        {
+                                                            <option value="@statut">@statut</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td>@(candidature.ScoreCompatibilite is int score ? $"{score}%" : "—")</td>
+                                                <td>
+                                                    @if (candidature.ScoreCompatibilite is not null)
+                                                    {
+                                                        <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">Détail</a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private List<Company>? _companies;
+    private int _selectedCompanyId;
+    private List<PosteView>? _postes;
+    private int? _posteIdOuvert;
+    private List<CandidatureView>? _candidatures;
+
+    private string _nouveauTitre = "";
+    private string? _nouveauDepartement;
+    private string? _nouvelleDescription;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        if (_companies.Count > 0)
+            await ActivateCompanyAsync(_companies[0]);
+    }
+
+    private async Task ActivateCompanyAsync(Company company)
+    {
+        _selectedCompanyId = company.Id;
+        _posteIdOuvert = null;
+        _candidatures = null;
+        TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+        _postes = (await PosteService.GetPostesAsync()).ToList();
+    }
+
+    private async Task OnCompanyChangedAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var company = _companies!.First(c => c.Id == id);
+            await ActivateCompanyAsync(company);
+        }
+    }
+
+    private async Task CreerPosteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_nouveauTitre)) return;
+
+        await PosteService.CreatePosteAsync(_nouveauTitre, _nouvelleDescription, _nouveauDepartement);
+        _nouveauTitre = "";
+        _nouveauDepartement = null;
+        _nouvelleDescription = null;
+        _postes = (await PosteService.GetPostesAsync()).ToList();
+    }
+
+    private async Task ToggleStatutAsync(PosteView poste)
+    {
+        var nouveauStatut = poste.Statut == PosteStatut.Ouvert ? PosteStatut.Ferme : PosteStatut.Ouvert;
+        await PosteService.SetPosteStatutAsync(poste.Id, nouveauStatut);
+        _postes = (await PosteService.GetPostesAsync()).ToList();
+    }
+
+    private async Task ToggleCandidaturesAsync(int posteId)
+    {
+        if (_posteIdOuvert == posteId)
+        {
+            _posteIdOuvert = null;
+            _candidatures = null;
+            return;
+        }
+
+        _posteIdOuvert = posteId;
+        _candidatures = null;
+        _candidatures = (await PosteService.GetCandidaturesAsync(posteId)).ToList();
+    }
+
+    private async Task ChangerStatutCandidatureAsync(int candidatureId, object? value)
+    {
+        if (value is not null && Enum.TryParse<CandidatureStatut>(value.ToString(), out var statut))
+        {
+            await PosteService.SetCandidatureStatutAsync(candidatureId, statut);
+            if (_posteIdOuvert is int posteId)
+                _candidatures = (await PosteService.GetCandidaturesAsync(posteId)).ToList();
+        }
+    }
+}

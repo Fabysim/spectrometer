@@ -3,10 +3,12 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Compatibilite.Data;
+using Spectrometre.Modules.PostesRecrutement.Data;
 using Spectrometre.Modules.ProfilEntreprise.Data;
 using ProfilCandidatModule = Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions;
 using ProfilEntrepriseModule = Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions;
 using CompatibiliteModule = Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions;
+using PostesRecrutementModule = Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -21,7 +23,8 @@ public sealed class CompanyOnboardingService(
     IModuleRegistry moduleRegistry,
     ITenantSchemaProvisioner schemaProvisioner,
     IDbContextFactory<ProfilEntrepriseDbContext> profilEntrepriseDbFactory,
-    IDbContextFactory<CompatibiliteDbContext> compatibiliteDbFactory)
+    IDbContextFactory<CompatibiliteDbContext> compatibiliteDbFactory,
+    IDbContextFactory<PostesRecrutementDbContext> postesRecrutementDbFactory)
 {
     private const string TemplateSchema = "public";
 
@@ -37,11 +40,15 @@ public sealed class CompanyOnboardingService(
         await using (var compatibiliteDb = await compatibiliteDbFactory.CreateDbContextAsync(cancellationToken))
             await schemaProvisioner.ApplyModuleSchemaAsync(compatibiliteDb, TemplateSchema, company.SchemaName, cancellationToken);
 
+        await using (var postesDb = await postesRecrutementDbFactory.CreateDbContextAsync(cancellationToken))
+            await schemaProvisioner.ApplyModuleSchemaAsync(postesDb, TemplateSchema, company.SchemaName, cancellationToken);
+
         foreach (var manifest in new[]
                  {
                      ProfilCandidatModule.Manifest,
                      ProfilEntrepriseModule.Manifest,
                      CompatibiliteModule.Manifest,
+                     PostesRecrutementModule.Manifest,
                  })
         {
             if (await moduleRegistry.IsActiveAsync(company.Id, manifest.Code, coreDb, cancellationToken))
