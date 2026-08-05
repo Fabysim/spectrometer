@@ -1,0 +1,132 @@
+@page "/candidat/questionnaire"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Spectrometre.Modules.ProfilCandidat.Entities
+@using Spectrometre.Modules.ProfilCandidat.Services
+@inject ICandidateProfileService CandidateProfileService
+
+<PageTitle>Questionnaire candidat</PageTitle>
+
+@if (_questions is null)
+{
+    <p>Chargement…</p>
+}
+else
+{
+    var current = _questions[_currentIndex];
+    var themes = Enum.GetValues<CandidateTheme>();
+
+    <div class="candidat-questionnaire">
+        <aside class="progression">
+            <h3>PROGRESSION</h3>
+            <ul>
+                @foreach (var theme in themes)
+                {
+                    var themeQuestions = _questions.Where(q => q.Theme == theme).ToList();
+                    var allAnswered = themeQuestions.Count > 0 && themeQuestions.All(q => !string.IsNullOrWhiteSpace(q.AnswerText));
+                    <li class="@(theme == current.Theme ? "active" : "")">
+                        @(allAnswered ? "✅" : "◯") @CandidateThemeLabels.ShortLabel(theme)
+                    </li>
+                }
+            </ul>
+        </aside>
+
+        <section class="question-panel">
+            <p class="counter">Question @(_currentIndex + 1) / @_questions.Count</p>
+            <h2>@current.Text</h2>
+
+            <textarea @bind="_currentAnswer" @bind:event="oninput"
+                      placeholder="@ExamplesPlaceholder(current)"
+                      rows="5"></textarea>
+
+            <div class="actions">
+                <button @onclick="PreviousAsync" disabled="@(_currentIndex == 0)">&lt; Précédent</button>
+                <button @onclick="NextAsync">@(_currentIndex == _questions.Count - 1 ? "Terminer" : "Suivant >")</button>
+            </div>
+        </section>
+
+        <aside class="synthese">
+            <h3>SYNTHÈSE DU PROFIL</h3>
+            @if (_synthesis is not null)
+            {
+                @foreach (var (category, tags) in _synthesis.TagsByCategory)
+                {
+                    if (tags.Count == 0) continue;
+                    <div class="synthese-categorie">
+                        <strong>@category</strong>
+                        <div class="tags">
+                            @foreach (var tag in tags)
+                            {
+                                <span class="tag">@tag</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="hint">La synthèse apparaît au fil de vos réponses.</p>
+            }
+        </aside>
+    </div>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private int _candidateProfileId;
+    private List<CandidateQuestionView>? _questions;
+    private int _currentIndex;
+    private string _currentAnswer = "";
+    private CandidateSynthesisView? _synthesis;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _candidateProfileId = await CandidateProfileService.GetOrCreateProfileIdAsync(userId);
+        _questions = (await CandidateProfileService.GetQuestionnaireAsync(_candidateProfileId)).ToList();
+        _synthesis = await CandidateProfileService.GetLastSynthesisAsync(_candidateProfileId);
+        _currentAnswer = _questions.Count > 0 ? _questions[0].AnswerText ?? "" : "";
+    }
+
+    private async Task SaveCurrentAsync()
+    {
+        if (_questions is null) return;
+        var question = _questions[_currentIndex];
+        await CandidateProfileService.SaveAnswerAsync(_candidateProfileId, question.QuestionId, _currentAnswer);
+        _questions[_currentIndex] = question with { AnswerText = _currentAnswer, UpdatedAt = DateTimeOffset.UtcNow };
+        _synthesis = await CandidateProfileService.GenerateSynthesisAsync(_candidateProfileId);
+    }
+
+    private async Task NextAsync()
+    {
+        await SaveCurrentAsync();
+        if (_questions is null) return;
+        if (_currentIndex < _questions.Count - 1)
+        {
+            _currentIndex++;
+            _currentAnswer = _questions[_currentIndex].AnswerText ?? "";
+        }
+    }
+
+    private async Task PreviousAsync()
+    {
+        await SaveCurrentAsync();
+        if (_currentIndex > 0)
+        {
+            _currentIndex--;
+            _currentAnswer = _questions![_currentIndex].AnswerText ?? "";
+        }
+    }
+
+    private static string ExamplesPlaceholder(CandidateQuestionView question) => string.Join(" · ", question.Examples);
+}

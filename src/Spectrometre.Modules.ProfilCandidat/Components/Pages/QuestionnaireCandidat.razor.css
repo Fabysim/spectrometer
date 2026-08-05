@@ -1,0 +1,40 @@
+.candidat-questionnaire {
+    display: grid;
+    grid-template-columns: 220px 1fr 260px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.progression ul {
+    list-style: none;
+    padding: 0;
+}
+
+.progression li {
+    padding: 0.4rem 0;
+}
+
+.progression li.active {
+    font-weight: bold;
+}
+
+.question-panel textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.question-panel .actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.synthese .tag {
+    display: inline-block;
+    background: #e8f0fe;
+    color: #1a3d7c;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    margin: 0.15rem;
+    font-size: 0.85rem;
+}

@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>b94728f0-d4c2-4db7-a8ff-9a2e71c44d03</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <ProjectReference Include="..\Spectrometre.Host.Client\Spectrometre.Host.Client.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Spectrometre.Core\Spectrometre.Core.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.ProfilCandidat\Spectrometre.Modules.ProfilCandidat.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.ProfilEntreprise\Spectrometre.Modules.ProfilEntreprise.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.Compatibilite\Spectrometre.Modules.Compatibilite.csproj" />
+  </ItemGroup>
+
+</Project>

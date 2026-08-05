@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Spectrometre.Core/Spectrometre.Core.csproj" />
+    <Project Path="src/Spectrometre.Host.Client/Spectrometre.Host.Client.csproj" />
+    <Project Path="src/Spectrometre.Host/Spectrometre.Host.csproj" />
+    <Project Path="src/Spectrometre.Modules.Compatibilite/Spectrometre.Modules.Compatibilite.csproj" />
+    <Project Path="src/Spectrometre.Modules.ProfilCandidat/Spectrometre.Modules.ProfilCandidat.csproj" />
+    <Project Path="src/Spectrometre.Modules.ProfilEntreprise/Spectrometre.Modules.ProfilEntreprise.csproj" />
+  </Folder>
+</Solution>

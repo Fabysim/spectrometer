@@ -1,0 +1,128 @@
+@page "/entreprise/profil"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.ProfilEntreprise.Entities
+@using Spectrometre.Modules.ProfilEntreprise.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICompanyProfileService CompanyProfileService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+
+<PageTitle>Profil entreprise</PageTitle>
+
+@if (_companies is null)
+{
+    <p>Chargement…</p>
+}
+else if (_companies.Count == 0)
+{
+    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+}
+else
+{
+    <div class="entreprise-header">
+        @if (_companies.Count > 1)
+        {
+            <label>
+                Entreprise active :
+                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+                    @foreach (var company in _companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+            </label>
+        }
+        else
+        {
+            <strong>@_companies[0].Name</strong>
+        }
+    </div>
+
+    @if (_questions is not null)
+    {
+        var themes = Enum.GetValues<CompanyTheme>();
+
+        <div class="entreprise-tabs">
+            @foreach (var theme in themes)
+            {
+                <button class="@(theme == _activeTheme ? "active" : "")" @onclick="() => _activeTheme = theme">
+                    @CompanyThemeLabels.TabLabel(theme)
+                </button>
+            }
+        </div>
+
+        <div class="entreprise-body">
+            <section class="entreprise-form">
+                <h3>@CompanyThemeLabels.Label(_activeTheme)</h3>
+                @foreach (var question in _questions.Where(q => q.Theme == _activeTheme))
+                {
+                    <div class="question">
+                        <label>@question.Text</label>
+                        <textarea value="@question.AnswerText" @onchange="e => SaveAnswerAsync(question.QuestionId, e.Value?.ToString())" rows="2"></textarea>
+                    </div>
+                }
+            </section>
+
+            <aside class="entreprise-synthese">
+                <h3>SYNTHÈSE ENTREPRISE</h3>
+                <p class="hint">La synthèse (section J) est renseignée directement par l'entreprise dans l'onglet « J. Synthèse ».</p>
+            </aside>
+        </div>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private List<Company>? _companies;
+    private int _selectedCompanyId;
+    private int _companyProfileId;
+    private List<CompanyQuestionView>? _questions;
+    private CompanyTheme _activeTheme = CompanyTheme.Identification;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        if (_companies.Count > 0)
+        {
+            await ActivateCompanyAsync(_companies[0]);
+        }
+    }
+
+    private async Task ActivateCompanyAsync(Company company)
+    {
+        _selectedCompanyId = company.Id;
+        TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+        _companyProfileId = await CompanyProfileService.GetOrCreateProfileIdAsync();
+        _questions = (await CompanyProfileService.GetQuestionnaireAsync(_companyProfileId)).ToList();
+    }
+
+    private async Task OnCompanyChangedAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var company = _companies!.First(c => c.Id == id);
+            await ActivateCompanyAsync(company);
+        }
+    }
+
+    private async Task SaveAnswerAsync(int questionId, string? answerText)
+    {
+        await CompanyProfileService.SaveAnswerAsync(_companyProfileId, questionId, answerText);
+        var index = _questions!.FindIndex(q => q.QuestionId == questionId);
+        _questions[index] = _questions[index] with { AnswerText = answerText, UpdatedAt = DateTimeOffset.UtcNow };
+    }
+}

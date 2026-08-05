@@ -1,0 +1,24 @@
+﻿@inherits LayoutComponentBase
+
+<nav class="main-nav">
+    <a href="/">Accueil</a>
+    <a href="/candidat/questionnaire">Questionnaire candidat</a>
+    <a href="/entreprise/creer">Créer une entreprise</a>
+    <a href="/entreprise/profil">Profil entreprise</a>
+    <AuthorizeView>
+        <Authorized>
+            <span>Connecté</span>
+        </Authorized>
+        <NotAuthorized>
+            <a href="/login">Connexion</a>
+        </NotAuthorized>
+    </AuthorizeView>
+</nav>
+
+@Body
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

@@ -1,0 +1,43 @@
+.resultat-compatibilite {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.score-global {
+    text-align: center;
+}
+
+.score-label {
+    font-weight: bold;
+    color: #1a3d7c;
+}
+
+.axe-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 50px;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.barre {
+    background: #e6e6e6;
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.barre-remplie {
+    background: #1a3d7c;
+    height: 100%;
+}
+
+.points-vigilance {
+    margin-top: 1.5rem;
+    background: #fdecea;
+    border: 1px solid #f5c2bd;
+    border-radius: 8px;
+    padding: 1rem;
+}

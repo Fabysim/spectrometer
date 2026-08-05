@@ -1,0 +1,40 @@
+.entreprise-tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.entreprise-tabs button {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #ccd6f6;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.entreprise-tabs button.active {
+    background: #1a3d7c;
+    color: white;
+}
+
+.entreprise-body {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 1.5rem;
+}
+
+.question {
+    margin-bottom: 1rem;
+}
+
+.question label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.question textarea {
+    width: 100%;
+    box-sizing: border-box;
+}

@@ -1,0 +1,53 @@
+@page "/entreprise/creer"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Host.Onboarding
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject CompanyOnboardingService OnboardingService
+@inject CoreDbContext CoreDb
+@inject NavigationManager Navigation
+
+<PageTitle>Créer une entreprise</PageTitle>
+
+<h1>Créer une entreprise</h1>
+
+<EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="create-company">
+    <label>Nom de l'entreprise <InputText @bind-Value="_model.Name" /></label>
+    <button type="submit">Créer</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <p>@_message</p>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private readonly CompanyModel _model = new();
+    private string? _message;
+
+    private sealed class CompanyModel
+    {
+        public string Name { get; set; } = "";
+    }
+
+    private async Task SubmitAsync()
+    {
+        var userId = AuthenticationStateTask is not null
+            ? (await AuthenticationStateTask).User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            : null;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            _message = "Utilisateur non authentifié.";
+            return;
+        }
+
+        await OnboardingService.CreateCompanyAsync(_model.Name, userId, CoreDb);
+        Navigation.NavigateTo("/entreprise/profil");
+    }
+}
