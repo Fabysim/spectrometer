@@ -5,6 +5,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
+using Spectrometre.Core.Tenancy;
 using Spectrometre.Host.Components;
 using Spectrometre.Host.Onboarding;
 using Spectrometre.Modules.Compatibilite;
@@ -76,6 +77,13 @@ using (var startupScope = app.Services.CreateScope())
     {
         profilCandidatDb.Database.Migrate();
     }
+
+    // Comble rétroactivement le schéma de tout module tenant-scopé marqué actif pour une entreprise
+    // existante mais pas encore provisionné (ex. une entreprise créée avant l'ajout d'un module) — voir
+    // TenantSchemaSynchronizer. Remplace les scripts one-off manuels utilisés jusqu'ici à chaque nouveau
+    // module. Exécuté AVANT RecruitmentIndexBackfill, qui lit des schémas que cette synchronisation vient
+    // de garantir présents.
+    await TenantSchemaSynchronizer.SyncAllAsync(startupScope.ServiceProvider, TenantSchemaModuleCatalog.Modules);
 
     await RecruitmentIndexBackfill.RunAsync(startupScope.ServiceProvider);
 }

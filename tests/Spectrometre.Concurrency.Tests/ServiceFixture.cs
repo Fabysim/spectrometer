@@ -110,12 +110,35 @@ public sealed class ServiceFixture : IAsyncLifetime
     }
 
     /// <summary>
+    /// Catalogue local des modules tenant-scopés, même principe que
+    /// <c>Spectrometre.Host.Onboarding.TenantSchemaModuleCatalog</c> (le projet de test ne référence pas
+    /// Host) — utilisé à la fois par <see cref="CreateCompanyAsync"/> et par les tests de synchronisation.
+    /// </summary>
+    public static readonly IReadOnlyList<TenantSchemaModule> TenantModules =
+    [
+        new(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest.Code,
+            async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<ProfilEntrepriseDbContext>>().CreateDbContextAsync(ct)),
+        new(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest.Code,
+            async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<CompatibiliteDbContext>>().CreateDbContextAsync(ct)),
+        new(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest.Code,
+            async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>().CreateDbContextAsync(ct)),
+        new(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest.Code,
+            async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync(ct)),
+    ];
+
+    /// <summary>
     /// Crée une entreprise de test complète : schéma provisionné, propriétaire lié (<c>UserCompanyLink</c>),
-    /// et modules ProfilEntreprise + PostesRecrutement activés — le strict nécessaire pour que
+    /// et tous les modules tenant-scopés activés — le strict nécessaire pour que
     /// <c>CandidatureExistenceChecker</c> puisse réellement trouver une candidature dans ce tenant.
     /// </summary>
-    public async Task<Company> CreateCompanyAsync(string name, string ownerUserId)
+    /// <param name="skipSchemaForModuleCodes">
+    /// Codes de module à activer SANS provisionner leur schéma — simule une entreprise "en retard" (module
+    /// actif mais schéma jamais appliqué), pour tester <c>TenantSchemaSynchronizer</c>.
+    /// </param>
+    public async Task<Company> CreateCompanyAsync(string name, string ownerUserId, IReadOnlyCollection<string>? skipSchemaForModuleCodes = null)
     {
+        skipSchemaForModuleCodes ??= [];
+
         using var scope = Services.CreateScope();
         var provisioning = scope.ServiceProvider.GetRequiredService<ICompanyProvisioningService>();
         var moduleRegistry = scope.ServiceProvider.GetRequiredService<IModuleRegistry>();
@@ -124,17 +147,14 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         var company = await provisioning.CreateCompanyAsync(name, ownerUserId, coreDb);
 
-        await using (var entrepriseDb = await Services.GetRequiredService<IDbContextFactory<ProfilEntrepriseDbContext>>().CreateDbContextAsync())
-            await provisioner.ApplyModuleSchemaAsync(entrepriseDb, "public", company.SchemaName);
+        foreach (var module in TenantModules)
+        {
+            if (skipSchemaForModuleCodes.Contains(module.ModuleCode))
+                continue;
 
-        await using (var compatibiliteDb = await Services.GetRequiredService<IDbContextFactory<CompatibiliteDbContext>>().CreateDbContextAsync())
-            await provisioner.ApplyModuleSchemaAsync(compatibiliteDb, "public", company.SchemaName);
-
-        await using (var postesDb = await Services.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>().CreateDbContextAsync())
-            await provisioner.ApplyModuleSchemaAsync(postesDb, "public", company.SchemaName);
-
-        await using (var entretienDb = await Services.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync())
-            await provisioner.ApplyModuleSchemaAsync(entretienDb, "public", company.SchemaName);
+            await using var db = await module.CreateDbContextAsync(Services, default);
+            await provisioner.ApplyModuleSchemaAsync(db, "public", company.SchemaName);
+        }
 
         // Ordre imposé par les dépendances déclarées aux manifestes (Compatibilite requiert ProfilCandidat
         // + ProfilEntreprise ; PostesRecrutement requiert ProfilEntreprise ; Entretien requiert Compatibilite).

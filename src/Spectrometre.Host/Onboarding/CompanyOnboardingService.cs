@@ -2,10 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Tenancy;
-using Spectrometre.Modules.Compatibilite.Data;
-using Spectrometre.Modules.Entretien.Data;
-using Spectrometre.Modules.PostesRecrutement.Data;
-using Spectrometre.Modules.ProfilEntreprise.Data;
 using ProfilCandidatModule = Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions;
 using ProfilEntrepriseModule = Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions;
 using CompatibiliteModule = Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions;
@@ -17,18 +13,20 @@ namespace Spectrometre.Host.Onboarding;
 
 /// <summary>
 /// Orchestration de la création d'une entreprise : ne peut vivre que dans Host, seul projet qui
-/// référence à la fois le noyau et les modules tenant-scopés. Active par défaut les 3 modules du
-/// premier cycle pour chaque nouvelle entreprise (voir consigne : « les 3 modules seront activés
-/// ensemble pour tous les tenants » pour ce cycle).
+/// référence à la fois le noyau et les modules tenant-scopés. Active par défaut tous les modules connus
+/// pour chaque nouvelle entreprise (dans l'ordre de dépendance de leur manifeste).
 /// </summary>
+/// <remarks>
+/// Le provisionnement de schéma boucle sur <see cref="TenantSchemaModuleCatalog"/> plutôt que d'injecter
+/// une <c>IDbContextFactory&lt;TContext&gt;</c> par module — c'est cette liste unique (partagée avec
+/// <c>TenantSchemaSynchronizer</c>, exécuté au démarrage pour les entreprises déjà existantes) qui évite
+/// de dupliquer le code à chaque nouveau module tenant-scopé.
+/// </remarks>
 public sealed class CompanyOnboardingService(
     ICompanyProvisioningService companyProvisioningService,
     IModuleRegistry moduleRegistry,
     ITenantSchemaProvisioner schemaProvisioner,
-    IDbContextFactory<ProfilEntrepriseDbContext> profilEntrepriseDbFactory,
-    IDbContextFactory<CompatibiliteDbContext> compatibiliteDbFactory,
-    IDbContextFactory<PostesRecrutementDbContext> postesRecrutementDbFactory,
-    IDbContextFactory<EntretienDbContext> entretienDbFactory)
+    IServiceProvider serviceProvider)
 {
     private const string TemplateSchema = "public";
 
@@ -38,17 +36,11 @@ public sealed class CompanyOnboardingService(
 
         // Applique le schéma (tables) de chaque module tenant-scopé au nouveau schéma — voir la limite documentée sur ITenantSchemaProvisioner.
         // Instances fraîches (schéma "gabarit" par défaut) via la factory, indépendamment de tout tenant déjà actif dans ce scope.
-        await using (var profilEntrepriseDb = await profilEntrepriseDbFactory.CreateDbContextAsync(cancellationToken))
-            await schemaProvisioner.ApplyModuleSchemaAsync(profilEntrepriseDb, TemplateSchema, company.SchemaName, cancellationToken);
-
-        await using (var compatibiliteDb = await compatibiliteDbFactory.CreateDbContextAsync(cancellationToken))
-            await schemaProvisioner.ApplyModuleSchemaAsync(compatibiliteDb, TemplateSchema, company.SchemaName, cancellationToken);
-
-        await using (var postesDb = await postesRecrutementDbFactory.CreateDbContextAsync(cancellationToken))
-            await schemaProvisioner.ApplyModuleSchemaAsync(postesDb, TemplateSchema, company.SchemaName, cancellationToken);
-
-        await using (var entretienDb = await entretienDbFactory.CreateDbContextAsync(cancellationToken))
-            await schemaProvisioner.ApplyModuleSchemaAsync(entretienDb, TemplateSchema, company.SchemaName, cancellationToken);
+        foreach (var module in TenantSchemaModuleCatalog.Modules)
+        {
+            await using var db = await module.CreateDbContextAsync(serviceProvider, cancellationToken);
+            await schemaProvisioner.ApplyModuleSchemaAsync(db, TemplateSchema, company.SchemaName, cancellationToken);
+        }
 
         foreach (var manifest in new[]
                  {
