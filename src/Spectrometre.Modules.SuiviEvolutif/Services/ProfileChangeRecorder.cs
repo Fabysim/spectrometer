@@ -21,12 +21,21 @@ namespace Spectrometre.Modules.SuiviEvolutif.Services;
 /// <see cref="Spectrometre.Core.Suivi.NoOpProfileChangeRecorder"/>, mais décidé ICI par tenant plutôt que
 /// globalement). Un appel sans changement réel (ancienne == nouvelle valeur) n'écrit rien.
 /// </remarks>
+/// <remarks>
+/// <see cref="CoreDbContext"/> est obtenu via <see cref="IDbContextFactory{TContext}"/>, PAS injecté
+/// directement : ce recorder est appelé depuis <c>ToggleTagAsync</c>/etc., elles-mêmes potentiellement
+/// invoquées par deux gestionnaires d'évènements Blazor Server qui se chevauchent (même raison que partout
+/// ailleurs dans la solution — voir <c>CandidateProfileService</c>). Un <c>CoreDbContext</c> partagé
+/// (scoped, injecté directement) planterait avec « A second operation was started on this context
+/// instance… » dès que deux appels concurrents l'utilisent en même temps — détecté par
+/// <c>ConcurrentTagToggles_OnCompanyGrid_LoseNoUpdate</c> une fois ce test étendu pour ce cycle.
+/// </remarks>
 public sealed class ProfileChangeRecorder(
     IDbContextFactory<SuiviEvolutifCandidatDbContext> candidatDbFactory,
     IDbContextFactory<SuiviEvolutifEntrepriseDbContext> entrepriseDbFactory,
     ITenantContext tenantContext,
     IModuleRegistry moduleRegistry,
-    CoreDbContext coreDb) : IProfileChangeRecorder
+    IDbContextFactory<CoreDbContext> coreDbFactory) : IProfileChangeRecorder
 {
     public async Task RecordChangeAsync(
         int ownerId,
@@ -57,6 +66,8 @@ public sealed class ProfileChangeRecorder(
 
         if (tenantContext.ActiveCompanyId is not int companyId)
             return;
+
+        await using var coreDb = await coreDbFactory.CreateDbContextAsync(cancellationToken);
         if (!await moduleRegistry.IsActiveAsync(companyId, "SuiviEvolutif", coreDb, cancellationToken))
             return;
 

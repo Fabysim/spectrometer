@@ -23,14 +23,23 @@ public static class ServiceCollectionExtensions
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' introuvable.");
 
-        services.AddDbContext<CoreDbContext>(options =>
+        Action<DbContextOptionsBuilder> configureCoreDbContext = options =>
         {
             options.ReplaceService<IModelCacheKeyFactory, TenantModelCacheKeyFactory>();
             // Table d'historique des migrations dédiée : par défaut EF Core la place dans "public" pour
             // TOUS les DbContext (HasDefaultSchema ne s'applique pas à __EFMigrationsHistory), ce qui les
             // fait tous partager la même table malgré des schémas différents. Chaque module fixe la sienne.
             options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "core"));
-        });
+        };
+
+        services.AddDbContext<CoreDbContext>(configureCoreDbContext);
+        // En PLUS de l'injection directe ci-dessus (utilisée partout ailleurs — pages Razor, etc., où un
+        // seul CoreDbContext par circuit suffit) : une factory pour les consommateurs qui doivent créer une
+        // instance fraîche à chaque appel plutôt que de partager celle du circuit — ex. IProfileChangeRecorder,
+        // appelé depuis des mutations qui peuvent se chevaucher (deux cases cochées coup sur coup), où un
+        // CoreDbContext scoped partagé planterait ("A second operation was started on this context
+        // instance…"), même raison que pour tous les DbContext tenant-scopés de la solution.
+        services.AddDbContextFactory<CoreDbContext>(configureCoreDbContext);
 
         services.AddIdentityCore<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddRoles<IdentityRole>()

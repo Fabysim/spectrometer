@@ -59,28 +59,65 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
 
     public async Task SaveAnswerAsync(int candidateProfileId, int questionId, string? answerText, CancellationToken cancellationToken = default)
     {
-        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var (oldValue, newValue, questionLabel) = await MutateAnswerAsync(candidateProfileId, questionId, answerText, cancellationToken);
 
-        var answer = await db.CandidateAnswers
-            .FirstOrDefaultAsync(a => a.CandidateProfileId == candidateProfileId && a.QuestionId == questionId, cancellationToken);
+        // Libellé lisible (le texte de la question, jamais l'identifiant technique) — cohérent avec ce
+        // qu'affiche déjà /candidat/historique pour les axes de la grille H (ex. "Compétences techniques").
+        // IProfileChangeRecorder ignore lui-même l'appel si ancienneValeur == nouvelleValeur (ex. l'utilisateur
+        // navigue entre les questions sans rien changer) — pas besoin de le revérifier ici.
+        await changeRecorder.RecordChangeAsync(candidateProfileId, ProfileOwnerType.Candidat, questionLabel, oldValue, newValue, DateTimeOffset.UtcNow, cancellationToken);
+    }
 
-        if (answer is null)
+    /// <summary>
+    /// Même stratégie de concurrence que <see cref="MutateCriteriaAsync"/> (voir son commentaire détaillé) :
+    /// mutation ciblée sur la seule réponse concernée, jeton xmin sur <c>CandidateAnswer</c>, relecture +
+    /// réapplication en cas de conflit. Une réponse texte perdue par écriture concurrente est le même bug
+    /// de perte de mise à jour que sur la grille H, pas un cas à part.
+    /// </summary>
+    private async Task<(string? Old, string? New, string QuestionLabel)> MutateAnswerAsync(int candidateProfileId, int questionId, string? answerText, CancellationToken cancellationToken)
+    {
+        const int maxAttempts = 30;
+        var random = Random.Shared;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            db.CandidateAnswers.Add(new CandidateAnswer
+            await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
+            var question = await db.CandidateQuestions.AsNoTracking().FirstOrDefaultAsync(q => q.Id == questionId, cancellationToken);
+            var questionLabel = question?.Text ?? $"Question #{questionId}";
+
+            var answer = await db.CandidateAnswers
+                .FirstOrDefaultAsync(a => a.CandidateProfileId == candidateProfileId && a.QuestionId == questionId, cancellationToken);
+
+            var isNew = answer is null;
+            var oldValue = answer?.AnswerText;
+
+            if (answer is null)
             {
-                CandidateProfileId = candidateProfileId,
-                QuestionId = questionId,
-                AnswerText = answerText,
-                UpdatedAt = DateTimeOffset.UtcNow,
-            });
-        }
-        else
-        {
+                answer = new CandidateAnswer { CandidateProfileId = candidateProfileId, QuestionId = questionId };
+                db.CandidateAnswers.Add(answer);
+            }
+
             answer.AnswerText = answerText;
             answer.UpdatedAt = DateTimeOffset.UtcNow;
+
+            try
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                return (oldValue, answerText, questionLabel);
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
+            {
+                await Task.Delay(random.Next(5, 30), cancellationToken);
+            }
+            catch (DbUpdateException ex) when (isNew && attempt < maxAttempts && IsUniqueViolation(ex))
+            {
+                await Task.Delay(random.Next(5, 30), cancellationToken);
+            }
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        throw new InvalidOperationException(
+            $"Impossible d'enregistrer la réponse du candidat {candidateProfileId} à la question {questionId} après {maxAttempts} tentatives (conflits de concurrence répétés).");
     }
 
     private static readonly Dictionary<CandidateTheme, SynthesisCategory> ThemeToCategory = new()

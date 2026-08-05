@@ -8,6 +8,7 @@ using Spectrometre.Modules.ProfilCandidat.Data;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Spectrometre.Modules.ProfilEntreprise.Data;
 using Spectrometre.Modules.ProfilEntreprise.Services;
+using Spectrometre.Modules.SuiviEvolutif.Services;
 using Xunit;
 
 namespace Spectrometre.Concurrency.Tests;
@@ -170,6 +171,44 @@ public sealed class CriteriaConcurrencyTests(ServiceFixture fixture)
 
         await CleanupCandidateAsync(candidateProfileId);
         await CleanupCompanyAsync(companyProfileId);
+    }
+
+    [Fact]
+    public async Task ConcurrentSaveAnswerAsync_OnSameQuestion_LosesNoWrite()
+    {
+        // SaveAnswerAsync n'avait, avant ce correctif, aucune protection de concurrence (contrairement à
+        // ToggleTagAsync/SetRythmeTravailAsync/SetNotesAsync) : même bug potentiel qu'avant le correctif de
+        // la grille H, jamais couvert par un test. Contrairement à un tag (une LISTE où plusieurs éléments
+        // concurrents coexistent), une réponse est un champ SCALAIRE : un seul texte peut « gagner » à la
+        // fin, ce n'est pas un bug. Ce qui SERAIT un bug : une exception (le correctif ne convergerait pas
+        // sous contention), un état final ne correspondant à AUCUNE des valeurs tentées (corruption), ou un
+        // appel concurrent silencieusement absent de l'historique (une modification qui disparaît sans trace).
+        var candidateService = fixture.Services.GetRequiredService<ICandidateProfileService>();
+        var userId = $"test-concurrency-reponse-{Guid.NewGuid()}";
+        var candidateProfileId = await candidateService.GetOrCreateProfileIdAsync(userId);
+
+        var questions = await candidateService.GetQuestionnaireAsync(candidateProfileId);
+        var questionId = questions[0].QuestionId;
+
+        var valeurs = Enumerable.Range(0, 8).Select(i => $"Réponse concurrente n°{i}").ToList();
+        var actions = valeurs
+            .Select(valeur => (Func<Task>)(() => candidateService.SaveAnswerAsync(candidateProfileId, questionId, valeur)))
+            .ToList();
+
+        await RunConcurrentlyAsync(actions); // Ne doit lever aucune exception malgré la forte contention.
+
+        var questionnaireApres = await candidateService.GetQuestionnaireAsync(candidateProfileId);
+        var reponseFinale = questionnaireApres.Single(q => q.QuestionId == questionId).AnswerText;
+        Assert.Contains(reponseFinale, valeurs); // État final valide : une des valeurs tentées, jamais une valeur corrompue/partielle.
+
+        var historique = await fixture.Services.GetRequiredService<ISuiviEvolutifService>()
+            .GetHistoriqueCandidatAsync(candidateProfileId);
+        // Chaque tentative concurrente qui a réellement écrit doit laisser une trace — aucune ne doit
+        // disparaître silencieusement, même si une seule "gagne" au final sur le profil vivant.
+        Assert.Equal(valeurs.Count, historique.Count);
+        Assert.All(historique, entree => Assert.Contains(entree.NouvelleValeur, valeurs));
+
+        await CleanupCandidateAsync(candidateProfileId);
     }
 
     private static int ExpectedJaccardScore(IReadOnlyList<string> a, IReadOnlyList<string> b)

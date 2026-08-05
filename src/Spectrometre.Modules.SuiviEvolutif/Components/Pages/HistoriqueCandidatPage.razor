@@ -59,12 +59,19 @@ else
     /// <summary>
     /// Phrase en langage courant — jamais de nom de champ technique. Pour un axe à tags, ancienne/nouvelle
     /// valeur sont la liste complète avant/après (pas seulement le tag modifié) : afficher l'état complet
-    /// des deux côtés reste honnête et lisible, plutôt que de prétendre isoler « le » changement.
+    /// des deux côtés reste honnête et lisible, plutôt que de prétendre isoler « le » changement. Les
+    /// réponses au questionnaire étant du texte libre potentiellement long, les valeurs affichées sont
+    /// tronquées (voir <see cref="Tronquer"/>) — jamais la donnée stockée elle-même, qui reste complète en base.
     /// </summary>
     private static string Phrase(HistoriqueEntreeView entree)
     {
-        var ancien = string.IsNullOrEmpty(entree.AncienneValeur) ? "(aucun)" : entree.AncienneValeur;
-        var nouveau = string.IsNullOrEmpty(entree.NouvelleValeur) ? "(aucun)" : entree.NouvelleValeur;
+        var ancien = string.IsNullOrEmpty(entree.AncienneValeur) ? "(aucun)" : Tronquer(entree.AncienneValeur);
+        var nouveau = string.IsNullOrEmpty(entree.NouvelleValeur) ? "(aucun)" : Tronquer(entree.NouvelleValeur);
         return $"{entree.Description} : « {ancien} » → « {nouveau} ».";
     }
+
+    private const int LongueurMaxAffichage = 120;
+
+    private static string Tronquer(string valeur) =>
+        valeur.Length <= LongueurMaxAffichage ? valeur : valeur[..LongueurMaxAffichage] + "…";
 }

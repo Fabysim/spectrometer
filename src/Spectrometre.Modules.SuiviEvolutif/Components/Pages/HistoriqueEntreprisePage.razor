@@ -113,8 +113,14 @@ else
 
     private static string Phrase(HistoriqueEntreeView entree)
     {
-        var ancien = string.IsNullOrEmpty(entree.AncienneValeur) ? "(aucun)" : entree.AncienneValeur;
-        var nouveau = string.IsNullOrEmpty(entree.NouvelleValeur) ? "(aucun)" : entree.NouvelleValeur;
+        var ancien = string.IsNullOrEmpty(entree.AncienneValeur) ? "(aucun)" : Tronquer(entree.AncienneValeur);
+        var nouveau = string.IsNullOrEmpty(entree.NouvelleValeur) ? "(aucun)" : Tronquer(entree.NouvelleValeur);
         return $"{entree.Description} : « {ancien} » → « {nouveau} ».";
     }
+
+    // Voir le commentaire équivalent sur HistoriqueCandidatPage.razor : affichage seulement, jamais la donnée stockée.
+    private const int LongueurMaxAffichage = 120;
+
+    private static string Tronquer(string valeur) =>
+        valeur.Length <= LongueurMaxAffichage ? valeur : valeur[..LongueurMaxAffichage] + "…";
 }

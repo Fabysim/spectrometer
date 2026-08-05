@@ -48,6 +48,46 @@ public sealed class SuiviEvolutifTests(ServiceFixture fixture)
     }
 
     [Fact]
+    public async Task SaveAnswerAsync_EstTraceDansLHistoriqueAvecLeTexteDeLaQuestion()
+    {
+        using var scope = fixture.Services.CreateScope();
+        var candidateUserId = $"suivi-test-candidat-reponse-{Guid.NewGuid()}";
+        var candidateService = scope.ServiceProvider.GetRequiredService<ICandidateProfileService>();
+        var candidateProfileId = await candidateService.GetOrCreateProfileIdAsync(candidateUserId);
+
+        var questions = await candidateService.GetQuestionnaireAsync(candidateProfileId);
+        var premiereQuestion = questions[0];
+
+        await candidateService.SaveAnswerAsync(candidateProfileId, premiereQuestion.QuestionId, "J'aime résoudre des problèmes techniques complexes.");
+
+        var historique = await scope.ServiceProvider.GetRequiredService<ISuiviEvolutifService>()
+            .GetHistoriqueCandidatAsync(candidateProfileId);
+
+        var entree = Assert.Single(historique);
+        // Le champ est le TEXTE de la question (pas "QuestionId=1") — cohérent avec ce qu'affiche déjà
+        // /candidat/historique pour les axes de la grille H (ex. "Compétences techniques").
+        Assert.Equal(premiereQuestion.Text, entree.Description);
+        Assert.Null(entree.AncienneValeur);
+        Assert.Equal("J'aime résoudre des problèmes techniques complexes.", entree.NouvelleValeur);
+
+        // Modifier la réponse génère une DEUXIÈME entrée, avec l'ancienne réponse en tant qu'ancienne valeur.
+        await candidateService.SaveAnswerAsync(candidateProfileId, premiereQuestion.QuestionId, "J'aime aussi enseigner ce que j'ai appris.");
+        var historiqueApres = await scope.ServiceProvider.GetRequiredService<ISuiviEvolutifService>()
+            .GetHistoriqueCandidatAsync(candidateProfileId);
+
+        Assert.Equal(2, historiqueApres.Count);
+        Assert.Equal("J'aime résoudre des problèmes techniques complexes.", historiqueApres[0].AncienneValeur);
+        Assert.Equal("J'aime aussi enseigner ce que j'ai appris.", historiqueApres[0].NouvelleValeur);
+
+        // Ré-enregistrer EXACTEMENT la même réponse (ex. navigation Suivant/Précédent sans rien changer) ne
+        // doit générer AUCUNE nouvelle entrée — voir IProfileChangeRecorder (no-op si ancienne == nouvelle).
+        await candidateService.SaveAnswerAsync(candidateProfileId, premiereQuestion.QuestionId, "J'aime aussi enseigner ce que j'ai appris.");
+        var historiqueInchange = await scope.ServiceProvider.GetRequiredService<ISuiviEvolutifService>()
+            .GetHistoriqueCandidatAsync(candidateProfileId);
+        Assert.Equal(2, historiqueInchange.Count);
+    }
+
+    [Fact]
     public async Task SetRythmeTravailAsync_CoteEntreprise_EstTraceSiSuiviEvolutifActif()
     {
         var suffix = Guid.NewGuid();

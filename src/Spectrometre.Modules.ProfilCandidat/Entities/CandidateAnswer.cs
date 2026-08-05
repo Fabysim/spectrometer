@@ -1,8 +1,9 @@
 namespace Spectrometre.Modules.ProfilCandidat.Entities;
 
 /// <summary>
-/// Réponse d'un candidat à une question. <see cref="UpdatedAt"/> est la traçabilité temporelle
-/// demandée en prévision du futur module « Suivi évolutif » (non implémenté ici).
+/// Réponse d'un candidat à une question. Chaque changement est tracé par le module Suivi Évolutif
+/// (via <c>IProfileChangeRecorder</c>, appelé depuis <c>CandidateProfileService.SaveAnswerAsync</c>) —
+/// <see cref="UpdatedAt"/> reste la traçabilité locale minimale (horodatage de la dernière modification).
 /// </summary>
 public sealed class CandidateAnswer
 {

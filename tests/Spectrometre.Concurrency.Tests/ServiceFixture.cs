@@ -57,11 +57,15 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         var services = new ServiceCollection();
 
-        services.AddDbContext<CoreDbContext>(options =>
+        Action<DbContextOptionsBuilder> configureCoreDbContext = options =>
         {
             options.ReplaceService<IModelCacheKeyFactory, TenantModelCacheKeyFactory>();
             options.UseNpgsql(ConnectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "core"));
-        });
+        };
+        services.AddDbContext<CoreDbContext>(configureCoreDbContext);
+        // Voir Spectrometre.Core.ServiceCollectionExtensions.AddSpectrometreCore : IProfileChangeRecorder a
+        // besoin d'une instance fraîche par appel (pas le CoreDbContext scoped partagé par circuit).
+        services.AddDbContextFactory<CoreDbContext>(configureCoreDbContext);
         services.AddSingleton<ITenantSchemaNameGenerator, TenantSchemaNameGenerator>();
         services.AddScoped<ICompanyProvisioningService, CompanyProvisioningService>();
         services.AddScoped<ITenantSchemaProvisioner, TenantSchemaProvisioner>();

@@ -40,6 +40,10 @@ public sealed class ProfilCandidatDbContext(DbContextOptions<ProfilCandidatDbCon
         builder.Entity<CandidateAnswer>(e =>
         {
             e.HasIndex(a => new { a.CandidateProfileId, a.QuestionId }).IsUnique();
+            // Même jeton de concurrence optimiste que CandidateCompatibilityCriteria (voir son commentaire) —
+            // une réponse texte perdue par écriture concurrente serait le même bug de perte de mise à jour,
+            // pas juste un oubli cosmétique. Voir CandidateProfileService.MutateAnswerAsync.
+            e.Property<uint>("Version").IsRowVersion();
         });
 
         builder.Entity<CandidateCompatibilityCriteria>(e =>
