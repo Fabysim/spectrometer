@@ -8,6 +8,8 @@ using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Compatibilite.Data;
+using Spectrometre.Modules.Entretien;
+using Spectrometre.Modules.Entretien.Data;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Data;
 using Spectrometre.Modules.PostesRecrutement.Services;
@@ -67,6 +69,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddProfilEntrepriseModule(config);
         services.AddCompatibiliteModule(config);
         services.AddPostesRecrutementModule(config);
+        services.AddEntretienModule(config);
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
         // PostesRecrutement mais enregistrée ici (pas depuis Compatibilite).
@@ -81,6 +84,7 @@ public sealed class ServiceFixture : IAsyncLifetime
             moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
 
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
             await coreDb.Database.MigrateAsync();
@@ -100,6 +104,9 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         await using var postesDb = await Services.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>().CreateDbContextAsync();
         await postesDb.Database.MigrateAsync();
+
+        await using var entretienDb = await Services.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync();
+        await entretienDb.Database.MigrateAsync();
     }
 
     /// <summary>
@@ -126,12 +133,16 @@ public sealed class ServiceFixture : IAsyncLifetime
         await using (var postesDb = await Services.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>().CreateDbContextAsync())
             await provisioner.ApplyModuleSchemaAsync(postesDb, "public", company.SchemaName);
 
+        await using (var entretienDb = await Services.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync())
+            await provisioner.ApplyModuleSchemaAsync(entretienDb, "public", company.SchemaName);
+
         // Ordre imposé par les dépendances déclarées aux manifestes (Compatibilite requiert ProfilCandidat
-        // + ProfilEntreprise ; PostesRecrutement requiert ProfilEntreprise).
+        // + ProfilEntreprise ; PostesRecrutement requiert ProfilEntreprise ; Entretien requiert Compatibilite).
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest.Code, coreDb);
+        await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest.Code, coreDb);
 
         return company;
     }

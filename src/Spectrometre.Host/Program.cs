@@ -8,6 +8,7 @@ using Spectrometre.Core.Recruitment;
 using Spectrometre.Host.Components;
 using Spectrometre.Host.Onboarding;
 using Spectrometre.Modules.Compatibilite;
+using Spectrometre.Modules.Entretien;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
@@ -28,6 +29,7 @@ builder.Services.AddProfilEntrepriseModule(builder.Configuration);
 builder.Services.AddCompatibiliteModule(builder.Configuration);
 builder.Services.AddPostesRecrutementModule(builder.Configuration);
 builder.Services.AddVivierModule();
+builder.Services.AddEntretienModule(builder.Configuration);
 
 // Inversion de dépendance : Compatibilite consomme ICandidatureExistenceChecker (défini dans Core) sans
 // connaître son implémentation. C'est ICI, dans Host — le seul projet qui référence à la fois Compatibilite
@@ -59,6 +61,7 @@ using (var startupScope = app.Services.CreateScope())
     moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Vivier.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
 
     // Migrations appliquées globalement pour le noyau et Profil Candidat (schémas fixes, non tenant-scopés).
     // Profil Entreprise / Compatibilité sont tenant-scopés : leur schéma est appliqué par tenant lors
@@ -103,6 +106,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.Vivier.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.Vivier.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.Entretien.ServiceCollectionExtensions).Assembly);
 
 app.Run();

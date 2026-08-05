@@ -133,6 +133,8 @@ else
                                                     @if (candidature.ScoreCompatibilite is not null)
                                                     {
                                                         <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">Détail</a>
+                                                        <text> · </text>
+                                                        <a href="@($"/entretien/{candidature.CandidateProfileId}")">Préparer l'entretien</a>
                                                     }
                                                 </td>
                                             </tr>

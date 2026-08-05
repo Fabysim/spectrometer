@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.18" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Dépendance manifeste UNIQUE : Compatibilite. Pas de référence vers PostesRecrutement ni Vivier —
+         ce module n'a pas besoin de connaître la notion de poste ou de candidature, seulement un résultat
+         de compatibilité déjà calculé (et son accès déjà autorisé, voir EntretienService). -->
+    <ProjectReference Include="..\Spectrometre.Core\Spectrometre.Core.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.Compatibilite\Spectrometre.Modules.Compatibilite.csproj" />
+  </ItemGroup>
+
+</Project>

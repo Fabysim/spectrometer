@@ -4,11 +4,21 @@ namespace Spectrometre.Modules.Compatibilite.Services;
 
 public sealed record AxisScoreView(CompatibilityAxis Axis, int Score);
 
+/// <summary>
+/// <see cref="PointsVigilanceTagsPartages"/>, <see cref="RythmeCandidat"/> et <see cref="RythmeEntreprise"/>
+/// exposent les valeurs BRUTES (pas de phrase déjà formatée) derrière <see cref="PointsDeVigilance"/> et
+/// l'axe organisationnel — nécessaires à un consommateur qui doit paramétrer son propre contenu à partir
+/// de ces données (ex. <c>Spectrometre.Modules.Entretien</c>, qui génère des questions ciblées) sans avoir
+/// à reparser des phrases destinées à l'affichage humain.
+/// </summary>
 public sealed record CompatibiliteResultView(
     int ScoreGlobal,
     IReadOnlyList<AxisScoreView> ScoresParAxe,
     IReadOnlyList<string> PointsDeVigilance,
-    DateTimeOffset CalculatedAt);
+    DateTimeOffset CalculatedAt,
+    IReadOnlyList<string> PointsVigilanceTagsPartages,
+    int? RythmeCandidat,
+    int? RythmeEntreprise);
 
 /// <summary>
 /// Service public du module Moteur de Compatibilité. Ne lit jamais directement les DbContext de

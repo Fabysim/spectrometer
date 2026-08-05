@@ -32,6 +32,27 @@ public sealed partial class TenantSchemaProvisioner : ITenantSchemaProvisioner
         var schemaPrefix = new Regex($@"\b{Regex.Escape(templateSchemaName)}\.(?="")");
         var scoped = schemaPrefix.Replace(script, $"{targetSchemaName}.");
 
-        await moduleDbContext.Database.ExecuteSqlRawAsync(scoped, cancellationToken);
+        // Exécuté via la connexion ADO.NET brute plutôt que Database.ExecuteSqlRawAsync : cette dernière
+        // traite le texte SQL comme une chaîne de format composite (elle interprète tout "{...}" comme un
+        // espace réservé de paramètre, même sans paramètre fourni) — or des données seed peuvent tout à
+        // fait contenir des accolades littérales dans du texte (ex. les gabarits de questions du module
+        // Entretien, qui utilisent la syntaxe "{tag}" pour leurs propres paramètres). GenerateCreateScript()
+        // ne produit aucune valeur destinée à être formatée : on l'exécute donc tel quel, sans passer par
+        // ce mécanisme de formatage inadapté ici.
+        var connection = moduleDbContext.Database.GetDbConnection();
+        var wasClosed = connection.State != System.Data.ConnectionState.Open;
+        if (wasClosed)
+            await connection.OpenAsync(cancellationToken);
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = scoped;
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+        finally
+        {
+            if (wasClosed)
+                await connection.CloseAsync();
+        }
     }
 }

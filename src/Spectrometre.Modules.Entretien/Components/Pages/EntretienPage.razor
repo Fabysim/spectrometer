@@ -1,0 +1,122 @@
+@page "/entretien/{CandidateProfileId:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.Entretien.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IEntretienService EntretienService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+
+<PageTitle>Préparer l'entretien</PageTitle>
+
+@if (!_resolu)
+{
+    <p>Génération en cours…</p>
+}
+else if (_grille is null)
+{
+    @* Réponse volontairement générique — même principe que /compatibilite/resultat/{id} : ne jamais
+       confirmer l'existence d'une ressource à un utilisateur qui n'y a pas droit. *@
+    <p class="hint">Grille d'entretien introuvable.</p>
+}
+else if (_grille.Groupes.Count == 0)
+{
+    <h1>Préparer l'entretien</h1>
+    <p class="hint">
+        Score global @(_grille.ScoreGlobal)% — aucun axe sous le seuil et aucun point de vigilance partagé
+        détecté : pas de question ciblée à générer pour ce profil.
+    </p>
+}
+else
+{
+    <h1>Préparer l'entretien</h1>
+    <p class="hint">
+        Score global @(_grille.ScoreGlobal)% — questions générées à partir des axes sous le seuil et des
+        points de vigilance partagés, dans les deux sens.
+    </p>
+
+    <div class="entretien-colonnes">
+        <section class="entretien-colonne">
+            <h2>Questions pour le candidat</h2>
+            <p class="hint">À poser par l'entreprise, pour éclaircir chaque écart.</p>
+            @foreach (var groupe in _grille.Groupes)
+            {
+                @if (groupe.QuestionsPourCandidat.Count > 0)
+                {
+                    <div class="groupe-questions">
+                        <div class="groupe-entete">
+                            <strong>@groupe.Titre</strong>
+                        </div>
+                        <ul>
+                            @foreach (var question in groupe.QuestionsPourCandidat)
+                            {
+                                <li>@question</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            }
+        </section>
+
+        <section class="entretien-colonne">
+            <h2>Questions à poser par le candidat</h2>
+            <p class="hint">Pour éclaircir ce même écart, du point de vue du candidat.</p>
+            @foreach (var groupe in _grille.Groupes)
+            {
+                @if (groupe.QuestionsPourEntreprise.Count > 0)
+                {
+                    <div class="groupe-questions">
+                        <div class="groupe-entete">
+                            <strong>@groupe.Titre</strong>
+                        </div>
+                        <ul>
+                            @foreach (var question in groupe.QuestionsPourEntreprise)
+                            {
+                                <li>@question</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            }
+        </section>
+    </div>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+    [Parameter] public int CandidateProfileId { get; set; }
+
+    private bool _resolu;
+    private GrilleEntretienView? _grille;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = AuthenticationStateTask is not null
+            ? (await AuthenticationStateTask).User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            : null;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            _resolu = true;
+            return;
+        }
+
+        // Même confort de navigation que ResultatCompatibilite.razor — la décision d'autorisation elle-même
+        // est prise par CompatibiliteService (via IEntretienService.GenererGrilleAsync), qui cherche au
+        // besoin parmi toutes les entreprises gérées par l'utilisateur, pas seulement celle-ci.
+        if (TenantContext.ActiveCompanyId is null)
+        {
+            var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
+            if (companies.Count > 0)
+                TenantContext.SetActiveCompany(companies[0].Id, companies[0].SchemaName);
+        }
+
+        _grille = await EntretienService.GenererGrilleAsync(CandidateProfileId, userId);
+        _resolu = true;
+    }
+}

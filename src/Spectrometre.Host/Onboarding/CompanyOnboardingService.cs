@@ -3,6 +3,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Compatibilite.Data;
+using Spectrometre.Modules.Entretien.Data;
 using Spectrometre.Modules.PostesRecrutement.Data;
 using Spectrometre.Modules.ProfilEntreprise.Data;
 using ProfilCandidatModule = Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions;
@@ -10,6 +11,7 @@ using ProfilEntrepriseModule = Spectrometre.Modules.ProfilEntreprise.ServiceColl
 using CompatibiliteModule = Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions;
 using PostesRecrutementModule = Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions;
 using VivierModule = Spectrometre.Modules.Vivier.ServiceCollectionExtensions;
+using EntretienModule = Spectrometre.Modules.Entretien.ServiceCollectionExtensions;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -25,7 +27,8 @@ public sealed class CompanyOnboardingService(
     ITenantSchemaProvisioner schemaProvisioner,
     IDbContextFactory<ProfilEntrepriseDbContext> profilEntrepriseDbFactory,
     IDbContextFactory<CompatibiliteDbContext> compatibiliteDbFactory,
-    IDbContextFactory<PostesRecrutementDbContext> postesRecrutementDbFactory)
+    IDbContextFactory<PostesRecrutementDbContext> postesRecrutementDbFactory,
+    IDbContextFactory<EntretienDbContext> entretienDbFactory)
 {
     private const string TemplateSchema = "public";
 
@@ -44,6 +47,9 @@ public sealed class CompanyOnboardingService(
         await using (var postesDb = await postesRecrutementDbFactory.CreateDbContextAsync(cancellationToken))
             await schemaProvisioner.ApplyModuleSchemaAsync(postesDb, TemplateSchema, company.SchemaName, cancellationToken);
 
+        await using (var entretienDb = await entretienDbFactory.CreateDbContextAsync(cancellationToken))
+            await schemaProvisioner.ApplyModuleSchemaAsync(entretienDb, TemplateSchema, company.SchemaName, cancellationToken);
+
         foreach (var manifest in new[]
                  {
                      ProfilCandidatModule.Manifest,
@@ -53,6 +59,7 @@ public sealed class CompanyOnboardingService(
                      // Vivier n'a pas de schéma propre (voir son ServiceCollectionExtensions) — rien à
                      // provisionner via ITenantSchemaProvisioner, seulement l'activation ci-dessous.
                      VivierModule.Manifest,
+                     EntretienModule.Manifest,
                  })
         {
             if (await moduleRegistry.IsActiveAsync(company.Id, manifest.Code, coreDb, cancellationToken))

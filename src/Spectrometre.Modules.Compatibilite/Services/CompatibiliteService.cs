@@ -92,7 +92,8 @@ public sealed class CompatibiliteService(
         db.CompatibilityResults.Add(result);
         await db.SaveChangesAsync(cancellationToken);
 
-        return ToView(result, scores);
+        var sharedVigilanceTags = StructuredCriteriaScorer.SharedVigilanceTags(candidateVigilance, companyVigilance);
+        return ToView(result, scores, sharedVigilanceTags, candidateCriteria?.RythmeTravail, companyCriteria?.RythmeTravail);
     }
 
     public async Task<CompatibiliteResultView?> GetDernierResultatAsync(int candidateProfileId, int companyProfileId, CancellationToken cancellationToken = default)
@@ -118,7 +119,15 @@ public sealed class CompatibiliteService(
             [CompatibilityAxis.Motivationnelle] = result.ScoreMotivationnelle,
         };
 
-        return ToView(result, scores);
+        // Le résultat stocké ne conserve que les scores et les phrases déjà formatées (VigilancePoints) —
+        // pas les valeurs brutes. On les recalcule à la volée à partir des critères actuels (comme le fait
+        // déjà CalculerCompatibiliteAsync), plutôt que d'étendre le schéma de persistance pour ce cycle.
+        var candidateCriteria = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
+        var companyCriteria = await companyProfileService.GetCompatibilityCriteriaAsync(companyProfileId, cancellationToken);
+        var sharedVigilanceTags = StructuredCriteriaScorer.SharedVigilanceTags(
+            candidateCriteria?.PointsVigilanceTags ?? [], companyCriteria?.PointsVigilanceTags ?? []);
+
+        return ToView(result, scores, sharedVigilanceTags, candidateCriteria?.RythmeTravail, companyCriteria?.RythmeTravail);
     }
 
     /// <summary>
@@ -165,10 +174,18 @@ public sealed class CompatibiliteService(
         return null;
     }
 
-    private static CompatibiliteResultView ToView(CompatibilityResult result, Dictionary<CompatibilityAxis, int> scores) =>
+    private static CompatibiliteResultView ToView(
+        CompatibilityResult result,
+        Dictionary<CompatibilityAxis, int> scores,
+        IReadOnlyList<string> sharedVigilanceTags,
+        int? rythmeCandidat,
+        int? rythmeEntreprise) =>
         new(
             result.ScoreGlobal,
             scores.Select(kv => new AxisScoreView(kv.Key, kv.Value)).ToList(),
             result.VigilancePoints.Select(v => v.Text).ToList(),
-            result.CalculatedAt);
+            result.CalculatedAt,
+            sharedVigilanceTags,
+            rythmeCandidat,
+            rythmeEntreprise);
 }
