@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Pas de DbContext propre à ce module : Vivier lit exclusivement l'index partagé du noyau
+         (Spectrometre.Core.Recruitment.IRecruitmentIndexService), jamais de schéma/table à lui —
+         voir le résumé final pour cette simplification. -->
+    <ProjectReference Include="..\Spectrometre.Core\Spectrometre.Core.csproj" />
+    <!-- Uniquement pour la page de détail candidat (lecture de la grille H) — voir la garde de
+         confidentialité dans VivierService avant tout accès. -->
+    <ProjectReference Include="..\Spectrometre.Modules.ProfilCandidat\Spectrometre.Modules.ProfilCandidat.csproj" />
+  </ItemGroup>
+
+</Project>

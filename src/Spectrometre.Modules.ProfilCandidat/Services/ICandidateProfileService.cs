@@ -1,3 +1,4 @@
+using Spectrometre.Core.Compatibility;
 using Spectrometre.Modules.ProfilCandidat.Entities;
 
 namespace Spectrometre.Modules.ProfilCandidat.Services;
@@ -44,7 +45,16 @@ public interface ICandidateProfileService
 
     Task<CandidateSynthesisView?> GetLastSynthesisAsync(int candidateProfileId, CancellationToken cancellationToken = default);
 
-    Task SaveCompatibilityCriteriaAsync(int candidateProfileId, CandidateCompatibilityCriteriaView criteria, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Coche/décoche UN tag sur UN axe de la grille (mutation ciblée, protégée contre les écritures
+    /// concurrentes — voir l'implémentation). <paramref name="field"/> doit être un axe à tags
+    /// (pas <see cref="CriteriaField.Organisationnelle"/>, qui n'a qu'un rythme, voir <see cref="SetRythmeTravailAsync"/>).
+    /// </summary>
+    Task ToggleTagAsync(int candidateProfileId, CriteriaField field, string tag, bool isChecked, CancellationToken cancellationToken = default);
+
+    Task SetRythmeTravailAsync(int candidateProfileId, int? rythme, CancellationToken cancellationToken = default);
+
+    Task SetNotesAsync(int candidateProfileId, CriteriaField field, string? notes, CancellationToken cancellationToken = default);
 
     /// <summary>Utilisé exclusivement par le Moteur de Compatibilité pour lire les critères déclarés par le candidat.</summary>
     Task<CandidateCompatibilityCriteriaView?> GetCompatibilityCriteriaAsync(int candidateProfileId, CancellationToken cancellationToken = default);

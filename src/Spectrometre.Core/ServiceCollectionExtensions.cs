@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
 
 namespace Spectrometre.Core;
@@ -41,6 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICompanyProvisioningService, CompanyProvisioningService>();
         services.AddScoped<ITenantSchemaProvisioner, TenantSchemaProvisioner>();
         services.AddSingleton<IModuleRegistry, ModuleRegistry>();
+        services.AddScoped<IRecruitmentIndexService, RecruitmentIndexService>();
 
         return services;
     }

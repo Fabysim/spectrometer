@@ -1,0 +1,107 @@
+.vivier-layout {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.vivier-filtres {
+    flex: 0 0 220px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.filtre-champ {
+    margin-bottom: 1rem;
+}
+
+.filtre-champ label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.tag-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tag-checkbox {
+    font-weight: normal;
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.vivier-candidats {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.candidat-carte {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    max-width: 640px;
+}
+
+.candidat-carte.hors-filtre {
+    opacity: 0.45;
+}
+
+.candidat-entete {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.poste-origine {
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.score {
+    margin-left: auto;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+}
+
+.score-eleve { background: #e3f5e9; color: #1e7a34; }
+.score-moyen { background: #fff6e0; color: #8a6d00; }
+.score-faible { background: #fbe6e6; color: #a3312f; }
+.score-inconnu { background: #eee; color: #666; }
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0.5rem 0;
+}
+
+.tags .tag {
+    background: #f0f0f0;
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    font-size: 0.85rem;
+}
+
+.tags .tag-actif {
+    background: #d6e8ff;
+    color: #1a3d7c;
+}
+
+.candidat-pied {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.candidat-pied .statut {
+    color: #555;
+}

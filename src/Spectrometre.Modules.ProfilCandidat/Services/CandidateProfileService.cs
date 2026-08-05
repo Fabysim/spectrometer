@@ -1,13 +1,24 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Compatibility;
 using Spectrometre.Modules.ProfilCandidat.Data;
 using Spectrometre.Modules.ProfilCandidat.Entities;
 
 namespace Spectrometre.Modules.ProfilCandidat.Services;
 
-public sealed class CandidateProfileService(ProfilCandidatDbContext db) : ICandidateProfileService
+/// <summary>
+/// Instancie un <see cref="ProfilCandidatDbContext"/> frais à chaque opération via
+/// <see cref="IDbContextFactory{TContext}"/> plutôt que d'injecter le DbContext directement — même si ce
+/// contexte n'est pas tenant-scopé, une instance UNIQUE partagée pour tout le circuit Blazor Server serait
+/// utilisée concurremment par deux gestionnaires d'évènements qui se chevauchent (ex. deux cases de la
+/// grille H cochées rapidement l'une après l'autre, avant que la première sauvegarde n'ait terminé) —
+/// ce qu'EF Core interdit explicitement sur une même instance de DbContext.
+/// </summary>
+public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbContext> dbFactory) : ICandidateProfileService
 {
     public async Task<int> GetOrCreateProfileIdAsync(string userId, CancellationToken cancellationToken = default)
     {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
         var existing = await db.CandidateProfiles.FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
         if (existing is not null)
             return existing.Id;
@@ -20,6 +31,8 @@ public sealed class CandidateProfileService(ProfilCandidatDbContext db) : ICandi
 
     public async Task<IReadOnlyList<CandidateQuestionView>> GetQuestionnaireAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
         var answers = await db.CandidateAnswers
             .Where(a => a.CandidateProfileId == candidateProfileId)
             .ToDictionaryAsync(a => a.QuestionId, cancellationToken);
@@ -45,6 +58,8 @@ public sealed class CandidateProfileService(ProfilCandidatDbContext db) : ICandi
 
     public async Task SaveAnswerAsync(int candidateProfileId, int questionId, string? answerText, CancellationToken cancellationToken = default)
     {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
         var answer = await db.CandidateAnswers
             .FirstOrDefaultAsync(a => a.CandidateProfileId == candidateProfileId && a.QuestionId == questionId, cancellationToken);
 
@@ -86,6 +101,8 @@ public sealed class CandidateProfileService(ProfilCandidatDbContext db) : ICandi
     /// </summary>
     public async Task<CandidateSynthesisView> GenerateSynthesisAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
         var questions = await db.CandidateQuestions.AsNoTracking().ToListAsync(cancellationToken);
         var answers = await db.CandidateAnswers
             .AsNoTracking()
@@ -129,6 +146,8 @@ public sealed class CandidateProfileService(ProfilCandidatDbContext db) : ICandi
 
     public async Task<CandidateSynthesisView?> GetLastSynthesisAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
         var tags = await db.CandidateSynthesisTags
             .AsNoTracking()
             .Where(t => t.CandidateProfileId == candidateProfileId)
@@ -144,36 +163,123 @@ public sealed class CandidateProfileService(ProfilCandidatDbContext db) : ICandi
         return new CandidateSynthesisView(byCategory, DateTimeOffset.UtcNow);
     }
 
-    public async Task SaveCompatibilityCriteriaAsync(int candidateProfileId, CandidateCompatibilityCriteriaView criteria, CancellationToken cancellationToken = default)
-    {
-        var entity = await db.CandidateCompatibilityCriteria
-            .FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);
-
-        if (entity is null)
+    public async Task ToggleTagAsync(int candidateProfileId, CriteriaField field, string tag, bool isChecked, CancellationToken cancellationToken = default) =>
+        await MutateCriteriaAsync(candidateProfileId, entity =>
         {
-            entity = new CandidateCompatibilityCriteria { CandidateProfileId = candidateProfileId };
-            db.CandidateCompatibilityCriteria.Add(entity);
+            var tags = TagsFor(entity, field);
+            if (isChecked) { if (!tags.Contains(tag)) tags.Add(tag); }
+            else tags.Remove(tag);
+        }, cancellationToken);
+
+    public async Task SetRythmeTravailAsync(int candidateProfileId, int? rythme, CancellationToken cancellationToken = default) =>
+        await MutateCriteriaAsync(candidateProfileId, entity => entity.RythmeTravail = rythme, cancellationToken);
+
+    public async Task SetNotesAsync(int candidateProfileId, CriteriaField field, string? notes, CancellationToken cancellationToken = default) =>
+        await MutateCriteriaAsync(candidateProfileId, entity => SetNotesFor(entity, field, notes), cancellationToken);
+
+    private static List<string> TagsFor(CandidateCompatibilityCriteria entity, CriteriaField field) => field switch
+    {
+        CriteriaField.Technique => entity.TechniqueTags,
+        CriteriaField.Comportementale => entity.ComportementaleTags,
+        CriteriaField.Culturelle => entity.CulturelleTags,
+        CriteriaField.Motivationnelle => entity.MotivationnelleTags,
+        CriteriaField.PointsVigilance => entity.PointsVigilanceTags,
+        _ => throw new ArgumentOutOfRangeException(nameof(field), field, "L'axe organisationnel n'a pas de tags — seulement un rythme de travail (1-5)."),
+    };
+
+    private static void SetNotesFor(CandidateCompatibilityCriteria entity, CriteriaField field, string? notes)
+    {
+        switch (field)
+        {
+            case CriteriaField.Technique: entity.TechniqueNotes = notes; break;
+            case CriteriaField.Comportementale: entity.ComportementaleNotes = notes; break;
+            case CriteriaField.Culturelle: entity.CulturelleNotes = notes; break;
+            case CriteriaField.Organisationnelle: entity.OrganisationnelleNotes = notes; break;
+            case CriteriaField.Motivationnelle: entity.MotivationnelleNotes = notes; break;
+            case CriteriaField.PointsVigilance: entity.PointsVigilanceNotes = notes; break;
+            default: throw new ArgumentOutOfRangeException(nameof(field), field, null);
+        }
+    }
+
+    /// <summary>
+    /// Applique une mutation CIBLÉE (un tag, le rythme, ou une note — jamais toute la grille) sur la ligne
+    /// de critères du candidat, avec relecture + réapplication en cas de conflit de concurrence.
+    /// </summary>
+    /// <remarks>
+    /// Correctif de la perte de mise à jour observée quand deux cases de la grille H sont cochées coup sur
+    /// coup : l'ancienne <c>SaveCompatibilityCriteriaAsync</c> relisait puis réécrivait TOUTE la grille à
+    /// chaque case cochée — deux appels concurrents pouvaient alors s'écraser mutuellement selon l'ordre
+    /// d'achèvement de leur écriture, même si chacun avait "raison" au moment de sa lecture.
+    /// <para/>
+    /// Ici, chaque appel ne modifie QUE le champ concerné (<paramref name="applyChange"/> est une mutation
+    /// isolée, pas un instantané complet), et la ligne est protégée par un jeton de concurrence optimiste
+    /// (colonne système Postgres <c>xmin</c>, voir <c>ProfilCandidatDbContext</c>). Si <c>SaveChangesAsync</c>
+    /// détecte qu'un autre appel a modifié la ligne entre notre lecture et notre écriture
+    /// (<see cref="DbUpdateConcurrencyException"/>), on relit l'état à jour depuis la base et on
+    /// RÉAPPLIQUE la même mutation ciblée par-dessus, au lieu d'écraser aveuglément avec un instantané
+    /// devenu obsolète. Une violation de contrainte unique (<see cref="PostgresErrorCodes.UniqueViolation"/>)
+    /// couvre le cas plus rare où deux créations concurrentes de la ligne (candidat n'ayant encore aucun
+    /// critère enregistré) tentent chacune un INSERT — un jeton de concurrence ne protège que l'UPDATE.
+    /// </remarks>
+    private async Task MutateCriteriaAsync(int candidateProfileId, Action<CandidateCompatibilityCriteria> applyChange, CancellationToken cancellationToken)
+    {
+        // maxAttempts volontairement généreux : sous forte contention (ex. test de concurrence avec une
+        // dizaine d'écritures simultanées sur la MÊME ligne), chaque conflit ne coûte qu'un aller-retour DB
+        // supplémentaire — on privilégie la certitude de convergence à la performance dans le pire cas,
+        // qui reste un scénario de charge très supérieur à un usage réel (clics humains, jamais 10 à la fois).
+        const int maxAttempts = 30;
+        var random = Random.Shared;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
+            var entity = await db.CandidateCompatibilityCriteria
+                .FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);
+
+            var isNew = entity is null;
+            if (entity is null)
+            {
+                entity = new CandidateCompatibilityCriteria { CandidateProfileId = candidateProfileId };
+                db.CandidateCompatibilityCriteria.Add(entity);
+            }
+
+            applyChange(entity);
+            entity.UpdatedAt = DateTimeOffset.UtcNow;
+
+            try
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                return;
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
+            {
+                // Une autre écriture a modifié la ligne entre notre lecture et notre écriture : on
+                // réessaie avec une lecture fraîche, la mutation ciblée sera réappliquée par-dessus.
+                // Petit délai aléatoire pour désynchroniser les tentatives concurrentes (évite que tous
+                // les appelants en conflit ne retentent exactement au même instant, ce qui ferait
+                // reconverger le même conflit indéfiniment sous forte contention).
+                await Task.Delay(random.Next(5, 30), cancellationToken);
+            }
+            catch (DbUpdateException ex) when (isNew && attempt < maxAttempts && IsUniqueViolation(ex))
+            {
+                // Course à la création : un autre appel a inséré la ligne en premier — on réessaie,
+                // le prochain tour la trouvera et fera un UPDATE au lieu d'un INSERT.
+                await Task.Delay(random.Next(5, 30), cancellationToken);
+            }
         }
 
-        entity.TechniqueTags = criteria.TechniqueTags.ToList();
-        entity.ComportementaleTags = criteria.ComportementaleTags.ToList();
-        entity.CulturelleTags = criteria.CulturelleTags.ToList();
-        entity.RythmeTravail = criteria.RythmeTravail;
-        entity.MotivationnelleTags = criteria.MotivationnelleTags.ToList();
-        entity.PointsVigilanceTags = criteria.PointsVigilanceTags.ToList();
-        entity.TechniqueNotes = criteria.TechniqueNotes;
-        entity.ComportementaleNotes = criteria.ComportementaleNotes;
-        entity.CulturelleNotes = criteria.CulturelleNotes;
-        entity.OrganisationnelleNotes = criteria.OrganisationnelleNotes;
-        entity.MotivationnelleNotes = criteria.MotivationnelleNotes;
-        entity.PointsVigilanceNotes = criteria.PointsVigilanceNotes;
-        entity.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await db.SaveChangesAsync(cancellationToken);
+        throw new InvalidOperationException(
+            $"Impossible d'enregistrer les critères de compatibilité du candidat {candidateProfileId} après {maxAttempts} tentatives (conflits de concurrence répétés).");
     }
+
+    private static bool IsUniqueViolation(DbUpdateException ex) =>
+        ex.InnerException is Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation };
 
     public async Task<CandidateCompatibilityCriteriaView?> GetCompatibilityCriteriaAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
         var entity = await db.CandidateCompatibilityCriteria
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);

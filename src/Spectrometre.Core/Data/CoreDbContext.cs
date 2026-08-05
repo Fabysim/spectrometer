@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Billing;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
 
 namespace Spectrometre.Core.Data;
@@ -18,6 +19,8 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     public DbSet<UserCompanyLink> UserCompanyLinks => Set<UserCompanyLink>();
     public DbSet<ModuleActivation> ModuleActivations => Set<ModuleActivation>();
     public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
+    public DbSet<PosteIndexEntry> PosteIndexEntries => Set<PosteIndexEntry>();
+    public DbSet<CandidatureIndexEntry> CandidatureIndexEntries => Set<CandidatureIndexEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -42,6 +45,19 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
         builder.Entity<ModuleActivation>(e =>
         {
             e.HasIndex(a => new { a.CompanyId, a.ModuleCode }).IsUnique();
+        });
+
+        builder.Entity<PosteIndexEntry>(e =>
+        {
+            e.HasIndex(p => new { p.CompanyId, p.PosteId }).IsUnique();
+            e.HasIndex(p => p.Statut);
+        });
+
+        builder.Entity<CandidatureIndexEntry>(e =>
+        {
+            // CompanyId fait partie de la clé : PosteId seul n'est pas global (voir CandidatureIndexEntry).
+            e.HasIndex(c => new { c.CompanyId, c.PosteId, c.CandidateProfileId }).IsUnique();
+            e.HasIndex(c => c.CandidateProfileId);
         });
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Compatibility;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.ProfilEntreprise.Data;
 using Spectrometre.Modules.ProfilEntreprise.Entities;
@@ -78,35 +79,97 @@ public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbCo
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task SaveCompatibilityCriteriaAsync(int companyProfileId, CompanyCompatibilityCriteriaView criteria, CancellationToken cancellationToken = default)
-    {
-        await using var db = await CreateDbAsync(cancellationToken);
-
-        var entity = await db.CompanyCompatibilityCriteria
-            .FirstOrDefaultAsync(c => c.CompanyProfileId == companyProfileId, cancellationToken);
-
-        if (entity is null)
+    public async Task ToggleTagAsync(int companyProfileId, CriteriaField field, string tag, bool isChecked, CancellationToken cancellationToken = default) =>
+        await MutateCriteriaAsync(companyProfileId, entity =>
         {
-            entity = new CompanyCompatibilityCriteria { CompanyProfileId = companyProfileId };
-            db.CompanyCompatibilityCriteria.Add(entity);
+            var tags = TagsFor(entity, field);
+            if (isChecked) { if (!tags.Contains(tag)) tags.Add(tag); }
+            else tags.Remove(tag);
+        }, cancellationToken);
+
+    public async Task SetRythmeTravailAsync(int companyProfileId, int? rythme, CancellationToken cancellationToken = default) =>
+        await MutateCriteriaAsync(companyProfileId, entity => entity.RythmeTravail = rythme, cancellationToken);
+
+    public async Task SetNotesAsync(int companyProfileId, CriteriaField field, string? notes, CancellationToken cancellationToken = default) =>
+        await MutateCriteriaAsync(companyProfileId, entity => SetNotesFor(entity, field, notes), cancellationToken);
+
+    private static List<string> TagsFor(CompanyCompatibilityCriteria entity, CriteriaField field) => field switch
+    {
+        CriteriaField.Technique => entity.TechniqueTags,
+        CriteriaField.Comportementale => entity.ComportementaleTags,
+        CriteriaField.Culturelle => entity.CulturelleTags,
+        CriteriaField.Motivationnelle => entity.MotivationnelleTags,
+        CriteriaField.PointsVigilance => entity.PointsVigilanceTags,
+        _ => throw new ArgumentOutOfRangeException(nameof(field), field, "L'axe organisationnel n'a pas de tags — seulement un rythme de travail (1-5)."),
+    };
+
+    private static void SetNotesFor(CompanyCompatibilityCriteria entity, CriteriaField field, string? notes)
+    {
+        switch (field)
+        {
+            case CriteriaField.Technique: entity.TechniqueNotes = notes; break;
+            case CriteriaField.Comportementale: entity.ComportementaleNotes = notes; break;
+            case CriteriaField.Culturelle: entity.CulturelleNotes = notes; break;
+            case CriteriaField.Organisationnelle: entity.OrganisationnelleNotes = notes; break;
+            case CriteriaField.Motivationnelle: entity.MotivationnelleNotes = notes; break;
+            case CriteriaField.PointsVigilance: entity.PointsVigilanceNotes = notes; break;
+            default: throw new ArgumentOutOfRangeException(nameof(field), field, null);
+        }
+    }
+
+    /// <summary>
+    /// Voir le commentaire détaillé sur <c>CandidateProfileService.MutateCriteriaAsync</c> (module Profil
+    /// Candidat) : même correctif de perte de mise à jour, même stratégie (mutation ciblée sur un seul
+    /// champ + jeton de concurrence optimiste xmin + relecture/réapplication en cas de conflit). Ce
+    /// service utilisait déjà <see cref="IDbContextFactory{TContext}"/> (instance fraîche par appel, pour
+    /// le multi-tenant) : le bug ici était donc purement une course entre plusieurs requêtes concurrentes,
+    /// pas un usage concurrent d'un même DbContext.
+    /// </summary>
+    private async Task MutateCriteriaAsync(int companyProfileId, Action<CompanyCompatibilityCriteria> applyChange, CancellationToken cancellationToken)
+    {
+        // Voir le commentaire équivalent côté CandidateProfileService.MutateCriteriaAsync : maxAttempts
+        // généreux + délai aléatoire entre tentatives pour désynchroniser les conflits sous forte contention.
+        const int maxAttempts = 30;
+        var random = Random.Shared;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            await using var db = await CreateDbAsync(cancellationToken);
+
+            var entity = await db.CompanyCompatibilityCriteria
+                .FirstOrDefaultAsync(c => c.CompanyProfileId == companyProfileId, cancellationToken);
+
+            var isNew = entity is null;
+            if (entity is null)
+            {
+                entity = new CompanyCompatibilityCriteria { CompanyProfileId = companyProfileId };
+                db.CompanyCompatibilityCriteria.Add(entity);
+            }
+
+            applyChange(entity);
+            entity.UpdatedAt = DateTimeOffset.UtcNow;
+
+            try
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                return;
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
+            {
+                await Task.Delay(random.Next(5, 30), cancellationToken);
+            }
+            catch (DbUpdateException ex) when (isNew && attempt < maxAttempts && IsUniqueViolation(ex))
+            {
+                await Task.Delay(random.Next(5, 30), cancellationToken);
+            }
         }
 
-        entity.TechniqueTags = criteria.TechniqueTags.ToList();
-        entity.ComportementaleTags = criteria.ComportementaleTags.ToList();
-        entity.CulturelleTags = criteria.CulturelleTags.ToList();
-        entity.RythmeTravail = criteria.RythmeTravail;
-        entity.MotivationnelleTags = criteria.MotivationnelleTags.ToList();
-        entity.PointsVigilanceTags = criteria.PointsVigilanceTags.ToList();
-        entity.TechniqueNotes = criteria.TechniqueNotes;
-        entity.ComportementaleNotes = criteria.ComportementaleNotes;
-        entity.CulturelleNotes = criteria.CulturelleNotes;
-        entity.OrganisationnelleNotes = criteria.OrganisationnelleNotes;
-        entity.MotivationnelleNotes = criteria.MotivationnelleNotes;
-        entity.PointsVigilanceNotes = criteria.PointsVigilanceNotes;
-        entity.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await db.SaveChangesAsync(cancellationToken);
+        throw new InvalidOperationException(
+            $"Impossible d'enregistrer les critères de compatibilité de l'entreprise {companyProfileId} après {maxAttempts} tentatives (conflits de concurrence répétés).");
     }
+
+    private static bool IsUniqueViolation(DbUpdateException ex) =>
+        ex.InnerException is Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation };
 
     public async Task<CompanyCompatibilityCriteriaView?> GetCompatibilityCriteriaAsync(int companyProfileId, CancellationToken cancellationToken = default)
     {

@@ -30,7 +30,14 @@ public sealed class ProfilEntrepriseDbContext(DbContextOptions<ProfilEntrepriseD
 
         builder.Entity<CompanyQuestion>(e => e.HasIndex(q => q.Number).IsUnique());
         builder.Entity<CompanyAnswer>(e => e.HasIndex(a => new { a.CompanyProfileId, a.QuestionId }).IsUnique());
-        builder.Entity<CompanyCompatibilityCriteria>(e => e.HasIndex(c => c.CompanyProfileId).IsUnique());
+        builder.Entity<CompanyCompatibilityCriteria>(e =>
+        {
+            e.HasIndex(c => c.CompanyProfileId).IsUnique();
+            // Voir le commentaire équivalent côté ProfilCandidatDbContext : jeton de concurrence optimiste
+            // (uint fantôme + IsRowVersion, auto-détecté par le provider Npgsql et mappé sur la colonne
+            // système "xmin"), utilisé par CompanyProfileService pour détecter puis résoudre les écritures concurrentes.
+            e.Property<uint>("Version").IsRowVersion();
+        });
 
         SeedQuestionnaire(builder);
     }

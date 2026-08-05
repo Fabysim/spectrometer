@@ -99,12 +99,12 @@ else
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.TechniqueTags.Contains(tag)"
-                                           @onchange="e => ToggleTagAsync(_grille.TechniqueTags, tag, (bool)e.Value!)" />
+                                           @onchange="e => ToggleTagAsync(CriteriaField.Technique, _grille.TechniqueTags, tag, (bool)e.Value!)" />
                                     @tag
                                 </label>
                             }
                         </div>
-                        <textarea @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                        <textarea @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Technique, e.Value?.ToString())"
                                   placeholder="Notes libres (optionnel — sert à l'entretien, n'entre pas dans le calcul)" rows="2"></textarea>
                     </div>
 
@@ -116,12 +116,12 @@ else
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.ComportementaleTags.Contains(tag)"
-                                           @onchange="e => ToggleTagAsync(_grille.ComportementaleTags, tag, (bool)e.Value!)" />
+                                           @onchange="e => ToggleTagAsync(CriteriaField.Comportementale, _grille.ComportementaleTags, tag, (bool)e.Value!)" />
                                     @tag
                                 </label>
                             }
                         </div>
-                        <textarea @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                        <textarea @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Comportementale, e.Value?.ToString())"
                                   placeholder="Notes libres (optionnel)" rows="2"></textarea>
                     </div>
 
@@ -133,12 +133,12 @@ else
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.CulturelleTags.Contains(tag)"
-                                           @onchange="e => ToggleTagAsync(_grille.CulturelleTags, tag, (bool)e.Value!)" />
+                                           @onchange="e => ToggleTagAsync(CriteriaField.Culturelle, _grille.CulturelleTags, tag, (bool)e.Value!)" />
                                     @tag
                                 </label>
                             }
                         </div>
-                        <textarea @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                        <textarea @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Culturelle, e.Value?.ToString())"
                                   placeholder="Notes libres (optionnel)" rows="2"></textarea>
                     </div>
 
@@ -152,7 +152,7 @@ else
                                 <option value="@valeur">@valeur — @libelle</option>
                             }
                         </select>
-                        <textarea @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                        <textarea @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Organisationnelle, e.Value?.ToString())"
                                   placeholder="Notes libres (optionnel)" rows="2"></textarea>
                     </div>
 
@@ -164,12 +164,12 @@ else
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.MotivationnelleTags.Contains(tag)"
-                                           @onchange="e => ToggleTagAsync(_grille.MotivationnelleTags, tag, (bool)e.Value!)" />
+                                           @onchange="e => ToggleTagAsync(CriteriaField.Motivationnelle, _grille.MotivationnelleTags, tag, (bool)e.Value!)" />
                                     @tag
                                 </label>
                             }
                         </div>
-                        <textarea @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                        <textarea @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Motivationnelle, e.Value?.ToString())"
                                   placeholder="Notes libres (optionnel)" rows="2"></textarea>
                     </div>
 
@@ -181,12 +181,12 @@ else
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.PointsVigilanceTags.Contains(tag)"
-                                           @onchange="e => ToggleTagAsync(_grille.PointsVigilanceTags, tag, (bool)e.Value!)" />
+                                           @onchange="e => ToggleTagAsync(CriteriaField.PointsVigilance, _grille.PointsVigilanceTags, tag, (bool)e.Value!)" />
                                     @tag
                                 </label>
                             }
                         </div>
-                        <textarea @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                        <textarea @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.PointsVigilance, e.Value?.ToString())"
                                   placeholder="Notes libres (optionnel)" rows="2"></textarea>
                     </div>
                 </section>
@@ -292,25 +292,22 @@ else
         _questions[index] = _questions[index] with { AnswerText = answerText, UpdatedAt = DateTimeOffset.UtcNow };
     }
 
-    private async Task SaveGrilleAsync()
-    {
-        await CompanyProfileService.SaveCompatibilityCriteriaAsync(_companyProfileId, new CompanyCompatibilityCriteriaView(
-            _grille.TechniqueTags, _grille.ComportementaleTags, _grille.CulturelleTags, _grille.RythmeTravail,
-            _grille.MotivationnelleTags, _grille.PointsVigilanceTags,
-            _grille.TechniqueNotes, _grille.ComportementaleNotes, _grille.CulturelleNotes,
-            _grille.OrganisationnelleNotes, _grille.MotivationnelleNotes, _grille.PointsVigilanceNotes));
-    }
-
-    private async Task ToggleTagAsync(List<string> tags, string tag, bool isChecked)
+    /// <summary>Voir le commentaire équivalent côté QuestionnaireCandidat.razor : mutation ciblée, pas un instantané complet de la grille.</summary>
+    private async Task ToggleTagAsync(CriteriaField field, List<string> tags, string tag, bool isChecked)
     {
         if (isChecked) { if (!tags.Contains(tag)) tags.Add(tag); }
         else tags.Remove(tag);
-        await SaveGrilleAsync();
+        await CompanyProfileService.ToggleTagAsync(_companyProfileId, field, tag, isChecked);
     }
 
     private async Task OnRythmeChangedAsync(ChangeEventArgs e)
     {
         _grille.RythmeTravail = int.TryParse(e.Value?.ToString(), out var v) ? v : null;
-        await SaveGrilleAsync();
+        await CompanyProfileService.SetRythmeTravailAsync(_companyProfileId, _grille.RythmeTravail);
+    }
+
+    private async Task SaveNotesAsync(CriteriaField field, string? notes)
+    {
+        await CompanyProfileService.SetNotesAsync(_companyProfileId, field, notes);
     }
 }

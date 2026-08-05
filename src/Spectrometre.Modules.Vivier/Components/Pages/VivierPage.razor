@@ -1,0 +1,198 @@
+@page "/vivier"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Compatibility
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.Vivier.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IVivierService VivierService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+
+<PageTitle>Vivier de candidats</PageTitle>
+
+<h1>Vivier de candidats</h1>
+<p class="hint">
+    Les candidats ayant déjà postulé à l'un de vos postes, triés et filtrés par compatibilité — pas une
+    recherche dans l'ensemble des profils candidats de la plateforme.
+</p>
+
+@if (_companies is null)
+{
+    <p>Chargement…</p>
+}
+else if (_companies.Count == 0)
+{
+    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+}
+else
+{
+    <div class="entreprise-header">
+        @if (_companies.Count > 1)
+        {
+            <label>
+                Entreprise active :
+                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+                    @foreach (var company in _companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+            </label>
+        }
+        else
+        {
+            <strong>@_companies[0].Name</strong>
+        }
+    </div>
+
+    @if (_candidatures is null)
+    {
+        <p>Chargement des candidatures…</p>
+    }
+    else
+    {
+        <div class="vivier-layout">
+            <aside class="vivier-filtres">
+                <h3>FILTRES</h3>
+
+                <div class="filtre-champ">
+                    <label>Score minimum : @_scoreMinimum%</label>
+                    <input type="range" min="0" max="100" step="5" value="@_scoreMinimum"
+                           @oninput="e => _scoreMinimum = int.Parse(e.Value!.ToString()!)" />
+                </div>
+
+                <div class="filtre-champ">
+                    <label>Compétences (tags techniques)</label>
+                    <div class="tag-checkboxes">
+                        @foreach (var tag in CompatibilityVocabulary.TechniqueTags)
+                        {
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked="@_tagsSelectionnes.Contains(tag)"
+                                       @onchange="e => ToggleTagFiltre(tag, (bool)e.Value!)" />
+                                @tag
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                @if (_tagsSelectionnes.Count > 0)
+                {
+                    <button @onclick="() => _tagsSelectionnes.Clear()">Réinitialiser les tags</button>
+                }
+            </aside>
+
+            <section class="vivier-candidats">
+                @if (_candidatures.Count == 0)
+                {
+                    <p class="hint">Aucune candidature reçue pour le moment.</p>
+                }
+                else
+                {
+                    @foreach (var candidature in TriEtFiltre())
+                    {
+                        var horsFiltre = EstHorsFiltre(candidature);
+                        <div class="candidat-carte @(horsFiltre ? "hors-filtre" : "")">
+                            <div class="candidat-entete">
+                                <strong>Candidat #@candidature.CandidateProfileId</strong>
+                                <span class="poste-origine">→ @candidature.PosteTitre</span>
+                                <span class="score @ScoreClasse(candidature.ScoreCompatibilite)">
+                                    @(candidature.ScoreCompatibilite is int s ? $"{s}%" : "Score non calculé")
+                                </span>
+                            </div>
+                            <div class="tags">
+                                @foreach (var tag in candidature.TagsCles)
+                                {
+                                    <span class="tag @(_tagsSelectionnes.Contains(tag) ? "tag-actif" : "")">@tag</span>
+                                }
+                            </div>
+                            <div class="candidat-pied">
+                                <span class="statut">@candidature.Statut</span>
+                                <a href="@($"/vivier/candidat/{candidature.CandidateProfileId}")">Voir le profil détaillé</a>
+                                @if (candidature.ScoreCompatibilite is not null)
+                                {
+                                    <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">Détail du score</a>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </section>
+        </div>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private List<Company>? _companies;
+    private int _selectedCompanyId;
+    private List<CandidatureVivierView>? _candidatures;
+
+    private int _scoreMinimum;
+    private readonly HashSet<string> _tagsSelectionnes = new(StringComparer.OrdinalIgnoreCase);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        if (_companies.Count > 0)
+            await ActivateCompanyAsync(_companies[0]);
+    }
+
+    private async Task ActivateCompanyAsync(Company company)
+    {
+        _selectedCompanyId = company.Id;
+        TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+        _candidatures = (await VivierService.GetCandidaturesAsync()).ToList();
+    }
+
+    private async Task OnCompanyChangedAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var company = _companies!.First(c => c.Id == id);
+            await ActivateCompanyAsync(company);
+        }
+    }
+
+    private void ToggleTagFiltre(string tag, bool selectionne)
+    {
+        if (selectionne) _tagsSelectionnes.Add(tag);
+        else _tagsSelectionnes.Remove(tag);
+    }
+
+    /// <summary>
+    /// Le filtre ne masque jamais un candidat (voir la contrainte du cycle : « le filtre est un confort,
+    /// pas une restriction d'accès ») — il sert uniquement à décider le tri et le style grisé.
+    /// </summary>
+    private bool EstHorsFiltre(CandidatureVivierView c)
+    {
+        var horsScore = (c.ScoreCompatibilite ?? 0) < _scoreMinimum;
+        var horsTags = _tagsSelectionnes.Count > 0 && !c.TagsCles.Any(t => _tagsSelectionnes.Contains(t));
+        return horsScore || horsTags;
+    }
+
+    private IEnumerable<CandidatureVivierView> TriEtFiltre() =>
+        _candidatures!
+            .OrderBy(EstHorsFiltre)
+            .ThenByDescending(c => c.ScoreCompatibilite ?? -1);
+
+    private static string ScoreClasse(int? score) => score switch
+    {
+        null => "score-inconnu",
+        >= 70 => "score-eleve",
+        >= 40 => "score-moyen",
+        _ => "score-faible",
+    };
+}

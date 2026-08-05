@@ -75,12 +75,12 @@ else
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.TechniqueTags.Contains(tag)"
-                                       @onchange="e => ToggleTagAsync(_grille.TechniqueTags, tag, (bool)e.Value!)" />
+                                       @onchange="e => ToggleTagAsync(CriteriaField.Technique, _grille.TechniqueTags, tag, (bool)e.Value!)" />
                                 @tag
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                    <textarea @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Technique, e.Value?.ToString())"
                               placeholder="Notes libres (optionnel — sert à l'entretien, n'entre pas dans le calcul)" rows="2"></textarea>
                 </div>
 
@@ -92,12 +92,12 @@ else
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.ComportementaleTags.Contains(tag)"
-                                       @onchange="e => ToggleTagAsync(_grille.ComportementaleTags, tag, (bool)e.Value!)" />
+                                       @onchange="e => ToggleTagAsync(CriteriaField.Comportementale, _grille.ComportementaleTags, tag, (bool)e.Value!)" />
                                 @tag
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                    <textarea @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Comportementale, e.Value?.ToString())"
                               placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
@@ -109,12 +109,12 @@ else
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.CulturelleTags.Contains(tag)"
-                                       @onchange="e => ToggleTagAsync(_grille.CulturelleTags, tag, (bool)e.Value!)" />
+                                       @onchange="e => ToggleTagAsync(CriteriaField.Culturelle, _grille.CulturelleTags, tag, (bool)e.Value!)" />
                                 @tag
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                    <textarea @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Culturelle, e.Value?.ToString())"
                               placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
@@ -128,7 +128,7 @@ else
                             <option value="@valeur">@valeur — @libelle</option>
                         }
                     </select>
-                    <textarea @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                    <textarea @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Organisationnelle, e.Value?.ToString())"
                               placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
@@ -140,12 +140,12 @@ else
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.MotivationnelleTags.Contains(tag)"
-                                       @onchange="e => ToggleTagAsync(_grille.MotivationnelleTags, tag, (bool)e.Value!)" />
+                                       @onchange="e => ToggleTagAsync(CriteriaField.Motivationnelle, _grille.MotivationnelleTags, tag, (bool)e.Value!)" />
                                 @tag
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                    <textarea @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Motivationnelle, e.Value?.ToString())"
                               placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
@@ -157,18 +157,18 @@ else
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.PointsVigilanceTags.Contains(tag)"
-                                       @onchange="e => ToggleTagAsync(_grille.PointsVigilanceTags, tag, (bool)e.Value!)" />
+                                       @onchange="e => ToggleTagAsync(CriteriaField.PointsVigilance, _grille.PointsVigilanceTags, tag, (bool)e.Value!)" />
                                 @tag
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                    <textarea @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.PointsVigilance, e.Value?.ToString())"
                               placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
                 <div class="actions">
                     <button @onclick="PreviousAsync">&lt; Précédent</button>
-                    <button @onclick="SaveGrilleAsync">Enregistrer</button>
+                    <button @onclick="() => _grilleSaved = true">Terminé</button>
                 </div>
                 @if (_grilleSaved)
                 {
@@ -281,27 +281,31 @@ else
         _synthesis = await CandidateProfileService.GenerateSynthesisAsync(_candidateProfileId);
     }
 
-    private async Task SaveGrilleAsync()
-    {
-        await CandidateProfileService.SaveCompatibilityCriteriaAsync(_candidateProfileId, new CandidateCompatibilityCriteriaView(
-            _grille.TechniqueTags, _grille.ComportementaleTags, _grille.CulturelleTags, _grille.RythmeTravail,
-            _grille.MotivationnelleTags, _grille.PointsVigilanceTags,
-            _grille.TechniqueNotes, _grille.ComportementaleNotes, _grille.CulturelleNotes,
-            _grille.OrganisationnelleNotes, _grille.MotivationnelleNotes, _grille.PointsVigilanceNotes));
-        _grilleSaved = true;
-    }
-
-    private async Task ToggleTagAsync(List<string> tags, string tag, bool isChecked)
+    /// <summary>
+    /// Mutation ciblée : met à jour l'état local (pour l'affichage immédiat de la case) puis persiste
+    /// UNIQUEMENT ce tag via le service, qui gère lui-même la concurrence (voir CandidateProfileService.
+    /// ToggleTagAsync). On ne reconstruit plus un instantané complet de la grille à chaque case cochée —
+    /// c'était exactement le mécanisme de la perte de mise à jour corrigée dans ce cycle.
+    /// </summary>
+    private async Task ToggleTagAsync(CriteriaField field, List<string> tags, string tag, bool isChecked)
     {
         if (isChecked) { if (!tags.Contains(tag)) tags.Add(tag); }
         else tags.Remove(tag);
-        await SaveGrilleAsync();
+        await CandidateProfileService.ToggleTagAsync(_candidateProfileId, field, tag, isChecked);
+        _grilleSaved = true;
     }
 
     private async Task OnRythmeChangedAsync(ChangeEventArgs e)
     {
         _grille.RythmeTravail = int.TryParse(e.Value?.ToString(), out var v) ? v : null;
-        await SaveGrilleAsync();
+        await CandidateProfileService.SetRythmeTravailAsync(_candidateProfileId, _grille.RythmeTravail);
+        _grilleSaved = true;
+    }
+
+    private async Task SaveNotesAsync(CriteriaField field, string? notes)
+    {
+        await CandidateProfileService.SetNotesAsync(_candidateProfileId, field, notes);
+        _grilleSaved = true;
     }
 
     private async Task NextAsync()

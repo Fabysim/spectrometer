@@ -45,6 +45,13 @@ public sealed class ProfilCandidatDbContext(DbContextOptions<ProfilCandidatDbCon
         builder.Entity<CandidateCompatibilityCriteria>(e =>
         {
             e.HasIndex(c => c.CandidateProfileId).IsUnique();
+            // Jeton de concurrence optimiste : propriété fantôme uint + IsRowVersion() — le provider
+            // Npgsql détecte automatiquement ce motif (propriété uint, ValueGeneratedOnAddOrUpdate,
+            // ConcurrencyToken) et la fait pointer vers la colonne système Postgres "xmin" (déjà présente
+            // sur toute table, incrémentée à chaque UPDATE), sans générer de migration pour une colonne
+            // qui existe déjà. Voir CandidateProfileService.MutateCriteriaAsync pour le correctif du
+            // problème de perte de mise à jour sur cette entité (deux sauvegardes concurrentes de la grille H).
+            e.Property<uint>("Version").IsRowVersion();
         });
 
         SeedQuestionnaire(builder);

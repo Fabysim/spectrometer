@@ -10,6 +10,7 @@ using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.ProfilCandidat;
 using Spectrometre.Modules.ProfilEntreprise;
+using Spectrometre.Modules.Vivier;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,7 @@ builder.Services.AddProfilCandidatModule(builder.Configuration);
 builder.Services.AddProfilEntrepriseModule(builder.Configuration);
 builder.Services.AddCompatibiliteModule(builder.Configuration);
 builder.Services.AddPostesRecrutementModule(builder.Configuration);
+builder.Services.AddVivierModule();
 
 builder.Services.AddScoped<CompanyOnboardingService>();
 
@@ -47,12 +49,23 @@ using (var startupScope = app.Services.CreateScope())
     moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.Vivier.ServiceCollectionExtensions.Manifest);
 
     // Migrations appliquées globalement pour le noyau et Profil Candidat (schémas fixes, non tenant-scopés).
     // Profil Entreprise / Compatibilité sont tenant-scopés : leur schéma est appliqué par tenant lors
     // de la création d'une entreprise (voir CompanyOnboardingService + ITenantSchemaProvisioner).
     startupScope.ServiceProvider.GetRequiredService<CoreDbContext>().Database.Migrate();
-    startupScope.ServiceProvider.GetRequiredService<Spectrometre.Modules.ProfilCandidat.Data.ProfilCandidatDbContext>().Database.Migrate();
+    // ProfilCandidatDbContext est maintenant enregistré via AddDbContextFactory (voir ServiceCollectionExtensions
+    // — instance fraîche par opération pour éviter tout usage concurrent d'un même DbContext) : il n'est plus
+    // résolvable directement depuis le conteneur, on passe par la factory pour la migration au démarrage.
+    using (var profilCandidatDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<Spectrometre.Modules.ProfilCandidat.Data.ProfilCandidatDbContext>>()
+               .CreateDbContext())
+    {
+        profilCandidatDb.Database.Migrate();
+    }
+
+    await RecruitmentIndexBackfill.RunAsync(startupScope.ServiceProvider);
 }
 
 if (app.Environment.IsDevelopment())
@@ -80,6 +93,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.Vivier.ServiceCollectionExtensions).Assembly);
 
 app.Run();

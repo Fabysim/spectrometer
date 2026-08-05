@@ -1,3 +1,4 @@
+using Spectrometre.Core.Compatibility;
 using Spectrometre.Modules.ProfilEntreprise.Entities;
 
 namespace Spectrometre.Modules.ProfilEntreprise.Services;
@@ -33,7 +34,12 @@ public interface ICompanyProfileService
 
     Task SaveAnswerAsync(int companyProfileId, int questionId, string? answerText, CancellationToken cancellationToken = default);
 
-    Task SaveCompatibilityCriteriaAsync(int companyProfileId, CompanyCompatibilityCriteriaView criteria, CancellationToken cancellationToken = default);
+    /// <summary>Coche/décoche UN tag sur UN axe de la grille (mutation ciblée, protégée contre les écritures concurrentes).</summary>
+    Task ToggleTagAsync(int companyProfileId, CriteriaField field, string tag, bool isChecked, CancellationToken cancellationToken = default);
+
+    Task SetRythmeTravailAsync(int companyProfileId, int? rythme, CancellationToken cancellationToken = default);
+
+    Task SetNotesAsync(int companyProfileId, CriteriaField field, string? notes, CancellationToken cancellationToken = default);
 
     /// <summary>Utilisé exclusivement par le Moteur de Compatibilité pour lire les critères déclarés par l'entreprise.</summary>
     Task<CompanyCompatibilityCriteriaView?> GetCompatibilityCriteriaAsync(int companyProfileId, CancellationToken cancellationToken = default);

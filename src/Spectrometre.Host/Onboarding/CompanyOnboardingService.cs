@@ -9,6 +9,7 @@ using ProfilCandidatModule = Spectrometre.Modules.ProfilCandidat.ServiceCollecti
 using ProfilEntrepriseModule = Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions;
 using CompatibiliteModule = Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions;
 using PostesRecrutementModule = Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions;
+using VivierModule = Spectrometre.Modules.Vivier.ServiceCollectionExtensions;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -49,6 +50,9 @@ public sealed class CompanyOnboardingService(
                      ProfilEntrepriseModule.Manifest,
                      CompatibiliteModule.Manifest,
                      PostesRecrutementModule.Manifest,
+                     // Vivier n'a pas de schéma propre (voir son ServiceCollectionExtensions) — rien à
+                     // provisionner via ITenantSchemaProvisioner, seulement l'activation ci-dessous.
+                     VivierModule.Manifest,
                  })
         {
             if (await moduleRegistry.IsActiveAsync(company.Id, manifest.Code, coreDb, cancellationToken))
