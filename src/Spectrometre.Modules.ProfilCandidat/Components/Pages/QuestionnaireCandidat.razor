@@ -16,8 +16,8 @@
 }
 else
 {
-    var current = _questions[_currentIndex];
     var themes = Enum.GetValues<CandidateTheme>();
+    var onGrilleStep = _currentIndex >= _questions.Count;
 
     <div class="candidat-questionnaire">
         <aside class="progression">
@@ -27,29 +27,95 @@ else
                 {
                     var themeQuestions = _questions.Where(q => q.Theme == theme).ToList();
                     var allAnswered = themeQuestions.Count > 0 && themeQuestions.All(q => !string.IsNullOrWhiteSpace(q.AnswerText));
-                    <li class="@(theme == current.Theme ? "active" : "")">
+                    var isActive = !onGrilleStep && _questions[_currentIndex].Theme == theme;
+                    <li class="@(isActive ? "active" : "")">
                         @(allAnswered ? "✅" : "◯") @CandidateThemeLabels.ShortLabel(theme)
                     </li>
                 }
+                <li class="@(onGrilleStep ? "active" : "")">
+                    @(GrilleComplete ? "✅" : "◯") Grille de compatibilité
+                </li>
             </ul>
         </aside>
 
-        <section class="question-panel">
-            <p class="counter">Question @(_currentIndex + 1) / @_questions.Count</p>
-            <h2>@current.Text</h2>
+        @if (!onGrilleStep)
+        {
+            var current = _questions[_currentIndex];
+            <section class="question-panel">
+                <p class="counter">Question @(_currentIndex + 1) / @_questions.Count</p>
+                <h2>@current.Text</h2>
 
-            <textarea @bind="_currentAnswer" @bind:event="oninput"
-                      placeholder="@ExamplesPlaceholder(current)"
-                      rows="5"></textarea>
+                <textarea @bind="_currentAnswer" @bind:event="oninput"
+                          placeholder="@ExamplesPlaceholder(current)"
+                          rows="5"></textarea>
 
-            <div class="actions">
-                <button @onclick="PreviousAsync" disabled="@(_currentIndex == 0)">&lt; Précédent</button>
-                <button @onclick="NextAsync">@(_currentIndex == _questions.Count - 1 ? "Terminer" : "Suivant >")</button>
-            </div>
-        </section>
+                <div class="actions">
+                    <button @onclick="PreviousAsync" disabled="@(_currentIndex == 0)">&lt; Précédent</button>
+                    <button @onclick="NextAsync">Suivant &gt;</button>
+                </div>
+            </section>
+        }
+        else
+        {
+            <section class="question-panel">
+                <p class="counter">H. Grille complémentaire de compatibilité candidat</p>
+                <h2>Critères pour le moteur de compatibilité</h2>
+                <p class="hint">
+                    Cette grille transforme vos réponses en critères directement comparables avec ceux de
+                    l'entreprise. Elle ne sert pas à vous exclure, mais à préparer un dialogue plus clair
+                    en entretien.
+                </p>
+
+                <div class="grille-champ">
+                    <label>Compatibilité technique</label>
+                    <p class="grille-question">Quelles compétences maîtrisez-vous déjà suffisamment pour être opérationnel ? Quelles compétences acceptez-vous de développer rapidement ? Quels outils, logiciels, langues ou méthodes savez-vous utiliser ?</p>
+                    <textarea @bind="_grille.TechniqueText" @bind:event="oninput" rows="3"></textarea>
+                </div>
+
+                <div class="grille-champ">
+                    <label>Compatibilité comportementale</label>
+                    <p class="grille-question">Comment réagissez-vous face aux consignes, aux critiques, aux imprévus, aux désaccords et au travail en équipe ? Quelles attitudes professionnelles souhaitez-vous améliorer ?</p>
+                    <textarea @bind="_grille.ComportementaleText" @bind:event="oninput" rows="3"></textarea>
+                </div>
+
+                <div class="grille-champ">
+                    <label>Compatibilité culturelle</label>
+                    <p class="grille-question">Quelles valeurs souhaitez-vous retrouver dans une entreprise ? Quels comportements d'entreprise vous inspirent confiance ? Quels comportements vous feraient perdre votre motivation ?</p>
+                    <textarea @bind="_grille.CulturelleText" @bind:event="oninput" rows="3"></textarea>
+                </div>
+
+                <div class="grille-champ">
+                    <label>Compatibilité organisationnelle</label>
+                    <p class="grille-question">Préférez-vous un cadre très structuré ou plus flexible ? Quel niveau d'autonomie, de supervision, de rythme, de pression, de mobilité et de changement pouvez-vous accepter ?</p>
+                    <textarea @bind="_grille.OrganisationnelleText" @bind:event="oninput" rows="3"></textarea>
+                </div>
+
+                <div class="grille-champ">
+                    <label>Compatibilité motivationnelle</label>
+                    <p class="grille-question">Qu'est-ce qui vous donne envie de vous investir durablement : reconnaissance, salaire, stabilité, progression, responsabilités, utilité sociale, apprentissage, appartenance à une équipe ou autonomie ?</p>
+                    <textarea @bind="_grille.MotivationnelleText" @bind:event="oninput" rows="3"></textarea>
+                </div>
+
+                <div class="grille-champ">
+                    <label>Points de vigilance</label>
+                    <p class="grille-question">Quelles situations risquent de vous fatiguer, vous stresser, vous démotiver ou nuire à votre équilibre : conflits, bruit, horaires, pression commerciale, isolement, manque de respect, absence de moyens ou consignes floues ?</p>
+                    <textarea @bind="_grille.PointsVigilanceText" @bind:event="oninput" rows="3"></textarea>
+                </div>
+
+                <div class="actions">
+                    <button @onclick="PreviousAsync">&lt; Précédent</button>
+                    <button @onclick="SaveGrilleAsync">Enregistrer</button>
+                </div>
+                @if (_grilleSaved)
+                {
+                    <p class="hint">Grille enregistrée.</p>
+                }
+            </section>
+        }
 
         <aside class="synthese">
             <h3>SYNTHÈSE DU PROFIL</h3>
+            <p class="grille-statut">@(GrilleComplete ? "✅" : "◯") Grille de compatibilité @(GrilleComplete ? "complète" : "incomplète")</p>
             @if (_synthesis is not null)
             {
                 @foreach (var (category, tags) in _synthesis.TagsByCategory)
@@ -82,6 +148,26 @@ else
     private int _currentIndex;
     private string _currentAnswer = "";
     private CandidateSynthesisView? _synthesis;
+    private readonly GrilleModel _grille = new();
+    private bool _grilleSaved;
+
+    private bool GrilleComplete =>
+        !string.IsNullOrWhiteSpace(_grille.TechniqueText)
+        && !string.IsNullOrWhiteSpace(_grille.ComportementaleText)
+        && !string.IsNullOrWhiteSpace(_grille.CulturelleText)
+        && !string.IsNullOrWhiteSpace(_grille.OrganisationnelleText)
+        && !string.IsNullOrWhiteSpace(_grille.MotivationnelleText)
+        && !string.IsNullOrWhiteSpace(_grille.PointsVigilanceText);
+
+    private sealed class GrilleModel
+    {
+        public string? TechniqueText { get; set; }
+        public string? ComportementaleText { get; set; }
+        public string? CulturelleText { get; set; }
+        public string? OrganisationnelleText { get; set; }
+        public string? MotivationnelleText { get; set; }
+        public string? PointsVigilanceText { get; set; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,35 +182,62 @@ else
         _questions = (await CandidateProfileService.GetQuestionnaireAsync(_candidateProfileId)).ToList();
         _synthesis = await CandidateProfileService.GetLastSynthesisAsync(_candidateProfileId);
         _currentAnswer = _questions.Count > 0 ? _questions[0].AnswerText ?? "" : "";
+
+        var criteria = await CandidateProfileService.GetCompatibilityCriteriaAsync(_candidateProfileId);
+        if (criteria is not null)
+        {
+            _grille.TechniqueText = criteria.TechniqueText;
+            _grille.ComportementaleText = criteria.ComportementaleText;
+            _grille.CulturelleText = criteria.CulturelleText;
+            _grille.OrganisationnelleText = criteria.OrganisationnelleText;
+            _grille.MotivationnelleText = criteria.MotivationnelleText;
+            _grille.PointsVigilanceText = criteria.PointsVigilanceText;
+        }
     }
 
     private async Task SaveCurrentAsync()
     {
-        if (_questions is null) return;
+        if (_questions is null || _currentIndex >= _questions.Count) return;
         var question = _questions[_currentIndex];
         await CandidateProfileService.SaveAnswerAsync(_candidateProfileId, question.QuestionId, _currentAnswer);
         _questions[_currentIndex] = question with { AnswerText = _currentAnswer, UpdatedAt = DateTimeOffset.UtcNow };
         _synthesis = await CandidateProfileService.GenerateSynthesisAsync(_candidateProfileId);
     }
 
+    private async Task SaveGrilleAsync()
+    {
+        await CandidateProfileService.SaveCompatibilityCriteriaAsync(_candidateProfileId, new CandidateCompatibilityCriteriaView(
+            _grille.TechniqueText, _grille.ComportementaleText, _grille.CulturelleText,
+            _grille.OrganisationnelleText, _grille.MotivationnelleText, _grille.PointsVigilanceText));
+        _grilleSaved = true;
+    }
+
     private async Task NextAsync()
     {
         await SaveCurrentAsync();
         if (_questions is null) return;
-        if (_currentIndex < _questions.Count - 1)
+        if (_currentIndex < _questions.Count)
         {
             _currentIndex++;
-            _currentAnswer = _questions[_currentIndex].AnswerText ?? "";
+            _currentAnswer = _currentIndex < _questions.Count ? _questions[_currentIndex].AnswerText ?? "" : "";
         }
     }
 
     private async Task PreviousAsync()
     {
+        if (_currentIndex >= _questions!.Count)
+        {
+            // On revient depuis la grille : rien à sauvegarder côté questionnaire.
+            _currentIndex--;
+            _currentAnswer = _questions[_currentIndex].AnswerText ?? "";
+            return;
+        }
+
         await SaveCurrentAsync();
         if (_currentIndex > 0)
         {
             _currentIndex--;
-            _currentAnswer = _questions![_currentIndex].AnswerText ?? "";
+            _currentAnswer = _questions[_currentIndex].AnswerText ?? "";
         }
     }
 

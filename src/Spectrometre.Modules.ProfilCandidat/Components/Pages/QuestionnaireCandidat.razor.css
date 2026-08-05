@@ -38,3 +38,29 @@
     margin: 0.15rem;
     font-size: 0.85rem;
 }
+
+.synthese .grille-statut {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.grille-champ {
+    margin-bottom: 1.25rem;
+}
+
+.grille-champ label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.grille-champ .grille-question {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0 0 0.35rem;
+}
+
+.grille-champ textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
