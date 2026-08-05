@@ -155,12 +155,18 @@ public sealed class CandidateProfileService(ProfilCandidatDbContext db) : ICandi
             db.CandidateCompatibilityCriteria.Add(entity);
         }
 
-        entity.TechniqueText = criteria.TechniqueText;
-        entity.ComportementaleText = criteria.ComportementaleText;
-        entity.CulturelleText = criteria.CulturelleText;
-        entity.OrganisationnelleText = criteria.OrganisationnelleText;
-        entity.MotivationnelleText = criteria.MotivationnelleText;
-        entity.PointsVigilanceText = criteria.PointsVigilanceText;
+        entity.TechniqueTags = criteria.TechniqueTags.ToList();
+        entity.ComportementaleTags = criteria.ComportementaleTags.ToList();
+        entity.CulturelleTags = criteria.CulturelleTags.ToList();
+        entity.RythmeTravail = criteria.RythmeTravail;
+        entity.MotivationnelleTags = criteria.MotivationnelleTags.ToList();
+        entity.PointsVigilanceTags = criteria.PointsVigilanceTags.ToList();
+        entity.TechniqueNotes = criteria.TechniqueNotes;
+        entity.ComportementaleNotes = criteria.ComportementaleNotes;
+        entity.CulturelleNotes = criteria.CulturelleNotes;
+        entity.OrganisationnelleNotes = criteria.OrganisationnelleNotes;
+        entity.MotivationnelleNotes = criteria.MotivationnelleNotes;
+        entity.PointsVigilanceNotes = criteria.PointsVigilanceNotes;
         entity.UpdatedAt = DateTimeOffset.UtcNow;
 
         await db.SaveChangesAsync(cancellationToken);
@@ -175,8 +181,10 @@ public sealed class CandidateProfileService(ProfilCandidatDbContext db) : ICandi
         return entity is null
             ? null
             : new CandidateCompatibilityCriteriaView(
-                entity.TechniqueText, entity.ComportementaleText, entity.CulturelleText,
-                entity.OrganisationnelleText, entity.MotivationnelleText, entity.PointsVigilanceText);
+                entity.TechniqueTags, entity.ComportementaleTags, entity.CulturelleTags, entity.RythmeTravail,
+                entity.MotivationnelleTags, entity.PointsVigilanceTags,
+                entity.TechniqueNotes, entity.ComportementaleNotes, entity.CulturelleNotes,
+                entity.OrganisationnelleNotes, entity.MotivationnelleNotes, entity.PointsVigilanceNotes);
     }
 
     private static readonly string[] ConjunctionSeparators = [" et ", " ou ", " mais ", " ainsi que "];

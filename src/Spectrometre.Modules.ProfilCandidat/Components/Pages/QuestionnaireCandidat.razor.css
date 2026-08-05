@@ -63,4 +63,27 @@
 .grille-champ textarea {
     width: 100%;
     box-sizing: border-box;
+    margin-top: 0.4rem;
+}
+
+.tag-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: #f2f4f8;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.85rem;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.grille-champ select {
+    display: block;
 }

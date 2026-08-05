@@ -7,13 +7,24 @@ public sealed record CandidateQuestionView(int QuestionId, CandidateTheme Theme,
 
 public sealed record CandidateSynthesisView(IReadOnlyDictionary<SynthesisCategory, IReadOnlyList<string>> TagsByCategory, DateTimeOffset GeneratedAt);
 
+/// <summary>
+/// Critères structurés (tags du vocabulaire partagé + échelle) utilisés pour le scoring, accompagnés de
+/// notes libres optionnelles pour la nuance humaine — les <c>*Notes</c> ne sont jamais utilisées dans
+/// le calcul de compatibilité, uniquement affichées en contexte.
+/// </summary>
 public sealed record CandidateCompatibilityCriteriaView(
-    string? TechniqueText,
-    string? ComportementaleText,
-    string? CulturelleText,
-    string? OrganisationnelleText,
-    string? MotivationnelleText,
-    string? PointsVigilanceText);
+    IReadOnlyList<string> TechniqueTags,
+    IReadOnlyList<string> ComportementaleTags,
+    IReadOnlyList<string> CulturelleTags,
+    int? RythmeTravail,
+    IReadOnlyList<string> MotivationnelleTags,
+    IReadOnlyList<string> PointsVigilanceTags,
+    string? TechniqueNotes,
+    string? ComportementaleNotes,
+    string? CulturelleNotes,
+    string? OrganisationnelleNotes,
+    string? MotivationnelleNotes,
+    string? PointsVigilanceNotes);
 
 /// <summary>
 /// Point d'entrée public du module Profil Candidat. Le module Compatibilité passe exclusivement par

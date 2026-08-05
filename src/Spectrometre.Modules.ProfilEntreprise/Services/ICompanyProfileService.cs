@@ -4,13 +4,20 @@ namespace Spectrometre.Modules.ProfilEntreprise.Services;
 
 public sealed record CompanyQuestionView(int QuestionId, CompanyTheme Theme, int Number, string Text, string? AnswerText, DateTimeOffset? UpdatedAt);
 
+/// <summary>Voir le commentaire équivalent côté Profil Candidat : critères structurés pour le scoring, notes libres hors calcul.</summary>
 public sealed record CompanyCompatibilityCriteriaView(
-    string? TechniqueText,
-    string? ComportementaleText,
-    string? CulturelleText,
-    string? OrganisationnelleText,
-    string? MotivationnelleText,
-    string? PointsVigilanceText);
+    IReadOnlyList<string> TechniqueTags,
+    IReadOnlyList<string> ComportementaleTags,
+    IReadOnlyList<string> CulturelleTags,
+    int? RythmeTravail,
+    IReadOnlyList<string> MotivationnelleTags,
+    IReadOnlyList<string> PointsVigilanceTags,
+    string? TechniqueNotes,
+    string? ComportementaleNotes,
+    string? CulturelleNotes,
+    string? OrganisationnelleNotes,
+    string? MotivationnelleNotes,
+    string? PointsVigilanceNotes);
 
 /// <summary>
 /// Point d'entrée public du module Profil Entreprise, pour le schéma de l'entreprise active

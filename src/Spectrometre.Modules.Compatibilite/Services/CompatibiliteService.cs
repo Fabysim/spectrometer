@@ -30,13 +30,25 @@ public sealed class CompatibiliteService(
         var candidateCriteria = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
         var companyCriteria = await companyProfileService.GetCompatibilityCriteriaAsync(companyProfileId, cancellationToken);
 
+        var candidateTechnique = candidateCriteria?.TechniqueTags ?? [];
+        var candidateComportementale = candidateCriteria?.ComportementaleTags ?? [];
+        var candidateCulturelle = candidateCriteria?.CulturelleTags ?? [];
+        var candidateMotivationnelle = candidateCriteria?.MotivationnelleTags ?? [];
+        var candidateVigilance = candidateCriteria?.PointsVigilanceTags ?? [];
+
+        var companyTechnique = companyCriteria?.TechniqueTags ?? [];
+        var companyComportementale = companyCriteria?.ComportementaleTags ?? [];
+        var companyCulturelle = companyCriteria?.CulturelleTags ?? [];
+        var companyMotivationnelle = companyCriteria?.MotivationnelleTags ?? [];
+        var companyVigilance = companyCriteria?.PointsVigilanceTags ?? [];
+
         var scores = new Dictionary<CompatibilityAxis, int>
         {
-            [CompatibilityAxis.Technique] = TextSimilarityScorer.Score(candidateCriteria?.TechniqueText, companyCriteria?.TechniqueText),
-            [CompatibilityAxis.Comportementale] = TextSimilarityScorer.Score(candidateCriteria?.ComportementaleText, companyCriteria?.ComportementaleText),
-            [CompatibilityAxis.Culturelle] = TextSimilarityScorer.Score(candidateCriteria?.CulturelleText, companyCriteria?.CulturelleText),
-            [CompatibilityAxis.Organisationnelle] = TextSimilarityScorer.Score(candidateCriteria?.OrganisationnelleText, companyCriteria?.OrganisationnelleText),
-            [CompatibilityAxis.Motivationnelle] = TextSimilarityScorer.Score(candidateCriteria?.MotivationnelleText, companyCriteria?.MotivationnelleText),
+            [CompatibilityAxis.Technique] = StructuredCriteriaScorer.TagOverlapScore(candidateTechnique, companyTechnique),
+            [CompatibilityAxis.Comportementale] = StructuredCriteriaScorer.TagOverlapScore(candidateComportementale, companyComportementale),
+            [CompatibilityAxis.Culturelle] = StructuredCriteriaScorer.TagOverlapScore(candidateCulturelle, companyCulturelle),
+            [CompatibilityAxis.Organisationnelle] = StructuredCriteriaScorer.ScaleScore(candidateCriteria?.RythmeTravail, companyCriteria?.RythmeTravail),
+            [CompatibilityAxis.Motivationnelle] = StructuredCriteriaScorer.TagOverlapScore(candidateMotivationnelle, companyMotivationnelle),
         };
 
         var weights = await db.CompatibilityWeightSettings.AsNoTracking().ToListAsync(cancellationToken);
@@ -52,17 +64,10 @@ public sealed class CompatibiliteService(
                 vigilancePoints.Add($"Axe {CompatibilityAxisLabels.Label(axis)} : score faible ({score}%), à approfondir en entretien.");
         }
 
-        vigilancePoints.AddRange(VigilanceDetector.Detect(companyCriteria?.PointsVigilanceText, candidateCriteria?.PointsVigilanceText));
-        foreach (var axisText in new[]
-                 {
-                     (companyCriteria?.TechniqueText, candidateCriteria?.PointsVigilanceText),
-                     (companyCriteria?.OrganisationnelleText, candidateCriteria?.PointsVigilanceText),
-                     (companyCriteria?.ComportementaleText, candidateCriteria?.PointsVigilanceText),
-                 })
-        {
-            vigilancePoints.AddRange(VigilanceDetector.Detect(axisText.Item1, axisText.Item2));
-        }
-        vigilancePoints = vigilancePoints.Distinct().ToList();
+        // Un tag de vigilance signalé à la fois par l'entreprise et par le candidat est un vrai risque
+        // partagé (ex. « Rythme intense ») — plus fiable que l'ancienne détection par mots-clés sur texte libre.
+        foreach (var tag in StructuredCriteriaScorer.SharedVigilanceTags(candidateVigilance, companyVigilance))
+            vigilancePoints.Add($"Point de vigilance partagé : {tag} (signalé par l'entreprise et par le candidat).");
 
         var result = new CompatibilityResult
         {
@@ -76,7 +81,7 @@ public sealed class CompatibiliteService(
             ScoreGlobal = scoreGlobal,
             CalculatedAt = DateTimeOffset.UtcNow,
         };
-        foreach (var point in vigilancePoints)
+        foreach (var point in vigilancePoints.Distinct())
             result.VigilancePoints.Add(new CompatibilityVigilancePoint { Text = point });
 
         db.CompatibilityResults.Add(result);

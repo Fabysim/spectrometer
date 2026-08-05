@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Spectrometre.Modules.ProfilEntreprise.Data;
@@ -12,9 +13,11 @@ using Spectrometre.Modules.ProfilEntreprise.Data;
 namespace Spectrometre.Modules.ProfilEntreprise.Data.Migrations
 {
     [DbContext(typeof(ProfilEntrepriseDbContext))]
-    partial class ProfilEntrepriseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260805170500_StructuredCompatibilityCriteria")]
+    partial class StructuredCompatibilityCriteria
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

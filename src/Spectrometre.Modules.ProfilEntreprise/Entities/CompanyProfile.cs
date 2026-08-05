@@ -29,18 +29,32 @@ public sealed class CompanyAnswer
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 
-/// <summary>Grille complémentaire des critères pour le moteur de compatibilité (section K du document source).</summary>
+/// <summary>
+/// Grille complémentaire des critères pour le moteur de compatibilité (section K du document source).
+/// Critères structurés (tags du vocabulaire partagé + échelle 1-5), voir le commentaire détaillé sur
+/// <c>CandidateCompatibilityCriteria</c> (module Profil Candidat) pour la justification du changement.
+/// </summary>
 public sealed class CompanyCompatibilityCriteria
 {
     public int Id { get; set; }
     public int CompanyProfileId { get; set; }
 
-    public string? TechniqueText { get; set; }
-    public string? ComportementaleText { get; set; }
-    public string? CulturelleText { get; set; }
-    public string? OrganisationnelleText { get; set; }
-    public string? MotivationnelleText { get; set; }
-    public string? PointsVigilanceText { get; set; }
+    public List<string> TechniqueTags { get; set; } = [];
+    public List<string> ComportementaleTags { get; set; } = [];
+    public List<string> CulturelleTags { get; set; } = [];
+
+    /// <summary>Rythme de travail exigé par le poste, 1 (calme) à 5 (très intense). Voir <c>CompatibilityVocabulary.RythmeTravailLabels</c>.</summary>
+    public int? RythmeTravail { get; set; }
+
+    public List<string> MotivationnelleTags { get; set; } = [];
+    public List<string> PointsVigilanceTags { get; set; } = [];
+
+    public string? TechniqueNotes { get; set; }
+    public string? ComportementaleNotes { get; set; }
+    public string? CulturelleNotes { get; set; }
+    public string? OrganisationnelleNotes { get; set; }
+    public string? MotivationnelleNotes { get; set; }
+    public string? PointsVigilanceNotes { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

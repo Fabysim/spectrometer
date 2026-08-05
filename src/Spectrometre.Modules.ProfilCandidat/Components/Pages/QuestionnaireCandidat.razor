@@ -4,6 +4,7 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Spectrometre.Core.Compatibility
 @using Spectrometre.Modules.ProfilCandidat.Entities
 @using Spectrometre.Modules.ProfilCandidat.Services
 @inject ICandidateProfileService CandidateProfileService
@@ -68,38 +69,101 @@ else
 
                 <div class="grille-champ">
                     <label>Compatibilité technique</label>
-                    <p class="grille-question">Quelles compétences maîtrisez-vous déjà suffisamment pour être opérationnel ? Quelles compétences acceptez-vous de développer rapidement ? Quels outils, logiciels, langues ou méthodes savez-vous utiliser ?</p>
-                    <textarea @bind="_grille.TechniqueText" @bind:event="oninput" rows="3"></textarea>
+                    <p class="grille-question">Sélectionnez les compétences que vous maîtrisez déjà suffisamment pour être opérationnel.</p>
+                    <div class="tag-checkboxes">
+                        @foreach (var tag in CompatibilityVocabulary.TechniqueTags)
+                        {
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked="@_grille.TechniqueTags.Contains(tag)"
+                                       @onchange="e => ToggleTagAsync(_grille.TechniqueTags, tag, (bool)e.Value!)" />
+                                @tag
+                            </label>
+                        }
+                    </div>
+                    <textarea @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                              placeholder="Notes libres (optionnel — sert à l'entretien, n'entre pas dans le calcul)" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
                     <label>Compatibilité comportementale</label>
-                    <p class="grille-question">Comment réagissez-vous face aux consignes, aux critiques, aux imprévus, aux désaccords et au travail en équipe ? Quelles attitudes professionnelles souhaitez-vous améliorer ?</p>
-                    <textarea @bind="_grille.ComportementaleText" @bind:event="oninput" rows="3"></textarea>
+                    <p class="grille-question">Sélectionnez les comportements professionnels qui vous décrivent.</p>
+                    <div class="tag-checkboxes">
+                        @foreach (var tag in CompatibilityVocabulary.ComportementaleTags)
+                        {
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked="@_grille.ComportementaleTags.Contains(tag)"
+                                       @onchange="e => ToggleTagAsync(_grille.ComportementaleTags, tag, (bool)e.Value!)" />
+                                @tag
+                            </label>
+                        }
+                    </div>
+                    <textarea @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
                     <label>Compatibilité culturelle</label>
-                    <p class="grille-question">Quelles valeurs souhaitez-vous retrouver dans une entreprise ? Quels comportements d'entreprise vous inspirent confiance ? Quels comportements vous feraient perdre votre motivation ?</p>
-                    <textarea @bind="_grille.CulturelleText" @bind:event="oninput" rows="3"></textarea>
+                    <p class="grille-question">Sélectionnez les valeurs que vous souhaitez retrouver dans une entreprise.</p>
+                    <div class="tag-checkboxes">
+                        @foreach (var tag in CompatibilityVocabulary.CulturelleTags)
+                        {
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked="@_grille.CulturelleTags.Contains(tag)"
+                                       @onchange="e => ToggleTagAsync(_grille.CulturelleTags, tag, (bool)e.Value!)" />
+                                @tag
+                            </label>
+                        }
+                    </div>
+                    <textarea @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
-                    <label>Compatibilité organisationnelle</label>
-                    <p class="grille-question">Préférez-vous un cadre très structuré ou plus flexible ? Quel niveau d'autonomie, de supervision, de rythme, de pression, de mobilité et de changement pouvez-vous accepter ?</p>
-                    <textarea @bind="_grille.OrganisationnelleText" @bind:event="oninput" rows="3"></textarea>
+                    <label>Compatibilité organisationnelle — rythme de travail</label>
+                    <p class="grille-question">Quel rythme de travail pouvez-vous accepter durablement ?</p>
+                    <select value="@(_grille.RythmeTravail?.ToString() ?? "")" @onchange="OnRythmeChangedAsync">
+                        <option value="">— Choisir —</option>
+                        @foreach (var (valeur, libelle) in CompatibilityVocabulary.RythmeTravailLabels)
+                        {
+                            <option value="@valeur">@valeur — @libelle</option>
+                        }
+                    </select>
+                    <textarea @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
                     <label>Compatibilité motivationnelle</label>
-                    <p class="grille-question">Qu'est-ce qui vous donne envie de vous investir durablement : reconnaissance, salaire, stabilité, progression, responsabilités, utilité sociale, apprentissage, appartenance à une équipe ou autonomie ?</p>
-                    <textarea @bind="_grille.MotivationnelleText" @bind:event="oninput" rows="3"></textarea>
+                    <p class="grille-question">Sélectionnez ce qui vous donne envie de vous investir durablement.</p>
+                    <div class="tag-checkboxes">
+                        @foreach (var tag in CompatibilityVocabulary.MotivationnelleTags)
+                        {
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked="@_grille.MotivationnelleTags.Contains(tag)"
+                                       @onchange="e => ToggleTagAsync(_grille.MotivationnelleTags, tag, (bool)e.Value!)" />
+                                @tag
+                            </label>
+                        }
+                    </div>
+                    <textarea @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
                     <label>Points de vigilance</label>
-                    <p class="grille-question">Quelles situations risquent de vous fatiguer, vous stresser, vous démotiver ou nuire à votre équilibre : conflits, bruit, horaires, pression commerciale, isolement, manque de respect, absence de moyens ou consignes floues ?</p>
-                    <textarea @bind="_grille.PointsVigilanceText" @bind:event="oninput" rows="3"></textarea>
+                    <p class="grille-question">Sélectionnez les situations qui risquent de vous fatiguer, vous stresser ou vous démotiver.</p>
+                    <div class="tag-checkboxes">
+                        @foreach (var tag in CompatibilityVocabulary.PointsVigilanceTags)
+                        {
+                            <label class="tag-checkbox">
+                                <input type="checkbox" checked="@_grille.PointsVigilanceTags.Contains(tag)"
+                                       @onchange="e => ToggleTagAsync(_grille.PointsVigilanceTags, tag, (bool)e.Value!)" />
+                                @tag
+                            </label>
+                        }
+                    </div>
+                    <textarea @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="SaveGrilleAsync"
+                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
                 </div>
 
                 <div class="actions">
@@ -152,21 +216,28 @@ else
     private bool _grilleSaved;
 
     private bool GrilleComplete =>
-        !string.IsNullOrWhiteSpace(_grille.TechniqueText)
-        && !string.IsNullOrWhiteSpace(_grille.ComportementaleText)
-        && !string.IsNullOrWhiteSpace(_grille.CulturelleText)
-        && !string.IsNullOrWhiteSpace(_grille.OrganisationnelleText)
-        && !string.IsNullOrWhiteSpace(_grille.MotivationnelleText)
-        && !string.IsNullOrWhiteSpace(_grille.PointsVigilanceText);
+        _grille.TechniqueTags.Count > 0
+        && _grille.ComportementaleTags.Count > 0
+        && _grille.CulturelleTags.Count > 0
+        && _grille.RythmeTravail is not null
+        && _grille.MotivationnelleTags.Count > 0
+        && _grille.PointsVigilanceTags.Count > 0;
 
     private sealed class GrilleModel
     {
-        public string? TechniqueText { get; set; }
-        public string? ComportementaleText { get; set; }
-        public string? CulturelleText { get; set; }
-        public string? OrganisationnelleText { get; set; }
-        public string? MotivationnelleText { get; set; }
-        public string? PointsVigilanceText { get; set; }
+        public List<string> TechniqueTags { get; set; } = [];
+        public List<string> ComportementaleTags { get; set; } = [];
+        public List<string> CulturelleTags { get; set; } = [];
+        public int? RythmeTravail { get; set; }
+        public List<string> MotivationnelleTags { get; set; } = [];
+        public List<string> PointsVigilanceTags { get; set; } = [];
+
+        public string? TechniqueNotes { get; set; }
+        public string? ComportementaleNotes { get; set; }
+        public string? CulturelleNotes { get; set; }
+        public string? OrganisationnelleNotes { get; set; }
+        public string? MotivationnelleNotes { get; set; }
+        public string? PointsVigilanceNotes { get; set; }
     }
 
     protected override async Task OnInitializedAsync()
@@ -186,12 +257,18 @@ else
         var criteria = await CandidateProfileService.GetCompatibilityCriteriaAsync(_candidateProfileId);
         if (criteria is not null)
         {
-            _grille.TechniqueText = criteria.TechniqueText;
-            _grille.ComportementaleText = criteria.ComportementaleText;
-            _grille.CulturelleText = criteria.CulturelleText;
-            _grille.OrganisationnelleText = criteria.OrganisationnelleText;
-            _grille.MotivationnelleText = criteria.MotivationnelleText;
-            _grille.PointsVigilanceText = criteria.PointsVigilanceText;
+            _grille.TechniqueTags = criteria.TechniqueTags.ToList();
+            _grille.ComportementaleTags = criteria.ComportementaleTags.ToList();
+            _grille.CulturelleTags = criteria.CulturelleTags.ToList();
+            _grille.RythmeTravail = criteria.RythmeTravail;
+            _grille.MotivationnelleTags = criteria.MotivationnelleTags.ToList();
+            _grille.PointsVigilanceTags = criteria.PointsVigilanceTags.ToList();
+            _grille.TechniqueNotes = criteria.TechniqueNotes;
+            _grille.ComportementaleNotes = criteria.ComportementaleNotes;
+            _grille.CulturelleNotes = criteria.CulturelleNotes;
+            _grille.OrganisationnelleNotes = criteria.OrganisationnelleNotes;
+            _grille.MotivationnelleNotes = criteria.MotivationnelleNotes;
+            _grille.PointsVigilanceNotes = criteria.PointsVigilanceNotes;
         }
     }
 
@@ -207,9 +284,24 @@ else
     private async Task SaveGrilleAsync()
     {
         await CandidateProfileService.SaveCompatibilityCriteriaAsync(_candidateProfileId, new CandidateCompatibilityCriteriaView(
-            _grille.TechniqueText, _grille.ComportementaleText, _grille.CulturelleText,
-            _grille.OrganisationnelleText, _grille.MotivationnelleText, _grille.PointsVigilanceText));
+            _grille.TechniqueTags, _grille.ComportementaleTags, _grille.CulturelleTags, _grille.RythmeTravail,
+            _grille.MotivationnelleTags, _grille.PointsVigilanceTags,
+            _grille.TechniqueNotes, _grille.ComportementaleNotes, _grille.CulturelleNotes,
+            _grille.OrganisationnelleNotes, _grille.MotivationnelleNotes, _grille.PointsVigilanceNotes));
         _grilleSaved = true;
+    }
+
+    private async Task ToggleTagAsync(List<string> tags, string tag, bool isChecked)
+    {
+        if (isChecked) { if (!tags.Contains(tag)) tags.Add(tag); }
+        else tags.Remove(tag);
+        await SaveGrilleAsync();
+    }
+
+    private async Task OnRythmeChangedAsync(ChangeEventArgs e)
+    {
+        _grille.RythmeTravail = int.TryParse(e.Value?.ToString(), out var v) ? v : null;
+        await SaveGrilleAsync();
     }
 
     private async Task NextAsync()
