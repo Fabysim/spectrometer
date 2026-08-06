@@ -1,31 +1,56 @@
 @inherits LayoutComponentBase
 @using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.GestionDuTemps.Services
 @inject IGestionDuTempsAccessService GestionDuTempsAccessService
+@inject IModuleRegistry ModuleRegistry
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ICandidateSubjectResolver CandidateSubjectResolver
+@inject IDbContextFactory<CoreDbContext> CoreDbFactory
 
 <nav class="main-nav">
     <a href="/">Accueil</a>
-    <a href="/candidat/questionnaire">Questionnaire candidat</a>
-    <a href="/candidat/cv">Curriculum vitæ</a>
-    <a href="/entreprise/creer">Créer une entreprise</a>
-    <a href="/entreprise/profil">Profil entreprise</a>
-    <a href="/entreprise/postes">Postes (entreprise)</a>
-    <a href="/candidat/postes">Postes ouverts (candidat)</a>
-    <a href="/vivier">Vivier</a>
-    <a href="/candidat/historique">Historique (candidat)</a>
-    <a href="/entreprise/historique">Historique (entreprise)</a>
-    <a href="/entreprise/analytics">Analytics (entreprise)</a>
-    @if (_showGestionDuTemps)
+    @if (_isAuthenticated)
     {
-        <a href="/gestion-du-temps">Gestion du temps</a>
-        <a href="/gestion-du-temps/kanban">Kanban</a>
-        <a href="/gestion-du-temps/profil">Profil psychosocial</a>
-        <a href="/gestion-du-temps/reflexion">Réflexion consciente</a>
-        <a href="/gestion-du-temps/synthese">Synthèse</a>
+        @if (_hasCompany)
+        {
+            <a href="/entreprise/profil">Profil entreprise</a>
+            @if (_companyActiveModules.Contains("PostesRecrutement")) { <a href="/entreprise/postes">Postes (entreprise)</a> }
+            @if (_companyActiveModules.Contains("Vivier")) { <a href="/vivier">Vivier</a> }
+            @if (_companyActiveModules.Contains("SuiviEvolutif")) { <a href="/entreprise/historique">Historique (entreprise)</a> }
+            @if (_companyActiveModules.Contains("Analytics")) { <a href="/entreprise/analytics">Analytics (entreprise)</a> }
+            <a href="/entreprise/modules">Ajouter un module (entreprise)</a>
+        }
+        else
+        {
+            <a href="/entreprise/creer">Créer une entreprise</a>
+        }
+
+        @if (_candidateActiveModules.Contains("ProfilCandidat"))
+        {
+            <a href="/candidat/questionnaire">Questionnaire candidat</a>
+            <a href="/candidat/cv">Curriculum vitæ</a>
+            <a href="/candidat/postes">Postes ouverts (candidat)</a>
+            <a href="/candidat/historique">Historique (candidat)</a>
+            <a href="/candidat/modules">Ajouter un module (candidat)</a>
+        }
+
+        @if (_showGestionDuTemps)
+        {
+            <a href="/gestion-du-temps">Gestion du temps</a>
+            <a href="/gestion-du-temps/kanban">Kanban</a>
+            <a href="/gestion-du-temps/profil">Profil psychosocial</a>
+            <a href="/gestion-du-temps/reflexion">Réflexion consciente</a>
+            <a href="/gestion-du-temps/synthese">Synthèse</a>
+        }
     }
     <AuthorizeView>
         <Authorized>
             <span>Connecté</span>
+            <a href="/logout">Déconnexion</a>
         </Authorized>
         <NotAuthorized>
             <a href="/login">Connexion</a>
@@ -44,14 +69,27 @@
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
+    private bool _isAuthenticated;
+    private bool _hasCompany;
+    private readonly HashSet<string> _companyActiveModules = [];
+    private readonly HashSet<string> _candidateActiveModules = [];
     private bool _showGestionDuTemps;
 
     /// <summary>
-    /// Même vérification que la page elle-même (voir <see cref="IGestionDuTempsAccessService"/>) : le lien
-    /// de navigation ne doit jamais promettre un accès que la page refusera ensuite. Recalculé à chaque
-    /// rendu du layout (pas de mise en cache inter-navigation) — coût négligeable, une poignée de requêtes
-    /// simples sur le schéma core.
+    /// Menu entièrement dynamique : chaque lien de module (hors Gestion du temps, voir plus bas) n'apparaît
+    /// que si <see cref="IModuleRegistry.IsActiveAsync"/>/<see cref="IModuleRegistry.IsActiveForCandidateAsync"/>
+    /// le confirme — jamais <c>GetActiveModuleCodesAsync</c>, qui n'applique pas le gating par plan (règle du
+    /// projet). Recalculé à chaque rendu du layout (pas de mise en cache inter-navigation) — coût négligeable,
+    /// une poignée de requêtes simples sur le schéma core.
     /// </summary>
+    /// <remarks>
+    /// <see cref="IDbContextFactory{TContext}"/>, jamais le <c>CoreDbContext</c> scopé ambiant : ce layout
+    /// englobe TOUTES les pages, dont certaines (ex. Accueil) exécutent elles-mêmes plusieurs requêtes async
+    /// sur ce même <c>CoreDbContext</c> partagé dans le même circuit — deux composants indépendants
+    /// utilisant concurremment UNE instance EF Core provoque des erreurs de bas niveau côté pilote Npgsql
+    /// (constaté en test manuel). Une instance dédiée, créée puis disposée ici, élimine ce risque —
+    /// même réflexe que <c>GestionDuTempsAccessService</c>, qui utilisait déjà la factory pour cette raison.
+    /// </remarks>
     protected override async Task OnInitializedAsync()
     {
         if (AuthenticationStateTask is null)
@@ -61,10 +99,38 @@
         if (user.Identity?.IsAuthenticated != true)
             return;
 
+        _isAuthenticated = true;
+
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
             return;
 
+        await using var coreDb = await CoreDbFactory.CreateDbContextAsync();
+
+        var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, coreDb);
+        if (companies.Count > 0)
+        {
+            _hasCompany = true;
+            var companyId = companies[0].Id;
+            foreach (var manifest in ModuleRegistry.AllModules)
+            {
+                if (manifest.Code == "GestionDuTemps") continue; // gating séparé ci-dessous (couvre aussi le cas candidat)
+                if (await ModuleRegistry.IsActiveAsync(companyId, manifest.Code, coreDb))
+                    _companyActiveModules.Add(manifest.Code);
+            }
+        }
+
+        var candidateProfileId = await CandidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
+        foreach (var manifest in ModuleRegistry.AllModules)
+        {
+            if (manifest.Code == "GestionDuTemps") continue;
+            if (await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, coreDb))
+                _candidateActiveModules.Add(manifest.Code);
+        }
+
+        // Même vérification que la page Gestion du temps elle-même (voir IGestionDuTempsAccessService) :
+        // couvre à la fois l'activation candidat ET celle de toute entreprise gérée par l'utilisateur.
+        // Ce service utilise déjà sa propre IDbContextFactory en interne, indépendante de coreDb ci-dessus.
         _showGestionDuTemps = await GestionDuTempsAccessService.HasAccessAsync(userId);
     }
 }

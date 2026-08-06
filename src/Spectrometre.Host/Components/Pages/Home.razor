@@ -1,7 +1,110 @@
-﻿@page "/"
+@page "/"
+@using System.Security.Claims
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Core.Tenancy
+@inject IModuleRegistry ModuleRegistry
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ICandidateSubjectResolver CandidateSubjectResolver
+@inject CoreDbContext CoreDb
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Tableau de bord</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Tableau de bord</h1>
 
-Welcome to your new app.
+@if (!_isAuthenticated)
+{
+    <p>Bienvenue sur Spectromètre.</p>
+    <p><a href="/login">Se connecter</a> · <a href="/inscription">Créer un compte</a></p>
+}
+else
+{
+    @if (_company is not null)
+    {
+        <section>
+            <h2>Entreprise : @_company.Name</h2>
+            @if (_companyModuleNames.Count == 0)
+            {
+                <p class="hint">Aucun module actif pour le moment.</p>
+            }
+            else
+            {
+                <ul>
+                    @foreach (var name in _companyModuleNames)
+                    {
+                        <li>@name</li>
+                    }
+                </ul>
+            }
+            <p><a href="/entreprise/modules">Ajouter un module</a></p>
+        </section>
+    }
+    else
+    {
+        <section>
+            <p class="hint">Vous ne gérez aucune entreprise pour le moment.</p>
+            <p><a href="/entreprise/creer">Créer une entreprise</a></p>
+        </section>
+    }
+
+    @if (_candidateModuleNames.Count > 0)
+    {
+        <section>
+            <h2>Profil candidat</h2>
+            <ul>
+                @foreach (var name in _candidateModuleNames)
+                {
+                    <li>@name</li>
+                }
+            </ul>
+            <p><a href="/candidat/modules">Ajouter un module</a></p>
+        </section>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool _isAuthenticated;
+    private Company? _company;
+    private readonly List<string> _companyModuleNames = [];
+    private readonly List<string> _candidateModuleNames = [];
+
+    /// <summary>
+    /// Tableau de bord entièrement dynamique — mêmes vérifications que le menu principal (voir
+    /// MainLayout) : IsActiveAsync/IsActiveForCandidateAsync module par module, jamais GetActiveModuleCodesAsync.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is null)
+            return;
+
+        var user = (await AuthenticationStateTask).User;
+        if (user.Identity?.IsAuthenticated != true)
+            return;
+
+        _isAuthenticated = true;
+
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return;
+
+        var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
+        if (companies.Count > 0)
+        {
+            _company = companies[0];
+            foreach (var manifest in ModuleRegistry.AllModules)
+            {
+                if (await ModuleRegistry.IsActiveAsync(_company.Id, manifest.Code, CoreDb))
+                    _companyModuleNames.Add(manifest.DisplayName);
+            }
+        }
+
+        var candidateProfileId = await CandidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
+        foreach (var manifest in ModuleRegistry.AllModules)
+        {
+            if (await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, CoreDb))
+                _candidateModuleNames.Add(manifest.DisplayName);
+        }
+    }
+}

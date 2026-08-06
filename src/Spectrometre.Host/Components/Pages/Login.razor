@@ -2,7 +2,6 @@
 @using Microsoft.AspNetCore.Identity
 @using Spectrometre.Core.Identity
 @inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 
 <PageTitle>Connexion</PageTitle>
@@ -24,17 +23,7 @@
     <button type="submit">Se connecter</button>
 </EditForm>
 
-<h2>Démonstration</h2>
-<p class="hint">Raccourci pour ce cycle — pas de flux d'inscription complet (hors périmètre de ce scaffold).</p>
-<EditForm Model="_registerModel" OnValidSubmit="RegisterDemoUserAsync" FormName="register-demo" method="post">
-    <div>
-        <label>Email <InputText @bind-Value="_registerModel.Email" /></label>
-    </div>
-    <div>
-        <label>Mot de passe <InputText @bind-Value="_registerModel.Password" type="password" /></label>
-    </div>
-    <button type="submit">Créer un compte de démonstration</button>
-</EditForm>
+<p class="hint"><a href="/inscription">Créer un compte</a></p>
 
 @if (!string.IsNullOrEmpty(_message))
 {
@@ -44,9 +33,6 @@
 @code {
     [SupplyParameterFromForm(FormName = "login")]
     private CredentialsModel _loginModel { get; set; } = new();
-
-    [SupplyParameterFromForm(FormName = "register-demo")]
-    private CredentialsModel _registerModel { get; set; } = new();
 
     private string? _message;
 
@@ -63,19 +49,5 @@
             Navigation.NavigateTo("/");
         else
             _message = "Échec de connexion.";
-    }
-
-    private async Task RegisterDemoUserAsync()
-    {
-        var user = new ApplicationUser { UserName = _registerModel.Email, Email = _registerModel.Email, EmailConfirmed = true };
-        var createResult = await UserManager.CreateAsync(user, _registerModel.Password);
-        if (!createResult.Succeeded)
-        {
-            _message = string.Join(" ", createResult.Errors.Select(e => e.Description));
-            return;
-        }
-
-        await SignInManager.SignInAsync(user, isPersistent: true);
-        Navigation.NavigateTo("/");
     }
 }

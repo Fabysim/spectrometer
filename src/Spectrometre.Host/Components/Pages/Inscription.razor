@@ -1,0 +1,202 @@
+@page "/inscription"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Identity
+@using Spectrometre.Host.Onboarding
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject CompanyOnboardingService CompanyOnboarding
+@inject CandidateOnboardingService CandidateOnboarding
+@inject CoreDbContext CoreDb
+@inject NavigationManager Navigation
+
+<PageTitle>Créer un compte</PageTitle>
+
+<h1>Créer un compte</h1>
+
+@* Rendu statique (pas d'InteractiveServer), comme /login : la création du compte se termine par
+   SignInManager.SignInAsync, qui doit écrire le cookie d'authentification avant que la réponse ne
+   commence à être diffusée — incompatible avec un rendu interactif. Les à-côtés purement visuels
+   (suggestion de mot de passe, indicateur de robustesse, affichage conditionnel du nom d'entreprise)
+   sont donc implémentés en JavaScript simple ci-dessous plutôt qu'en gestionnaires d'évènements Blazor,
+   qui ne se déclenchent pas sans circuit interactif. *@
+<EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="inscription" method="post">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <h2>Informations du compte</h2>
+    <div class="champ">
+        <label>Nom <InputText @bind-Value="_model.Nom" /></label>
+    </div>
+    <div class="champ">
+        <label>Prénom <InputText @bind-Value="_model.Prenom" /></label>
+    </div>
+    <div class="champ">
+        <label>Email <InputText @bind-Value="_model.Email" /></label>
+    </div>
+    <div class="champ">
+        <label>Mot de passe <InputText @bind-Value="_model.MotDePasse" type="password" id="motDePasse" oninput="spectrometreUpdateStrength(this.value)" /></label>
+        <button type="button" onclick="spectrometreSuggestPassword()">Suggérer un mot de passe fort</button>
+        <p id="forceIndicateur" class="hint">Robustesse : —</p>
+    </div>
+    <div class="champ">
+        <label>Confirmation du mot de passe <InputText @bind-Value="_model.ConfirmationMotDePasse" type="password" id="confirmationMotDePasse" /></label>
+    </div>
+
+    <h2>Choix du profil</h2>
+    <InputRadioGroup @bind-Value="_model.Profil">
+        <div class="profil-choix">
+            <label>
+                <InputRadio Value="@("Entreprise")" /> Entreprise
+            </label>
+            <label class="profil-desactive">
+                <input type="radio" disabled /> Indépendant <em>(Bientôt disponible)</em>
+            </label>
+            <label>
+                <InputRadio Value="@("Candidat")" /> Candidat
+            </label>
+        </div>
+    </InputRadioGroup>
+
+    <div class="champ" id="champNomEntreprise" style="display:none">
+        <label>Nom de l'entreprise <InputText @bind-Value="_model.NomEntreprise" /></label>
+    </div>
+
+    <button type="submit">Créer mon compte</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <p class="erreur">@_message</p>
+}
+
+<p class="hint"><a href="/login">Déjà un compte ? Se connecter</a></p>
+
+<script>
+    function spectrometreSuggestPassword() {
+        const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const lower = "abcdefghijkmnpqrstuvwxyz";
+        const digits = "23456789";
+        const special = "!@@#$%^&*-_=+?";
+        const all = upper + lower + digits + special;
+        const pick = set => set[Math.floor(Math.random() * set.length)];
+        const length = 14;
+        let chars = [pick(upper), pick(lower), pick(digits), pick(special)];
+        for (let i = chars.length; i < length; i++) chars.push(pick(all));
+        for (let i = chars.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [chars[i], chars[j]] = [chars[j], chars[i]];
+        }
+        const password = chars.join('');
+        const mdp = document.getElementById('motDePasse');
+        const confirmation = document.getElementById('confirmationMotDePasse');
+        mdp.value = password;
+        confirmation.value = password;
+        spectrometreUpdateStrength(password);
+    }
+
+    function spectrometreUpdateStrength(password) {
+        let score = 0;
+        if (password.length >= 6) score++;
+        if (password.length >= 10) score++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+        if (/\d/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        const labels = ["Très faible", "Faible", "Moyen", "Bon", "Fort", "Très fort"];
+        const el = document.getElementById('forceIndicateur');
+        if (el) el.textContent = "Robustesse : " + (password.length === 0 ? "—" : labels[Math.min(score, labels.length - 1)]);
+    }
+
+    function spectrometreOnProfilChange() {
+        const entreprise = document.querySelector('.profil-choix input[type=radio][value=Entreprise]');
+        const champ = document.getElementById('champNomEntreprise');
+        if (champ) champ.style.display = (entreprise && entreprise.checked) ? '' : 'none';
+    }
+
+    // InputRadio (Blazor) ne relaie pas les attributs HTML bruts comme "onchange" (contrairement à
+    // InputText, qui les relaie bien) — on attache donc l'écouteur nous-mêmes après le rendu de la page,
+    // plutôt que de compter sur un attribut onchange qui ne serait jamais posé sur l'élément.
+    document.querySelectorAll('.profil-choix input[type=radio]:not([disabled])').forEach(function (input) {
+        input.addEventListener('change', spectrometreOnProfilChange);
+    });
+</script>
+
+@code {
+    [SupplyParameterFromForm(FormName = "inscription")]
+    private InscriptionModel _model { get; set; } = new();
+
+    private string? _message;
+
+    private sealed class InscriptionModel
+    {
+        [Required(ErrorMessage = "Le nom est requis.")]
+        public string Nom { get; set; } = "";
+
+        [Required(ErrorMessage = "Le prénom est requis.")]
+        public string Prenom { get; set; } = "";
+
+        [Required(ErrorMessage = "L'adresse email est requise.")]
+        [EmailAddress(ErrorMessage = "Adresse email invalide.")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Le mot de passe est requis.")]
+        public string MotDePasse { get; set; } = "";
+
+        [Required(ErrorMessage = "La confirmation du mot de passe est requise.")]
+        [Compare(nameof(MotDePasse), ErrorMessage = "Les mots de passe ne correspondent pas.")]
+        public string ConfirmationMotDePasse { get; set; } = "";
+
+        [Required(ErrorMessage = "Veuillez choisir un profil.")]
+        public string? Profil { get; set; }
+
+        public string? NomEntreprise { get; set; }
+    }
+
+    private async Task SubmitAsync()
+    {
+        _message = null;
+
+        // "Indépendant" n'a jamais de InputRadio bié — seules "Entreprise"/"Candidat" sont atteignables,
+        // donc ce test suffit à couvrir aussi bien une valeur absente qu'une valeur inattendue.
+        if (_model.Profil != "Entreprise" && _model.Profil != "Candidat")
+        {
+            _message = "Veuillez choisir un profil (Entreprise ou Candidat).";
+            return;
+        }
+
+        if (_model.Profil == "Entreprise" && string.IsNullOrWhiteSpace(_model.NomEntreprise))
+        {
+            _message = "Le nom de l'entreprise est requis.";
+            return;
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName = _model.Email,
+            Email = _model.Email,
+            // Même contournement que la démonstration précédente sur /login : aucun flux de confirmation
+            // par courriel n'existe dans ce cycle, et Identity exige RequireConfirmedAccount pour la
+            // connexion (voir AddSpectrometreCore) — sans ceci, le compte tout juste créé ne pourrait
+            // jamais se connecter.
+            EmailConfirmed = true,
+            FirstName = _model.Prenom,
+            LastName = _model.Nom,
+        };
+
+        var createResult = await UserManager.CreateAsync(user, _model.MotDePasse);
+        if (!createResult.Succeeded)
+        {
+            _message = string.Join(" ", createResult.Errors.Select(e => e.Description));
+            return;
+        }
+
+        if (_model.Profil == "Entreprise")
+            await CompanyOnboarding.CreateCompanyAsync(_model.NomEntreprise!.Trim(), user.Id, CoreDb);
+        else
+            await CandidateOnboarding.CreateCandidateAsync(user.Id, CoreDb);
+
+        await SignInManager.SignInAsync(user, isPersistent: true);
+        Navigation.NavigateTo("/");
+    }
+}

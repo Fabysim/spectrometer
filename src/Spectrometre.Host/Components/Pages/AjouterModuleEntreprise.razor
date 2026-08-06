@@ -1,0 +1,132 @@
+@page "/entreprise/modules"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Host.Onboarding
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject CompanyOnboardingService CompanyOnboarding
+@inject IModuleRegistry ModuleRegistry
+@inject CoreDbContext CoreDb
+
+<PageTitle>Ajouter un module</PageTitle>
+
+<h1>Ajouter un module</h1>
+<p class="hint"><a href="/">Retour au tableau de bord</a></p>
+
+@if (_company is null)
+{
+    <p>@(_loading ? "Chargement…" : "Aucune entreprise associée à ce compte.")</p>
+}
+else
+{
+    <h2>@_company.Name</h2>
+
+    <div class="module-carte">
+        <h3>Recrutement</h3>
+        <p class="hint">Postes & Recrutement et modules associés (compatibilité, vivier, entretien, analytics).</p>
+        @if (_recrutementActif)
+        {
+            <p class="confirmation">Déjà activé.</p>
+        }
+        else
+        {
+            <button @onclick="ActiverRecrutementAsync">Activer</button>
+        }
+    </div>
+
+    <div class="module-carte">
+        <h3>Gestion du temps</h3>
+        <p class="hint">Rituels, cycles, Kanban, minuteur, profil psychosocial et synthèse IA.</p>
+        @if (_gestionDuTempsActif)
+        {
+            <p class="confirmation">Déjà activé.</p>
+        }
+        else
+        {
+            <button @onclick="ActiverGestionDuTempsAsync">Activer</button>
+        }
+    </div>
+
+    <div class="module-carte module-a-venir">
+        <h3>Suivi & évaluation des employés</h3>
+        <p class="hint">Bientôt disponible.</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <p class="confirmation">@_message</p>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool _loading = true;
+    private Company? _company;
+    private bool _recrutementActif;
+    private bool _gestionDuTempsActif;
+    private string? _message;
+
+    private const string GestionDuTempsCode = "GestionDuTemps";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await ResolveUserIdAsync();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
+            _company = companies.Count > 0 ? companies[0] : null;
+            if (_company is not null)
+                await RefreshStatutsAsync();
+        }
+
+        _loading = false;
+    }
+
+    private async Task<string?> ResolveUserIdAsync()
+    {
+        if (AuthenticationStateTask is null) return null;
+        var user = (await AuthenticationStateTask).User;
+        return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+
+    private async Task RefreshStatutsAsync()
+    {
+        if (_company is null) return;
+
+        // « Activé » si TOUS les modules du paquet sont effectivement actifs (voir IsActiveAsync,
+        // jamais GetActiveModuleCodesAsync — gating par plan applicable, cohérent avec la règle du projet).
+        _recrutementActif = true;
+        foreach (var code in CompanyOnboardingService.RecruitmentBundleModuleCodes)
+        {
+            if (!await ModuleRegistry.IsActiveAsync(_company.Id, code, CoreDb))
+            {
+                _recrutementActif = false;
+                break;
+            }
+        }
+
+        _gestionDuTempsActif = await ModuleRegistry.IsActiveAsync(_company.Id, GestionDuTempsCode, CoreDb);
+    }
+
+    private async Task ActiverRecrutementAsync()
+    {
+        if (_company is null) return;
+        await CompanyOnboarding.ActivateRecruitmentBundleAsync(_company.Id, CoreDb);
+        await RefreshStatutsAsync();
+        _message = "Module Recrutement activé.";
+    }
+
+    private async Task ActiverGestionDuTempsAsync()
+    {
+        if (_company is null) return;
+        await CompanyOnboarding.ActivateGestionDuTempsAsync(_company.Id, CoreDb);
+        await RefreshStatutsAsync();
+        _message = "Module Gestion du temps activé.";
+    }
+}

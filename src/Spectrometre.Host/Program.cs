@@ -57,6 +57,7 @@ builder.Services.AddScoped<ICandidatureExistenceChecker, CandidatureExistenceChe
 builder.Services.AddScoped<IProfileChangeRecorder, ProfileChangeRecorder>();
 
 builder.Services.AddScoped<CompanyOnboardingService>();
+builder.Services.AddScoped<CandidateOnboardingService>();
 
 builder.Services.AddAuthentication(options =>
 {

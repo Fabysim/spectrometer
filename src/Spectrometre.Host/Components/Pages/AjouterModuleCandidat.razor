@@ -1,0 +1,80 @@
+@page "/candidat/modules"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Host.Onboarding
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICandidateSubjectResolver CandidateSubjectResolver
+@inject CandidateOnboardingService CandidateOnboarding
+@inject IModuleRegistry ModuleRegistry
+@inject CoreDbContext CoreDb
+
+<PageTitle>Ajouter un module</PageTitle>
+
+<h1>Ajouter un module</h1>
+<p class="hint"><a href="/">Retour au tableau de bord</a></p>
+
+@if (_loading)
+{
+    <p>Chargement…</p>
+}
+else
+{
+    <div class="module-carte">
+        <h3>Gestion du temps</h3>
+        <p class="hint">Rituels, cycles, Kanban, minuteur, profil psychosocial et synthèse IA.</p>
+        @if (_gestionDuTempsActif)
+        {
+            <p class="confirmation">Déjà activé.</p>
+        }
+        else
+        {
+            <button @onclick="ActiverGestionDuTempsAsync">Activer</button>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <p class="confirmation">@_message</p>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool _loading = true;
+    private int _candidateProfileId;
+    private bool _gestionDuTempsActif;
+    private string? _message;
+
+    private const string GestionDuTempsCode = "GestionDuTemps";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _candidateProfileId = await CandidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
+        await RefreshStatutAsync();
+        _loading = false;
+    }
+
+    private async Task RefreshStatutAsync()
+    {
+        _gestionDuTempsActif = await ModuleRegistry.IsActiveForCandidateAsync(_candidateProfileId, GestionDuTempsCode, CoreDb);
+    }
+
+    private async Task ActiverGestionDuTempsAsync()
+    {
+        await CandidateOnboarding.ActivateGestionDuTempsAsync(_candidateProfileId, CoreDb);
+        await RefreshStatutAsync();
+        _message = "Module Gestion du temps activé.";
+    }
+}

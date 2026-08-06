@@ -1,0 +1,19 @@
+@page "/logout"
+@using Microsoft.AspNetCore.Identity
+@using Spectrometre.Core.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+@* Rendu statique, comme /login : SignOutAsync écrit l'annulation du cookie d'authentification, qui doit
+   se faire avant que la réponse ne commence à être diffusée — incompatible avec un rendu interactif. *@
+<PageTitle>Déconnexion</PageTitle>
+
+<h1>Déconnexion…</h1>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await SignInManager.SignOutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}
