@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
+
+  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
+  <data name="ModuleNonActive" xml:space="preserve"><value>This module is not enabled for your account.</value></data>
+  <data name="Enregistrer" xml:space="preserve"><value>Save</value></data>
+  <data name="Annuler" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Supprimer" xml:space="preserve"><value>Delete</value></data>
+  <data name="Personnel" xml:space="preserve"><value>Personal</value></data>
+  <data name="NonRenseigne" xml:space="preserve"><value>Not specified</value></data>
+  <data name="Jamais" xml:space="preserve"><value>Never</value></data>
+  <data name="Parfois" xml:space="preserve"><value>Sometimes</value></data>
+  <data name="Souvent" xml:space="preserve"><value>Often</value></data>
+  <data name="NavKanban" xml:space="preserve"><value>Kanban</value></data>
+  <data name="NavProfilPsychosocial" xml:space="preserve"><value>Psychosocial profile</value></data>
+  <data name="NavReflexionConsciente" xml:space="preserve"><value>Mindful reflection</value></data>
+  <data name="NavSynthese" xml:space="preserve"><value>Synthesis</value></data>
+  <data name="NavRetourAuxRituels" xml:space="preserve"><value>Back to rituals</value></data>
+  <data name="CategorieSommeil" xml:space="preserve"><value>Sleep</value></data>
+  <data name="CategoriePersonnel" xml:space="preserve"><value>Personal</value></data>
+  <data name="CategorieProfessionnel" xml:space="preserve"><value>Professional</value></data>
+  <data name="CategorieAdministratif" xml:space="preserve"><value>Administrative</value></data>
+  <data name="CategorieFamilial" xml:space="preserve"><value>Family</value></data>
+  <data name="CategorieSocial" xml:space="preserve"><value>Social</value></data>
+
+  <data name="GestionDuTemps" xml:space="preserve"><value>Time management</value></data>
+  <data name="Page1_IntroDebut" xml:space="preserve"><value>Your rituals (recurring categories) and reminders (dated occurrences) — personal or attached to one of the companies you manage. A module independent of the Job Matching domain, available to any profile. See also:</value></data>
+  <data name="ModuleNonActiveDetail" xml:space="preserve"><value>This module is not enabled for your account — neither through a personal candidate subscription, nor through a company you manage whose plan includes it. Contact your administrator or subscribe to the "Time Management" plan to access it.</value></data>
+  <data name="Filtrer" xml:space="preserve"><value>Filter:</value></data>
+  <data name="TousMesRituels" xml:space="preserve"><value>All my rituals</value></data>
+  <data name="PersonnelsUniquement" xml:space="preserve"><value>Personal only</value></data>
+  <data name="MesCategoriesDeTemps" xml:space="preserve"><value>My time categories</value></data>
+  <data name="Modifier" xml:space="preserve"><value>Edit</value></data>
+  <data name="NouvelleCategorie" xml:space="preserve"><value>New category</value></data>
+  <data name="ModifierCategorie" xml:space="preserve"><value>Edit "{0}"</value></data>
+  <data name="Cle" xml:space="preserve"><value>Key</value></data>
+  <data name="ClePlaceholder" xml:space="preserve"><value>e.g. pro</value></data>
+  <data name="Libelle" xml:space="preserve"><value>Label</value></data>
+  <data name="LibellePlaceholder" xml:space="preserve"><value>e.g. Professional</value></data>
+  <data name="HeureDeDebut" xml:space="preserve"><value>Start time</value></data>
+  <data name="HeureDeFin" xml:space="preserve"><value>End time</value></data>
+  <data name="JoursDeRecurrence" xml:space="preserve"><value>Recurrence days</value></data>
+  <data name="JoursDeRecurrencePlaceholder" xml:space="preserve"><value>e.g. Mo,Tu,We,Th,Fr</value></data>
+  <data name="EntrepriseOptionnel" xml:space="preserve"><value>Company (optional)</value></data>
+  <data name="MesRappels" xml:space="preserve"><value>My reminders</value></data>
+  <data name="Page1_KanbanHintDebut" xml:space="preserve"><value>Progress tracking (To do / In progress / Done) and the timer are managed from the</value></data>
+  <data name="VueKanban" xml:space="preserve"><value>Kanban view</value></data>
+  <data name="Page1_KanbanHintFin" xml:space="preserve"><value>of the active cycle.</value></data>
+  <data name="AucunRappelPourCeFiltre" xml:space="preserve"><value>No reminders for this filter — create one below.</value></data>
+  <data name="NouveauRappel" xml:space="preserve"><value>New reminder</value></data>
+  <data name="Nom" xml:space="preserve"><value>Name</value></data>
+  <data name="NomRappelPlaceholder" xml:space="preserve"><value>e.g. Team meeting</value></data>
+  <data name="Categorie" xml:space="preserve"><value>Category</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="DureeMinutes" xml:space="preserve"><value>Duration (minutes)</value></data>
+  <data name="CreerLeRappel" xml:space="preserve"><value>Create reminder</value></data>
+
+  <data name="ProfilPsychosocialTitle" xml:space="preserve"><value>Psychosocial profile · Time management</value></data>
+  <data name="ProfilPsychosocial" xml:space="preserve"><value>Psychosocial profile</value></data>
+  <data name="Page2_IntroDebut" xml:space="preserve"><value>This questionnaire feeds the</value></data>
+  <data name="Page2_IntroMilieu" xml:space="preserve"><value>of your active cycle — one per cycle, starting fresh each new season.</value></data>
+  <data name="Section_Sommeil" xml:space="preserve"><value>Sleep</value></data>
+  <data name="HeureDeCoucher" xml:space="preserve"><value>Bedtime</value></data>
+  <data name="HeureDeLever" xml:space="preserve"><value>Wake-up time</value></data>
+  <data name="SommeilReparateur" xml:space="preserve"><value>Restful sleep</value></data>
+  <data name="ReveilsNocturnesFrequents" xml:space="preserve"><value>Frequent night waking</value></data>
+  <data name="EcransAvantLeSommeil" xml:space="preserve"><value>Screens before sleep</value></data>
+  <data name="Section_TempsPersonnel" xml:space="preserve"><value>Personal time</value></data>
+  <data name="UnMomentPersonnelChaqueJour" xml:space="preserve"><value>A personal moment every day</value></data>
+  <data name="SentimentDeManqueDeTempsPerso" xml:space="preserve"><value>Feeling of lacking personal time</value></data>
+  <data name="ActivitesRessourcantes" xml:space="preserve"><value>Restorative activities</value></data>
+  <data name="Section_Travail" xml:space="preserve"><value>Work</value></data>
+  <data name="HoraireDeTravail" xml:space="preserve"><value>Work schedule</value></data>
+  <data name="SurchargePrevisible" xml:space="preserve"><value>Predictable overload</value></data>
+  <data name="TravailHorsHeuresPrevues" xml:space="preserve"><value>Work outside scheduled hours</value></data>
+  <data name="Section_Contraintes" xml:space="preserve"><value>Constraints</value></data>
+  <data name="DureeDesTrajets" xml:space="preserve"><value>Commute duration</value></data>
+  <data name="DeplacementsImprevisibles" xml:space="preserve"><value>Unpredictable travel</value></data>
+  <data name="EngagementCommunautaire" xml:space="preserve"><value>Community involvement</value></data>
+  <data name="NatureDeLEngagement" xml:space="preserve"><value>Nature of the involvement</value></data>
+  <data name="ProcheMaladeACharge" xml:space="preserve"><value>Caring for a sick relative</value></data>
+  <data name="Section_ModeDeTravail" xml:space="preserve"><value>Work mode</value></data>
+  <data name="ModeDeTravail" xml:space="preserve"><value>Work mode</value></data>
+  <data name="Interruptions" xml:space="preserve"><value>Interruptions</value></data>
+  <data name="Constamment" xml:space="preserve"><value>Constantly</value></data>
+  <data name="AutonomieDansLaGestionDuTemps" xml:space="preserve"><value>Autonomy in time management (1-5)</value></data>
+  <data name="Section_EtatPsychosocial" xml:space="preserve"><value>Psychosocial state</value></data>
+  <data name="SentimentDePression" xml:space="preserve"><value>Feeling of pressure</value></data>
+  <data name="DifficultesDeConcentration" xml:space="preserve"><value>Difficulty concentrating</value></data>
+  <data name="DecisionsPrecipitees" xml:space="preserve"><value>Rushed decisions</value></data>
+  <data name="CulpabiliteLieeAuTempsPerso" xml:space="preserve"><value>Guilt about personal time</value></data>
+  <data name="ToleranceALImprevu" xml:space="preserve"><value>Tolerance for the unexpected</value></data>
+  <data name="Anxieux" xml:space="preserve"><value>Anxious</value></data>
+  <data name="Adaptatif" xml:space="preserve"><value>Adaptive</value></data>
+  <data name="Souple" xml:space="preserve"><value>Flexible</value></data>
+  <data name="Section_Organisation" xml:space="preserve"><value>Organization</value></data>
+  <data name="UtiliseUnAgenda" xml:space="preserve"><value>Uses a planner</value></data>
+  <data name="PlanificationALAvance" xml:space="preserve"><value>Advance planning</value></data>
+  <data name="Systematiquement" xml:space="preserve"><value>Systematically</value></data>
+  <data name="RituelsQuotidiens" xml:space="preserve"><value>Daily rituals</value></data>
+  <data name="DitOuiTropFacilement" xml:space="preserve"><value>Says yes too easily</value></data>
+  <data name="Toujours" xml:space="preserve"><value>Always</value></data>
+  <data name="CapaciteARefuser" xml:space="preserve"><value>Ability to say no</value></data>
+  <data name="Difficilement" xml:space="preserve"><value>With difficulty</value></data>
+  <data name="Facilement" xml:space="preserve"><value>Easily</value></data>
+  <data name="GestionAdministrative" xml:space="preserve"><value>Administrative management</value></data>
+  <data name="StressAdministratif" xml:space="preserve"><value>Administrative stress</value></data>
+  <data name="Section_TagsLibres" xml:space="preserve"><value>Free tags (comma-separated)</value></data>
+  <data name="Tendances" xml:space="preserve"><value>Tendencies</value></data>
+  <data name="TendancesPlaceholder" xml:space="preserve"><value>e.g. perfectionism, procrastination</value></data>
+  <data name="DesequilibresIdentifies" xml:space="preserve"><value>Identified imbalances</value></data>
+  <data name="DesequilibresPlaceholder" xml:space="preserve"><value>e.g. Too much work time</value></data>
+  <data name="EmotionsNegatives" xml:space="preserve"><value>Negative emotions</value></data>
+  <data name="EmotionsPositives" xml:space="preserve"><value>Positive emotions</value></data>
+  <data name="ObjectifsProfessionnels" xml:space="preserve"><value>Professional goals</value></data>
+  <data name="ObstaclesPercus" xml:space="preserve"><value>Perceived obstacles</value></data>
+  <data name="Section_SatisfactionParCategorie" xml:space="preserve"><value>Satisfaction by time category (0 to 4)</value></data>
+  <data name="Section_DirectionSouhaitee" xml:space="preserve"><value>Desired direction by category (e.g. More / Less / Stable)</value></data>
+  <data name="EnregistrerLeProfil" xml:space="preserve"><value>Save profile</value></data>
+  <data name="ProfilEnregistre" xml:space="preserve"><value>Profile saved.</value></data>
+
+  <data name="KanbanTitle" xml:space="preserve"><value>Kanban · Time management</value></data>
+  <data name="KanbanDuCycleActif" xml:space="preserve"><value>Active cycle Kanban</value></data>
+  <data name="KanbanHint1" xml:space="preserve"><value>Move your reminders through To do → In progress → Done. The timer measures the actual time spent "In progress" and accumulates it across multiple pauses/resumes.</value></data>
+  <data name="CycleBandeau" xml:space="preserve"><value>Cycle #{0} — running since {1}</value></data>
+  <data name="ClotureCycleBouton" xml:space="preserve"><value>Close this cycle and start a new one</value></data>
+  <data name="ClotureCycleHint" xml:space="preserve"><value>On closing, your categories (time types) carry over into the new cycle; this cycle's reminders stay archived as-is, they are never carried forward.</value></data>
+  <data name="AucunRappelDansCeCycle" xml:space="preserve"><value>No reminders in this cycle — create one from the</value></data>
+  <data name="NavRituels" xml:space="preserve"><value>Rituals</value></data>
+  <data name="ColonneAFaire" xml:space="preserve"><value>To do</value></data>
+  <data name="ColonneEnCours" xml:space="preserve"><value>In progress</value></data>
+  <data name="ColonneTermine" xml:space="preserve"><value>Done</value></data>
+  <data name="Planifie" xml:space="preserve"><value>planned {0} min</value></data>
+  <data name="Depassement" xml:space="preserve"><value>overtime</value></data>
+
+  <data name="ReflexionTitle" xml:space="preserve"><value>Mindful reflection · Time management</value></data>
+  <data name="ReflexionHint" xml:space="preserve"><value>A space to step back from a situation that's weighing on you, before it settles in.</value></data>
+  <data name="QuelleEstVotreSituation" xml:space="preserve"><value>What is your current situation?</value></data>
+  <data name="JaiIdentifieLaSource" xml:space="preserve"><value>I have identified the source</value></data>
+  <data name="DateDeRetourSurReflexion" xml:space="preserve"><value>Date to revisit this reflection</value></data>
+  <data name="Ressentis" xml:space="preserve"><value>Feelings</value></data>
+  <data name="RessentisPlaceholder" xml:space="preserve"><value>e.g. fatigue, frustration</value></data>
+  <data name="SourcesPossibles" xml:space="preserve"><value>Possible sources</value></data>
+  <data name="SourcesPlaceholder" xml:space="preserve"><value>e.g. overload, lack of clarity</value></data>
+  <data name="EnregistrerLaReflexion" xml:space="preserve"><value>Save reflection</value></data>
+  <data name="ReflexionEnregistree" xml:space="preserve"><value>Reflection saved.</value></data>
+
+  <data name="SyntheseTitle" xml:space="preserve"><value>Synthesis · Time management</value></data>
+  <data name="SyntheseDuCycle" xml:space="preserve"><value>Cycle synthesis</value></data>
+  <data name="Synthese_IntroDebut" xml:space="preserve"><value>Combines your</value></data>
+  <data name="Synthese_IntroMilieu1" xml:space="preserve"><value>psychosocial profile</value></data>
+  <data name="Synthese_IntroMilieu2" xml:space="preserve"><value>, your</value></data>
+  <data name="Synthese_IntroMilieu3" xml:space="preserve"><value>mindful reflection</value></data>
+  <data name="Synthese_IntroFin" xml:space="preserve"><value>and the current cycle's activity.</value></data>
+  <data name="GenererLaSynthese" xml:space="preserve"><value>Generate synthesis</value></data>
+  <data name="RegenererLaSynthese" xml:space="preserve"><value>Regenerate synthesis</value></data>
+  <data name="GenerationEnCours" xml:space="preserve"><value>Generating…</value></data>
+  <data name="SyntheseGintIa" xml:space="preserve"><value>Synthesis generated by AI</value></data>
+  <data name="SyntheseRepli" xml:space="preserve"><value>Synthesis generated locally (AI service currently unavailable) — the indicators below remain reliable, only the accompanying text is a generic template rather than a personalized AI analysis.</value></data>
+  <data name="Profil" xml:space="preserve"><value>Profile</value></data>
+  <data name="IndiceDEquilibre" xml:space="preserve"><value>Balance index</value></data>
+  <data name="NiveauDeMaturiteOrganisationnelle" xml:space="preserve"><value>Organizational maturity level</value></data>
+  <data name="Recommandations" xml:space="preserve"><value>Recommendations</value></data>
+  <data name="PointsDAttention" xml:space="preserve"><value>Points of attention</value></data>
+  <data name="CalculeeLe" xml:space="preserve"><value>Calculated on {0}</value></data>
+  <data name="AucuneSyntheseHint" xml:space="preserve"><value>No synthesis for this cycle — click "Generate synthesis" above.</value></data>
+  <data name="ImpossibleDeGenererLaSynthese" xml:space="preserve"><value>Unable to generate the synthesis right now: {0}</value></data>
+  <data name="DomaineOrganisation" xml:space="preserve"><value>Organization</value></data>
+  <data name="ProfilTypeReactif" xml:space="preserve"><value>Reactive</value></data>
+  <data name="ProfilTypeAnticipatif" xml:space="preserve"><value>Anticipatory</value></data>
+  <data name="ProfilTypeStructure" xml:space="preserve"><value>Structured</value></data>
+  <data name="ProfilTypeSature" xml:space="preserve"><value>Saturated</value></data>
+  <data name="ProfilTypeFragmente" xml:space="preserve"><value>Fragmented</value></data>
+</root>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Générique / partagé entre pages -->
+  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
+  <data name="ModuleNonActive" xml:space="preserve"><value>Ce module n'est pas activé pour votre compte.</value></data>
+  <data name="Enregistrer" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="Annuler" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Supprimer" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Personnel" xml:space="preserve"><value>Personnel</value></data>
+  <data name="NonRenseigne" xml:space="preserve"><value>Non renseigné</value></data>
+  <data name="Jamais" xml:space="preserve"><value>Jamais</value></data>
+  <data name="Parfois" xml:space="preserve"><value>Parfois</value></data>
+  <data name="Souvent" xml:space="preserve"><value>Souvent</value></data>
+  <data name="NavKanban" xml:space="preserve"><value>Kanban</value></data>
+  <data name="NavProfilPsychosocial" xml:space="preserve"><value>Profil psychosocial</value></data>
+  <data name="NavReflexionConsciente" xml:space="preserve"><value>Réflexion consciente</value></data>
+  <data name="NavSynthese" xml:space="preserve"><value>Synthèse</value></data>
+  <data name="NavRetourAuxRituels" xml:space="preserve"><value>Retour aux rituels</value></data>
+  <data name="CategorieSommeil" xml:space="preserve"><value>Sommeil</value></data>
+  <data name="CategoriePersonnel" xml:space="preserve"><value>Personnel</value></data>
+  <data name="CategorieProfessionnel" xml:space="preserve"><value>Professionnel</value></data>
+  <data name="CategorieAdministratif" xml:space="preserve"><value>Administratif</value></data>
+  <data name="CategorieFamilial" xml:space="preserve"><value>Familial</value></data>
+  <data name="CategorieSocial" xml:space="preserve"><value>Social</value></data>
+
+  <!-- GestionDuTempsPage.razor (page principale : rituels) -->
+  <data name="GestionDuTemps" xml:space="preserve"><value>Gestion du temps</value></data>
+  <data name="Page1_IntroDebut" xml:space="preserve"><value>Vos rituels (catégories récurrentes) et vos rappels (occurrences datées) — personnels ou rattachés à l'une des entreprises que vous gérez. Module indépendant du domaine Matching Emploi, disponible pour tout profil. Voir aussi :</value></data>
+  <data name="ModuleNonActiveDetail" xml:space="preserve"><value>Ce module n'est pas activé pour votre compte — ni via un abonnement candidat personnel, ni via une entreprise que vous gérez dont le plan l'inclut. Contactez votre administrateur ou souscrivez au plan « Gestion du temps » pour y accéder.</value></data>
+  <data name="Filtrer" xml:space="preserve"><value>Filtrer :</value></data>
+  <data name="TousMesRituels" xml:space="preserve"><value>Tous mes rituels</value></data>
+  <data name="PersonnelsUniquement" xml:space="preserve"><value>Personnels uniquement</value></data>
+  <data name="MesCategoriesDeTemps" xml:space="preserve"><value>Mes catégories de temps</value></data>
+  <data name="Modifier" xml:space="preserve"><value>Modifier</value></data>
+  <data name="NouvelleCategorie" xml:space="preserve"><value>Nouvelle catégorie</value></data>
+  <data name="ModifierCategorie" xml:space="preserve"><value>Modifier « {0} »</value></data>
+  <data name="Cle" xml:space="preserve"><value>Clé</value></data>
+  <data name="ClePlaceholder" xml:space="preserve"><value>ex. pro</value></data>
+  <data name="Libelle" xml:space="preserve"><value>Libellé</value></data>
+  <data name="LibellePlaceholder" xml:space="preserve"><value>ex. Professionnel</value></data>
+  <data name="HeureDeDebut" xml:space="preserve"><value>Heure de début</value></data>
+  <data name="HeureDeFin" xml:space="preserve"><value>Heure de fin</value></data>
+  <data name="JoursDeRecurrence" xml:space="preserve"><value>Jours de récurrence</value></data>
+  <data name="JoursDeRecurrencePlaceholder" xml:space="preserve"><value>ex. L,M,Me,J,V</value></data>
+  <data name="EntrepriseOptionnel" xml:space="preserve"><value>Entreprise (optionnel)</value></data>
+  <data name="MesRappels" xml:space="preserve"><value>Mes rappels</value></data>
+  <data name="Page1_KanbanHintDebut" xml:space="preserve"><value>Le suivi d'avancement (À faire / En cours / Terminé) et le minuteur se gèrent depuis la</value></data>
+  <data name="VueKanban" xml:space="preserve"><value>vue Kanban</value></data>
+  <data name="Page1_KanbanHintFin" xml:space="preserve"><value>du cycle actif.</value></data>
+  <data name="AucunRappelPourCeFiltre" xml:space="preserve"><value>Aucun rappel pour ce filtre — créez-en un ci-dessous.</value></data>
+  <data name="NouveauRappel" xml:space="preserve"><value>Nouveau rappel</value></data>
+  <data name="Nom" xml:space="preserve"><value>Nom</value></data>
+  <data name="NomRappelPlaceholder" xml:space="preserve"><value>ex. Point d'équipe</value></data>
+  <data name="Categorie" xml:space="preserve"><value>Catégorie</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="DureeMinutes" xml:space="preserve"><value>Durée (minutes)</value></data>
+  <data name="CreerLeRappel" xml:space="preserve"><value>Créer le rappel</value></data>
+
+  <!-- GestionDuTempsProfilPage.razor -->
+  <data name="ProfilPsychosocialTitle" xml:space="preserve"><value>Profil psychosocial · Gestion du temps</value></data>
+  <data name="ProfilPsychosocial" xml:space="preserve"><value>Profil psychosocial</value></data>
+  <data name="Page2_IntroDebut" xml:space="preserve"><value>Ce questionnaire nourrit la</value></data>
+  <data name="Page2_IntroMilieu" xml:space="preserve"><value>de votre cycle actif — un par cycle, repris à zéro à chaque nouvelle saison.</value></data>
+  <data name="Section_Sommeil" xml:space="preserve"><value>Sommeil</value></data>
+  <data name="HeureDeCoucher" xml:space="preserve"><value>Heure de coucher</value></data>
+  <data name="HeureDeLever" xml:space="preserve"><value>Heure de lever</value></data>
+  <data name="SommeilReparateur" xml:space="preserve"><value>Sommeil réparateur</value></data>
+  <data name="ReveilsNocturnesFrequents" xml:space="preserve"><value>Réveils nocturnes fréquents</value></data>
+  <data name="EcransAvantLeSommeil" xml:space="preserve"><value>Écrans avant le sommeil</value></data>
+  <data name="Section_TempsPersonnel" xml:space="preserve"><value>Temps personnel</value></data>
+  <data name="UnMomentPersonnelChaqueJour" xml:space="preserve"><value>Un moment personnel chaque jour</value></data>
+  <data name="SentimentDeManqueDeTempsPerso" xml:space="preserve"><value>Sentiment de manque de temps perso</value></data>
+  <data name="ActivitesRessourcantes" xml:space="preserve"><value>Activités ressourçantes</value></data>
+  <data name="Section_Travail" xml:space="preserve"><value>Travail</value></data>
+  <data name="HoraireDeTravail" xml:space="preserve"><value>Horaire de travail</value></data>
+  <data name="SurchargePrevisible" xml:space="preserve"><value>Surcharge prévisible</value></data>
+  <data name="TravailHorsHeuresPrevues" xml:space="preserve"><value>Travail hors heures prévues</value></data>
+  <data name="Section_Contraintes" xml:space="preserve"><value>Contraintes</value></data>
+  <data name="DureeDesTrajets" xml:space="preserve"><value>Durée des trajets</value></data>
+  <data name="DeplacementsImprevisibles" xml:space="preserve"><value>Déplacements imprévisibles</value></data>
+  <data name="EngagementCommunautaire" xml:space="preserve"><value>Engagement communautaire</value></data>
+  <data name="NatureDeLEngagement" xml:space="preserve"><value>Nature de l'engagement</value></data>
+  <data name="ProcheMaladeACharge" xml:space="preserve"><value>Proche malade à charge</value></data>
+  <data name="Section_ModeDeTravail" xml:space="preserve"><value>Mode de travail</value></data>
+  <data name="ModeDeTravail" xml:space="preserve"><value>Mode de travail</value></data>
+  <data name="Interruptions" xml:space="preserve"><value>Interruptions</value></data>
+  <data name="Constamment" xml:space="preserve"><value>Constamment</value></data>
+  <data name="AutonomieDansLaGestionDuTemps" xml:space="preserve"><value>Autonomie dans la gestion du temps (1-5)</value></data>
+  <data name="Section_EtatPsychosocial" xml:space="preserve"><value>État psychosocial</value></data>
+  <data name="SentimentDePression" xml:space="preserve"><value>Sentiment de pression</value></data>
+  <data name="DifficultesDeConcentration" xml:space="preserve"><value>Difficultés de concentration</value></data>
+  <data name="DecisionsPrecipitees" xml:space="preserve"><value>Décisions précipitées</value></data>
+  <data name="CulpabiliteLieeAuTempsPerso" xml:space="preserve"><value>Culpabilité liée au temps perso</value></data>
+  <data name="ToleranceALImprevu" xml:space="preserve"><value>Tolérance à l'imprévu</value></data>
+  <data name="Anxieux" xml:space="preserve"><value>Anxieux</value></data>
+  <data name="Adaptatif" xml:space="preserve"><value>Adaptatif</value></data>
+  <data name="Souple" xml:space="preserve"><value>Souple</value></data>
+  <data name="Section_Organisation" xml:space="preserve"><value>Organisation</value></data>
+  <data name="UtiliseUnAgenda" xml:space="preserve"><value>Utilise un agenda</value></data>
+  <data name="PlanificationALAvance" xml:space="preserve"><value>Planification à l'avance</value></data>
+  <data name="Systematiquement" xml:space="preserve"><value>Systématiquement</value></data>
+  <data name="RituelsQuotidiens" xml:space="preserve"><value>Rituels quotidiens</value></data>
+  <data name="DitOuiTropFacilement" xml:space="preserve"><value>Dit oui trop facilement</value></data>
+  <data name="Toujours" xml:space="preserve"><value>Toujours</value></data>
+  <data name="CapaciteARefuser" xml:space="preserve"><value>Capacité à refuser</value></data>
+  <data name="Difficilement" xml:space="preserve"><value>Difficilement</value></data>
+  <data name="Facilement" xml:space="preserve"><value>Facilement</value></data>
+  <data name="GestionAdministrative" xml:space="preserve"><value>Gestion administrative</value></data>
+  <data name="StressAdministratif" xml:space="preserve"><value>Stress administratif</value></data>
+  <data name="Section_TagsLibres" xml:space="preserve"><value>Tags libres (séparés par des virgules)</value></data>
+  <data name="Tendances" xml:space="preserve"><value>Tendances</value></data>
+  <data name="TendancesPlaceholder" xml:space="preserve"><value>ex. perfectionnisme, procrastination</value></data>
+  <data name="DesequilibresIdentifies" xml:space="preserve"><value>Déséquilibres identifiés</value></data>
+  <data name="DesequilibresPlaceholder" xml:space="preserve"><value>ex. Trop de temps professionnel</value></data>
+  <data name="EmotionsNegatives" xml:space="preserve"><value>Émotions négatives</value></data>
+  <data name="EmotionsPositives" xml:space="preserve"><value>Émotions positives</value></data>
+  <data name="ObjectifsProfessionnels" xml:space="preserve"><value>Objectifs professionnels</value></data>
+  <data name="ObstaclesPercus" xml:space="preserve"><value>Obstacles perçus</value></data>
+  <data name="Section_SatisfactionParCategorie" xml:space="preserve"><value>Satisfaction par catégorie de temps (0 à 4)</value></data>
+  <data name="Section_DirectionSouhaitee" xml:space="preserve"><value>Direction souhaitée par catégorie (ex. Plus / Moins / Stable)</value></data>
+  <data name="EnregistrerLeProfil" xml:space="preserve"><value>Enregistrer le profil</value></data>
+  <data name="ProfilEnregistre" xml:space="preserve"><value>Profil enregistré.</value></data>
+
+  <!-- GestionDuTempsKanbanPage.razor -->
+  <data name="KanbanTitle" xml:space="preserve"><value>Kanban · Gestion du temps</value></data>
+  <data name="KanbanDuCycleActif" xml:space="preserve"><value>Kanban du cycle actif</value></data>
+  <data name="KanbanHint1" xml:space="preserve"><value>Faites progresser vos rappels À faire → En cours → Terminé. Le minuteur mesure le temps réel passé en « En cours » et l'accumule à travers plusieurs pauses/reprises.</value></data>
+  <data name="CycleBandeau" xml:space="preserve"><value>Cycle #{0} — en cours depuis le {1}</value></data>
+  <data name="ClotureCycleBouton" xml:space="preserve"><value>Clôturer ce cycle et en démarrer un nouveau</value></data>
+  <data name="ClotureCycleHint" xml:space="preserve"><value>À la clôture, vos catégories (types de temps) sont reconduites dans le nouveau cycle ; les rappels de ce cycle-ci restent archivés tels quels, ils ne sont jamais reportés.</value></data>
+  <data name="AucunRappelDansCeCycle" xml:space="preserve"><value>Aucun rappel dans ce cycle — créez-en un depuis la page</value></data>
+  <data name="NavRituels" xml:space="preserve"><value>Rituels</value></data>
+  <data name="ColonneAFaire" xml:space="preserve"><value>À faire</value></data>
+  <data name="ColonneEnCours" xml:space="preserve"><value>En cours</value></data>
+  <data name="ColonneTermine" xml:space="preserve"><value>Terminé</value></data>
+  <data name="Planifie" xml:space="preserve"><value>planifié {0} min</value></data>
+  <data name="Depassement" xml:space="preserve"><value>dépassement</value></data>
+
+  <!-- GestionDuTempsReflexionPage.razor -->
+  <data name="ReflexionTitle" xml:space="preserve"><value>Réflexion consciente · Gestion du temps</value></data>
+  <data name="ReflexionHint" xml:space="preserve"><value>Un espace pour prendre du recul sur une situation qui vous pèse, avant qu'elle ne s'installe.</value></data>
+  <data name="QuelleEstVotreSituation" xml:space="preserve"><value>Quelle est votre situation actuelle ?</value></data>
+  <data name="JaiIdentifieLaSource" xml:space="preserve"><value>J'ai identifié la source</value></data>
+  <data name="DateDeRetourSurReflexion" xml:space="preserve"><value>Date de retour sur cette réflexion</value></data>
+  <data name="Ressentis" xml:space="preserve"><value>Ressentis</value></data>
+  <data name="RessentisPlaceholder" xml:space="preserve"><value>ex. fatigue, frustration</value></data>
+  <data name="SourcesPossibles" xml:space="preserve"><value>Sources possibles</value></data>
+  <data name="SourcesPlaceholder" xml:space="preserve"><value>ex. surcharge, manque de clarté</value></data>
+  <data name="EnregistrerLaReflexion" xml:space="preserve"><value>Enregistrer la réflexion</value></data>
+  <data name="ReflexionEnregistree" xml:space="preserve"><value>Réflexion enregistrée.</value></data>
+
+  <!-- GestionDuTempsSynthesePage.razor -->
+  <data name="SyntheseTitle" xml:space="preserve"><value>Synthèse · Gestion du temps</value></data>
+  <data name="SyntheseDuCycle" xml:space="preserve"><value>Synthèse du cycle</value></data>
+  <data name="Synthese_IntroDebut" xml:space="preserve"><value>Combine votre</value></data>
+  <data name="Synthese_IntroMilieu1" xml:space="preserve"><value>profil psychosocial</value></data>
+  <data name="Synthese_IntroMilieu2" xml:space="preserve"><value>, votre</value></data>
+  <data name="Synthese_IntroMilieu3" xml:space="preserve"><value>réflexion consciente</value></data>
+  <data name="Synthese_IntroFin" xml:space="preserve"><value>et l'activité du cycle en cours.</value></data>
+  <data name="GenererLaSynthese" xml:space="preserve"><value>Générer la synthèse</value></data>
+  <data name="RegenererLaSynthese" xml:space="preserve"><value>Régénérer la synthèse</value></data>
+  <data name="GenerationEnCours" xml:space="preserve"><value>Génération en cours…</value></data>
+  <data name="SyntheseGintIa" xml:space="preserve"><value>Synthèse générée par IA</value></data>
+  <data name="SyntheseRepli" xml:space="preserve"><value>Synthèse générée localement (service IA non disponible pour le moment) — les indicateurs ci-dessous restent fiables, seul le texte d'accompagnement est un modèle générique plutôt qu'une analyse personnalisée par IA.</value></data>
+  <data name="Profil" xml:space="preserve"><value>Profil</value></data>
+  <data name="IndiceDEquilibre" xml:space="preserve"><value>Indice d'équilibre</value></data>
+  <data name="NiveauDeMaturiteOrganisationnelle" xml:space="preserve"><value>Niveau de maturité organisationnelle</value></data>
+  <data name="Recommandations" xml:space="preserve"><value>Recommandations</value></data>
+  <data name="PointsDAttention" xml:space="preserve"><value>Points d'attention</value></data>
+  <data name="CalculeeLe" xml:space="preserve"><value>Calculée le {0}</value></data>
+  <data name="AucuneSyntheseHint" xml:space="preserve"><value>Aucune synthèse pour ce cycle — cliquez sur « Générer la synthèse » ci-dessus.</value></data>
+  <data name="ImpossibleDeGenererLaSynthese" xml:space="preserve"><value>Impossible de générer la synthèse pour le moment : {0}</value></data>
+  <data name="DomaineOrganisation" xml:space="preserve"><value>Organisation</value></data>
+  <data name="ProfilTypeReactif" xml:space="preserve"><value>Réactif</value></data>
+  <data name="ProfilTypeAnticipatif" xml:space="preserve"><value>Anticipatif</value></data>
+  <data name="ProfilTypeStructure" xml:space="preserve"><value>Structuré</value></data>
+  <data name="ProfilTypeSature" xml:space="preserve"><value>Saturé</value></data>
+  <data name="ProfilTypeFragmente" xml:space="preserve"><value>Fragmenté</value></data>
+</root>

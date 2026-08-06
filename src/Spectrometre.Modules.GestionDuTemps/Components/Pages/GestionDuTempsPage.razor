@@ -1,50 +1,48 @@
 @page "/gestion-du-temps"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<GestionDuTempsResource> Localizer
 
-<PageTitle>Gestion du temps</PageTitle>
+<PageTitle>@Localizer["GestionDuTemps"]</PageTitle>
 
-<h1>Gestion du temps</h1>
+<h1>@Localizer["GestionDuTemps"]</h1>
 <p class="hint">
-    Vos rituels (catégories récurrentes) et vos rappels (occurrences datées) — personnels ou rattachés à
-    l'une des entreprises que vous gérez. Module indépendant du domaine Matching Emploi, disponible pour
-    tout profil. Voir aussi : <a href="/gestion-du-temps/kanban">Kanban</a> ·
-    <a href="/gestion-du-temps/profil">Profil psychosocial</a> ·
-    <a href="/gestion-du-temps/reflexion">Réflexion consciente</a> ·
-    <a href="/gestion-du-temps/synthese">Synthèse</a>.
+    @Localizer["Page1_IntroDebut"] <a href="/gestion-du-temps/kanban">@Localizer["NavKanban"]</a> ·
+    <a href="/gestion-du-temps/profil">@Localizer["NavProfilPsychosocial"]</a> ·
+    <a href="/gestion-du-temps/reflexion">@Localizer["NavReflexionConsciente"]</a> ·
+    <a href="/gestion-du-temps/synthese">@Localizer["NavSynthese"]</a>.
 </p>
 
 @if (_userId is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (!_hasAccess)
 {
-    <p class="hint">
-        Ce module n'est pas activé pour votre compte — ni via un abonnement candidat personnel, ni via une
-        entreprise que vous gérez dont le plan l'inclut. Contactez votre administrateur ou souscrivez au
-        plan « Gestion du temps » pour y accéder.
-    </p>
+    <p class="hint">@Localizer["ModuleNonActiveDetail"]</p>
 }
 else
 {
     <div class="entreprise-header">
         <label>
-            Filtrer :
+            @Localizer["Filtrer"]
             <select value="@_filtreValue" @onchange="OnFiltreChangedAsync">
-                <option value="tout">Tous mes rituels</option>
-                <option value="personnel">Personnels uniquement</option>
+                <option value="tout">@Localizer["TousMesRituels"]</option>
+                <option value="personnel">@Localizer["PersonnelsUniquement"]</option>
                 @foreach (var company in _companies)
                 {
                     <option value="@company.Id">@company.Name</option>
@@ -54,10 +52,10 @@ else
     </div>
 
     <section class="gdt-types">
-        <h3>Mes catégories de temps</h3>
+        <h3>@Localizer["MesCategoriesDeTemps"]</h3>
         @if (_types is null)
         {
-            <p>Chargement…</p>
+            <p>@Localizer["Chargement"]</p>
         }
         else
         {
@@ -65,71 +63,71 @@ else
             {
                 <div class="gdt-type-carte">
                     <span class="gdt-couleur" style="background:@CouleurCategorie(type.Cle)"></span>
-                    <strong>@type.Libelle</strong>
+                    <strong>@DefaultCategoryLabels.Display(type.Cle, type.Libelle, _english)</strong>
                     <span class="gdt-horaire">@type.HeureDebut.ToString("HH:mm") – @type.HeureFin.ToString("HH:mm")</span>
                     <span class="gdt-recurrence">@type.RecurrenceJours</span>
                     @if (type.CompanyId is int cid)
                     {
                         <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
                     }
-                    <button @onclick="() => CommencerEditionType(type)">Modifier</button>
+                    <button @onclick="() => CommencerEditionType(type)">@Localizer["Modifier"]</button>
                 </div>
             }
 
             <div class="gdt-form">
-                <h4>@(_typeEnEdition is null ? "Nouvelle catégorie" : $"Modifier « {_typeEnEdition.Libelle} »")</h4>
+                <h4>@(_typeEnEdition is null ? Localizer["NouvelleCategorie"] : string.Format(Localizer["ModifierCategorie"].Value, _typeEnEdition.Libelle))</h4>
                 <div class="champ">
-                    <label>Clé</label>
-                    <input @bind="_typeCle" @bind:event="oninput" placeholder="ex. pro" />
+                    <label>@Localizer["Cle"]</label>
+                    <input @bind="_typeCle" @bind:event="oninput" placeholder="@Localizer["ClePlaceholder"]" />
                 </div>
                 <div class="champ">
-                    <label>Libellé</label>
-                    <input @bind="_typeLibelle" @bind:event="oninput" placeholder="ex. Professionnel" />
+                    <label>@Localizer["Libelle"]</label>
+                    <input @bind="_typeLibelle" @bind:event="oninput" placeholder="@Localizer["LibellePlaceholder"]" />
                 </div>
                 <div class="champ">
-                    <label>Heure de début</label>
+                    <label>@Localizer["HeureDeDebut"]</label>
                     <input type="time" @bind="_typeHeureDebut" />
                 </div>
                 <div class="champ">
-                    <label>Heure de fin</label>
+                    <label>@Localizer["HeureDeFin"]</label>
                     <input type="time" @bind="_typeHeureFin" />
                 </div>
                 <div class="champ">
-                    <label>Jours de récurrence</label>
-                    <input @bind="_typeRecurrence" @bind:event="oninput" placeholder="ex. L,M,Me,J,V" />
+                    <label>@Localizer["JoursDeRecurrence"]</label>
+                    <input @bind="_typeRecurrence" @bind:event="oninput" placeholder="@Localizer["JoursDeRecurrencePlaceholder"]" />
                 </div>
                 <div class="champ">
-                    <label>Entreprise (optionnel)</label>
+                    <label>@Localizer["EntrepriseOptionnel"]</label>
                     <select @bind="_typeCompanyIdText">
-                        <option value="">Personnel</option>
+                        <option value="">@Localizer["Personnel"]</option>
                         @foreach (var company in _companies)
                         {
                             <option value="@company.Id">@company.Name</option>
                         }
                     </select>
                 </div>
-                <button @onclick="EnregistrerTypeAsync" disabled="@(string.IsNullOrWhiteSpace(_typeCle) || string.IsNullOrWhiteSpace(_typeLibelle))">Enregistrer</button>
+                <button @onclick="EnregistrerTypeAsync" disabled="@(string.IsNullOrWhiteSpace(_typeCle) || string.IsNullOrWhiteSpace(_typeLibelle))">@Localizer["Enregistrer"]</button>
                 @if (_typeEnEdition is not null)
                 {
-                    <button @onclick="AnnulerEditionType">Annuler</button>
+                    <button @onclick="AnnulerEditionType">@Localizer["Annuler"]</button>
                 }
             </div>
         }
     </section>
 
     <section class="gdt-activites">
-        <h3>Mes rappels</h3>
+        <h3>@Localizer["MesRappels"]</h3>
         <p class="hint">
-            Le suivi d'avancement (À faire / En cours / Terminé) et le minuteur se gèrent depuis la
-            <a href="/gestion-du-temps/kanban">vue Kanban</a> du cycle actif.
+            @Localizer["Page1_KanbanHintDebut"]
+            <a href="/gestion-du-temps/kanban">@Localizer["VueKanban"]</a> @Localizer["Page1_KanbanHintFin"]
         </p>
         @if (_activites is null)
         {
-            <p>Chargement…</p>
+            <p>@Localizer["Chargement"]</p>
         }
         else if (_activites.Count == 0)
         {
-            <p class="hint">Aucun rappel pour ce filtre — créez-en un ci-dessous.</p>
+            <p class="hint">@Localizer["AucunRappelPourCeFiltre"]</p>
         }
         else
         {
@@ -144,7 +142,7 @@ else
                     {
                         <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
                     }
-                    <button @onclick="() => SupprimerActiviteAsync(activite.Id)">Supprimer</button>
+                    <button @onclick="() => SupprimerActiviteAsync(activite.Id)">@Localizer["Supprimer"]</button>
                 </div>
             }
         }
@@ -152,43 +150,43 @@ else
         @if (_types is { Count: > 0 })
         {
             <div class="gdt-form">
-                <h4>Nouveau rappel</h4>
+                <h4>@Localizer["NouveauRappel"]</h4>
                 <div class="champ">
-                    <label>Nom</label>
-                    <input @bind="_activiteNom" @bind:event="oninput" placeholder="ex. Point d'équipe" />
+                    <label>@Localizer["Nom"]</label>
+                    <input @bind="_activiteNom" @bind:event="oninput" placeholder="@Localizer["NomRappelPlaceholder"]" />
                 </div>
                 <div class="champ">
-                    <label>Catégorie</label>
+                    <label>@Localizer["Categorie"]</label>
                     <select @bind="_activiteTypeDeTempsId">
                         @foreach (var type in _types)
                         {
-                            <option value="@type.Id">@type.Libelle</option>
+                            <option value="@type.Id">@DefaultCategoryLabels.Display(type.Cle, type.Libelle, _english)</option>
                         }
                     </select>
                 </div>
                 <div class="champ">
-                    <label>Date</label>
+                    <label>@Localizer["Date"]</label>
                     <input type="date" @bind="_activiteDate" />
                 </div>
                 <div class="champ">
-                    <label>Heure de début</label>
+                    <label>@Localizer["HeureDeDebut"]</label>
                     <input type="time" @bind="_activiteHeureDebut" />
                 </div>
                 <div class="champ">
-                    <label>Durée (minutes)</label>
+                    <label>@Localizer["DureeMinutes"]</label>
                     <input type="number" min="5" step="5" @bind="_activiteDuree" />
                 </div>
                 <div class="champ">
-                    <label>Entreprise (optionnel)</label>
+                    <label>@Localizer["EntrepriseOptionnel"]</label>
                     <select @bind="_activiteCompanyIdText">
-                        <option value="">Personnel</option>
+                        <option value="">@Localizer["Personnel"]</option>
                         @foreach (var company in _companies)
                         {
                             <option value="@company.Id">@company.Name</option>
                         }
                     </select>
                 </div>
-                <button @onclick="CreerActiviteAsync" disabled="@string.IsNullOrWhiteSpace(_activiteNom)">Créer le rappel</button>
+                <button @onclick="CreerActiviteAsync" disabled="@string.IsNullOrWhiteSpace(_activiteNom)">@Localizer["CreerLeRappel"]</button>
             </div>
         }
     </section>
@@ -226,6 +224,7 @@ else
     private TimeOnly _activiteHeureDebut = new(9, 0);
     private int _activiteDuree = 30;
     private string _activiteCompanyIdText = "";
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     protected override async Task OnInitializedAsync()
     {

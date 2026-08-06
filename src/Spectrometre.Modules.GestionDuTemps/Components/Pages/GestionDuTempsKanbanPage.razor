@@ -1,45 +1,45 @@
 @page "/gestion-du-temps/kanban"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @implements IDisposable
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
+@inject IStringLocalizer<GestionDuTempsResource> Localizer
 
-<PageTitle>Kanban · Gestion du temps</PageTitle>
+<PageTitle>@Localizer["KanbanTitle"]</PageTitle>
 
-<h1>Kanban du cycle actif</h1>
+<h1>@Localizer["KanbanDuCycleActif"]</h1>
 <p class="hint">
-    Faites progresser vos rappels À faire → En cours → Terminé. Le minuteur mesure le temps réel passé en
-    « En cours » et l'accumule à travers plusieurs pauses/reprises. <a href="/gestion-du-temps">Retour aux rituels</a>.
+    @Localizer["KanbanHint1"] <a href="/gestion-du-temps">@Localizer["NavRetourAuxRituels"]</a>.
 </p>
 
 @if (_userId is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (!_hasAccess)
 {
-    <p class="hint">Ce module n'est pas activé pour votre compte.</p>
+    <p class="hint">@Localizer["ModuleNonActive"]</p>
 }
 else if (_cycle is null || _cartes is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else
 {
     <div class="gdt-cycle-bandeau">
-        <span>Cycle #@_cycle.NumeroCycle — en cours depuis le @_cycle.DemarreLe.ToLocalTime().ToString("dd/MM/yyyy")</span>
-        <button @onclick="ClotureCycleAsync" disabled="@_clotureEnCours">Clôturer ce cycle et en démarrer un nouveau</button>
+        <span>@string.Format(Localizer["CycleBandeau"].Value, _cycle.NumeroCycle, _cycle.DemarreLe.ToLocalTime().ToString("dd/MM/yyyy"))</span>
+        <button @onclick="ClotureCycleAsync" disabled="@_clotureEnCours">@Localizer["ClotureCycleBouton"]</button>
     </div>
-    <p class="hint">
-        À la clôture, vos catégories (types de temps) sont reconduites dans le nouveau cycle ; les rappels de
-        ce cycle-ci restent archivés tels quels, ils ne sont jamais reportés.
-    </p>
+    <p class="hint">@Localizer["ClotureCycleHint"]</p>
 
     @if (!string.IsNullOrEmpty(_erreur))
     {
@@ -48,7 +48,7 @@ else
 
     @if (_cartes.Count == 0)
     {
-        <p class="hint">Aucun rappel dans ce cycle — créez-en un depuis la page <a href="/gestion-du-temps">Rituels</a>.</p>
+        <p class="hint">@Localizer["AucunRappelDansCeCycle"] <a href="/gestion-du-temps">@Localizer["NavRituels"]</a>.</p>
     }
     else
     {
@@ -57,7 +57,7 @@ else
             {
                 <div class="gdt-kanban-colonne">
                     <div class="gdt-kanban-entete">
-                        <span>@colonne.Libelle</span>
+                        <span>@Localizer[colonne.LabelKey]</span>
                         <span class="gdt-kanban-compte">@CartesDe(colonne.Statut).Count()</span>
                     </div>
                     @foreach (var carte in CartesDe(colonne.Statut))
@@ -65,18 +65,18 @@ else
                         <div class="gdt-kanban-carte @(carte.EnDepassement ? "gdt-depassement" : "")">
                             <span class="gdt-couleur" style="background:@carte.TypeCouleur"></span>
                             <strong>@carte.Nom</strong>
-                            <div class="gdt-kanban-meta">@carte.TypeLibelle · planifié @carte.DureeMinutes min</div>
+                            <div class="gdt-kanban-meta">@carte.TypeLibelle · @string.Format(Localizer["Planifie"].Value, carte.DureeMinutes)</div>
                             <div class="gdt-kanban-minuteur">
                                 @KanbanTimer.Format(TempsAffiche(carte))
                                 @if (carte.EnDepassement)
                                 {
-                                    <span class="gdt-tag-depassement">dépassement</span>
+                                    <span class="gdt-tag-depassement">@Localizer["Depassement"]</span>
                                 }
                             </div>
                             <div class="gdt-kanban-actions">
                                 @foreach (var cible in Colonnes.Where(c => c.Statut != colonne.Statut))
                                 {
-                                    <button @onclick="() => DeplacerAsync(carte.ActiviteId, cible.Statut)">@cible.Libelle</button>
+                                    <button @onclick="() => DeplacerAsync(carte.ActiviteId, cible.Statut)">@Localizer[cible.LabelKey]</button>
                                 }
                             </div>
                         </div>
@@ -90,13 +90,13 @@ else
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
-    private sealed record Colonne(string Statut, string Libelle);
+    private sealed record Colonne(string Statut, string LabelKey);
 
     private static readonly Colonne[] Colonnes =
     [
-        new(KanbanColonnes.AFaire, "À faire"),
-        new(KanbanColonnes.EnCours, "En cours"),
-        new(KanbanColonnes.Termine, "Terminé"),
+        new(KanbanColonnes.AFaire, "ColonneAFaire"),
+        new(KanbanColonnes.EnCours, "ColonneEnCours"),
+        new(KanbanColonnes.Termine, "ColonneTermine"),
     ];
 
     private string? _userId;

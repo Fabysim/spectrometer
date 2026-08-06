@@ -1,38 +1,43 @@
 @page "/gestion-du-temps/synthese"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
+@inject IStringLocalizer<GestionDuTempsResource> Localizer
 
-<PageTitle>Synthèse · Gestion du temps</PageTitle>
+<PageTitle>@Localizer["SyntheseTitle"]</PageTitle>
 
-<h1>Synthèse du cycle</h1>
+<h1>@Localizer["SyntheseDuCycle"]</h1>
 <p class="hint">
-    Combine votre <a href="/gestion-du-temps/profil">profil psychosocial</a>, votre
-    <a href="/gestion-du-temps/reflexion">réflexion consciente</a> et l'activité du cycle en cours.
-    <a href="/gestion-du-temps">Retour aux rituels</a>.
+    @Localizer["Synthese_IntroDebut"] <a href="/gestion-du-temps/profil">@Localizer["Synthese_IntroMilieu1"]</a>@Localizer["Synthese_IntroMilieu2"]
+    <a href="/gestion-du-temps/reflexion">@Localizer["Synthese_IntroMilieu3"]</a> @Localizer["Synthese_IntroFin"]
+    <a href="/gestion-du-temps">@Localizer["NavRetourAuxRituels"]</a>.
 </p>
 
 @if (_userId is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (!_hasAccess)
 {
-    <p class="hint">Ce module n'est pas activé pour votre compte.</p>
+    <p class="hint">@Localizer["ModuleNonActive"]</p>
 }
 else
 {
     <button @onclick="GenererAsync" disabled="@_generationEnCours">
-        @(_synthese is null ? "Générer la synthèse" : "Régénérer la synthèse")
+        @(_synthese is null ? Localizer["GenererLaSynthese"] : Localizer["RegenererLaSynthese"])
     </button>
     @if (_generationEnCours)
     {
-        <p class="hint">Génération en cours…</p>
+        <p class="hint">@Localizer["GenerationEnCours"]</p>
     }
 
     @if (_erreur is not null)
@@ -45,30 +50,26 @@ else
         <div class="gdt-synthese">
             @if (_synthese.GenereeParIa)
             {
-                <p class="gdt-tag-ia">Synthèse générée par IA</p>
+                <p class="gdt-tag-ia">@Localizer["SyntheseGintIa"]</p>
             }
             else
             {
-                <p class="gdt-tag-repli">
-                    Synthèse générée localement (service IA non disponible pour le moment) — les indicateurs
-                    ci-dessous restent fiables, seul le texte d'accompagnement est un modèle générique plutôt
-                    qu'une analyse personnalisée par IA.
-                </p>
+                <p class="gdt-tag-repli">@Localizer["SyntheseRepli"]</p>
             }
 
-            <h3>Profil : @_synthese.ProfilType</h3>
+            <h3>@Localizer["Profil"] : @SyntheseProfilTypeLabels.Display(_synthese.ProfilType, _english)</h3>
             @if (!string.IsNullOrWhiteSpace(_synthese.ProfilTexte))
             {
                 <p>@_synthese.ProfilTexte</p>
             }
 
             <div class="gdt-indicateurs">
-                <div><strong>Indice d'équilibre</strong> : @_synthese.IndiceEquilibre / 100</div>
+                <div><strong>@Localizer["IndiceDEquilibre"]</strong> : @_synthese.IndiceEquilibre / 100</div>
                 @if (!string.IsNullOrWhiteSpace(_synthese.IndiceCommentaire))
                 {
                     <p>@_synthese.IndiceCommentaire</p>
                 }
-                <div><strong>Niveau de maturité organisationnelle</strong> : @_synthese.NiveauMaturite / 5</div>
+                <div><strong>@Localizer["NiveauDeMaturiteOrganisationnelle"]</strong> : @_synthese.NiveauMaturite / 5</div>
                 @if (!string.IsNullOrWhiteSpace(_synthese.MaturiteCommentaire))
                 {
                     <p>@_synthese.MaturiteCommentaire</p>
@@ -77,18 +78,18 @@ else
 
             @if (_synthese.Recommandations.Count > 0)
             {
-                <h4>Recommandations</h4>
+                <h4>@Localizer["Recommandations"]</h4>
                 <ul>
                     @foreach (var reco in _synthese.Recommandations.OrderBy(r => r.Priorite))
                     {
-                        <li><strong>[@reco.Domaine]</strong> @reco.Texte</li>
+                        <li><strong>[@DomaineLabel(reco.Domaine)]</strong> @reco.Texte</li>
                     }
                 </ul>
             }
 
             @if (_synthese.Alertes.Count > 0)
             {
-                <h4>Points d'attention</h4>
+                <h4>@Localizer["PointsDAttention"]</h4>
                 <ul>
                     @foreach (var alerte in _synthese.Alertes)
                     {
@@ -97,12 +98,12 @@ else
                 </ul>
             }
 
-            <p class="gdt-date">Calculée le @_synthese.CalculatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="gdt-date">@string.Format(Localizer["CalculeeLe"].Value, _synthese.CalculatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))</p>
         </div>
     }
     else if (!_generationEnCours)
     {
-        <p class="hint">Aucune synthèse pour ce cycle — cliquez sur « Générer la synthèse » ci-dessus.</p>
+        <p class="hint">@Localizer["AucuneSyntheseHint"]</p>
     }
 }
 
@@ -114,6 +115,11 @@ else
     private bool _generationEnCours;
     private string? _erreur;
     private SyntheseView? _synthese;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+    /// <summary>"organisation" n'est pas une clé de <see cref="TypeDeTemps"/> (ce n'est pas une vraie catégorie de temps) : traduite séparément, les 6 autres domaines réutilisent <see cref="DefaultCategoryLabels"/> avec le domaine comme clé ET repli (déjà en minuscule canonique, ex. "pro"/"perso").</summary>
+    private string DomaineLabel(string domaine) =>
+        domaine == "organisation" ? Localizer["DomaineOrganisation"] : DefaultCategoryLabels.Display(domaine, domaine, _english);
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,7 +151,7 @@ else
         {
             // Ne devrait normalement jamais arriver (IAiSynthesisService ne lève pas) — filet de sécurité
             // pour toute autre erreur inattendue (ex. base de données), toujours avec un message clair.
-            _erreur = "Impossible de générer la synthèse pour le moment : " + ex.Message;
+            _erreur = string.Format(Localizer["ImpossibleDeGenererLaSynthese"].Value, ex.Message);
         }
         finally
         {

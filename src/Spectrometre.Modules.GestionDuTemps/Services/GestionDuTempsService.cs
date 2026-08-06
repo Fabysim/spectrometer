@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -199,11 +200,13 @@ public sealed class GestionDuTempsService(
 
         var types = await db.TypesDeTemps.AsNoTracking().Where(t => t.CycleId == cycle.Id).ToDictionaryAsync(t => t.Id, cancellationToken);
 
+        var english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
         return activites
             .Select(a =>
             {
                 types.TryGetValue(a.TypeDeTempsId, out var type);
-                return new ActiviteView(a.Id, a.TypeDeTempsId, type?.Libelle ?? "(catégorie supprimée)", CouleurCategorie(type?.Cle), a.Nom, a.DateActivite, a.HeureDebut, a.DureeMinutes, a.CompanyId);
+                var libelle = type is null ? (english ? "(deleted category)" : "(catégorie supprimée)") : DefaultCategoryLabels.Display(type.Cle, type.Libelle, english);
+                return new ActiviteView(a.Id, a.TypeDeTempsId, libelle, CouleurCategorie(type?.Cle), a.Nom, a.DateActivite, a.HeureDebut, a.DureeMinutes, a.CompanyId);
             })
             .ToList();
     }
@@ -295,14 +298,16 @@ public sealed class GestionDuTempsService(
         var statuts = await db.KanbanStatuts.AsNoTracking().Where(s => activiteIds.Contains(s.ActiviteId)).ToDictionaryAsync(s => s.ActiviteId, cancellationToken);
 
         var maintenant = DateTimeOffset.UtcNow;
+        var english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
         return activites
             .Select(a =>
             {
                 types.TryGetValue(a.TypeDeTempsId, out var type);
                 var statut = statuts.GetValueOrDefault(a.Id) ?? new KanbanStatut { ActiviteId = a.Id };
                 var tempsReelMs = KanbanTimer.GetElapsedMs(statut, maintenant);
+                var libelle = type is null ? (english ? "(deleted category)" : "(catégorie supprimée)") : DefaultCategoryLabels.Display(type.Cle, type.Libelle, english);
                 return new KanbanCarteView(
-                    a.Id, a.Nom, type?.Libelle ?? "(catégorie supprimée)", CouleurCategorie(type?.Cle), a.DureeMinutes, a.CompanyId,
+                    a.Id, a.Nom, libelle, CouleurCategorie(type?.Cle), a.DureeMinutes, a.CompanyId,
                     statut.Statut, tempsReelMs, KanbanTimer.IsOvertime(tempsReelMs, a.DureeMinutes));
             })
             .OrderBy(c => ColonneOrdre(c.Statut)).ThenBy(c => c.Nom)
@@ -497,8 +502,9 @@ public sealed class GestionDuTempsService(
         var profil = await db.ProfilsPsychosociaux.AsNoTracking().FirstOrDefaultAsync(p => p.CycleId == cycle.Id, cancellationToken);
         var reflexion = await db.ReflexionsConscientes.AsNoTracking().FirstOrDefaultAsync(r => r.CycleId == cycle.Id, cancellationToken);
         var resume = await BuildResumeActiviteAsync(db, cycle.Id, cancellationToken);
+        var english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
-        var snapshotHash = CalculerHashSnapshot(cycle.Id, userId, profil, reflexion, resume);
+        var snapshotHash = CalculerHashSnapshot(cycle.Id, userId, profil, reflexion, resume, english);
 
         var existante = await db.Syntheses.FirstOrDefaultAsync(s => s.CycleId == cycle.Id, cancellationToken);
         if (existante is not null && existante.ProfilSnapshotHash == snapshotHash)
@@ -510,17 +516,17 @@ public sealed class GestionDuTempsService(
         if (profil is null)
         {
             // Rien à analyser de significatif — pas d'appel IA, texte de repli directement.
-            contenu = SyntheseNarrativeBuilder.BuildFallback(new ProfilPsychosocial { CycleId = cycle.Id, UserId = userId }, profilType, indice, maturite);
+            contenu = SyntheseNarrativeBuilder.BuildFallback(new ProfilPsychosocial { CycleId = cycle.Id, UserId = userId }, profilType, indice, maturite, english);
         }
         else
         {
-            var systemPrompt = SyntheseNarrativeBuilder.BuildSystemPrompt();
+            var systemPrompt = SyntheseNarrativeBuilder.BuildSystemPrompt(english);
             var userPrompt = SyntheseNarrativeBuilder.BuildUserPrompt(profil, reflexion, resume);
             var (output, error) = await aiSynthesisService.GenererTexteAsync(systemPrompt, userPrompt, cancellationToken);
 
             if (error is not null || string.IsNullOrWhiteSpace(output))
             {
-                contenu = SyntheseNarrativeBuilder.BuildFallback(profil, profilType, indice, maturite);
+                contenu = SyntheseNarrativeBuilder.BuildFallback(profil, profilType, indice, maturite, english);
             }
             else
             {
@@ -532,7 +538,7 @@ public sealed class GestionDuTempsService(
                 {
                     // Réponse IA reçue mais mal formée (JSON invalide/inattendu) — même repli que si l'IA
                     // avait échoué : jamais une exception remontée jusqu'à l'utilisateur.
-                    contenu = SyntheseNarrativeBuilder.BuildFallback(profil, profilType, indice, maturite);
+                    contenu = SyntheseNarrativeBuilder.BuildFallback(profil, profilType, indice, maturite, english);
                 }
             }
         }
@@ -589,12 +595,13 @@ public sealed class GestionDuTempsService(
     /// deux utilisateurs (ou deux cycles du même utilisateur) ne partagent jamais un cache de synthèse, même
     /// à contenu de profil identique.
     /// </summary>
-    private static string CalculerHashSnapshot(int cycleId, string userId, ProfilPsychosocial? profil, ReflexionConsciente? reflexion, ResumeActiviteCycle resume)
+    private static string CalculerHashSnapshot(int cycleId, string userId, ProfilPsychosocial? profil, ReflexionConsciente? reflexion, ResumeActiviteCycle resume, bool english)
     {
         var payload = new
         {
             cycleId,
             userId,
+            english,
             profil?.SommeilCoucher, profil?.SommeilLever, profil?.SommeilReparateur, profil?.ReveilsNocturnes, profil?.EcransAvantSommeil,
             profil?.TempsPersoQuotidien, profil?.ManqueTempsPerso, profil?.ActivitesRessourcantes,
             profil?.HoraireTravail, profil?.SurchargePrevisible, profil?.TravailHorsHeures,

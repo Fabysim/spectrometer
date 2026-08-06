@@ -3,55 +3,57 @@
 @rendermode InteractiveServer
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
+@inject IStringLocalizer<GestionDuTempsResource> Localizer
 
-<PageTitle>Réflexion consciente · Gestion du temps</PageTitle>
+<PageTitle>@Localizer["ReflexionTitle"]</PageTitle>
 
-<h1>Réflexion consciente</h1>
+<h1>@Localizer["NavReflexionConsciente"]</h1>
 <p class="hint">
-    Un moment d'arrêt pour clarifier votre utilisation du temps — une seule réflexion par cycle, que vous
-    pouvez mettre à jour à tout moment. <a href="/gestion-du-temps">Retour aux rituels</a>.
+    @Localizer["ReflexionHint"] <a href="/gestion-du-temps">@Localizer["NavRetourAuxRituels"]</a>.
 </p>
 
 @if (_userId is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (!_hasAccess)
 {
-    <p class="hint">Ce module n'est pas activé pour votre compte.</p>
+    <p class="hint">@Localizer["ModuleNonActive"]</p>
 }
 else if (_modele is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else
 {
     <div class="gdt-form">
         <div class="champ">
-            <label>Quelle est votre situation actuelle par rapport à votre temps ?</label>
+            <label>@Localizer["QuelleEstVotreSituation"]</label>
             <textarea rows="4" @bind="_modele.SituationActuelle" @bind:event="oninput"></textarea>
         </div>
         <div class="champ-case">
-            <label><input type="checkbox" @bind="_modele.SourceIdentifiee" /> J'ai identifié la source de cette situation</label>
+            <label><input type="checkbox" @bind="_modele.SourceIdentifiee" /> @Localizer["JaiIdentifieLaSource"]</label>
         </div>
         <div class="champ">
-            <label>Date à laquelle revenir sur cette réflexion (optionnel)</label>
+            <label>@Localizer["DateDeRetourSurReflexion"]</label>
             <input type="date" @bind="_modele.DateEcheance" />
         </div>
         <div class="champ">
-            <label>Ressentis (séparés par des virgules)</label>
-            <input @bind="_modele.Ressentis" @bind:event="oninput" placeholder="ex. fatigue, frustration, soulagement" />
+            <label>@Localizer["Ressentis"]</label>
+            <input @bind="_modele.Ressentis" @bind:event="oninput" placeholder="@Localizer["RessentisPlaceholder"]" />
         </div>
         <div class="champ">
-            <label>Sources possibles (séparées par des virgules)</label>
-            <input @bind="_modele.Sources" @bind:event="oninput" placeholder="ex. charge de travail, manque de sommeil" />
+            <label>@Localizer["SourcesPossibles"]</label>
+            <input @bind="_modele.Sources" @bind:event="oninput" placeholder="@Localizer["SourcesPlaceholder"]" />
         </div>
-        <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">Enregistrer la réflexion</button>
+        <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">@Localizer["EnregistrerLaReflexion"]</button>
         @if (_messageConfirmation is not null)
         {
             <span class="gdt-confirmation">@_messageConfirmation</span>
@@ -124,7 +126,7 @@ else
                 Ressentis = Tags(m.Ressentis),
                 Sources = Tags(m.Sources),
             });
-            _messageConfirmation = "Réflexion enregistrée.";
+            _messageConfirmation = Localizer["ReflexionEnregistree"];
         }
         finally
         {

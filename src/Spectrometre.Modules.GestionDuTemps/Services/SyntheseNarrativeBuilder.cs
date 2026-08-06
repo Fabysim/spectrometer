@@ -24,9 +24,12 @@ public sealed record ResumeActiviteCycle(int TotalActivites, int Terminees, int 
 
 /// <summary>
 /// Construction du prompt et interprétation de la réponse IA pour la synthèse — repris de
-/// <c>GdtSyntheseIaService</c> (mvp), sans le support multilingue (cette application reste en français).
-/// Aucune dépendance à un autre module : uniquement <see cref="ProfilPsychosocial"/>,
-/// <see cref="ReflexionConsciente"/> et <see cref="ResumeActiviteCycle"/> (données du module lui-même).
+/// <c>GdtSyntheseIaService</c> (mvp). Bilinguisme (cycle contenu métier) : <paramref name="english"/> ajoute
+/// une instruction de langue explicite au prompt système — les VALEURS du profil injectées dans le prompt
+/// utilisateur restent telles quelles (les modèles de langage comprennent un contexte français même en
+/// produisant une réponse anglaise ; seule la sortie doit changer de langue). Aucune dépendance à un autre
+/// module : uniquement <see cref="ProfilPsychosocial"/>, <see cref="ReflexionConsciente"/> et
+/// <see cref="ResumeActiviteCycle"/> (données du module lui-même).
 /// </summary>
 internal static class SyntheseNarrativeBuilder
 {
@@ -36,13 +39,19 @@ internal static class SyntheseNarrativeBuilder
         PropertyNameCaseInsensitive = true,
     };
 
-    public static string BuildSystemPrompt() =>
-        """
-        Tu es un analyste en gestion du temps et en équilibre de vie. On te fournit le profil psychosocial
-        d'une personne, sa réflexion consciente du moment et un résumé de son activité récente. Réponds
-        UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après. Sois concret, bienveillant et
-        directement utile — jamais générique ni déconnecté des données fournies.
-        """;
+    public static string BuildSystemPrompt(bool english)
+    {
+        const string basePrompt = """
+            Tu es un analyste en gestion du temps et en équilibre de vie. On te fournit le profil psychosocial
+            d'une personne, sa réflexion consciente du moment et un résumé de son activité récente. Réponds
+            UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après. Sois concret, bienveillant et
+            directement utile — jamais générique ni déconnecté des données fournies.
+            """;
+
+        return english
+            ? basePrompt + "\n\nIMPORTANT: Write every text value in the JSON response (profilTexte, indiceCommentaire, maturiteCommentaire, recommandations[].texte, alertes[]) in English, even though the input data below is in French."
+            : basePrompt;
+    }
 
     public static string BuildUserPrompt(ProfilPsychosocial p, ReflexionConsciente? reflexion, ResumeActiviteCycle resume)
     {
@@ -177,65 +186,80 @@ internal static class SyntheseNarrativeBuilder
             GenereeParIa: true);
     }
 
-    /// <summary>Texte de repli algorithmique (pas d'IA) — mêmes formulations que <c>GdtSyntheseIaService</c> dans mvp, jamais une erreur brute affichée à l'utilisateur.</summary>
-    public static SyntheseContenuNarratif BuildFallback(ProfilPsychosocial p, string profilType, int indice, int maturite)
+    /// <summary>Texte de repli algorithmique (pas d'IA) — mêmes formulations que <c>GdtSyntheseIaService</c> dans mvp, jamais une erreur brute affichée à l'utilisateur. Bilinguisme (cycle contenu métier) : <paramref name="english"/> sélectionne le jeu de phrases, le <c>Domaine</c> de chaque recommandation reste sa clé canonique française (traduite à l'affichage uniquement, voir <see cref="Entities.DefaultCategoryLabels"/>).</summary>
+    public static SyntheseContenuNarratif BuildFallback(ProfilPsychosocial p, string profilType, int indice, int maturite, bool english)
     {
         var recos = new List<RecommandationIa>();
         var prio = 1;
-        void Add(string domaine, string texte) => recos.Add(new RecommandationIa(prio++, texte, domaine));
+        void Add(string domaine, string texteFr, string texteEn) => recos.Add(new RecommandationIa(prio++, english ? texteEn : texteFr, domaine));
 
         if (p.Desequilibres.Contains("Trop de temps professionnel"))
-            Add("pro", "Définir des heures limites de travail et introduire des blocs de récupération.");
+            Add("pro", "Définir des heures limites de travail et introduire des blocs de récupération.", "Set firm working-hour limits and introduce recovery blocks.");
         if (p.Desequilibres.Contains("Pas assez de temps personnel"))
-            Add("perso", "Réserver un créneau quotidien fixe dédié à vos besoins personnels.");
+            Add("perso", "Réserver un créneau quotidien fixe dédié à vos besoins personnels.", "Reserve a fixed daily slot dedicated to your personal needs.");
         if (p.EmotionsNegatives.Count >= 3)
-            Add("organisation", "Externaliser certaines tâches administratives et introduire des pauses de recentrage.");
+            Add("organisation", "Externaliser certaines tâches administratives et introduire des pauses de recentrage.", "Delegate some administrative tasks and introduce refocusing breaks.");
         if (p.ToleranceImprevu == "Anxieux")
-            Add("organisation", "Intégrer des marges tampons dans votre planning pour plus de flexibilité.");
+            Add("organisation", "Intégrer des marges tampons dans votre planning pour plus de flexibilité.", "Build buffer margins into your schedule for more flexibility.");
         if (p.InterruptionsTravail is "Souvent" or "Constamment")
-            Add("pro", "Protéger des blocs horaires dédiés pour retrouver une meilleure concentration.");
+            Add("pro", "Protéger des blocs horaires dédiés pour retrouver une meilleure concentration.", "Protect dedicated time blocks to regain better focus.");
         if (maturite <= 2)
-            Add("organisation", "Mettre en place un agenda structuré et planifier la veille pour le lendemain.");
+            Add("organisation", "Mettre en place un agenda structuré et planifier la veille pour le lendemain.", "Set up a structured planner and plan the next day the evening before.");
         if (p.OuiTropFacile is "Souvent" or "Toujours")
-            Add("organisation", "Pratiquer la méthode du délai de réponse : ne jamais accepter immédiatement.");
+            Add("organisation", "Pratiquer la méthode du délai de réponse : ne jamais accepter immédiatement.", "Practice the delayed-response method: never say yes immediately.");
         if (recos.Count == 0)
-            Add("organisation", "Votre profil est globalement équilibré. Continuez à maintenir vos bonnes habitudes.");
+            Add("organisation", "Votre profil est globalement équilibré. Continuez à maintenir vos bonnes habitudes.", "Your profile is generally well balanced. Keep up your good habits.");
 
         return new SyntheseContenuNarratif(
             ProfilType: profilType,
-            ProfilTexte: BuildFallbackProfilTexte(profilType),
-            IndiceCommentaire: BuildFallbackIndiceTexte(indice),
-            MaturiteCommentaire: BuildFallbackMaturiteTexte(maturite),
+            ProfilTexte: BuildFallbackProfilTexte(profilType, english),
+            IndiceCommentaire: BuildFallbackIndiceTexte(indice, english),
+            MaturiteCommentaire: BuildFallbackMaturiteTexte(maturite, english),
             Recommandations: recos,
             Alertes: [],
             GenereeParIa: false);
     }
 
-    private static string BuildFallbackProfilTexte(string profilType) => profilType switch
+    private static string BuildFallbackProfilTexte(string profilType, bool english) => (profilType, english) switch
     {
-        "Anticipatif" => "Vous planifiez naturellement vos activités. Cette approche vous offre une bonne maîtrise du temps.",
-        "Structuré" => "Votre rapport au temps est stable et organisé. Vous fonctionnez avec des routines efficaces.",
-        "Saturé" => "Votre temps est fortement sollicité. Une redistribution des priorités est recommandée.",
-        "Fragmenté" => "Vos journées comportent de nombreuses interruptions. Des blocs de temps protégés amélioreraient votre concentration.",
-        _ => "Votre gestion du temps repose sur la réaction aux événements. Une structure plus claire renforcerait votre efficacité.",
+        ("Anticipatif", false) => "Vous planifiez naturellement vos activités. Cette approche vous offre une bonne maîtrise du temps.",
+        ("Anticipatif", true) => "You naturally plan your activities ahead of time. This approach gives you strong control over your schedule.",
+        ("Structuré", false) => "Votre rapport au temps est stable et organisé. Vous fonctionnez avec des routines efficaces.",
+        ("Structuré", true) => "Your relationship with time is stable and organized. You operate with effective routines.",
+        ("Saturé", false) => "Votre temps est fortement sollicité. Une redistribution des priorités est recommandée.",
+        ("Saturé", true) => "Your time is heavily in demand. A redistribution of priorities is recommended.",
+        ("Fragmenté", false) => "Vos journées comportent de nombreuses interruptions. Des blocs de temps protégés amélioreraient votre concentration.",
+        ("Fragmenté", true) => "Your days include many interruptions. Protected time blocks would improve your focus.",
+        (_, false) => "Votre gestion du temps repose sur la réaction aux événements. Une structure plus claire renforcerait votre efficacité.",
+        (_, true) => "Your time management relies on reacting to events. A clearer structure would strengthen your efficiency.",
     };
 
-    private static string BuildFallbackIndiceTexte(int indice) => indice switch
+    private static string BuildFallbackIndiceTexte(int indice, bool english) => (indice, english) switch
     {
-        <= 25 => "Certains domaines essentiels semblent insuffisants. Une réorganisation prioritaire est nécessaire.",
-        <= 50 => "Votre équilibre temporel est fragile. Une réflexion sur vos priorités pourrait améliorer votre qualité de vie.",
-        <= 75 => "Votre gestion du temps est fonctionnelle, mais quelques ajustements ciblés renforceront votre stabilité.",
-        <= 90 => "Vous parvenez à maintenir un bon équilibre. Quelques optimisations mineures pourraient encore l'améliorer.",
-        _ => "Votre gestion du temps est exemplaire. Continuez à maintenir cette cohérence.",
+        ( <= 25, false) => "Certains domaines essentiels semblent insuffisants. Une réorganisation prioritaire est nécessaire.",
+        ( <= 25, true) => "Some essential areas appear insufficient. A priority reorganization is needed.",
+        ( <= 50, false) => "Votre équilibre temporel est fragile. Une réflexion sur vos priorités pourrait améliorer votre qualité de vie.",
+        ( <= 50, true) => "Your time balance is fragile. Reflecting on your priorities could improve your quality of life.",
+        ( <= 75, false) => "Votre gestion du temps est fonctionnelle, mais quelques ajustements ciblés renforceront votre stabilité.",
+        ( <= 75, true) => "Your time management is functional, but a few targeted adjustments will strengthen your stability.",
+        ( <= 90, false) => "Vous parvenez à maintenir un bon équilibre. Quelques optimisations mineures pourraient encore l'améliorer.",
+        ( <= 90, true) => "You manage to maintain a good balance. A few minor optimizations could still improve it.",
+        (_, false) => "Votre gestion du temps est exemplaire. Continuez à maintenir cette cohérence.",
+        (_, true) => "Your time management is exemplary. Keep maintaining this consistency.",
     };
 
-    private static string BuildFallbackMaturiteTexte(int maturite) => maturite switch
+    private static string BuildFallbackMaturiteTexte(int maturite, bool english) => (maturite, english) switch
     {
-        1 => "Aucune structure, réactivité totale. Mettre en place des routines simples pourrait transformer votre quotidien.",
-        2 => "Vous avez des intentions d'organisation, mais elles manquent de constance.",
-        3 => "Organisation correcte et fonctionnelle. En renforçant la priorisation, vous gagneriez en efficacité.",
-        4 => "Organisation solide. Vous savez planifier, anticiper et gérer vos priorités.",
-        5 => "Gestion du temps fluide, cohérente et efficace. Maturité organisationnelle élevée.",
-        _ => "",
+        (1, false) => "Aucune structure, réactivité totale. Mettre en place des routines simples pourrait transformer votre quotidien.",
+        (1, true) => "No structure, fully reactive. Introducing simple routines could transform your daily life.",
+        (2, false) => "Vous avez des intentions d'organisation, mais elles manquent de constance.",
+        (2, true) => "You have good intentions to organize, but they lack consistency.",
+        (3, false) => "Organisation correcte et fonctionnelle. En renforçant la priorisation, vous gagneriez en efficacité.",
+        (3, true) => "Adequate and functional organization. Strengthening prioritization would make you more effective.",
+        (4, false) => "Organisation solide. Vous savez planifier, anticiper et gérer vos priorités.",
+        (4, true) => "Solid organization. You know how to plan, anticipate, and manage your priorities.",
+        (5, false) => "Gestion du temps fluide, cohérente et efficace. Maturité organisationnelle élevée.",
+        (5, true) => "Smooth, consistent, and effective time management. High organizational maturity.",
+        (_, _) => "",
     };
 }

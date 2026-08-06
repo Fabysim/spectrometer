@@ -1,147 +1,168 @@
 @page "/gestion-du-temps/profil"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
+@inject IStringLocalizer<GestionDuTempsResource> Localizer
 
-<PageTitle>Profil psychosocial · Gestion du temps</PageTitle>
+<PageTitle>@Localizer["ProfilPsychosocialTitle"]</PageTitle>
 
-<h1>Profil psychosocial</h1>
+<h1>@Localizer["ProfilPsychosocial"]</h1>
 <p class="hint">
-    Ce questionnaire nourrit la <a href="/gestion-du-temps/synthese">synthèse</a> de votre cycle actif — un
-    par cycle, repris à zéro à chaque nouvelle saison. <a href="/gestion-du-temps">Retour aux rituels</a>.
+    @Localizer["Page2_IntroDebut"] <a href="/gestion-du-temps/synthese">@Localizer["NavSynthese"]</a>
+    @Localizer["Page2_IntroMilieu"] <a href="/gestion-du-temps">@Localizer["NavRetourAuxRituels"]</a>.
 </p>
 
 @if (_userId is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (!_hasAccess)
 {
-    <p class="hint">Ce module n'est pas activé pour votre compte.</p>
+    <p class="hint">@Localizer["ModuleNonActive"]</p>
 }
 else if (_modele is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else
 {
     <div class="gdt-form-large">
-        <h3>Sommeil</h3>
-        <div class="champ"><label>Heure de coucher</label><input type="time" @bind="_modele.SommeilCoucher" /></div>
-        <div class="champ"><label>Heure de lever</label><input type="time" @bind="_modele.SommeilLever" /></div>
-        <div class="champ"><label>Sommeil réparateur</label><input @bind="_modele.SommeilReparateur" @bind:event="oninput" /></div>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.ReveilsNocturnes" /> Réveils nocturnes fréquents</label></div>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.EcransAvantSommeil" /> Écrans avant le sommeil</label></div>
+        <h3>@Localizer["Section_Sommeil"]</h3>
+        <div class="champ"><label>@Localizer["HeureDeCoucher"]</label><input type="time" @bind="_modele.SommeilCoucher" /></div>
+        <div class="champ"><label>@Localizer["HeureDeLever"]</label><input type="time" @bind="_modele.SommeilLever" /></div>
+        <div class="champ"><label>@Localizer["SommeilReparateur"]</label><input @bind="_modele.SommeilReparateur" @bind:event="oninput" /></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.ReveilsNocturnes" /> @Localizer["ReveilsNocturnesFrequents"]</label></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.EcransAvantSommeil" /> @Localizer["EcransAvantLeSommeil"]</label></div>
 
-        <h3>Temps personnel</h3>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.TempsPersoQuotidien" /> Un moment personnel chaque jour</label></div>
-        <div class="champ"><label>Sentiment de manque de temps perso</label><input @bind="_modele.ManqueTempsPerso" @bind:event="oninput" /></div>
-        <div class="champ"><label>Activités ressourçantes</label><input @bind="_modele.ActivitesRessourcantes" @bind:event="oninput" /></div>
+        <h3>@Localizer["Section_TempsPersonnel"]</h3>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.TempsPersoQuotidien" /> @Localizer["UnMomentPersonnelChaqueJour"]</label></div>
+        <div class="champ"><label>@Localizer["SentimentDeManqueDeTempsPerso"]</label><input @bind="_modele.ManqueTempsPerso" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["ActivitesRessourcantes"]</label><input @bind="_modele.ActivitesRessourcantes" @bind:event="oninput" /></div>
 
-        <h3>Travail</h3>
-        <div class="champ"><label>Horaire de travail</label><input @bind="_modele.HoraireTravail" @bind:event="oninput" /></div>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.SurchargePrevisible" /> Surcharge prévisible</label></div>
-        <div class="champ"><label>Travail hors heures prévues</label><input @bind="_modele.TravailHorsHeures" @bind:event="oninput" /></div>
+        <h3>@Localizer["Section_Travail"]</h3>
+        <div class="champ"><label>@Localizer["HoraireDeTravail"]</label><input @bind="_modele.HoraireTravail" @bind:event="oninput" /></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.SurchargePrevisible" /> @Localizer["SurchargePrevisible"]</label></div>
+        <div class="champ"><label>@Localizer["TravailHorsHeuresPrevues"]</label><input @bind="_modele.TravailHorsHeures" @bind:event="oninput" /></div>
 
-        <h3>Contraintes</h3>
-        <div class="champ"><label>Durée des trajets</label><input @bind="_modele.DureeTrajets" @bind:event="oninput" /></div>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.DeplacementsImprevus" /> Déplacements imprévisibles</label></div>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.EngagementCommunautaire" /> Engagement communautaire</label></div>
-        <div class="champ"><label>Nature de l'engagement</label><input @bind="_modele.EngagementNature" @bind:event="oninput" /></div>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.ProcheMalade" /> Proche malade à charge</label></div>
+        <h3>@Localizer["Section_Contraintes"]</h3>
+        <div class="champ"><label>@Localizer["DureeDesTrajets"]</label><input @bind="_modele.DureeTrajets" @bind:event="oninput" /></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.DeplacementsImprevus" /> @Localizer["DeplacementsImprevisibles"]</label></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.EngagementCommunautaire" /> @Localizer["EngagementCommunautaire"]</label></div>
+        <div class="champ"><label>@Localizer["NatureDeLEngagement"]</label><input @bind="_modele.EngagementNature" @bind:event="oninput" /></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.ProcheMalade" /> @Localizer["ProcheMaladeACharge"]</label></div>
 
-        <h3>Mode de travail</h3>
-        <div class="champ"><label>Mode de travail</label><input @bind="_modele.ModeTravail" @bind:event="oninput" /></div>
+        <h3>@Localizer["Section_ModeDeTravail"]</h3>
+        <div class="champ"><label>@Localizer["ModeDeTravail"]</label><input @bind="_modele.ModeTravail" @bind:event="oninput" /></div>
         <div class="champ">
-            <label>Interruptions</label>
+            <label>@Localizer["Interruptions"]</label>
             <select @bind="_modele.InterruptionsTravail">
-                <option value="">Non renseigné</option>
-                <option>Jamais</option><option>Parfois</option><option>Souvent</option><option>Constamment</option>
+                <option value="">@Localizer["NonRenseigne"]</option>
+                <option value="Jamais">@Localizer["Jamais"]</option>
+                <option value="Parfois">@Localizer["Parfois"]</option>
+                <option value="Souvent">@Localizer["Souvent"]</option>
+                <option value="Constamment">@Localizer["Constamment"]</option>
             </select>
         </div>
-        <div class="champ"><label>Autonomie dans la gestion du temps (1-5)</label><input type="number" min="1" max="5" @bind="_modele.AutonomieGestion" /></div>
+        <div class="champ"><label>@Localizer["AutonomieDansLaGestionDuTemps"]</label><input type="number" min="1" max="5" @bind="_modele.AutonomieGestion" /></div>
 
-        <h3>État psychosocial</h3>
+        <h3>@Localizer["Section_EtatPsychosocial"]</h3>
         <div class="champ">
-            <label>Sentiment de pression</label>
+            <label>@Localizer["SentimentDePression"]</label>
             <select @bind="_modele.SentimentPression">
-                <option value="">Non renseigné</option>
-                <option>Jamais</option><option>Parfois</option><option>Souvent</option><option>Constamment</option>
+                <option value="">@Localizer["NonRenseigne"]</option>
+                <option value="Jamais">@Localizer["Jamais"]</option>
+                <option value="Parfois">@Localizer["Parfois"]</option>
+                <option value="Souvent">@Localizer["Souvent"]</option>
+                <option value="Constamment">@Localizer["Constamment"]</option>
             </select>
         </div>
-        <div class="champ"><label>Difficultés de concentration</label><input @bind="_modele.DifficultesConcentration" @bind:event="oninput" /></div>
-        <div class="champ"><label>Décisions précipitées</label><input @bind="_modele.DecisionsPrecipitees" @bind:event="oninput" /></div>
-        <div class="champ"><label>Culpabilité liée au temps perso</label><input @bind="_modele.Culpabilite" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["DifficultesDeConcentration"]</label><input @bind="_modele.DifficultesConcentration" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["DecisionsPrecipitees"]</label><input @bind="_modele.DecisionsPrecipitees" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["CulpabiliteLieeAuTempsPerso"]</label><input @bind="_modele.Culpabilite" @bind:event="oninput" /></div>
         <div class="champ">
-            <label>Tolérance à l'imprévu</label>
+            <label>@Localizer["ToleranceALImprevu"]</label>
             <select @bind="_modele.ToleranceImprevu">
-                <option value="">Non renseigné</option>
-                <option>Anxieux</option><option>Adaptatif</option><option>Souple</option>
+                <option value="">@Localizer["NonRenseigne"]</option>
+                <option value="Anxieux">@Localizer["Anxieux"]</option>
+                <option value="Adaptatif">@Localizer["Adaptatif"]</option>
+                <option value="Souple">@Localizer["Souple"]</option>
             </select>
         </div>
 
-        <h3>Organisation</h3>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.UtiliseAgenda" /> Utilise un agenda</label></div>
+        <h3>@Localizer["Section_Organisation"]</h3>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.UtiliseAgenda" /> @Localizer["UtiliseUnAgenda"]</label></div>
         <div class="champ">
-            <label>Planification à l'avance</label>
+            <label>@Localizer["PlanificationALAvance"]</label>
             <select @bind="_modele.PlanificationAvance">
-                <option value="">Non renseigné</option>
-                <option>Jamais</option><option>Parfois</option><option>Souvent</option><option>Systématiquement</option>
+                <option value="">@Localizer["NonRenseigne"]</option>
+                <option value="Jamais">@Localizer["Jamais"]</option>
+                <option value="Parfois">@Localizer["Parfois"]</option>
+                <option value="Souvent">@Localizer["Souvent"]</option>
+                <option value="Systématiquement">@Localizer["Systematiquement"]</option>
             </select>
         </div>
-        <div class="champ-case"><label><input type="checkbox" @bind="_modele.RituelsQuotidiens" /> Rituels quotidiens</label></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.RituelsQuotidiens" /> @Localizer["RituelsQuotidiens"]</label></div>
         <div class="champ">
-            <label>Dit oui trop facilement</label>
+            <label>@Localizer["DitOuiTropFacilement"]</label>
             <select @bind="_modele.OuiTropFacile">
-                <option value="">Non renseigné</option>
-                <option>Jamais</option><option>Parfois</option><option>Souvent</option><option>Toujours</option>
+                <option value="">@Localizer["NonRenseigne"]</option>
+                <option value="Jamais">@Localizer["Jamais"]</option>
+                <option value="Parfois">@Localizer["Parfois"]</option>
+                <option value="Souvent">@Localizer["Souvent"]</option>
+                <option value="Toujours">@Localizer["Toujours"]</option>
             </select>
         </div>
         <div class="champ">
-            <label>Capacité à refuser</label>
+            <label>@Localizer["CapaciteARefuser"]</label>
             <select @bind="_modele.CapaciteNon">
-                <option value="">Non renseigné</option>
-                <option>Difficilement</option><option>Parfois</option><option>Souvent</option><option>Facilement</option>
+                <option value="">@Localizer["NonRenseigne"]</option>
+                <option value="Difficilement">@Localizer["Difficilement"]</option>
+                <option value="Parfois">@Localizer["Parfois"]</option>
+                <option value="Souvent">@Localizer["Souvent"]</option>
+                <option value="Facilement">@Localizer["Facilement"]</option>
             </select>
         </div>
-        <div class="champ"><label>Gestion administrative</label><input @bind="_modele.GestionAdmin" @bind:event="oninput" /></div>
-        <div class="champ"><label>Stress administratif</label><input @bind="_modele.StressAdmin" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["GestionAdministrative"]</label><input @bind="_modele.GestionAdmin" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["StressAdministratif"]</label><input @bind="_modele.StressAdmin" @bind:event="oninput" /></div>
 
-        <h3>Tags libres (séparés par des virgules)</h3>
-        <div class="champ"><label>Tendances</label><input @bind="_modele.Tendances" @bind:event="oninput" placeholder="ex. perfectionnisme, procrastination" /></div>
-        <div class="champ"><label>Déséquilibres identifiés</label><input @bind="_modele.Desequilibres" @bind:event="oninput" placeholder="ex. Trop de temps professionnel" /></div>
-        <div class="champ"><label>Émotions négatives</label><input @bind="_modele.EmotionsNegatives" @bind:event="oninput" /></div>
-        <div class="champ"><label>Émotions positives</label><input @bind="_modele.EmotionsPositives" @bind:event="oninput" /></div>
-        <div class="champ"><label>Objectifs professionnels</label><input @bind="_modele.ObjectifsProfessionnels" @bind:event="oninput" /></div>
-        <div class="champ"><label>Obstacles perçus</label><input @bind="_modele.Obstacles" @bind:event="oninput" /></div>
+        <h3>@Localizer["Section_TagsLibres"]</h3>
+        <div class="champ"><label>@Localizer["Tendances"]</label><input @bind="_modele.Tendances" @bind:event="oninput" placeholder="@Localizer["TendancesPlaceholder"]" /></div>
+        <div class="champ"><label>@Localizer["DesequilibresIdentifies"]</label><input @bind="_modele.Desequilibres" @bind:event="oninput" placeholder="@Localizer["DesequilibresPlaceholder"]" /></div>
+        <div class="champ"><label>@Localizer["EmotionsNegatives"]</label><input @bind="_modele.EmotionsNegatives" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["EmotionsPositives"]</label><input @bind="_modele.EmotionsPositives" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["ObjectifsProfessionnels"]</label><input @bind="_modele.ObjectifsProfessionnels" @bind:event="oninput" /></div>
+        <div class="champ"><label>@Localizer["ObstaclesPercus"]</label><input @bind="_modele.Obstacles" @bind:event="oninput" /></div>
 
-        <h3>Satisfaction par catégorie de temps (0 à 4)</h3>
+        <h3>@Localizer["Section_SatisfactionParCategorie"]</h3>
         <div class="gdt-satisfaction-grille">
-            <div class="champ"><label>Sommeil</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionSommeil" /></div>
-            <div class="champ"><label>Personnel</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionPerso" /></div>
-            <div class="champ"><label>Professionnel</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionPro" /></div>
-            <div class="champ"><label>Administratif</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionAdmin" /></div>
-            <div class="champ"><label>Familial</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionFamille" /></div>
-            <div class="champ"><label>Social</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionSocial" /></div>
+            <div class="champ"><label>@Localizer["CategorieSommeil"]</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionSommeil" /></div>
+            <div class="champ"><label>@Localizer["CategoriePersonnel"]</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionPerso" /></div>
+            <div class="champ"><label>@Localizer["CategorieProfessionnel"]</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionPro" /></div>
+            <div class="champ"><label>@Localizer["CategorieAdministratif"]</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionAdmin" /></div>
+            <div class="champ"><label>@Localizer["CategorieFamilial"]</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionFamille" /></div>
+            <div class="champ"><label>@Localizer["CategorieSocial"]</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionSocial" /></div>
         </div>
 
-        <h3>Direction souhaitée par catégorie (ex. Plus / Moins / Stable)</h3>
+        <h3>@Localizer["Section_DirectionSouhaitee"]</h3>
         <div class="gdt-satisfaction-grille">
-            <div class="champ"><label>Sommeil</label><input @bind="_modele.DirectionSommeil" @bind:event="oninput" /></div>
-            <div class="champ"><label>Personnel</label><input @bind="_modele.DirectionPerso" @bind:event="oninput" /></div>
-            <div class="champ"><label>Professionnel</label><input @bind="_modele.DirectionPro" @bind:event="oninput" /></div>
-            <div class="champ"><label>Administratif</label><input @bind="_modele.DirectionAdmin" @bind:event="oninput" /></div>
-            <div class="champ"><label>Familial</label><input @bind="_modele.DirectionFamille" @bind:event="oninput" /></div>
-            <div class="champ"><label>Social</label><input @bind="_modele.DirectionSocial" @bind:event="oninput" /></div>
+            <div class="champ"><label>@Localizer["CategorieSommeil"]</label><input @bind="_modele.DirectionSommeil" @bind:event="oninput" /></div>
+            <div class="champ"><label>@Localizer["CategoriePersonnel"]</label><input @bind="_modele.DirectionPerso" @bind:event="oninput" /></div>
+            <div class="champ"><label>@Localizer["CategorieProfessionnel"]</label><input @bind="_modele.DirectionPro" @bind:event="oninput" /></div>
+            <div class="champ"><label>@Localizer["CategorieAdministratif"]</label><input @bind="_modele.DirectionAdmin" @bind:event="oninput" /></div>
+            <div class="champ"><label>@Localizer["CategorieFamilial"]</label><input @bind="_modele.DirectionFamille" @bind:event="oninput" /></div>
+            <div class="champ"><label>@Localizer["CategorieSocial"]</label><input @bind="_modele.DirectionSocial" @bind:event="oninput" /></div>
         </div>
 
-        <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">Enregistrer le profil</button>
+        <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">@Localizer["EnregistrerLeProfil"]</button>
         @if (_messageConfirmation is not null)
         {
             <span class="gdt-confirmation">@_messageConfirmation</span>
@@ -348,7 +369,7 @@ else
             };
 
             await GdtService.SaveProfilPsychosocialAsync(_userId!, entite);
-            _messageConfirmation = "Profil enregistré.";
+            _messageConfirmation = Localizer["ProfilEnregistre"];
         }
         finally
         {
