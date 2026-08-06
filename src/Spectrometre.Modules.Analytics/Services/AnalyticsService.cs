@@ -1,3 +1,4 @@
+using System.Globalization;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
 
@@ -14,15 +15,30 @@ public sealed class AnalyticsService(IRecruitmentIndexService recruitmentIndex, 
     /// <c>CandidatureIndexEntry.Statut</c> (voir son commentaire : le noyau ne référence aucun type de
     /// module, donc le statut y est déjà une chaîne) — un statut inconnu de cette liste (aucun aujourd'hui)
     /// serait simplement absent du funnel plutôt que de faire échouer l'agrégation.
+    /// Libellé bilingue (bilinguisme, cycle contenu métier) : pas de dépendance vers Compatibilite pour les
+    /// noms d'axe ni vers PostesRecrutement pour ces libellés — ce module reste volontairement découplé (voir
+    /// le commentaire du .csproj), donc chaque libellé porte sa propre paire FR/EN plutôt que de réutiliser
+    /// un vocabulaire partagé d'un autre module.
     /// </summary>
-    private static readonly (string Statut, string Libelle)[] OrdreFunnel =
+    private static readonly (string Statut, string Libelle, string LibelleEn)[] OrdreFunnel =
     [
-        ("Recue", "Reçues"),
-        ("EnRevue", "En revue"),
-        ("Entretien", "Entretien"),
-        ("Rejetee", "Rejetées"),
-        ("Embauchee", "Embauchées"),
+        ("Recue", "Reçues", "Received"),
+        ("EnRevue", "En revue", "Under review"),
+        ("Entretien", "Entretien", "Interview"),
+        ("Rejetee", "Rejetées", "Rejected"),
+        ("Embauchee", "Embauchées", "Hired"),
     ];
+
+    private static readonly IReadOnlyDictionary<string, string> AxisLabelsEn = new Dictionary<string, string>
+    {
+        ["Technique"] = "Technical",
+        ["Comportementale"] = "Behavioral",
+        ["Culturelle"] = "Cultural",
+        ["Organisationnelle"] = "Organizational",
+        ["Motivationnelle"] = "Motivational",
+    };
+
+    private static bool English => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     private int ActiveCompanyId =>
         tenantContext.ActiveCompanyId ?? throw new InvalidOperationException("Aucune entreprise active — le tableau de bord Analytics nécessite un tenant sélectionné.");
@@ -41,7 +57,7 @@ public sealed class AnalyticsService(IRecruitmentIndexService recruitmentIndex, 
             .GroupBy(c => c.Statut)
             .ToDictionary(g => g.Key, g => g.Count());
         var funnel = OrdreFunnel
-            .Select(o => new FunnelStatutView(o.Statut, o.Libelle, comptesParStatut.GetValueOrDefault(o.Statut)))
+            .Select(o => new FunnelStatutView(o.Statut, English ? o.LibelleEn : o.Libelle, comptesParStatut.GetValueOrDefault(o.Statut)))
             .ToList();
 
         var scoresGlobaux = candidatures.Where(c => c.ScoreCompatibilite is not null).Select(c => c.ScoreCompatibilite!.Value).ToList();
@@ -80,6 +96,7 @@ public sealed class AnalyticsService(IRecruitmentIndexService recruitmentIndex, 
     private static AxisMoyenneView MoyenneAxe(string label, IEnumerable<int?> scores)
     {
         var valeurs = scores.Where(s => s is not null).Select(s => s!.Value).ToList();
-        return new AxisMoyenneView(label, valeurs.Count > 0 ? Math.Round(valeurs.Average(), 1) : null);
+        var libelle = English && AxisLabelsEn.TryGetValue(label, out var translated) ? translated : label;
+        return new AxisMoyenneView(libelle, valeurs.Count > 0 ? Math.Round(valeurs.Average(), 1) : null);
     }
 }

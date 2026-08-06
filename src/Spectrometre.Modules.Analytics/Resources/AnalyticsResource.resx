@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="AnalyticsDecideurs" xml:space="preserve"><value>Analytics / Décideurs</value></data>
+  <data name="Intro" xml:space="preserve"><value>Vue d'ensemble du recrutement de votre entreprise — plutôt que de naviguer poste par poste. Calculé à partir de l'index de recrutement, mis à jour à chaque évènement (candidature, changement de statut, score recalculé).</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
+  <data name="AucuneEntrepriseAssociee" xml:space="preserve"><value>Aucune entreprise associée à votre compte pour le moment.</value></data>
+  <data name="EntrepriseActive" xml:space="preserve"><value>Entreprise active :</value></data>
+  <data name="ChargementTableauDeBord" xml:space="preserve"><value>Chargement du tableau de bord…</value></data>
+  <data name="AucuneCandidature" xml:space="preserve"><value>Aucune candidature reçue pour le moment pour cette entreprise.</value></data>
+  <data name="PostesOuvertsFermes" xml:space="preserve"><value>({0} poste(s) ouvert(s), {1} fermé(s).)</value></data>
+  <data name="AucunPosteCree" xml:space="preserve"><value>Aucun poste créé non plus — commencez par publier un poste.</value></data>
+  <data name="ChiffresApparaitront" xml:space="preserve"><value>Les chiffres apparaîtront ici dès la première candidature reçue.</value></data>
+  <data name="PostesOuverts" xml:space="preserve"><value>Postes ouverts</value></data>
+  <data name="PostesFermes" xml:space="preserve"><value>Postes fermés</value></data>
+  <data name="CandidaturesRecues" xml:space="preserve"><value>Candidatures reçues</value></data>
+  <data name="ScoreCompatibiliteMoyen" xml:space="preserve"><value>Score de compatibilité moyen</value></data>
+  <data name="GrillesHCompletes" xml:space="preserve"><value>Grilles H complètes ({0} / {1} candidat(s))</value></data>
+  <data name="FunnelCandidatures" xml:space="preserve"><value>Funnel des candidatures</value></data>
+  <data name="ScoreMoyenParAxe" xml:space="preserve"><value>Score moyen par axe</value></data>
+  <data name="PointsVigilanceFrequents" xml:space="preserve"><value>Points de vigilance les plus fréquents</value></data>
+  <data name="AucunPointVigilance" xml:space="preserve"><value>Aucun point de vigilance partagé détecté pour l'instant.</value></data>
+</root>

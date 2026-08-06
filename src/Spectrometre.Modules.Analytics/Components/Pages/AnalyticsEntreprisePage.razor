@@ -1,33 +1,34 @@
 @page "/entreprise/analytics"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Compatibility
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.Analytics.Resources
 @using Spectrometre.Modules.Analytics.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IAnalyticsService AnalyticsService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<AnalyticsResource> Localizer
 
-<PageTitle>Analytics / Décideurs</PageTitle>
+<PageTitle>@Localizer["AnalyticsDecideurs"]</PageTitle>
 
-<h1>Analytics / Décideurs</h1>
-<p class="hint">
-    Vue d'ensemble du recrutement de votre entreprise — plutôt que de naviguer poste par poste. Calculé à
-    partir de l'index de recrutement, mis à jour à chaque évènement (candidature, changement de statut,
-    score recalculé).
-</p>
+<h1>@Localizer["AnalyticsDecideurs"]</h1>
+<p class="hint">@Localizer["Intro"]</p>
 
 @if (_companies is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (_companies.Count == 0)
 {
-    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+    <p>@Localizer["AucuneEntrepriseAssociee"]</p>
 }
 else
 {
@@ -35,7 +36,7 @@ else
         @if (_companies.Count > 1)
         {
             <label>
-                Entreprise active :
+                @Localizer["EntrepriseActive"]
                 <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
                     @foreach (var company in _companies)
                     {
@@ -52,18 +53,18 @@ else
 
     @if (_dashboard is null)
     {
-        <p>Chargement du tableau de bord…</p>
+        <p>@Localizer["ChargementTableauDeBord"]</p>
     }
     else if (_dashboard.TotalCandidatures == 0)
     {
         <div class="analytics-etat-vide">
             <p>
-                Aucune candidature reçue pour le moment pour cette entreprise.
+                @Localizer["AucuneCandidature"]
                 @(_dashboard.PostesOuverts + _dashboard.PostesFermes > 0
-                    ? $"({_dashboard.PostesOuverts} poste(s) ouvert(s), {_dashboard.PostesFermes} fermé(s).)"
-                    : "Aucun poste créé non plus — commencez par publier un poste.")
+                    ? string.Format(Localizer["PostesOuvertsFermes"].Value, _dashboard.PostesOuverts, _dashboard.PostesFermes)
+                    : Localizer["AucunPosteCree"].Value)
             </p>
-            <p class="hint">Les chiffres apparaîtront ici dès la première candidature reçue.</p>
+            <p class="hint">@Localizer["ChiffresApparaitront"]</p>
         </div>
     }
     else
@@ -71,29 +72,29 @@ else
         <section class="analytics-cartes">
             <div class="analytics-carte">
                 <span class="valeur">@_dashboard.PostesOuverts</span>
-                <span class="libelle">Postes ouverts</span>
+                <span class="libelle">@Localizer["PostesOuverts"]</span>
             </div>
             <div class="analytics-carte">
                 <span class="valeur">@_dashboard.PostesFermes</span>
-                <span class="libelle">Postes fermés</span>
+                <span class="libelle">@Localizer["PostesFermes"]</span>
             </div>
             <div class="analytics-carte">
                 <span class="valeur">@_dashboard.TotalCandidatures</span>
-                <span class="libelle">Candidatures reçues</span>
+                <span class="libelle">@Localizer["CandidaturesRecues"]</span>
             </div>
             <div class="analytics-carte">
                 <span class="valeur">@(_dashboard.ScoreMoyenGlobal is int s ? $"{s}%" : "—")</span>
-                <span class="libelle">Score de compatibilité moyen</span>
+                <span class="libelle">@Localizer["ScoreCompatibiliteMoyen"]</span>
             </div>
             <div class="analytics-carte">
                 <span class="valeur">@(_dashboard.TauxCompletionGrilleH is double t ? $"{t:F0}%" : "—")</span>
-                <span class="libelle">Grilles H complètes (@_dashboard.CandidatsAvecGrilleComplete / @_dashboard.CandidatsUniques candidat(s))</span>
+                <span class="libelle">@string.Format(Localizer["GrillesHCompletes"].Value, _dashboard.CandidatsAvecGrilleComplete, _dashboard.CandidatsUniques)</span>
             </div>
         </section>
 
         <div class="analytics-layout">
             <section class="analytics-bloc">
-                <h3>Funnel des candidatures</h3>
+                <h3>@Localizer["FunnelCandidatures"]</h3>
                 @foreach (var etape in _dashboard.Funnel)
                 {
                     <div class="barre-ligne">
@@ -107,7 +108,7 @@ else
             </section>
 
             <section class="analytics-bloc">
-                <h3>Score moyen par axe</h3>
+                <h3>@Localizer["ScoreMoyenParAxe"]</h3>
                 @foreach (var axe in _dashboard.MoyennesParAxe)
                 {
                     <div class="barre-ligne">
@@ -121,17 +122,17 @@ else
             </section>
 
             <section class="analytics-bloc">
-                <h3>Points de vigilance les plus fréquents</h3>
+                <h3>@Localizer["PointsVigilanceFrequents"]</h3>
                 @if (_dashboard.TopPointsDeVigilance.Count == 0)
                 {
-                    <p class="hint">Aucun point de vigilance partagé détecté pour l'instant.</p>
+                    <p class="hint">@Localizer["AucunPointVigilance"]</p>
                 }
                 else
                 {
                     <ul class="vigilance-liste">
                         @foreach (var tag in _dashboard.TopPointsDeVigilance)
                         {
-                            <li><span class="tag">@tag.Tag</span> <span class="compte">× @tag.Nombre</span></li>
+                            <li><span class="tag">@CompatibilityVocabulary.DisplayTag(tag.Tag, _english)</span> <span class="compte">× @tag.Nombre</span></li>
                         }
                     </ul>
                 }
@@ -146,6 +147,7 @@ else
     private List<Company>? _companies;
     private int _selectedCompanyId;
     private AnalyticsDashboardView? _dashboard;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     protected override async Task OnInitializedAsync()
     {

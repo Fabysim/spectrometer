@@ -1,11 +1,15 @@
 @page "/compatibilite/resultat/{CandidateProfileId:int}"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Compatibility
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.Compatibilite.Entities
+@using Spectrometre.Modules.Compatibilite.Resources
 @using Spectrometre.Modules.Compatibilite.Services
 @using Spectrometre.Modules.ProfilEntreprise.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
@@ -14,18 +18,19 @@
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<CompatibiliteResource> Localizer
 
-<PageTitle>Résultat de compatibilité</PageTitle>
+<PageTitle>@Localizer["ResultatCompatibilite"]</PageTitle>
 
 @if (!_resolu)
 {
-    <p>Calcul en cours…</p>
+    <p>@Localizer["CalculEnCours"]</p>
 }
 else if (_result is null)
 {
     @* Réponse volontairement générique : ne jamais confirmer à un tiers qu'un résultat existe pour cet
        identifiant candidat s'il n'y a pas droit — voir CompatibiliteService.GetResultatAutorisePourUtilisateurAsync. *@
-    <p class="hint">Résultat introuvable.</p>
+    <p class="hint">@Localizer["ResultatIntrouvable"]</p>
 }
 else
 {
@@ -42,17 +47,17 @@ else
                         stroke-dashoffset="@offset.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                         stroke-linecap="round" transform="rotate(-90 100 100)" />
                 <text x="100" y="95" text-anchor="middle" font-size="34" font-weight="bold">@(_result.ScoreGlobal)%</text>
-                <text x="100" y="120" text-anchor="middle" font-size="12">compatibilité</text>
+                <text x="100" y="120" text-anchor="middle" font-size="12">@Localizer["Compatibilite"]</text>
             </svg>
-            <p class="score-label">SCORE GLOBAL</p>
+            <p class="score-label">@Localizer["ScoreGlobal"]</p>
         </div>
 
         <div class="scores-par-axe">
-            <h3>COMPATIBILITÉ PAR AXE</h3>
+            <h3>@Localizer["CompatibilitesParAxe"]</h3>
             @foreach (var axisScore in _result.ScoresParAxe)
             {
                 <div class="axe-row">
-                    <span class="axe-nom">@CompatibilityAxisLabels.Label(axisScore.Axis)</span>
+                    <span class="axe-nom">@CompatibilityAxisLabels.Label(axisScore.Axis, _english)</span>
                     <div class="barre">
                         <div class="barre-remplie" style="width:@(axisScore.Score)%"></div>
                     </div>
@@ -63,11 +68,11 @@ else
             @if (_result.PointsDeVigilance.Count > 0)
             {
                 <div class="points-vigilance">
-                    <strong>POINTS DE VIGILANCE</strong>
+                    <strong>@Localizer["PointsDeVigilance"]</strong>
                     <ul>
                         @foreach (var point in _result.PointsDeVigilance)
                         {
-                            <li>@point</li>
+                            <li>@CompatibilityVocabulary.DisplayTag(point, _english)</li>
                         }
                     </ul>
                 </div>
@@ -82,6 +87,7 @@ else
 
     private bool _resolu;
     private CompatibiliteResultView? _result;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     protected override async Task OnInitializedAsync()
     {
