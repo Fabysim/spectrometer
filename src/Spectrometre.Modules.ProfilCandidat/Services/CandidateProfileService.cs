@@ -354,6 +354,292 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
     private static bool IsUniqueViolation(DbUpdateException ex) =>
         ex.InnerException is Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation };
 
+    // ── Formulaire de CV (sections 1 à 8) ────────────────────────────────────
+
+    public async Task<CvView> GetCvAsync(int candidateProfileId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var coordonnees = await db.CvCoordonnees.AsNoTracking().FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);
+        var formations = await db.CvFormations.AsNoTracking().Where(f => f.CandidateProfileId == candidateProfileId).OrderBy(f => f.DisplayOrder).ThenBy(f => f.Id).ToListAsync(cancellationToken);
+        var competencesEtudes = await db.CvCompetencesEtudes.AsNoTracking().FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);
+        var experiences = await db.CvExperiences.AsNoTracking().Where(x => x.CandidateProfileId == candidateProfileId).OrderBy(x => x.DisplayOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
+        var caracteristiques = await db.CvCaracteristiquesPersonnelles.AsNoTracking().FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);
+        var loisirs = await db.CvLoisirs.AsNoTracking().FirstOrDefaultAsync(l => l.CandidateProfileId == candidateProfileId, cancellationToken);
+        var references = await db.CvReferences.AsNoTracking().Where(r => r.CandidateProfileId == candidateProfileId).OrderBy(r => r.DisplayOrder).ThenBy(r => r.Id).ToListAsync(cancellationToken);
+        var declaration = await db.CvDeclarations.AsNoTracking().FirstOrDefaultAsync(d => d.CandidateProfileId == candidateProfileId, cancellationToken);
+
+        return new CvView(coordonnees, formations, competencesEtudes, experiences, caracteristiques, loisirs, references, declaration);
+    }
+
+    public Task SaveCoordonneesAsync(int candidateProfileId, CvCoordonnees input, CancellationToken cancellationToken = default) =>
+        MutateWithRetryAsync<CvCoordonnees>(
+            async db =>
+            {
+                var existing = await db.CvCoordonnees.FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);
+                if (existing is not null) return (existing, false);
+                var created = new CvCoordonnees { CandidateProfileId = candidateProfileId };
+                db.CvCoordonnees.Add(created);
+                return (created, true);
+            },
+            entity =>
+            {
+                entity.Nom = input.Nom;
+                entity.Prenoms = input.Prenoms;
+                entity.DateNaissance = input.DateNaissance;
+                entity.LieuNaissance = input.LieuNaissance;
+                entity.Nationalite = input.Nationalite;
+                entity.AdresseComplete = input.AdresseComplete;
+                entity.Telephone = input.Telephone;
+                entity.Email = input.Email;
+                entity.ProfilOuPosteRecherche = input.ProfilOuPosteRecherche;
+                entity.UpdatedAt = DateTimeOffset.UtcNow;
+            },
+            cancellationToken);
+
+    public Task<int> SaveFormationAsync(int candidateProfileId, int? id, CvFormation input, CancellationToken cancellationToken = default) =>
+        MutateWithRetryAsync(
+            async db =>
+            {
+                if (id is int existingId)
+                {
+                    var existing = await db.CvFormations.FirstOrDefaultAsync(f => f.Id == existingId && f.CandidateProfileId == candidateProfileId, cancellationToken);
+                    if (existing is not null) return (existing, false);
+                }
+
+                var maxOrder = await db.CvFormations.Where(f => f.CandidateProfileId == candidateProfileId)
+                    .Select(f => (int?)f.DisplayOrder).MaxAsync(cancellationToken) ?? -1;
+                var created = new CvFormation { CandidateProfileId = candidateProfileId, DisplayOrder = maxOrder + 1 };
+                db.CvFormations.Add(created);
+                return (created, true);
+            },
+            entity =>
+            {
+                entity.Periode = input.Periode;
+                entity.Etablissement = input.Etablissement;
+                entity.DiplomeCertificatOuNiveau = input.DiplomeCertificatOuNiveau;
+                entity.DomaineEtudes = input.DomaineEtudes;
+                entity.UpdatedAt = DateTimeOffset.UtcNow;
+            },
+            entity => entity.Id,
+            cancellationToken);
+
+    public async Task DeleteFormationAsync(int candidateProfileId, int formationId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.CvFormations.FirstOrDefaultAsync(f => f.Id == formationId && f.CandidateProfileId == candidateProfileId, cancellationToken);
+        if (entity is null) return; // Déjà supprimée (ou n'appartient pas à ce candidat) — suppression idempotente.
+        db.CvFormations.Remove(entity);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task SaveCompetencesEtudesAsync(int candidateProfileId, CvCompetencesEtudes input, CancellationToken cancellationToken = default) =>
+        MutateWithRetryAsync<CvCompetencesEtudes>(
+            async db =>
+            {
+                var existing = await db.CvCompetencesEtudes.FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);
+                if (existing is not null) return (existing, false);
+                var created = new CvCompetencesEtudes { CandidateProfileId = candidateProfileId };
+                db.CvCompetencesEtudes.Add(created);
+                return (created, true);
+            },
+            entity =>
+            {
+                entity.SpecialitePrincipale = input.SpecialitePrincipale;
+                entity.CompetencesTechniques = input.CompetencesTechniques;
+                entity.ConnaissancesTheoriques = input.ConnaissancesTheoriques;
+                entity.LanguesMaitrisees = input.LanguesMaitrisees;
+                entity.OutilsLogicielsMethodes = input.OutilsLogicielsMethodes;
+                entity.UpdatedAt = DateTimeOffset.UtcNow;
+            },
+            cancellationToken);
+
+    public Task<int> SaveExperienceAsync(int candidateProfileId, int? id, CvExperience input, CancellationToken cancellationToken = default) =>
+        MutateWithRetryAsync(
+            async db =>
+            {
+                if (id is int existingId)
+                {
+                    var existing = await db.CvExperiences.FirstOrDefaultAsync(x => x.Id == existingId && x.CandidateProfileId == candidateProfileId, cancellationToken);
+                    if (existing is not null) return (existing, false);
+                }
+
+                var maxOrder = await db.CvExperiences.Where(x => x.CandidateProfileId == candidateProfileId)
+                    .Select(x => (int?)x.DisplayOrder).MaxAsync(cancellationToken) ?? -1;
+                var created = new CvExperience { CandidateProfileId = candidateProfileId, DisplayOrder = maxOrder + 1 };
+                db.CvExperiences.Add(created);
+                return (created, true);
+            },
+            entity =>
+            {
+                entity.Periode = input.Periode;
+                entity.EntrepriseOrganisationOuStage = input.EntrepriseOrganisationOuStage;
+                entity.FonctionOuActiviteExercee = input.FonctionOuActiviteExercee;
+                entity.CompetencesDeveloppees = input.CompetencesDeveloppees;
+                entity.UpdatedAt = DateTimeOffset.UtcNow;
+            },
+            entity => entity.Id,
+            cancellationToken);
+
+    public async Task DeleteExperienceAsync(int candidateProfileId, int experienceId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.CvExperiences.FirstOrDefaultAsync(x => x.Id == experienceId && x.CandidateProfileId == candidateProfileId, cancellationToken);
+        if (entity is null) return;
+        db.CvExperiences.Remove(entity);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task SaveCaracteristiquesPersonnellesAsync(int candidateProfileId, CvCaracteristiquesPersonnelles input, CancellationToken cancellationToken = default) =>
+        MutateWithRetryAsync<CvCaracteristiquesPersonnelles>(
+            async db =>
+            {
+                var existing = await db.CvCaracteristiquesPersonnelles.FirstOrDefaultAsync(c => c.CandidateProfileId == candidateProfileId, cancellationToken);
+                if (existing is not null) return (existing, false);
+                var created = new CvCaracteristiquesPersonnelles { CandidateProfileId = candidateProfileId };
+                db.CvCaracteristiquesPersonnelles.Add(created);
+                return (created, true);
+            },
+            entity =>
+            {
+                entity.QualitesPersonnelles = input.QualitesPersonnelles;
+                entity.AptitudesProfessionnelles = input.AptitudesProfessionnelles;
+                entity.AttitudesRelationnelles = input.AttitudesRelationnelles;
+                entity.CapaciteSousPression = input.CapaciteSousPression;
+                entity.DisponibiliteMobilite = input.DisponibiliteMobilite;
+                entity.UpdatedAt = DateTimeOffset.UtcNow;
+            },
+            cancellationToken);
+
+    public Task SaveLoisirsAsync(int candidateProfileId, CvLoisirs input, CancellationToken cancellationToken = default) =>
+        MutateWithRetryAsync<CvLoisirs>(
+            async db =>
+            {
+                var existing = await db.CvLoisirs.FirstOrDefaultAsync(l => l.CandidateProfileId == candidateProfileId, cancellationToken);
+                if (existing is not null) return (existing, false);
+                var created = new CvLoisirs { CandidateProfileId = candidateProfileId };
+                db.CvLoisirs.Add(created);
+                return (created, true);
+            },
+            entity =>
+            {
+                entity.LoisirsPreferes = input.LoisirsPreferes;
+                entity.ActivitesSportivesCulturelles = input.ActivitesSportivesCulturelles;
+                entity.EngagementsAssociatifs = input.EngagementsAssociatifs;
+                entity.AutresCentresInteret = input.AutresCentresInteret;
+                entity.UpdatedAt = DateTimeOffset.UtcNow;
+            },
+            cancellationToken);
+
+    public Task<int> SaveReferenceAsync(int candidateProfileId, int? id, CvReference input, CancellationToken cancellationToken = default) =>
+        MutateWithRetryAsync(
+            async db =>
+            {
+                if (id is int existingId)
+                {
+                    var existing = await db.CvReferences.FirstOrDefaultAsync(r => r.Id == existingId && r.CandidateProfileId == candidateProfileId, cancellationToken);
+                    if (existing is not null) return (existing, false);
+                }
+
+                var maxOrder = await db.CvReferences.Where(r => r.CandidateProfileId == candidateProfileId)
+                    .Select(r => (int?)r.DisplayOrder).MaxAsync(cancellationToken) ?? -1;
+                var created = new CvReference { CandidateProfileId = candidateProfileId, DisplayOrder = maxOrder + 1 };
+                db.CvReferences.Add(created);
+                return (created, true);
+            },
+            entity =>
+            {
+                entity.NomPrenom = input.NomPrenom;
+                entity.Fonction = input.Fonction;
+                entity.EntrepriseOrganisation = input.EntrepriseOrganisation;
+                entity.TelephoneOuEmail = input.TelephoneOuEmail;
+                entity.LienAvecPostulant = input.LienAvecPostulant;
+                entity.UpdatedAt = DateTimeOffset.UtcNow;
+            },
+            entity => entity.Id,
+            cancellationToken);
+
+    public async Task DeleteReferenceAsync(int candidateProfileId, int referenceId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.CvReferences.FirstOrDefaultAsync(r => r.Id == referenceId && r.CandidateProfileId == candidateProfileId, cancellationToken);
+        if (entity is null) return;
+        db.CvReferences.Remove(entity);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task SaveDeclarationAsync(int candidateProfileId, CvDeclaration input, CancellationToken cancellationToken = default) =>
+        MutateWithRetryAsync<CvDeclaration>(
+            async db =>
+            {
+                var existing = await db.CvDeclarations.FirstOrDefaultAsync(d => d.CandidateProfileId == candidateProfileId, cancellationToken);
+                if (existing is not null) return (existing, false);
+                var created = new CvDeclaration { CandidateProfileId = candidateProfileId };
+                db.CvDeclarations.Add(created);
+                return (created, true);
+            },
+            entity =>
+            {
+                entity.CertificationExactitude = input.CertificationExactitude;
+                entity.ConsentementConsultation = input.ConsentementConsultation;
+                entity.Date = input.Date;
+                entity.NomSignataire = input.NomSignataire;
+                entity.UpdatedAt = DateTimeOffset.UtcNow;
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// Boucle de retry générique partagée par toutes les sections du CV : <paramref name="loadOrCreate"/>
+    /// est écrit par l'appelant avec des lambdas LINQ CONCRÈTES (types réels, jamais une contrainte
+    /// d'interface générique) pour éviter tout risque d'échec de traduction LINQ-vers-SQL — ce générique
+    /// n'orchestre que la boucle tentative/sauvegarde/repli, il ne construit aucune expression de requête
+    /// lui-même. Même stratégie que <see cref="MutateCriteriaAsync"/>/<see cref="MutateAnswerAsync"/> :
+    /// relecture + réapplication complète de la section sur conflit de concurrence (sûr ici car chaque appel
+    /// écrit toujours la section entière qu'il possède, jamais une mutation partielle d'un état inconnu).
+    /// </summary>
+    private Task MutateWithRetryAsync<TEntity>(
+        Func<ProfilCandidatDbContext, Task<(TEntity Entity, bool IsNew)>> loadOrCreate,
+        Action<TEntity> applyChanges,
+        CancellationToken cancellationToken)
+        where TEntity : class =>
+        MutateWithRetryAsync(loadOrCreate, applyChanges, static _ => true, cancellationToken);
+
+    private async Task<TResult> MutateWithRetryAsync<TEntity, TResult>(
+        Func<ProfilCandidatDbContext, Task<(TEntity Entity, bool IsNew)>> loadOrCreate,
+        Action<TEntity> applyChanges,
+        Func<TEntity, TResult> selectResult,
+        CancellationToken cancellationToken)
+        where TEntity : class
+    {
+        const int maxAttempts = 30;
+        var random = Random.Shared;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
+            var (entity, isNew) = await loadOrCreate(db);
+            applyChanges(entity);
+
+            try
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                return selectResult(entity);
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
+            {
+                await Task.Delay(random.Next(5, 30), cancellationToken);
+            }
+            catch (DbUpdateException ex) when (isNew && attempt < maxAttempts && IsUniqueViolation(ex))
+            {
+                await Task.Delay(random.Next(5, 30), cancellationToken);
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"Impossible d'enregistrer cette section du CV ({typeof(TEntity).Name}) après {maxAttempts} tentatives (conflits de concurrence répétés).");
+    }
+
     public async Task<CandidateCompatibilityCriteriaView?> GetCompatibilityCriteriaAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);

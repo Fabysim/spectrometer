@@ -18,6 +18,16 @@ public sealed class ProfilCandidatDbContext(DbContextOptions<ProfilCandidatDbCon
     public DbSet<CandidateSynthesisTag> CandidateSynthesisTags => Set<CandidateSynthesisTag>();
     public DbSet<CandidateCompatibilityCriteria> CandidateCompatibilityCriteria => Set<CandidateCompatibilityCriteria>();
 
+    // ── Formulaire de CV (sections 1 à 8 du document source) ────────────────
+    public DbSet<CvCoordonnees> CvCoordonnees => Set<CvCoordonnees>();
+    public DbSet<CvFormation> CvFormations => Set<CvFormation>();
+    public DbSet<CvCompetencesEtudes> CvCompetencesEtudes => Set<CvCompetencesEtudes>();
+    public DbSet<CvExperience> CvExperiences => Set<CvExperience>();
+    public DbSet<CvCaracteristiquesPersonnelles> CvCaracteristiquesPersonnelles => Set<CvCaracteristiquesPersonnelles>();
+    public DbSet<CvLoisirs> CvLoisirs => Set<CvLoisirs>();
+    public DbSet<CvReference> CvReferences => Set<CvReference>();
+    public DbSet<CvDeclaration> CvDeclarations => Set<CvDeclaration>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -58,7 +68,66 @@ public sealed class ProfilCandidatDbContext(DbContextOptions<ProfilCandidatDbCon
             e.Property<uint>("Version").IsRowVersion();
         });
 
+        ConfigureCv(builder);
         SeedQuestionnaire(builder);
+    }
+
+    /// <summary>
+    /// Sections du formulaire de CV — même discipline que <see cref="CandidateCompatibilityCriteria"/> :
+    /// index unique sur <c>CandidateProfileId</c> pour les sections 1:1, jeton de concurrence optimiste
+    /// xmin sur toutes (même en contention attendue faible, un seul candidat éditant son propre CV — voir
+    /// <c>CandidateProfileService</c>, pour éviter de réintroduire la classe de bug de perte de mise à jour
+    /// déjà rencontrée deux fois sur ce module).
+    /// </summary>
+    private static void ConfigureCv(ModelBuilder builder)
+    {
+        builder.Entity<CvCoordonnees>(e =>
+        {
+            e.HasIndex(c => c.CandidateProfileId).IsUnique();
+            e.Property<uint>("Version").IsRowVersion();
+        });
+
+        builder.Entity<CvFormation>(e =>
+        {
+            e.HasIndex(f => f.CandidateProfileId);
+            e.Property<uint>("Version").IsRowVersion();
+        });
+
+        builder.Entity<CvCompetencesEtudes>(e =>
+        {
+            e.HasIndex(c => c.CandidateProfileId).IsUnique();
+            e.Property<uint>("Version").IsRowVersion();
+        });
+
+        builder.Entity<CvExperience>(e =>
+        {
+            e.HasIndex(x => x.CandidateProfileId);
+            e.Property<uint>("Version").IsRowVersion();
+        });
+
+        builder.Entity<CvCaracteristiquesPersonnelles>(e =>
+        {
+            e.HasIndex(c => c.CandidateProfileId).IsUnique();
+            e.Property<uint>("Version").IsRowVersion();
+        });
+
+        builder.Entity<CvLoisirs>(e =>
+        {
+            e.HasIndex(l => l.CandidateProfileId).IsUnique();
+            e.Property<uint>("Version").IsRowVersion();
+        });
+
+        builder.Entity<CvReference>(e =>
+        {
+            e.HasIndex(r => r.CandidateProfileId);
+            e.Property<uint>("Version").IsRowVersion();
+        });
+
+        builder.Entity<CvDeclaration>(e =>
+        {
+            e.HasIndex(d => d.CandidateProfileId).IsUnique();
+            e.Property<uint>("Version").IsRowVersion();
+        });
     }
 
     /// <summary>Seed statique du catalogue de questions — contenu figé issu du document source, pas une donnée éditable par l'utilisateur.</summary>

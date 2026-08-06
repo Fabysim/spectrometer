@@ -1,0 +1,474 @@
+@page "/candidat/cv"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Spectrometre.Modules.ProfilCandidat.Entities
+@using Spectrometre.Modules.ProfilCandidat.Services
+@inject ICandidateProfileService CandidateProfileService
+
+<PageTitle>Curriculum vitæ</PageTitle>
+
+<h1>Curriculum vitæ</h1>
+<p class="hint">
+    Ce formulaire est distinct du <a href="/candidat/questionnaire">questionnaire de connaissance de soi</a> —
+    il s'agit d'un CV structuré classique, enregistré section par section.
+</p>
+
+@if (_cv is null)
+{
+    <p>Chargement…</p>
+}
+else
+{
+    <section class="cv-section">
+        <h2>1. Coordonnées du postulant</h2>
+        <div class="champ"><label>Nom</label><input @bind="_coordonnees.Nom" /></div>
+        <div class="champ"><label>Prénom(s)</label><input @bind="_coordonnees.Prenoms" /></div>
+        <div class="champ"><label>Date de naissance</label><input type="date" @bind="_coordonnees.DateNaissance" /></div>
+        <div class="champ"><label>Lieu de naissance</label><input @bind="_coordonnees.LieuNaissance" /></div>
+        <div class="champ"><label>Nationalité</label><input @bind="_coordonnees.Nationalite" /></div>
+        <div class="champ"><label>Adresse complète</label><input @bind="_coordonnees.AdresseComplete" /></div>
+        <div class="champ"><label>Téléphone</label><input @bind="_coordonnees.Telephone" /></div>
+        <div class="champ"><label>Adresse électronique</label><input @bind="_coordonnees.Email" /></div>
+        <div class="champ"><label>Profil professionnel ou poste recherché</label><input @bind="_coordonnees.ProfilOuPosteRecherche" /></div>
+        <button @onclick="SaveCoordonneesAsync">Enregistrer les coordonnées</button>
+        @if (_coordonneesSaved) { <span class="confirmation">Enregistré.</span> }
+    </section>
+
+    <section class="cv-section">
+        <h2>2. Études réussies et diplômes obtenus</h2>
+        @foreach (var row in _formations)
+        {
+            <div class="cv-ligne">
+                <input placeholder="Période (ex. 2015 à 2018)" @bind="row.Periode" />
+                <input placeholder="Établissement" @bind="row.Etablissement" />
+                <input placeholder="Diplôme, certificat ou niveau" @bind="row.Diplome" />
+                <input placeholder="Domaine d'études" @bind="row.Domaine" />
+                <button @onclick="() => SaveFormationAsync(row)">Enregistrer</button>
+                <button @onclick="() => DeleteFormationAsync(row)">Supprimer</button>
+                @if (row.Saved) { <span class="confirmation">✓</span> }
+            </div>
+        }
+        <button @onclick="AjouterFormation">+ Ajouter une formation</button>
+    </section>
+
+    <section class="cv-section">
+        <h2>3. Spécialités et compétences acquises par les études</h2>
+        <div class="champ"><label>Spécialité principale</label><input @bind="_competencesEtudes.SpecialitePrincipale" /></div>
+        <div class="champ"><label>Compétences techniques acquises</label><textarea @bind="_competencesEtudes.CompetencesTechniques" rows="2"></textarea></div>
+        <div class="champ"><label>Connaissances théoriques importantes</label><textarea @bind="_competencesEtudes.ConnaissancesTheoriques" rows="2"></textarea></div>
+        <div class="champ"><label>Langues maîtrisées</label><input @bind="_competencesEtudes.LanguesMaitrisees" /></div>
+        <div class="champ"><label>Outils, logiciels ou méthodes étudiés</label><input @bind="_competencesEtudes.OutilsLogicielsMethodes" /></div>
+        <button @onclick="SaveCompetencesEtudesAsync">Enregistrer</button>
+        @if (_competencesEtudesSaved) { <span class="confirmation">Enregistré.</span> }
+    </section>
+
+    <section class="cv-section">
+        <h2>4. Compétences acquises par les expériences pratiques</h2>
+        @foreach (var row in _experiences)
+        {
+            <div class="cv-ligne">
+                <input placeholder="Période" @bind="row.Periode" />
+                <input placeholder="Entreprise, organisation ou lieu de stage" @bind="row.Entreprise" />
+                <input placeholder="Fonction ou activité exercée" @bind="row.Fonction" />
+                <input placeholder="Compétences développées" @bind="row.Competences" />
+                <button @onclick="() => SaveExperienceAsync(row)">Enregistrer</button>
+                <button @onclick="() => DeleteExperienceAsync(row)">Supprimer</button>
+                @if (row.Saved) { <span class="confirmation">✓</span> }
+            </div>
+        }
+        <button @onclick="AjouterExperience">+ Ajouter une expérience</button>
+    </section>
+
+    <section class="cv-section">
+        <h2>5. Caractéristiques personnelles</h2>
+        <div class="champ"><label>Qualités personnelles</label><textarea @bind="_caracteristiques.QualitesPersonnelles" rows="2" placeholder="Exemples : ponctualité, sens des responsabilités, honnêteté, persévérance."></textarea></div>
+        <div class="champ"><label>Aptitudes professionnelles</label><textarea @bind="_caracteristiques.AptitudesProfessionnelles" rows="2" placeholder="Exemples : organisation, autonomie, capacité d'apprentissage, esprit d'initiative."></textarea></div>
+        <div class="champ"><label>Attitudes dans les rapports avec les autres</label><textarea @bind="_caracteristiques.AttitudesRelationnelles" rows="2" placeholder="Exemples : respect, écoute, esprit d'équipe, communication, sens du service."></textarea></div>
+        <div class="champ"><label>Capacité à travailler sous pression</label><input @bind="_caracteristiques.CapaciteSousPression" /></div>
+        <div class="champ"><label>Disponibilité et mobilité</label><input @bind="_caracteristiques.DisponibiliteMobilite" /></div>
+        <button @onclick="SaveCaracteristiquesAsync">Enregistrer</button>
+        @if (_caracteristiquesSaved) { <span class="confirmation">Enregistré.</span> }
+    </section>
+
+    <section class="cv-section">
+        <h2>6. Loisirs et centres d'intérêt</h2>
+        <div class="champ"><label>Loisirs préférés</label><input @bind="_loisirs.LoisirsPreferes" /></div>
+        <div class="champ"><label>Activités sportives ou culturelles</label><input @bind="_loisirs.ActivitesSportivesCulturelles" /></div>
+        <div class="champ"><label>Engagements associatifs, communautaires ou bénévoles</label><input @bind="_loisirs.EngagementsAssociatifs" /></div>
+        <div class="champ"><label>Autres centres d'intérêt</label><input @bind="_loisirs.AutresCentresInteret" /></div>
+        <button @onclick="SaveLoisirsAsync">Enregistrer</button>
+        @if (_loisirsSaved) { <span class="confirmation">Enregistré.</span> }
+    </section>
+
+    <section class="cv-section">
+        <h2>7. Références professionnelles</h2>
+        <p class="hint">Il est recommandé d'obtenir l'accord de ces personnes avant de mentionner leurs coordonnées.</p>
+        @foreach (var row in _references)
+        {
+            <div class="cv-ligne">
+                <input placeholder="Nom et prénom" @bind="row.NomPrenom" />
+                <input placeholder="Fonction" @bind="row.Fonction" />
+                <input placeholder="Entreprise ou organisation" @bind="row.Entreprise" />
+                <input placeholder="Téléphone ou adresse électronique" @bind="row.Contact" />
+                <input placeholder="Lien avec le postulant" @bind="row.Lien" />
+                <button @onclick="() => SaveReferenceAsync(row)">Enregistrer</button>
+                <button @onclick="() => DeleteReferenceAsync(row)">Supprimer</button>
+                @if (row.Saved) { <span class="confirmation">✓</span> }
+            </div>
+        }
+        <button @onclick="AjouterReference">+ Ajouter une référence</button>
+    </section>
+
+    <section class="cv-section">
+        <h2>8. Déclaration du postulant</h2>
+        <p class="hint">
+            Je certifie que les renseignements fournis dans ce formulaire sont exacts et complets. J'autorise
+            les entreprises inscrites sur la plateforme à consulter mon profil dans le cadre de leurs
+            recherches de candidats.
+        </p>
+        <p class="hint">
+            Ce consentement est enregistré à titre déclaratif : il ne modifie aucun accès. La visibilité de
+            votre profil auprès des entreprises reste régie uniquement par vos candidatures réelles
+            (voir le Vivier).
+        </p>
+        <div class="champ-case">
+            <label><input type="checkbox" @bind="_declaration.CertificationExactitude" /> Je certifie l'exactitude des renseignements fournis</label>
+        </div>
+        <div class="champ-case">
+            <label><input type="checkbox" @bind="_declaration.ConsentementConsultation" /> J'autorise la consultation de mon profil par les entreprises</label>
+        </div>
+        <div class="champ"><label>Date</label><input type="date" @bind="_declaration.Date" /></div>
+        <div class="champ"><label>Signature du postulant (nom tapé)</label><input @bind="_declaration.NomSignataire" /></div>
+        <button @onclick="SaveDeclarationAsync">Enregistrer la déclaration</button>
+        @if (_declarationSaved) { <span class="confirmation">Enregistré.</span> }
+    </section>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private int _candidateProfileId;
+    private CvView? _cv;
+
+    private readonly CoordonneesModel _coordonnees = new();
+    private bool _coordonneesSaved;
+
+    private readonly List<FormationRow> _formations = [];
+
+    private readonly CompetencesEtudesModel _competencesEtudes = new();
+    private bool _competencesEtudesSaved;
+
+    private readonly List<ExperienceRow> _experiences = [];
+
+    private readonly CaracteristiquesModel _caracteristiques = new();
+    private bool _caracteristiquesSaved;
+
+    private readonly LoisirsModel _loisirs = new();
+    private bool _loisirsSaved;
+
+    private readonly List<ReferenceRow> _references = [];
+
+    private readonly DeclarationModel _declaration = new();
+    private bool _declarationSaved;
+
+    private sealed class CoordonneesModel
+    {
+        public string? Nom { get; set; }
+        public string? Prenoms { get; set; }
+        public DateOnly? DateNaissance { get; set; }
+        public string? LieuNaissance { get; set; }
+        public string? Nationalite { get; set; }
+        public string? AdresseComplete { get; set; }
+        public string? Telephone { get; set; }
+        public string? Email { get; set; }
+        public string? ProfilOuPosteRecherche { get; set; }
+    }
+
+    private sealed class FormationRow
+    {
+        public int? Id { get; set; }
+        public string? Periode { get; set; }
+        public string? Etablissement { get; set; }
+        public string? Diplome { get; set; }
+        public string? Domaine { get; set; }
+        public bool Saved { get; set; }
+    }
+
+    private sealed class CompetencesEtudesModel
+    {
+        public string? SpecialitePrincipale { get; set; }
+        public string? CompetencesTechniques { get; set; }
+        public string? ConnaissancesTheoriques { get; set; }
+        public string? LanguesMaitrisees { get; set; }
+        public string? OutilsLogicielsMethodes { get; set; }
+    }
+
+    private sealed class ExperienceRow
+    {
+        public int? Id { get; set; }
+        public string? Periode { get; set; }
+        public string? Entreprise { get; set; }
+        public string? Fonction { get; set; }
+        public string? Competences { get; set; }
+        public bool Saved { get; set; }
+    }
+
+    private sealed class CaracteristiquesModel
+    {
+        public string? QualitesPersonnelles { get; set; }
+        public string? AptitudesProfessionnelles { get; set; }
+        public string? AttitudesRelationnelles { get; set; }
+        public string? CapaciteSousPression { get; set; }
+        public string? DisponibiliteMobilite { get; set; }
+    }
+
+    private sealed class LoisirsModel
+    {
+        public string? LoisirsPreferes { get; set; }
+        public string? ActivitesSportivesCulturelles { get; set; }
+        public string? EngagementsAssociatifs { get; set; }
+        public string? AutresCentresInteret { get; set; }
+    }
+
+    private sealed class ReferenceRow
+    {
+        public int? Id { get; set; }
+        public string? NomPrenom { get; set; }
+        public string? Fonction { get; set; }
+        public string? Entreprise { get; set; }
+        public string? Contact { get; set; }
+        public string? Lien { get; set; }
+        public bool Saved { get; set; }
+    }
+
+    private sealed class DeclarationModel
+    {
+        public bool CertificationExactitude { get; set; }
+        public bool ConsentementConsultation { get; set; }
+        public DateOnly? Date { get; set; }
+        public string? NomSignataire { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _candidateProfileId = await CandidateProfileService.GetOrCreateProfileIdAsync(userId);
+        _cv = await CandidateProfileService.GetCvAsync(_candidateProfileId);
+
+        if (_cv.Coordonnees is { } c)
+        {
+            _coordonnees.Nom = c.Nom;
+            _coordonnees.Prenoms = c.Prenoms;
+            _coordonnees.DateNaissance = c.DateNaissance;
+            _coordonnees.LieuNaissance = c.LieuNaissance;
+            _coordonnees.Nationalite = c.Nationalite;
+            _coordonnees.AdresseComplete = c.AdresseComplete;
+            _coordonnees.Telephone = c.Telephone;
+            _coordonnees.Email = c.Email;
+            _coordonnees.ProfilOuPosteRecherche = c.ProfilOuPosteRecherche;
+        }
+
+        _formations.AddRange(_cv.Formations.Select(f => new FormationRow
+        {
+            Id = f.Id, Periode = f.Periode, Etablissement = f.Etablissement,
+            Diplome = f.DiplomeCertificatOuNiveau, Domaine = f.DomaineEtudes, Saved = true,
+        }));
+
+        if (_cv.CompetencesEtudes is { } ce)
+        {
+            _competencesEtudes.SpecialitePrincipale = ce.SpecialitePrincipale;
+            _competencesEtudes.CompetencesTechniques = ce.CompetencesTechniques;
+            _competencesEtudes.ConnaissancesTheoriques = ce.ConnaissancesTheoriques;
+            _competencesEtudes.LanguesMaitrisees = ce.LanguesMaitrisees;
+            _competencesEtudes.OutilsLogicielsMethodes = ce.OutilsLogicielsMethodes;
+        }
+
+        _experiences.AddRange(_cv.Experiences.Select(x => new ExperienceRow
+        {
+            Id = x.Id, Periode = x.Periode, Entreprise = x.EntrepriseOrganisationOuStage,
+            Fonction = x.FonctionOuActiviteExercee, Competences = x.CompetencesDeveloppees, Saved = true,
+        }));
+
+        if (_cv.CaracteristiquesPersonnelles is { } cp)
+        {
+            _caracteristiques.QualitesPersonnelles = cp.QualitesPersonnelles;
+            _caracteristiques.AptitudesProfessionnelles = cp.AptitudesProfessionnelles;
+            _caracteristiques.AttitudesRelationnelles = cp.AttitudesRelationnelles;
+            _caracteristiques.CapaciteSousPression = cp.CapaciteSousPression;
+            _caracteristiques.DisponibiliteMobilite = cp.DisponibiliteMobilite;
+        }
+
+        if (_cv.Loisirs is { } l)
+        {
+            _loisirs.LoisirsPreferes = l.LoisirsPreferes;
+            _loisirs.ActivitesSportivesCulturelles = l.ActivitesSportivesCulturelles;
+            _loisirs.EngagementsAssociatifs = l.EngagementsAssociatifs;
+            _loisirs.AutresCentresInteret = l.AutresCentresInteret;
+        }
+
+        _references.AddRange(_cv.References.Select(r => new ReferenceRow
+        {
+            Id = r.Id, NomPrenom = r.NomPrenom, Fonction = r.Fonction, Entreprise = r.EntrepriseOrganisation,
+            Contact = r.TelephoneOuEmail, Lien = r.LienAvecPostulant, Saved = true,
+        }));
+
+        if (_cv.Declaration is { } d)
+        {
+            _declaration.CertificationExactitude = d.CertificationExactitude;
+            _declaration.ConsentementConsultation = d.ConsentementConsultation;
+            _declaration.Date = d.Date;
+            _declaration.NomSignataire = d.NomSignataire;
+        }
+    }
+
+    private async Task SaveCoordonneesAsync()
+    {
+        await CandidateProfileService.SaveCoordonneesAsync(_candidateProfileId, new CvCoordonnees
+        {
+            CandidateProfileId = _candidateProfileId,
+            Nom = _coordonnees.Nom,
+            Prenoms = _coordonnees.Prenoms,
+            DateNaissance = _coordonnees.DateNaissance,
+            LieuNaissance = _coordonnees.LieuNaissance,
+            Nationalite = _coordonnees.Nationalite,
+            AdresseComplete = _coordonnees.AdresseComplete,
+            Telephone = _coordonnees.Telephone,
+            Email = _coordonnees.Email,
+            ProfilOuPosteRecherche = _coordonnees.ProfilOuPosteRecherche,
+        });
+        _coordonneesSaved = true;
+    }
+
+    private void AjouterFormation() => _formations.Add(new FormationRow());
+
+    private async Task SaveFormationAsync(FormationRow row)
+    {
+        var id = await CandidateProfileService.SaveFormationAsync(_candidateProfileId, row.Id, new CvFormation
+        {
+            CandidateProfileId = _candidateProfileId,
+            Periode = row.Periode,
+            Etablissement = row.Etablissement,
+            DiplomeCertificatOuNiveau = row.Diplome,
+            DomaineEtudes = row.Domaine,
+        });
+        row.Id = id;
+        row.Saved = true;
+    }
+
+    private async Task DeleteFormationAsync(FormationRow row)
+    {
+        if (row.Id is int id)
+            await CandidateProfileService.DeleteFormationAsync(_candidateProfileId, id);
+        _formations.Remove(row);
+    }
+
+    private async Task SaveCompetencesEtudesAsync()
+    {
+        await CandidateProfileService.SaveCompetencesEtudesAsync(_candidateProfileId, new CvCompetencesEtudes
+        {
+            CandidateProfileId = _candidateProfileId,
+            SpecialitePrincipale = _competencesEtudes.SpecialitePrincipale,
+            CompetencesTechniques = _competencesEtudes.CompetencesTechniques,
+            ConnaissancesTheoriques = _competencesEtudes.ConnaissancesTheoriques,
+            LanguesMaitrisees = _competencesEtudes.LanguesMaitrisees,
+            OutilsLogicielsMethodes = _competencesEtudes.OutilsLogicielsMethodes,
+        });
+        _competencesEtudesSaved = true;
+    }
+
+    private void AjouterExperience() => _experiences.Add(new ExperienceRow());
+
+    private async Task SaveExperienceAsync(ExperienceRow row)
+    {
+        var id = await CandidateProfileService.SaveExperienceAsync(_candidateProfileId, row.Id, new CvExperience
+        {
+            CandidateProfileId = _candidateProfileId,
+            Periode = row.Periode,
+            EntrepriseOrganisationOuStage = row.Entreprise,
+            FonctionOuActiviteExercee = row.Fonction,
+            CompetencesDeveloppees = row.Competences,
+        });
+        row.Id = id;
+        row.Saved = true;
+    }
+
+    private async Task DeleteExperienceAsync(ExperienceRow row)
+    {
+        if (row.Id is int id)
+            await CandidateProfileService.DeleteExperienceAsync(_candidateProfileId, id);
+        _experiences.Remove(row);
+    }
+
+    private async Task SaveCaracteristiquesAsync()
+    {
+        await CandidateProfileService.SaveCaracteristiquesPersonnellesAsync(_candidateProfileId, new CvCaracteristiquesPersonnelles
+        {
+            CandidateProfileId = _candidateProfileId,
+            QualitesPersonnelles = _caracteristiques.QualitesPersonnelles,
+            AptitudesProfessionnelles = _caracteristiques.AptitudesProfessionnelles,
+            AttitudesRelationnelles = _caracteristiques.AttitudesRelationnelles,
+            CapaciteSousPression = _caracteristiques.CapaciteSousPression,
+            DisponibiliteMobilite = _caracteristiques.DisponibiliteMobilite,
+        });
+        _caracteristiquesSaved = true;
+    }
+
+    private async Task SaveLoisirsAsync()
+    {
+        await CandidateProfileService.SaveLoisirsAsync(_candidateProfileId, new CvLoisirs
+        {
+            CandidateProfileId = _candidateProfileId,
+            LoisirsPreferes = _loisirs.LoisirsPreferes,
+            ActivitesSportivesCulturelles = _loisirs.ActivitesSportivesCulturelles,
+            EngagementsAssociatifs = _loisirs.EngagementsAssociatifs,
+            AutresCentresInteret = _loisirs.AutresCentresInteret,
+        });
+        _loisirsSaved = true;
+    }
+
+    private void AjouterReference() => _references.Add(new ReferenceRow());
+
+    private async Task SaveReferenceAsync(ReferenceRow row)
+    {
+        var id = await CandidateProfileService.SaveReferenceAsync(_candidateProfileId, row.Id, new CvReference
+        {
+            CandidateProfileId = _candidateProfileId,
+            NomPrenom = row.NomPrenom,
+            Fonction = row.Fonction,
+            EntrepriseOrganisation = row.Entreprise,
+            TelephoneOuEmail = row.Contact,
+            LienAvecPostulant = row.Lien,
+        });
+        row.Id = id;
+        row.Saved = true;
+    }
+
+    private async Task DeleteReferenceAsync(ReferenceRow row)
+    {
+        if (row.Id is int id)
+            await CandidateProfileService.DeleteReferenceAsync(_candidateProfileId, id);
+        _references.Remove(row);
+    }
+
+    private async Task SaveDeclarationAsync()
+    {
+        await CandidateProfileService.SaveDeclarationAsync(_candidateProfileId, new CvDeclaration
+        {
+            CandidateProfileId = _candidateProfileId,
+            CertificationExactitude = _declaration.CertificationExactitude,
+            ConsentementConsultation = _declaration.ConsentementConsultation,
+            Date = _declaration.Date,
+            NomSignataire = _declaration.NomSignataire,
+        });
+        _declarationSaved = true;
+    }
+}
