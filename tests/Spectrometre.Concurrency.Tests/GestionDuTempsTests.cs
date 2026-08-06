@@ -47,13 +47,11 @@ public sealed class GestionDuTempsTests(ServiceFixture fixture)
         var activite = Assert.Single(activites);
         Assert.Equal(activiteId, activite.Id);
         Assert.Equal("Point d'équipe", activite.Nom);
-        Assert.Equal(ActiviteStatuts.AFaire, activite.Statut);
         Assert.Null(activite.CompanyId);
 
-        // Bascule de statut.
-        await service.SetActiviteStatutAsync(userId, activiteId, ActiviteStatuts.Fait);
-        var activitesApres = await service.GetActivitesAsync(userId, companyId: null, personnelUniquement: false);
-        Assert.Equal(ActiviteStatuts.Fait, activitesApres.Single().Statut);
+        // Statut Kanban initial : "À faire" (voir CyclesKanbanMinuteurTests pour le Kanban/minuteur en détail).
+        var carte = Assert.Single(await service.GetKanbanAsync(userId));
+        Assert.Equal(KanbanColonnes.AFaire, carte.Statut);
 
         // Un autre utilisateur (même base) n'a par construction aucun type de temps ni rappel en commun —
         // la création lui crée SES propres catégories par défaut, jamais un accès à celles de userId.

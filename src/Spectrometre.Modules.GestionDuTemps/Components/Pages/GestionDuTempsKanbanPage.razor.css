@@ -1,0 +1,80 @@
+.gdt-cycle-bandeau {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #f5f7ff;
+    border: 1px solid #ccd6f6;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    margin: 1rem 0 0.5rem;
+}
+
+.gdt-kanban {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.gdt-kanban-colonne {
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 0.6rem;
+    min-height: 120px;
+}
+
+.gdt-kanban-entete {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.gdt-kanban-compte {
+    color: #666;
+}
+
+.gdt-kanban-carte {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.gdt-kanban-carte.gdt-depassement {
+    border-color: #e08a3c;
+}
+
+.gdt-kanban-meta {
+    color: #555;
+    font-size: 0.85rem;
+    margin: 0.2rem 0;
+}
+
+.gdt-kanban-minuteur {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    margin: 0.3rem 0;
+}
+
+.gdt-tag-depassement {
+    background: #fbe4cc;
+    color: #a15b1a;
+    border-radius: 999px;
+    padding: 0.05rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: normal;
+    margin-left: 0.4rem;
+}
+
+.gdt-kanban-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+}
+
+.gdt-kanban-actions button {
+    font-size: 0.8rem;
+}

@@ -13,22 +13,41 @@ public sealed class GestionDuTempsDbContext(DbContextOptions<GestionDuTempsDbCon
 {
     public const string SchemaName = "gestion_du_temps";
 
+    public DbSet<Cycle> Cycles => Set<Cycle>();
     public DbSet<TypeDeTemps> TypesDeTemps => Set<TypeDeTemps>();
     public DbSet<Activite> Activites => Set<Activite>();
+    public DbSet<KanbanStatut> KanbanStatuts => Set<KanbanStatut>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.HasDefaultSchema(SchemaName);
 
+        builder.Entity<Cycle>(e =>
+        {
+            e.HasIndex(c => new { c.UserId, c.NumeroCycle }).IsUnique();
+            // Un seul cycle EnCours à la fois par utilisateur — index unique FILTRÉ (comme
+            // IX_GdtCycles_UserId_EnCours dans mvp), pas une contrainte globale sur UserId seul : un
+            // utilisateur peut avoir plusieurs cycles Termine dans son historique.
+            e.HasIndex(c => c.UserId)
+                .IsUnique()
+                .HasFilter($"\"Statut\" = '{CycleStatuts.EnCours}'");
+        });
+
         builder.Entity<TypeDeTemps>(e =>
         {
-            e.HasIndex(t => new { t.UserId, t.Cle }).IsUnique();
+            // Scopé par cycle, pas par utilisateur seul (voir TypeDeTemps) : la clôture d'un cycle recopie
+            // ses types de temps vers le nouveau, donc le même Cle existe légitimement dans plusieurs cycles.
+            e.HasIndex(t => new { t.CycleId, t.Cle }).IsUnique();
+
+            e.HasOne<Cycle>().WithMany().HasForeignKey(t => t.CycleId).OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<Activite>(e =>
         {
             e.HasIndex(a => new { a.UserId, a.DateActivite, a.HeureDebut });
+
+            e.HasOne<Cycle>().WithMany().HasForeignKey(a => a.CycleId).OnDelete(DeleteBehavior.Cascade);
 
             // FK réelle (pas une référence par identifiant façon inter-schéma) : TypeDeTemps et Activite
             // vivent dans le MÊME schéma fixe ici, contrairement à CandidateProfileId ailleurs dans la
@@ -38,6 +57,14 @@ public sealed class GestionDuTempsDbContext(DbContextOptions<GestionDuTempsDbCon
                 .WithMany()
                 .HasForeignKey(a => a.TypeDeTempsId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<KanbanStatut>(e =>
+        {
+            // Relation un-à-un avec Activite : une seule ligne de statut Kanban par activité.
+            e.HasIndex(s => s.ActiviteId).IsUnique();
+
+            e.HasOne<Activite>().WithMany().HasForeignKey(s => s.ActiviteId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

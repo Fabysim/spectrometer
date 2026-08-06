@@ -116,6 +116,10 @@ else
 
     <section class="gdt-activites">
         <h3>Mes rappels</h3>
+        <p class="hint">
+            Le suivi d'avancement (À faire / En cours / Terminé) et le minuteur se gèrent depuis la
+            <a href="/gestion-du-temps/kanban">vue Kanban</a> du cycle actif.
+        </p>
         @if (_activites is null)
         {
             <p>Chargement…</p>
@@ -128,7 +132,7 @@ else
         {
             @foreach (var activite in _activites)
             {
-                <div class="gdt-activite-carte @(activite.Statut == ActiviteStatuts.Fait ? "gdt-fait" : "")">
+                <div class="gdt-activite-carte">
                     <span class="gdt-couleur" style="background:@activite.TypeCouleur"></span>
                     <strong>@activite.Nom</strong>
                     <span class="gdt-type-libelle">@activite.TypeLibelle</span>
@@ -137,9 +141,6 @@ else
                     {
                         <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
                     }
-                    <button @onclick="() => BasculerStatutAsync(activite)">
-                        @(activite.Statut == ActiviteStatuts.Fait ? "Marquer à faire" : "Marquer fait")
-                    </button>
                     <button @onclick="() => SupprimerActiviteAsync(activite.Id)">Supprimer</button>
                 </div>
             }
@@ -337,13 +338,6 @@ else
         {
             _erreur = ex.Message;
         }
-    }
-
-    private async Task BasculerStatutAsync(ActiviteView activite)
-    {
-        var nouveauStatut = activite.Statut == ActiviteStatuts.Fait ? ActiviteStatuts.AFaire : ActiviteStatuts.Fait;
-        await GdtService.SetActiviteStatutAsync(_userId!, activite.Id, nouveauStatut);
-        await RefreshActivitesAsync();
     }
 
     private async Task SupprimerActiviteAsync(int activiteId)

@@ -1,0 +1,194 @@
+@page "/gestion-du-temps/kanban"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@implements IDisposable
+@inject IGestionDuTempsService GdtService
+@inject IGestionDuTempsAccessService AccessService
+
+<PageTitle>Kanban · Gestion du temps</PageTitle>
+
+<h1>Kanban du cycle actif</h1>
+<p class="hint">
+    Faites progresser vos rappels À faire → En cours → Terminé. Le minuteur mesure le temps réel passé en
+    « En cours » et l'accumule à travers plusieurs pauses/reprises. <a href="/gestion-du-temps">Retour aux rituels</a>.
+</p>
+
+@if (_userId is null)
+{
+    <p>Chargement…</p>
+}
+else if (!_hasAccess)
+{
+    <p class="hint">Ce module n'est pas activé pour votre compte.</p>
+}
+else if (_cycle is null || _cartes is null)
+{
+    <p>Chargement…</p>
+}
+else
+{
+    <div class="gdt-cycle-bandeau">
+        <span>Cycle #@_cycle.NumeroCycle — en cours depuis le @_cycle.DemarreLe.ToLocalTime().ToString("dd/MM/yyyy")</span>
+        <button @onclick="ClotureCycleAsync" disabled="@_clotureEnCours">Clôturer ce cycle et en démarrer un nouveau</button>
+    </div>
+    <p class="hint">
+        À la clôture, vos catégories (types de temps) sont reconduites dans le nouveau cycle ; les rappels de
+        ce cycle-ci restent archivés tels quels, ils ne sont jamais reportés.
+    </p>
+
+    @if (!string.IsNullOrEmpty(_erreur))
+    {
+        <p class="erreur">@_erreur</p>
+    }
+
+    @if (_cartes.Count == 0)
+    {
+        <p class="hint">Aucun rappel dans ce cycle — créez-en un depuis la page <a href="/gestion-du-temps">Rituels</a>.</p>
+    }
+    else
+    {
+        <div class="gdt-kanban">
+            @foreach (var colonne in Colonnes)
+            {
+                <div class="gdt-kanban-colonne">
+                    <div class="gdt-kanban-entete">
+                        <span>@colonne.Libelle</span>
+                        <span class="gdt-kanban-compte">@CartesDe(colonne.Statut).Count()</span>
+                    </div>
+                    @foreach (var carte in CartesDe(colonne.Statut))
+                    {
+                        <div class="gdt-kanban-carte @(carte.EnDepassement ? "gdt-depassement" : "")">
+                            <span class="gdt-couleur" style="background:@carte.TypeCouleur"></span>
+                            <strong>@carte.Nom</strong>
+                            <div class="gdt-kanban-meta">@carte.TypeLibelle · planifié @carte.DureeMinutes min</div>
+                            <div class="gdt-kanban-minuteur">
+                                @KanbanTimer.Format(TempsAffiche(carte))
+                                @if (carte.EnDepassement)
+                                {
+                                    <span class="gdt-tag-depassement">dépassement</span>
+                                }
+                            </div>
+                            <div class="gdt-kanban-actions">
+                                @foreach (var cible in Colonnes.Where(c => c.Statut != colonne.Statut))
+                                {
+                                    <button @onclick="() => DeplacerAsync(carte.ActiviteId, cible.Statut)">@cible.Libelle</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private sealed record Colonne(string Statut, string Libelle);
+
+    private static readonly Colonne[] Colonnes =
+    [
+        new(KanbanColonnes.AFaire, "À faire"),
+        new(KanbanColonnes.EnCours, "En cours"),
+        new(KanbanColonnes.Termine, "Terminé"),
+    ];
+
+    private string? _userId;
+    private bool _hasAccess;
+    private CycleView? _cycle;
+    private List<KanbanCarteView>? _cartes;
+    private bool _clotureEnCours;
+    private string? _erreur;
+    private Timer? _timerAffichage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _userId = userId;
+        _hasAccess = await AccessService.HasAccessAsync(userId);
+        if (!_hasAccess)
+            return;
+
+        _cycle = await GdtService.GetOrCreateCycleActifAsync(userId);
+        await RefreshCartesAsync();
+
+        // Rafraîchit l'affichage du minuteur chaque seconde pour la carte "En cours" — le temps réel lui-même
+        // est calculé côté serveur (KanbanTimer.GetElapsedMs), ce timer ne fait que redessiner l'écran.
+        _timerAffichage = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+    }
+
+    private async Task RefreshCartesAsync() =>
+        _cartes = (await GdtService.GetKanbanAsync(_userId!)).ToList();
+
+    private IEnumerable<KanbanCarteView> CartesDe(string statut) =>
+        _cartes!.Where(c => c.Statut == statut);
+
+    /// <summary>Le temps affiché avance en direct pour une carte "En cours" entre deux rafraîchissements serveur (voir <see cref="_timerAffichage"/>) : on ajoute l'écart écoulé depuis le dernier <see cref="RefreshCartesAsync"/> à la valeur déjà connue.</summary>
+    private long TempsAffiche(KanbanCarteView carte) =>
+        carte.Statut == KanbanColonnes.EnCours
+            ? carte.TempsReelMs + (long)(DateTimeOffset.UtcNow - _derniereActualisation).TotalMilliseconds
+            : carte.TempsReelMs;
+
+    private DateTimeOffset _derniereActualisation = DateTimeOffset.UtcNow;
+
+    private async Task DeplacerAsync(int activiteId, string statutCible)
+    {
+        _erreur = null;
+        try
+        {
+            switch (statutCible)
+            {
+                case KanbanColonnes.AFaire:
+                    await GdtService.MarquerPauseAsync(_userId!, activiteId);
+                    break;
+                case KanbanColonnes.EnCours:
+                    await GdtService.MarquerDebutAsync(_userId!, activiteId);
+                    break;
+                case KanbanColonnes.Termine:
+                    await GdtService.MarquerTermineAsync(_userId!, activiteId);
+                    break;
+            }
+
+            _derniereActualisation = DateTimeOffset.UtcNow;
+            await RefreshCartesAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private async Task ClotureCycleAsync()
+    {
+        _clotureEnCours = true;
+        _erreur = null;
+        try
+        {
+            _cycle = await GdtService.ClotureEtDemarrerNouveauCycleAsync(_userId!);
+            _derniereActualisation = DateTimeOffset.UtcNow;
+            await RefreshCartesAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _clotureEnCours = false;
+        }
+    }
+
+    public void Dispose() => _timerAffichage?.Dispose();
+}

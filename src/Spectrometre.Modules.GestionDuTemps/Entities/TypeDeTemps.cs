@@ -2,15 +2,19 @@ namespace Spectrometre.Modules.GestionDuTemps.Entities;
 
 /// <summary>
 /// Gabarit hebdomadaire récurrent d'une catégorie de temps pour un utilisateur — repris du concept
-/// <c>GdtTypeDeTemps</c> de <c>mvp</c> (catégories par défaut : sommeil/perso/pro/admin/famille/social),
-/// mais sans l'enveloppe <c>GdtCycle</c> (notion de saison/période, hors périmètre de ce cycle) : chaque
-/// type de temps appartient directement à <see cref="UserId"/>, jamais à un cycle intermédiaire.
+/// <c>GdtTypeDeTemps</c> de <c>mvp</c> (catégories par défaut : sommeil/perso/pro/admin/famille/social).
+/// Appartient à un <see cref="Cycle"/> (introduit dans ce cycle de travail) : à la clôture d'un cycle, ses
+/// types de temps sont recopiés vers le nouveau (voir <see cref="Cycle"/>) — c'est pour ça que l'unicité de
+/// <see cref="Cle"/> est scopée par cycle, pas par utilisateur seul (un même slug "pro" existe légitimement
+/// dans plusieurs cycles successifs du même utilisateur).
 /// </summary>
 public sealed class TypeDeTemps
 {
     public int Id { get; set; }
 
     public required string UserId { get; set; }
+
+    public int CycleId { get; set; }
 
     /// <summary>Slug court (ex. "pro", "perso") — librement éditable par l'utilisateur, pas une énumération fermée (fidèle à mvp).</summary>
     public required string Cle { get; set; }
