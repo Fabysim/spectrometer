@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core;
+using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
@@ -81,6 +82,10 @@ using (var startupScope = app.Services.CreateScope())
     moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
+    // Enregistré pour les DEUX types de sujet (Company et Candidate) — le registre n'est plus couplé à la
+    // seule entreprise (voir ModuleActivationSubjectType). Ne signifie PAS qu'il est activé par défaut pour
+    // toute entreprise (voir le commentaire dans CompanyOnboardingService : vendu indépendamment).
+    moduleRegistry.Register(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions.Manifest);
 
     // Migrations appliquées globalement pour le noyau et Profil Candidat (schémas fixes, non tenant-scopés).
     // Profil Entreprise / Compatibilité sont tenant-scopés : leur schéma est appliqué par tenant lors
@@ -105,15 +110,21 @@ using (var startupScope = app.Services.CreateScope())
         suiviEvolutifCandidatDb.Database.Migrate();
     }
 
-    // Gestion du temps : schéma fixe non tenant-scopé, comme ProfilCandidat — migré globalement ici. Ce
-    // module n'a pas de notion d'entreprise, il n'est donc PAS inscrit à moduleRegistry.Register/
-    // TenantSchemaModuleCatalog/CompanyOnboardingService (voir le commentaire sur son Manifest).
+    // Gestion du temps : schéma fixe non tenant-scopé, comme ProfilCandidat — migré globalement ici. Pas de
+    // schéma PAR ENTREPRISE (voir son ServiceCollectionExtensions) donc toujours absent de
+    // TenantSchemaModuleCatalog/CompanyOnboardingService, mais désormais bien enregistré dans
+    // IModuleRegistry (voir le commentaire sur son Manifest).
     using (var gestionDuTempsDb = startupScope.ServiceProvider
                .GetRequiredService<IDbContextFactory<GestionDuTempsDbContext>>()
                .CreateDbContext())
     {
         gestionDuTempsDb.Database.Migrate();
     }
+
+    // Comble rétroactivement l'abonnement des entreprises créées avant le gating par plan introduit dans ce
+    // cycle — sans ça, elles perdraient l'accès à tous leurs modules déjà activés (échec fermé, voir
+    // ModuleRegistry.IsActiveAsync). Exécuté tôt, avant tout ce qui pourrait lire IsActiveAsync.
+    await TenantSubscriptionBackfill.RunAsync(startupScope.ServiceProvider.GetRequiredService<CoreDbContext>());
 
     // Comble rétroactivement le schéma de tout module tenant-scopé marqué actif pour une entreprise
     // existante mais pas encore provisionné (ex. une entreprise créée avant l'ajout d'un module) — voir

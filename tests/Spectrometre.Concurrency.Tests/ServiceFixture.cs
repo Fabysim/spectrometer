@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
@@ -85,8 +86,6 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddEntretienModule(config);
         services.AddSuiviEvolutifModule(config);
         services.AddAnalyticsModule();
-        // Pas de moduleRegistry.Register/ActivateForCompanyAsync pour ce module : voir le commentaire sur
-        // GestionDuTemps.ServiceCollectionExtensions.Manifest — indépendant de toute notion d'entreprise.
         services.AddGestionDuTempsModule(config);
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
@@ -109,6 +108,7 @@ public sealed class ServiceFixture : IAsyncLifetime
             moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions.Manifest);
 
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
             await coreDb.Database.MigrateAsync();
@@ -181,6 +181,17 @@ public sealed class ServiceFixture : IAsyncLifetime
         var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
 
         var company = await provisioning.CreateCompanyAsync(name, ownerUserId, coreDb);
+
+        // Même câblage que Spectrometre.Host.Onboarding.CompanyOnboardingService : sans abonnement, aucun
+        // module ne serait effectivement actif pour cette entreprise (échec fermé, voir
+        // ModuleRegistry.IsActiveAsync) — Standard couvre les 8 modules Matching Emploi, pas GestionDuTemps.
+        coreDb.TenantSubscriptions.Add(new TenantSubscription
+        {
+            CompanyId = company.Id,
+            PlanCode = PlanCodes.Standard,
+            Status = SubscriptionStatus.Active,
+        });
+        await coreDb.SaveChangesAsync();
 
         foreach (var module in TenantModules)
         {

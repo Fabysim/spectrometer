@@ -126,7 +126,7 @@ public sealed class SuiviEvolutifTests(ServiceFixture fixture)
         {
             var coreDb = setupScope.ServiceProvider.GetRequiredService<Spectrometre.Core.Data.CoreDbContext>();
             var activation = await coreDb.ModuleActivations
-                .FirstAsync(a => a.CompanyId == company.Id && a.ModuleCode == Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest.Code);
+                .FirstAsync(a => a.SubjectType == Spectrometre.Core.Modules.ModuleActivationSubjectType.Company && a.SubjectId == company.Id && a.ModuleCode == Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest.Code);
             activation.IsActive = false;
             await coreDb.SaveChangesAsync();
         }

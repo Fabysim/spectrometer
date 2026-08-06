@@ -19,14 +19,15 @@ public static class ServiceCollectionExtensions
     /// ProfilEntreprise ou un autre module métier.
     /// </summary>
     /// <remarks>
-    /// Ce manifeste n'est PAS enregistré dans <c>IModuleRegistry</c> (pas de
-    /// <c>moduleRegistry.Register(Manifest)</c> dans Program.cs, pas d'entrée dans
-    /// <c>CompanyOnboardingService</c>/<c>TenantSchemaModuleCatalog</c>) : ce registre est intrinsèquement
-    /// scopé par entreprise (toutes ses méthodes prennent un <c>companyId</c> — voir
-    /// <c>IModuleRegistry.IsActiveAsync</c>), alors que la Gestion du temps n'a aucune notion d'entreprise à
-    /// activer/désactiver. Le module est simplement câblé dans Program.cs et disponible pour tout
-    /// utilisateur authentifié, comme l'authentification elle-même — gardé ici pour la cohérence structurelle
-    /// avec les autres modules (et au cas où un futur cycle voudrait un jour un gating par entreprise).
+    /// Ce manifeste EST maintenant enregistré dans <c>IModuleRegistry</c> (<c>moduleRegistry.Register</c>
+    /// dans Program.cs), pour les DEUX types de sujet — <c>ModuleActivationSubjectType.Company</c> ET
+    /// <c>Candidate</c> — depuis que le registre a cessé d'être couplé à la seule notion d'entreprise (voir
+    /// <c>ModuleActivationSubjectType</c>). Contrairement au domaine Matching Emploi, il n'est PAS activé
+    /// par défaut pour toute nouvelle entreprise (absent de la boucle dans
+    /// <c>CompanyOnboardingService.CreateCompanyAsync</c>) : c'est un module vendu indépendamment (voir le
+    /// plan <c>PlanCodes.StandardPlusTemps</c>), pas groupé avec le reste. Toujours absent de
+    /// <c>TenantSchemaModuleCatalog</c> (aucun schéma tenant propre, voir <c>AddGestionDuTempsModule</c>).
+    /// L'accès effectif (page + lien de navigation) passe par <see cref="Services.IGestionDuTempsAccessService"/>.
     /// </remarks>
     public static readonly ModuleManifest Manifest = new(
         Code: "GestionDuTemps",
@@ -49,6 +50,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<IGestionDuTempsService, GestionDuTempsService>();
+        services.AddScoped<IGestionDuTempsAccessService, GestionDuTempsAccessService>();
 
         return services;
     }

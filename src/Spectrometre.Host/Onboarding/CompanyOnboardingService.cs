@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Tenancy;
@@ -36,6 +37,18 @@ public sealed class CompanyOnboardingService(
     {
         var company = await companyProvisioningService.CreateCompanyAsync(companyName, ownerUserId, coreDb, cancellationToken);
 
+        // Abonnement Standard par défaut : tous les modules du domaine Matching Emploi, sans Gestion du
+        // temps (vendu séparément) — voir ModuleRegistry.IsActiveAsync pour la règle de gating par plan.
+        // Sans cette ligne, AUCUN module ne serait effectivement actif pour une entreprise neuve (échec
+        // fermé si aucun abonnement), quel que soit l'état de ModuleActivation.
+        coreDb.TenantSubscriptions.Add(new TenantSubscription
+        {
+            CompanyId = company.Id,
+            PlanCode = PlanCodes.Standard,
+            Status = SubscriptionStatus.Active,
+        });
+        await coreDb.SaveChangesAsync(cancellationToken);
+
         // Applique le schéma (tables) de chaque module tenant-scopé au nouveau schéma — voir la limite documentée sur ITenantSchemaProvisioner.
         // Instances fraîches (schéma "gabarit" par défaut) via la factory, indépendamment de tout tenant déjà actif dans ce scope.
         foreach (var module in TenantSchemaModuleCatalog.Modules)
@@ -58,6 +71,11 @@ public sealed class CompanyOnboardingService(
                      // Analytics n'a pas non plus de schéma propre (voir son ServiceCollectionExtensions) —
                      // même situation que Vivier, seulement l'activation ci-dessous.
                      AnalyticsModule.Manifest,
+                     // GestionDuTemps volontairement ABSENT de cette liste : contrairement au domaine
+                     // Matching Emploi (activé par défaut pour toute entreprise), c'est un module vendu
+                     // indépendamment (voir son manifeste) — l'activer par défaut pour toute entreprise
+                     // viderait ce choix de son sens, même s'il resterait bloqué par le plan Standard qui ne
+                     // l'inclut pas (voir ModuleRegistry.IsActiveAsync).
                  })
         {
             if (await moduleRegistry.IsActiveAsync(company.Id, manifest.Code, coreDb, cancellationToken))

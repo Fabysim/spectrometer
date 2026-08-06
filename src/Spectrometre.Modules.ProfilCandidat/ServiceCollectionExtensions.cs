@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<ICandidateProfileService, CandidateProfileService>();
+        services.AddScoped<ICandidateSubjectResolver, CandidateSubjectResolver>();
 
         // L'inscription au registre se fait explicitement dans Program.cs (moduleRegistry.Register(Manifest))
         // une fois l'IServiceCollection construite — impossible de résoudre IModuleRegistry ici.

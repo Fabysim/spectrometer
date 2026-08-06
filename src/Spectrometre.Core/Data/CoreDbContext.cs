@@ -19,6 +19,8 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     public DbSet<UserCompanyLink> UserCompanyLinks => Set<UserCompanyLink>();
     public DbSet<ModuleActivation> ModuleActivations => Set<ModuleActivation>();
     public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
+    public DbSet<CandidateSubscription> CandidateSubscriptions => Set<CandidateSubscription>();
+    public DbSet<PlanModuleEntitlement> PlanModuleEntitlements => Set<PlanModuleEntitlement>();
     public DbSet<PosteIndexEntry> PosteIndexEntries => Set<PosteIndexEntry>();
     public DbSet<CandidatureIndexEntry> CandidatureIndexEntries => Set<CandidatureIndexEntry>();
 
@@ -44,8 +46,25 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
 
         builder.Entity<ModuleActivation>(e =>
         {
-            e.HasIndex(a => new { a.CompanyId, a.ModuleCode }).IsUnique();
+            e.HasIndex(a => new { a.SubjectType, a.SubjectId, a.ModuleCode }).IsUnique();
         });
+
+        builder.Entity<TenantSubscription>(e =>
+        {
+            e.HasIndex(s => s.CompanyId).IsUnique();
+        });
+
+        builder.Entity<CandidateSubscription>(e =>
+        {
+            e.HasIndex(s => s.CandidateProfileId).IsUnique();
+        });
+
+        builder.Entity<PlanModuleEntitlement>(e =>
+        {
+            e.HasIndex(x => new { x.PlanCode, x.ModuleCode }).IsUnique();
+        });
+
+        SeedPlanModuleEntitlements(builder);
 
         builder.Entity<PosteIndexEntry>(e =>
         {
@@ -59,5 +78,33 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
             e.HasIndex(c => new { c.CompanyId, c.PosteId, c.CandidateProfileId }).IsUnique();
             e.HasIndex(c => c.CandidateProfileId);
         });
+    }
+
+    /// <summary>
+    /// Codes de module en toutes lettres (le noyau ne référence aucun type de module, voir la contrainte
+    /// d'architecture — même raison que les chaînes littérales déjà utilisées dans <c>PosteService</c>/
+    /// <c>ProfileChangeRecorder</c>). <see cref="PlanCodes.Standard"/> reprend exactement les 8 modules du
+    /// domaine Matching Emploi déjà activés par défaut pour toute entreprise (voir
+    /// <c>CompanyOnboardingService</c>) — sans GestionDuTemps, vendu séparément.
+    /// <see cref="PlanCodes.StandardPlusTemps"/> ajoute GestionDuTemps, pour tester le gating.
+    /// </summary>
+    private static void SeedPlanModuleEntitlements(ModelBuilder builder)
+    {
+        string[] modulesMatchingEmploi =
+        [
+            "ProfilCandidat", "ProfilEntreprise", "Compatibilite", "PostesRecrutement",
+            "Vivier", "Entretien", "SuiviEvolutif", "Analytics",
+        ];
+
+        var entitlements = new List<PlanModuleEntitlement>();
+        var id = 1;
+
+        foreach (var moduleCode in modulesMatchingEmploi)
+            entitlements.Add(new PlanModuleEntitlement { Id = id++, PlanCode = PlanCodes.Standard, ModuleCode = moduleCode });
+
+        foreach (var moduleCode in modulesMatchingEmploi.Append("GestionDuTemps"))
+            entitlements.Add(new PlanModuleEntitlement { Id = id++, PlanCode = PlanCodes.StandardPlusTemps, ModuleCode = moduleCode });
+
+        builder.Entity<PlanModuleEntitlement>().HasData(entitlements);
     }
 }

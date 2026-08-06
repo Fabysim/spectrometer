@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@using System.Security.Claims
+@using Spectrometre.Modules.GestionDuTemps.Services
+@inject IGestionDuTempsAccessService GestionDuTempsAccessService
 
 <nav class="main-nav">
     <a href="/">Accueil</a>
@@ -11,8 +14,10 @@
     <a href="/candidat/historique">Historique (candidat)</a>
     <a href="/entreprise/historique">Historique (entreprise)</a>
     <a href="/entreprise/analytics">Analytics (entreprise)</a>
-    <a href="/gestion-du-temps">Gestion du temps</a>
-    <a href="/entreprise/analytics">Analytics (entreprise)</a>
+    @if (_showGestionDuTemps)
+    {
+        <a href="/gestion-du-temps">Gestion du temps</a>
+    }
     <AuthorizeView>
         <Authorized>
             <span>Connecté</span>
@@ -30,3 +35,31 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool _showGestionDuTemps;
+
+    /// <summary>
+    /// Même vérification que la page elle-même (voir <see cref="IGestionDuTempsAccessService"/>) : le lien
+    /// de navigation ne doit jamais promettre un accès que la page refusera ensuite. Recalculé à chaque
+    /// rendu du layout (pas de mise en cache inter-navigation) — coût négligeable, une poignée de requêtes
+    /// simples sur le schéma core.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is null)
+            return;
+
+        var user = (await AuthenticationStateTask).User;
+        if (user.Identity?.IsAuthenticated != true)
+            return;
+
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return;
+
+        _showGestionDuTemps = await GestionDuTempsAccessService.HasAccessAsync(userId);
+    }
+}

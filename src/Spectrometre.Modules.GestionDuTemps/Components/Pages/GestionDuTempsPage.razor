@@ -9,6 +9,7 @@
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGestionDuTempsService GdtService
+@inject IGestionDuTempsAccessService AccessService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject CoreDbContext CoreDb
 
@@ -24,6 +25,14 @@
 @if (_userId is null)
 {
     <p>Chargement…</p>
+}
+else if (!_hasAccess)
+{
+    <p class="hint">
+        Ce module n'est pas activé pour votre compte — ni via un abonnement candidat personnel, ni via une
+        entreprise que vous gérez dont le plan l'inclut. Contactez votre administrateur ou souscrivez au
+        plan « Gestion du temps » pour y accéder.
+    </p>
 }
 else
 {
@@ -190,6 +199,7 @@ else
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
     private string? _userId;
+    private bool _hasAccess;
     private List<Company> _companies = [];
     private List<TypeDeTempsView>? _types;
     private List<ActiviteView>? _activites;
@@ -223,6 +233,10 @@ else
         }
 
         _userId = userId;
+        _hasAccess = await AccessService.HasAccessAsync(userId);
+        if (!_hasAccess)
+            return;
+
         _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
 
         await RefreshTypesAsync();
