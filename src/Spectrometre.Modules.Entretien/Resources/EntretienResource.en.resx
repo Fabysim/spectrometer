@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
+
+  <data name="PreparerLEntretien" xml:space="preserve"><value>Prepare the interview</value></data>
+  <data name="GenerationEnCours" xml:space="preserve"><value>Generating…</value></data>
+  <data name="GrilleIntrouvable" xml:space="preserve"><value>Interview grid not found.</value></data>
+  <data name="ScoreGlobalSansQuestion" xml:space="preserve"><value>Overall score {0}% — no axis below the threshold and no shared point of caution detected: no targeted question to generate for this profile.</value></data>
+  <data name="ScoreGlobalAvecQuestions" xml:space="preserve"><value>Overall score {0}% — questions generated from the axes below the threshold and shared points of caution, in both directions.</value></data>
+  <data name="QuestionsPourCandidat" xml:space="preserve"><value>Questions for the candidate</value></data>
+  <data name="QuestionsPourCandidatHint" xml:space="preserve"><value>To be asked by the company, to clarify each gap.</value></data>
+  <data name="QuestionsPourEntreprise" xml:space="preserve"><value>Questions for the candidate to ask</value></data>
+  <data name="QuestionsPourEntrepriseHint" xml:space="preserve"><value>To clarify this same gap, from the candidate's point of view.</value></data>
+</root>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Compatibility;
 using Spectrometre.Core.Tenancy;
@@ -39,6 +40,7 @@ public sealed class EntretienService(
             ?.SeuilAxeFaiblePercent ?? 60;
         var templates = await db.QuestionTemplates.AsNoTracking().OrderBy(t => t.DisplayOrder).ToListAsync(cancellationToken);
 
+        var english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
         var groupes = new List<QuestionGroupeView>();
 
         foreach (var axisScore in resultat.ScoresParAxe)
@@ -48,22 +50,23 @@ public sealed class EntretienService(
 
             var parametres = new Dictionary<string, string>
             {
-                ["axe"] = CompatibilityAxisLabels.Label(axisScore.Axis),
+                ["axe"] = CompatibilityAxisLabels.Label(axisScore.Axis, english),
                 ["score"] = axisScore.Score.ToString(),
             };
             if (axisScore.Axis == CompatibilityAxis.Organisationnelle)
             {
-                parametres["rythmeCandidat"] = LabelRythme(resultat.RythmeCandidat);
-                parametres["rythmeEntreprise"] = LabelRythme(resultat.RythmeEntreprise);
+                parametres["rythmeCandidat"] = LabelRythme(resultat.RythmeCandidat, english);
+                parametres["rythmeEntreprise"] = LabelRythme(resultat.RythmeEntreprise, english);
             }
 
-            var pourCandidat = RendreTous(templates, QuestionTemplateType.Axe, axisScore.Axis, QuestionSens.EntrepriseVersCandidat, parametres);
-            var pourEntreprise = RendreTous(templates, QuestionTemplateType.Axe, axisScore.Axis, QuestionSens.CandidatVersEntreprise, parametres);
+            var pourCandidat = RendreTous(templates, QuestionTemplateType.Axe, axisScore.Axis, QuestionSens.EntrepriseVersCandidat, parametres, english);
+            var pourEntreprise = RendreTous(templates, QuestionTemplateType.Axe, axisScore.Axis, QuestionSens.CandidatVersEntreprise, parametres, english);
             if (pourCandidat.Count == 0 && pourEntreprise.Count == 0)
                 continue;
 
+            var titreAxe = english ? "Axis" : "Axe";
             groupes.Add(new QuestionGroupeView(
-                $"Axe {CompatibilityAxisLabels.Label(axisScore.Axis)} ({axisScore.Score}%)",
+                $"{titreAxe} {CompatibilityAxisLabels.Label(axisScore.Axis, english)} ({axisScore.Score}%)",
                 axisScore.Score,
                 pourCandidat,
                 pourEntreprise));
@@ -71,14 +74,15 @@ public sealed class EntretienService(
 
         foreach (var tag in resultat.PointsVigilanceTagsPartages)
         {
-            var parametres = new Dictionary<string, string> { ["tag"] = tag };
+            var parametres = new Dictionary<string, string> { ["tag"] = CompatibilityVocabulary.DisplayTag(tag, english) };
 
-            var pourCandidat = RendreTous(templates, QuestionTemplateType.PointVigilance, null, QuestionSens.EntrepriseVersCandidat, parametres);
-            var pourEntreprise = RendreTous(templates, QuestionTemplateType.PointVigilance, null, QuestionSens.CandidatVersEntreprise, parametres);
+            var pourCandidat = RendreTous(templates, QuestionTemplateType.PointVigilance, null, QuestionSens.EntrepriseVersCandidat, parametres, english);
+            var pourEntreprise = RendreTous(templates, QuestionTemplateType.PointVigilance, null, QuestionSens.CandidatVersEntreprise, parametres, english);
             if (pourCandidat.Count == 0 && pourEntreprise.Count == 0)
                 continue;
 
-            groupes.Add(new QuestionGroupeView($"Point de vigilance : {tag}", null, pourCandidat, pourEntreprise));
+            var titrePointVigilance = english ? "Point of caution" : "Point de vigilance";
+            groupes.Add(new QuestionGroupeView($"{titrePointVigilance} : {CompatibilityVocabulary.DisplayTag(tag, english)}", null, pourCandidat, pourEntreprise));
         }
 
         return new GrilleEntretienView(candidateProfileId, resultat.ScoreGlobal, groupes);
@@ -89,10 +93,11 @@ public sealed class EntretienService(
         QuestionTemplateType type,
         CompatibilityAxis? axis,
         QuestionSens sens,
-        IReadOnlyDictionary<string, string> parametres) =>
+        IReadOnlyDictionary<string, string> parametres,
+        bool english) =>
         templates
             .Where(t => t.Type == type && t.Axis == axis && t.Sens == sens)
-            .Select(t => Rendre(t.Gabarit, parametres))
+            .Select(t => Rendre(english ? t.GabaritEn ?? t.Gabarit : t.Gabarit, parametres))
             .ToList();
 
     /// <summary>Substitution <c>{nom}</c> volontairement simple — voir le commentaire sur <c>QuestionTemplate</c> : la donnée doit rester éditable sans compétence de développement.</summary>
@@ -104,8 +109,8 @@ public sealed class EntretienService(
         return texte;
     }
 
-    private static string LabelRythme(int? rythme) =>
-        rythme is int r && CompatibilityVocabulary.RythmeTravailLabels.TryGetValue(r, out var label)
-            ? label
-            : "non renseigné";
+    private static string LabelRythme(int? rythme, bool english) =>
+        rythme is int r
+            ? CompatibilityVocabulary.DisplayRythmeTravail(r, english)
+            : (english ? "not specified" : "non renseigné");
 }

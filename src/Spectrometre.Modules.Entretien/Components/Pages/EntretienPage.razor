@@ -3,47 +3,44 @@
 @rendermode InteractiveServer
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.Entretien.Resources
 @using Spectrometre.Modules.Entretien.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IEntretienService EntretienService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<EntretienResource> Localizer
 
-<PageTitle>Préparer l'entretien</PageTitle>
+<PageTitle>@Localizer["PreparerLEntretien"]</PageTitle>
 
 @if (!_resolu)
 {
-    <p>Génération en cours…</p>
+    <p>@Localizer["GenerationEnCours"]</p>
 }
 else if (_grille is null)
 {
     @* Réponse volontairement générique — même principe que /compatibilite/resultat/{id} : ne jamais
        confirmer l'existence d'une ressource à un utilisateur qui n'y a pas droit. *@
-    <p class="hint">Grille d'entretien introuvable.</p>
+    <p class="hint">@Localizer["GrilleIntrouvable"]</p>
 }
 else if (_grille.Groupes.Count == 0)
 {
-    <h1>Préparer l'entretien</h1>
-    <p class="hint">
-        Score global @(_grille.ScoreGlobal)% — aucun axe sous le seuil et aucun point de vigilance partagé
-        détecté : pas de question ciblée à générer pour ce profil.
-    </p>
+    <h1>@Localizer["PreparerLEntretien"]</h1>
+    <p class="hint">@string.Format(Localizer["ScoreGlobalSansQuestion"].Value, _grille.ScoreGlobal)</p>
 }
 else
 {
-    <h1>Préparer l'entretien</h1>
-    <p class="hint">
-        Score global @(_grille.ScoreGlobal)% — questions générées à partir des axes sous le seuil et des
-        points de vigilance partagés, dans les deux sens.
-    </p>
+    <h1>@Localizer["PreparerLEntretien"]</h1>
+    <p class="hint">@string.Format(Localizer["ScoreGlobalAvecQuestions"].Value, _grille.ScoreGlobal)</p>
 
     <div class="entretien-colonnes">
         <section class="entretien-colonne">
-            <h2>Questions pour le candidat</h2>
-            <p class="hint">À poser par l'entreprise, pour éclaircir chaque écart.</p>
+            <h2>@Localizer["QuestionsPourCandidat"]</h2>
+            <p class="hint">@Localizer["QuestionsPourCandidatHint"]</p>
             @foreach (var groupe in _grille.Groupes)
             {
                 @if (groupe.QuestionsPourCandidat.Count > 0)
@@ -64,8 +61,8 @@ else
         </section>
 
         <section class="entretien-colonne">
-            <h2>Questions à poser par le candidat</h2>
-            <p class="hint">Pour éclaircir ce même écart, du point de vue du candidat.</p>
+            <h2>@Localizer["QuestionsPourEntreprise"]</h2>
+            <p class="hint">@Localizer["QuestionsPourEntrepriseHint"]</p>
             @foreach (var groupe in _grille.Groupes)
             {
                 @if (groupe.QuestionsPourEntreprise.Count > 0)

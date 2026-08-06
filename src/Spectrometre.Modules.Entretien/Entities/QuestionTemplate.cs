@@ -44,6 +44,15 @@ public sealed class QuestionTemplate
     public QuestionSens Sens { get; set; }
     public required string Gabarit { get; set; }
 
+    /// <summary>
+    /// Version anglaise de <see cref="Gabarit"/> (bilinguisme, cycle contenu métier) — traduction automatique
+    /// pour l'instant, à affiner plus tard. Nullable : une ligne ajoutée directement en base par le
+    /// partenaire psychologue sans version anglaise retombe simplement sur <see cref="Gabarit"/> à l'affichage
+    /// (voir EntretienService). Mêmes paramètres <c>{nom}</c> que <see cref="Gabarit"/>, syntaxe préservée à
+    /// l'identique — la substitution ne dépend pas de la langue du gabarit.
+    /// </summary>
+    public string? GabaritEn { get; set; }
+
     /// <summary>Ordre d'affichage relatif entre gabarits d'un même (Type, Axis, Sens) — permet d'avoir 1 à 2 questions par axe/sens sans ambiguïté d'ordre.</summary>
     public int DisplayOrder { get; set; }
 }
