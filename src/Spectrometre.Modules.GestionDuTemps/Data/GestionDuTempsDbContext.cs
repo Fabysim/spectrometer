@@ -17,6 +17,9 @@ public sealed class GestionDuTempsDbContext(DbContextOptions<GestionDuTempsDbCon
     public DbSet<TypeDeTemps> TypesDeTemps => Set<TypeDeTemps>();
     public DbSet<Activite> Activites => Set<Activite>();
     public DbSet<KanbanStatut> KanbanStatuts => Set<KanbanStatut>();
+    public DbSet<ProfilPsychosocial> ProfilsPsychosociaux => Set<ProfilPsychosocial>();
+    public DbSet<ReflexionConsciente> ReflexionsConscientes => Set<ReflexionConsciente>();
+    public DbSet<Synthese> Syntheses => Set<Synthese>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -65,6 +68,25 @@ public sealed class GestionDuTempsDbContext(DbContextOptions<GestionDuTempsDbCon
             e.HasIndex(s => s.ActiviteId).IsUnique();
 
             e.HasOne<Activite>().WithMany().HasForeignKey(s => s.ActiviteId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ProfilPsychosocial>(e =>
+        {
+            // Un seul profil par cycle (comme IX_GdtProfilsPsychosocial_GdtCycleId dans mvp).
+            e.HasIndex(p => p.CycleId).IsUnique();
+            e.HasOne<Cycle>().WithMany().HasForeignKey(p => p.CycleId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ReflexionConsciente>(e =>
+        {
+            e.HasIndex(r => r.CycleId).IsUnique();
+            e.HasOne<Cycle>().WithMany().HasForeignKey(r => r.CycleId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Synthese>(e =>
+        {
+            e.HasIndex(s => s.CycleId).IsUnique();
+            e.HasOne<Cycle>().WithMany().HasForeignKey(s => s.CycleId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

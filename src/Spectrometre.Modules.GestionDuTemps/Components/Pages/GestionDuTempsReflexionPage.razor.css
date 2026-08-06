@@ -1,0 +1,35 @@
+.gdt-form {
+    border: 1px solid #ccd6f6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    max-width: 550px;
+}
+
+.gdt-form .champ {
+    margin-bottom: 0.75rem;
+}
+
+.gdt-form .champ label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.gdt-form .champ input, .gdt-form .champ textarea, .gdt-form .champ select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.champ-case {
+    margin-bottom: 0.75rem;
+}
+
+.champ-case label {
+    font-weight: normal;
+}
+
+.gdt-confirmation {
+    color: #1e7a34;
+    margin-left: 0.75rem;
+}

@@ -1,0 +1,155 @@
+@page "/gestion-du-temps/synthese"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Modules.GestionDuTemps.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IGestionDuTempsService GdtService
+@inject IGestionDuTempsAccessService AccessService
+
+<PageTitle>Synthèse · Gestion du temps</PageTitle>
+
+<h1>Synthèse du cycle</h1>
+<p class="hint">
+    Combine votre <a href="/gestion-du-temps/profil">profil psychosocial</a>, votre
+    <a href="/gestion-du-temps/reflexion">réflexion consciente</a> et l'activité du cycle en cours.
+    <a href="/gestion-du-temps">Retour aux rituels</a>.
+</p>
+
+@if (_userId is null)
+{
+    <p>Chargement…</p>
+}
+else if (!_hasAccess)
+{
+    <p class="hint">Ce module n'est pas activé pour votre compte.</p>
+}
+else
+{
+    <button @onclick="GenererAsync" disabled="@_generationEnCours">
+        @(_synthese is null ? "Générer la synthèse" : "Régénérer la synthèse")
+    </button>
+    @if (_generationEnCours)
+    {
+        <p class="hint">Génération en cours…</p>
+    }
+
+    @if (_erreur is not null)
+    {
+        <p class="erreur">@_erreur</p>
+    }
+
+    @if (_synthese is not null)
+    {
+        <div class="gdt-synthese">
+            @if (_synthese.GenereeParIa)
+            {
+                <p class="gdt-tag-ia">Synthèse générée par IA</p>
+            }
+            else
+            {
+                <p class="gdt-tag-repli">
+                    Synthèse générée localement (service IA non disponible pour le moment) — les indicateurs
+                    ci-dessous restent fiables, seul le texte d'accompagnement est un modèle générique plutôt
+                    qu'une analyse personnalisée par IA.
+                </p>
+            }
+
+            <h3>Profil : @_synthese.ProfilType</h3>
+            @if (!string.IsNullOrWhiteSpace(_synthese.ProfilTexte))
+            {
+                <p>@_synthese.ProfilTexte</p>
+            }
+
+            <div class="gdt-indicateurs">
+                <div><strong>Indice d'équilibre</strong> : @_synthese.IndiceEquilibre / 100</div>
+                @if (!string.IsNullOrWhiteSpace(_synthese.IndiceCommentaire))
+                {
+                    <p>@_synthese.IndiceCommentaire</p>
+                }
+                <div><strong>Niveau de maturité organisationnelle</strong> : @_synthese.NiveauMaturite / 5</div>
+                @if (!string.IsNullOrWhiteSpace(_synthese.MaturiteCommentaire))
+                {
+                    <p>@_synthese.MaturiteCommentaire</p>
+                }
+            </div>
+
+            @if (_synthese.Recommandations.Count > 0)
+            {
+                <h4>Recommandations</h4>
+                <ul>
+                    @foreach (var reco in _synthese.Recommandations.OrderBy(r => r.Priorite))
+                    {
+                        <li><strong>[@reco.Domaine]</strong> @reco.Texte</li>
+                    }
+                </ul>
+            }
+
+            @if (_synthese.Alertes.Count > 0)
+            {
+                <h4>Points d'attention</h4>
+                <ul>
+                    @foreach (var alerte in _synthese.Alertes)
+                    {
+                        <li>@alerte</li>
+                    }
+                </ul>
+            }
+
+            <p class="gdt-date">Calculée le @_synthese.CalculatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+    }
+    else if (!_generationEnCours)
+    {
+        <p class="hint">Aucune synthèse pour ce cycle — cliquez sur « Générer la synthèse » ci-dessus.</p>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private bool _hasAccess;
+    private bool _generationEnCours;
+    private string? _erreur;
+    private SyntheseView? _synthese;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _userId = userId;
+        _hasAccess = await AccessService.HasAccessAsync(userId);
+        if (!_hasAccess)
+            return;
+
+        _synthese = await GdtService.GetSyntheseAsync(userId);
+    }
+
+    private async Task GenererAsync()
+    {
+        _generationEnCours = true;
+        _erreur = null;
+        StateHasChanged();
+        try
+        {
+            _synthese = await GdtService.GenererSyntheseAsync(_userId!);
+        }
+        catch (Exception ex)
+        {
+            // Ne devrait normalement jamais arriver (IAiSynthesisService ne lève pas) — filet de sécurité
+            // pour toute autre erreur inattendue (ex. base de données), toujours avec un message clair.
+            _erreur = "Impossible de générer la synthèse pour le moment : " + ex.Message;
+        }
+        finally
+        {
+            _generationEnCours = false;
+        }
+    }
+}

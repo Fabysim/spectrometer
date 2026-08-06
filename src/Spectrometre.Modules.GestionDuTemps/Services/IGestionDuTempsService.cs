@@ -1,6 +1,15 @@
+using Spectrometre.Modules.GestionDuTemps.Entities;
+
 namespace Spectrometre.Modules.GestionDuTemps.Services;
 
 public sealed record CycleView(int Id, int NumeroCycle, string Statut, DateTimeOffset DemarreLe, DateTimeOffset? ClotureLe);
+
+/// <summary>Synthèse du cycle actif — <see cref="RecommandationsJson"/>/<see cref="AlertesJson"/> de l'entité déjà désérialisés pour la page.</summary>
+public sealed record SyntheseView(
+    string ProfilType, int IndiceEquilibre, int NiveauMaturite,
+    string? ProfilTexte, string? IndiceCommentaire, string? MaturiteCommentaire,
+    IReadOnlyList<RecommandationIa> Recommandations, IReadOnlyList<string> Alertes,
+    bool GenereeParIa, DateTimeOffset CalculatedAt);
 
 public sealed record TypeDeTempsView(int Id, string Cle, string Libelle, TimeOnly HeureDebut, TimeOnly HeureFin, string RecurrenceJours, int OrdreAffichage, int? CompanyId);
 
@@ -62,4 +71,35 @@ public interface IGestionDuTempsService
 
     /// <summary>Finalise le minuteur (accumule l'écoulé si en cours) et passe en "Terminé".</summary>
     Task MarquerTermineAsync(string userId, int activiteId, CancellationToken cancellationToken = default);
+
+    // ── Profil psychosocial / réflexion consciente / synthèse (cycle ACTIF) ────
+    //
+    // ProfilPsychosocial/ReflexionConsciente sont exposés directement en entités (pas de vue dédiée,
+    // exception délibérée à la convention du reste de cette interface) : ce sont déjà de purs sacs de champs
+    // sans logique ni relation à cacher (comme dans mvp, où GetProfilAsync/SaveProfilAsync manipulent
+    // directement GdtProfilPsychosocial) — dupliquer une quarantaine de champs dans un record séparé
+    // n'aurait ajouté aucune sécurité, seulement un risque de désynchronisation. L'implémentation ignore
+    // TOUJOURS Id/CycleId/UserId fournis par l'appelant et les résout elle-même côté serveur.
+
+    /// <summary>Profil psychosocial du cycle ACTIF, ou <c>null</c> s'il n'a jamais été rempli.</summary>
+    Task<ProfilPsychosocial?> GetProfilPsychosocialAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Crée ou met à jour le profil psychosocial du cycle ACTIF. <c>profil.Id</c>/<c>CycleId</c>/<c>UserId</c> sont ignorés et résolus côté serveur.</summary>
+    Task SaveProfilPsychosocialAsync(string userId, ProfilPsychosocial profil, CancellationToken cancellationToken = default);
+
+    /// <summary>Réflexion consciente du cycle ACTIF, ou <c>null</c> si elle n'a jamais été remplie.</summary>
+    Task<ReflexionConsciente?> GetReflexionConscienteAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Crée ou met à jour la réflexion consciente du cycle ACTIF. <c>reflexion.Id</c>/<c>CycleId</c>/<c>UserId</c> sont ignorés et résolus côté serveur.</summary>
+    Task SaveReflexionConscienteAsync(string userId, ReflexionConsciente reflexion, CancellationToken cancellationToken = default);
+
+    /// <summary>Synthèse déjà calculée pour le cycle ACTIF, ou <c>null</c> si jamais générée.</summary>
+    Task<SyntheseView?> GetSyntheseAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Génère (ou retourne depuis le cache si le profil/la réflexion n'ont pas changé depuis le dernier
+    /// calcul — hash scopé par cycle+utilisateur) la synthèse du cycle actif. Ne lève jamais si l'IA est
+    /// indisponible : retombe sur un texte généré localement (voir <see cref="SyntheseView.GenereeParIa"/>).
+    /// </summary>
+    Task<SyntheseView> GenererSyntheseAsync(string userId, CancellationToken cancellationToken = default);
 }

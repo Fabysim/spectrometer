@@ -1,0 +1,358 @@
+@page "/gestion-du-temps/profil"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IGestionDuTempsService GdtService
+@inject IGestionDuTempsAccessService AccessService
+
+<PageTitle>Profil psychosocial · Gestion du temps</PageTitle>
+
+<h1>Profil psychosocial</h1>
+<p class="hint">
+    Ce questionnaire nourrit la <a href="/gestion-du-temps/synthese">synthèse</a> de votre cycle actif — un
+    par cycle, repris à zéro à chaque nouvelle saison. <a href="/gestion-du-temps">Retour aux rituels</a>.
+</p>
+
+@if (_userId is null)
+{
+    <p>Chargement…</p>
+}
+else if (!_hasAccess)
+{
+    <p class="hint">Ce module n'est pas activé pour votre compte.</p>
+}
+else if (_modele is null)
+{
+    <p>Chargement…</p>
+}
+else
+{
+    <div class="gdt-form-large">
+        <h3>Sommeil</h3>
+        <div class="champ"><label>Heure de coucher</label><input type="time" @bind="_modele.SommeilCoucher" /></div>
+        <div class="champ"><label>Heure de lever</label><input type="time" @bind="_modele.SommeilLever" /></div>
+        <div class="champ"><label>Sommeil réparateur</label><input @bind="_modele.SommeilReparateur" @bind:event="oninput" /></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.ReveilsNocturnes" /> Réveils nocturnes fréquents</label></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.EcransAvantSommeil" /> Écrans avant le sommeil</label></div>
+
+        <h3>Temps personnel</h3>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.TempsPersoQuotidien" /> Un moment personnel chaque jour</label></div>
+        <div class="champ"><label>Sentiment de manque de temps perso</label><input @bind="_modele.ManqueTempsPerso" @bind:event="oninput" /></div>
+        <div class="champ"><label>Activités ressourçantes</label><input @bind="_modele.ActivitesRessourcantes" @bind:event="oninput" /></div>
+
+        <h3>Travail</h3>
+        <div class="champ"><label>Horaire de travail</label><input @bind="_modele.HoraireTravail" @bind:event="oninput" /></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.SurchargePrevisible" /> Surcharge prévisible</label></div>
+        <div class="champ"><label>Travail hors heures prévues</label><input @bind="_modele.TravailHorsHeures" @bind:event="oninput" /></div>
+
+        <h3>Contraintes</h3>
+        <div class="champ"><label>Durée des trajets</label><input @bind="_modele.DureeTrajets" @bind:event="oninput" /></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.DeplacementsImprevus" /> Déplacements imprévisibles</label></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.EngagementCommunautaire" /> Engagement communautaire</label></div>
+        <div class="champ"><label>Nature de l'engagement</label><input @bind="_modele.EngagementNature" @bind:event="oninput" /></div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.ProcheMalade" /> Proche malade à charge</label></div>
+
+        <h3>Mode de travail</h3>
+        <div class="champ"><label>Mode de travail</label><input @bind="_modele.ModeTravail" @bind:event="oninput" /></div>
+        <div class="champ">
+            <label>Interruptions</label>
+            <select @bind="_modele.InterruptionsTravail">
+                <option value="">Non renseigné</option>
+                <option>Jamais</option><option>Parfois</option><option>Souvent</option><option>Constamment</option>
+            </select>
+        </div>
+        <div class="champ"><label>Autonomie dans la gestion du temps (1-5)</label><input type="number" min="1" max="5" @bind="_modele.AutonomieGestion" /></div>
+
+        <h3>État psychosocial</h3>
+        <div class="champ">
+            <label>Sentiment de pression</label>
+            <select @bind="_modele.SentimentPression">
+                <option value="">Non renseigné</option>
+                <option>Jamais</option><option>Parfois</option><option>Souvent</option><option>Constamment</option>
+            </select>
+        </div>
+        <div class="champ"><label>Difficultés de concentration</label><input @bind="_modele.DifficultesConcentration" @bind:event="oninput" /></div>
+        <div class="champ"><label>Décisions précipitées</label><input @bind="_modele.DecisionsPrecipitees" @bind:event="oninput" /></div>
+        <div class="champ"><label>Culpabilité liée au temps perso</label><input @bind="_modele.Culpabilite" @bind:event="oninput" /></div>
+        <div class="champ">
+            <label>Tolérance à l'imprévu</label>
+            <select @bind="_modele.ToleranceImprevu">
+                <option value="">Non renseigné</option>
+                <option>Anxieux</option><option>Adaptatif</option><option>Souple</option>
+            </select>
+        </div>
+
+        <h3>Organisation</h3>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.UtiliseAgenda" /> Utilise un agenda</label></div>
+        <div class="champ">
+            <label>Planification à l'avance</label>
+            <select @bind="_modele.PlanificationAvance">
+                <option value="">Non renseigné</option>
+                <option>Jamais</option><option>Parfois</option><option>Souvent</option><option>Systématiquement</option>
+            </select>
+        </div>
+        <div class="champ-case"><label><input type="checkbox" @bind="_modele.RituelsQuotidiens" /> Rituels quotidiens</label></div>
+        <div class="champ">
+            <label>Dit oui trop facilement</label>
+            <select @bind="_modele.OuiTropFacile">
+                <option value="">Non renseigné</option>
+                <option>Jamais</option><option>Parfois</option><option>Souvent</option><option>Toujours</option>
+            </select>
+        </div>
+        <div class="champ">
+            <label>Capacité à refuser</label>
+            <select @bind="_modele.CapaciteNon">
+                <option value="">Non renseigné</option>
+                <option>Difficilement</option><option>Parfois</option><option>Souvent</option><option>Facilement</option>
+            </select>
+        </div>
+        <div class="champ"><label>Gestion administrative</label><input @bind="_modele.GestionAdmin" @bind:event="oninput" /></div>
+        <div class="champ"><label>Stress administratif</label><input @bind="_modele.StressAdmin" @bind:event="oninput" /></div>
+
+        <h3>Tags libres (séparés par des virgules)</h3>
+        <div class="champ"><label>Tendances</label><input @bind="_modele.Tendances" @bind:event="oninput" placeholder="ex. perfectionnisme, procrastination" /></div>
+        <div class="champ"><label>Déséquilibres identifiés</label><input @bind="_modele.Desequilibres" @bind:event="oninput" placeholder="ex. Trop de temps professionnel" /></div>
+        <div class="champ"><label>Émotions négatives</label><input @bind="_modele.EmotionsNegatives" @bind:event="oninput" /></div>
+        <div class="champ"><label>Émotions positives</label><input @bind="_modele.EmotionsPositives" @bind:event="oninput" /></div>
+        <div class="champ"><label>Objectifs professionnels</label><input @bind="_modele.ObjectifsProfessionnels" @bind:event="oninput" /></div>
+        <div class="champ"><label>Obstacles perçus</label><input @bind="_modele.Obstacles" @bind:event="oninput" /></div>
+
+        <h3>Satisfaction par catégorie de temps (0 à 4)</h3>
+        <div class="gdt-satisfaction-grille">
+            <div class="champ"><label>Sommeil</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionSommeil" /></div>
+            <div class="champ"><label>Personnel</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionPerso" /></div>
+            <div class="champ"><label>Professionnel</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionPro" /></div>
+            <div class="champ"><label>Administratif</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionAdmin" /></div>
+            <div class="champ"><label>Familial</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionFamille" /></div>
+            <div class="champ"><label>Social</label><input type="number" min="0" max="4" @bind="_modele.SatisfactionSocial" /></div>
+        </div>
+
+        <h3>Direction souhaitée par catégorie (ex. Plus / Moins / Stable)</h3>
+        <div class="gdt-satisfaction-grille">
+            <div class="champ"><label>Sommeil</label><input @bind="_modele.DirectionSommeil" @bind:event="oninput" /></div>
+            <div class="champ"><label>Personnel</label><input @bind="_modele.DirectionPerso" @bind:event="oninput" /></div>
+            <div class="champ"><label>Professionnel</label><input @bind="_modele.DirectionPro" @bind:event="oninput" /></div>
+            <div class="champ"><label>Administratif</label><input @bind="_modele.DirectionAdmin" @bind:event="oninput" /></div>
+            <div class="champ"><label>Familial</label><input @bind="_modele.DirectionFamille" @bind:event="oninput" /></div>
+            <div class="champ"><label>Social</label><input @bind="_modele.DirectionSocial" @bind:event="oninput" /></div>
+        </div>
+
+        <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">Enregistrer le profil</button>
+        @if (_messageConfirmation is not null)
+        {
+            <span class="gdt-confirmation">@_messageConfirmation</span>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private bool _hasAccess;
+    private bool _enregistrementEnCours;
+    private string? _messageConfirmation;
+
+    private sealed class Modele
+    {
+        public TimeOnly? SommeilCoucher { get; set; }
+        public TimeOnly? SommeilLever { get; set; }
+        public string? SommeilReparateur { get; set; }
+        public bool ReveilsNocturnes { get; set; }
+        public bool EcransAvantSommeil { get; set; }
+        public bool TempsPersoQuotidien { get; set; }
+        public string? ManqueTempsPerso { get; set; }
+        public string? ActivitesRessourcantes { get; set; }
+        public string? HoraireTravail { get; set; }
+        public bool SurchargePrevisible { get; set; }
+        public string? TravailHorsHeures { get; set; }
+        public string? DureeTrajets { get; set; }
+        public bool DeplacementsImprevus { get; set; }
+        public bool EngagementCommunautaire { get; set; }
+        public string? EngagementNature { get; set; }
+        public bool ProcheMalade { get; set; }
+        public string? ModeTravail { get; set; }
+        public string? InterruptionsTravail { get; set; }
+        public int? AutonomieGestion { get; set; }
+        public string? SentimentPression { get; set; }
+        public string? DifficultesConcentration { get; set; }
+        public string? DecisionsPrecipitees { get; set; }
+        public string? Culpabilite { get; set; }
+        public string? ToleranceImprevu { get; set; }
+        public bool UtiliseAgenda { get; set; }
+        public string? PlanificationAvance { get; set; }
+        public bool RituelsQuotidiens { get; set; }
+        public string? OuiTropFacile { get; set; }
+        public string? CapaciteNon { get; set; }
+        public string? GestionAdmin { get; set; }
+        public string? StressAdmin { get; set; }
+        public string? Tendances { get; set; }
+        public string? Desequilibres { get; set; }
+        public string? EmotionsNegatives { get; set; }
+        public string? EmotionsPositives { get; set; }
+        public string? ObjectifsProfessionnels { get; set; }
+        public string? Obstacles { get; set; }
+        public int? SatisfactionSommeil { get; set; }
+        public int? SatisfactionPerso { get; set; }
+        public int? SatisfactionPro { get; set; }
+        public int? SatisfactionAdmin { get; set; }
+        public int? SatisfactionFamille { get; set; }
+        public int? SatisfactionSocial { get; set; }
+        public string? DirectionSommeil { get; set; }
+        public string? DirectionPerso { get; set; }
+        public string? DirectionPro { get; set; }
+        public string? DirectionAdmin { get; set; }
+        public string? DirectionFamille { get; set; }
+        public string? DirectionSocial { get; set; }
+    }
+
+    private Modele? _modele;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _userId = userId;
+        _hasAccess = await AccessService.HasAccessAsync(userId);
+        if (!_hasAccess)
+            return;
+
+        var profil = await GdtService.GetProfilPsychosocialAsync(userId);
+        _modele = profil is null ? new Modele() : DepuisEntite(profil);
+    }
+
+    private static Modele DepuisEntite(ProfilPsychosocial p) => new()
+    {
+        SommeilCoucher = p.SommeilCoucher,
+        SommeilLever = p.SommeilLever,
+        SommeilReparateur = p.SommeilReparateur,
+        ReveilsNocturnes = p.ReveilsNocturnes ?? false,
+        EcransAvantSommeil = p.EcransAvantSommeil ?? false,
+        TempsPersoQuotidien = p.TempsPersoQuotidien ?? false,
+        ManqueTempsPerso = p.ManqueTempsPerso,
+        ActivitesRessourcantes = p.ActivitesRessourcantes,
+        HoraireTravail = p.HoraireTravail,
+        SurchargePrevisible = p.SurchargePrevisible ?? false,
+        TravailHorsHeures = p.TravailHorsHeures,
+        DureeTrajets = p.DureeTrajets,
+        DeplacementsImprevus = p.DeplacementsImprevus ?? false,
+        EngagementCommunautaire = p.EngagementCommunautaire ?? false,
+        EngagementNature = p.EngagementNature,
+        ProcheMalade = p.ProcheMalade ?? false,
+        ModeTravail = p.ModeTravail,
+        InterruptionsTravail = p.InterruptionsTravail,
+        AutonomieGestion = p.AutonomieGestion,
+        SentimentPression = p.SentimentPression,
+        DifficultesConcentration = p.DifficultesConcentration,
+        DecisionsPrecipitees = p.DecisionsPrecipitees,
+        Culpabilite = p.Culpabilite,
+        ToleranceImprevu = p.ToleranceImprevu,
+        UtiliseAgenda = p.UtiliseAgenda ?? false,
+        PlanificationAvance = p.PlanificationAvance,
+        RituelsQuotidiens = p.RituelsQuotidiens ?? false,
+        OuiTropFacile = p.OuiTropFacile,
+        CapaciteNon = p.CapaciteNon,
+        GestionAdmin = p.GestionAdmin,
+        StressAdmin = p.StressAdmin,
+        Tendances = string.Join(", ", p.Tendances),
+        Desequilibres = string.Join(", ", p.Desequilibres),
+        EmotionsNegatives = string.Join(", ", p.EmotionsNegatives),
+        EmotionsPositives = string.Join(", ", p.EmotionsPositives),
+        ObjectifsProfessionnels = string.Join(", ", p.ObjectifsProfessionnels),
+        Obstacles = string.Join(", ", p.Obstacles),
+        SatisfactionSommeil = p.SatisfactionSommeil,
+        SatisfactionPerso = p.SatisfactionPerso,
+        SatisfactionPro = p.SatisfactionPro,
+        SatisfactionAdmin = p.SatisfactionAdmin,
+        SatisfactionFamille = p.SatisfactionFamille,
+        SatisfactionSocial = p.SatisfactionSocial,
+        DirectionSommeil = p.DirectionSommeil,
+        DirectionPerso = p.DirectionPerso,
+        DirectionPro = p.DirectionPro,
+        DirectionAdmin = p.DirectionAdmin,
+        DirectionFamille = p.DirectionFamille,
+        DirectionSocial = p.DirectionSocial,
+    };
+
+    private static List<string> Tags(string? valeur) =>
+        (valeur ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+
+    private async Task EnregistrerAsync()
+    {
+        _enregistrementEnCours = true;
+        _messageConfirmation = null;
+        try
+        {
+            var m = _modele!;
+            var entite = new ProfilPsychosocial
+            {
+                UserId = _userId!,
+                SommeilCoucher = m.SommeilCoucher,
+                SommeilLever = m.SommeilLever,
+                SommeilReparateur = m.SommeilReparateur,
+                ReveilsNocturnes = m.ReveilsNocturnes,
+                EcransAvantSommeil = m.EcransAvantSommeil,
+                TempsPersoQuotidien = m.TempsPersoQuotidien,
+                ManqueTempsPerso = m.ManqueTempsPerso,
+                ActivitesRessourcantes = m.ActivitesRessourcantes,
+                HoraireTravail = m.HoraireTravail,
+                SurchargePrevisible = m.SurchargePrevisible,
+                TravailHorsHeures = m.TravailHorsHeures,
+                DureeTrajets = m.DureeTrajets,
+                DeplacementsImprevus = m.DeplacementsImprevus,
+                EngagementCommunautaire = m.EngagementCommunautaire,
+                EngagementNature = m.EngagementNature,
+                ProcheMalade = m.ProcheMalade,
+                ModeTravail = m.ModeTravail,
+                InterruptionsTravail = m.InterruptionsTravail,
+                AutonomieGestion = m.AutonomieGestion,
+                SentimentPression = m.SentimentPression,
+                DifficultesConcentration = m.DifficultesConcentration,
+                DecisionsPrecipitees = m.DecisionsPrecipitees,
+                Culpabilite = m.Culpabilite,
+                ToleranceImprevu = m.ToleranceImprevu,
+                UtiliseAgenda = m.UtiliseAgenda,
+                PlanificationAvance = m.PlanificationAvance,
+                RituelsQuotidiens = m.RituelsQuotidiens,
+                OuiTropFacile = m.OuiTropFacile,
+                CapaciteNon = m.CapaciteNon,
+                GestionAdmin = m.GestionAdmin,
+                StressAdmin = m.StressAdmin,
+                Tendances = Tags(m.Tendances),
+                Desequilibres = Tags(m.Desequilibres),
+                EmotionsNegatives = Tags(m.EmotionsNegatives),
+                EmotionsPositives = Tags(m.EmotionsPositives),
+                ObjectifsProfessionnels = Tags(m.ObjectifsProfessionnels),
+                Obstacles = Tags(m.Obstacles),
+                SatisfactionSommeil = m.SatisfactionSommeil,
+                SatisfactionPerso = m.SatisfactionPerso,
+                SatisfactionPro = m.SatisfactionPro,
+                SatisfactionAdmin = m.SatisfactionAdmin,
+                SatisfactionFamille = m.SatisfactionFamille,
+                SatisfactionSocial = m.SatisfactionSocial,
+                DirectionSommeil = m.DirectionSommeil,
+                DirectionPerso = m.DirectionPerso,
+                DirectionPro = m.DirectionPro,
+                DirectionAdmin = m.DirectionAdmin,
+                DirectionFamille = m.DirectionFamille,
+                DirectionSocial = m.DirectionSocial,
+            };
+
+            await GdtService.SaveProfilPsychosocialAsync(_userId!, entite);
+            _messageConfirmation = "Profil enregistré.";
+        }
+        finally
+        {
+            _enregistrementEnCours = false;
+        }
+    }
+}

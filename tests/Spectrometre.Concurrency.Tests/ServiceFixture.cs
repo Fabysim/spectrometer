@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
@@ -15,6 +16,7 @@ using Spectrometre.Modules.Entretien;
 using Spectrometre.Modules.Entretien.Data;
 using Spectrometre.Modules.GestionDuTemps;
 using Spectrometre.Modules.GestionDuTemps.Data;
+using Spectrometre.Modules.GestionDuTemps.Services;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Data;
 using Spectrometre.Modules.PostesRecrutement.Services;
@@ -87,6 +89,10 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddSuiviEvolutifModule(config);
         services.AddAnalyticsModule();
         services.AddGestionDuTempsModule(config);
+
+        // Jamais d'appel réseau réel à Replicate en test — substitue l'implémentation réelle enregistrée
+        // par AddGestionDuTempsModule par un double configurable (voir FakeAiSynthesisService).
+        services.Replace(ServiceDescriptor.Scoped<IAiSynthesisService, FakeAiSynthesisService>());
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
         // PostesRecrutement mais enregistrée ici (pas depuis Compatibilite).

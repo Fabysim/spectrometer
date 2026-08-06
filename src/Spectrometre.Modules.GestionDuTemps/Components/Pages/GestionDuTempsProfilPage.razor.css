@@ -1,0 +1,56 @@
+.gdt-form-large {
+    border: 1px solid #ccd6f6;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    max-width: 700px;
+}
+
+.gdt-form-large h3 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #3d4f8a;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.25rem;
+}
+
+.gdt-form-large .champ {
+    margin-bottom: 0.6rem;
+}
+
+.gdt-form-large .champ label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    font-size: 0.9rem;
+}
+
+.gdt-form-large .champ input, .gdt-form-large .champ select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.champ-case {
+    margin-bottom: 0.5rem;
+}
+
+.champ-case label {
+    font-weight: normal;
+    font-size: 0.9rem;
+}
+
+.gdt-satisfaction-grille {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem 1rem;
+}
+
+.gdt-confirmation {
+    color: #1e7a34;
+    margin-left: 0.75rem;
+}
+
+.erreur {
+    color: #b3261e;
+}
