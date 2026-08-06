@@ -7,6 +7,7 @@ using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
+using Spectrometre.Modules.Analytics;
 using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Compatibilite.Data;
 using Spectrometre.Modules.Entretien;
@@ -62,10 +63,12 @@ public sealed class ServiceFixture : IAsyncLifetime
             options.ReplaceService<IModelCacheKeyFactory, TenantModelCacheKeyFactory>();
             options.UseNpgsql(ConnectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "core"));
         };
-        services.AddDbContext<CoreDbContext>(configureCoreDbContext);
-        // Voir Spectrometre.Core.ServiceCollectionExtensions.AddSpectrometreCore : IProfileChangeRecorder a
-        // besoin d'une instance fraîche par appel (pas le CoreDbContext scoped partagé par circuit).
+        // Voir Spectrometre.Core.ServiceCollectionExtensions.AddSpectrometreCore : CoreDbContext est
+        // enregistré Scoped via un délégué sur la factory plutôt que par un second appel à AddDbContext, qui
+        // enregistrerait une configuration DbContextOptions concurrente (dépendance captive + résolution
+        // cassée pour les outils de conception EF Core).
         services.AddDbContextFactory<CoreDbContext>(configureCoreDbContext);
+        services.AddScoped<CoreDbContext>(sp => sp.GetRequiredService<IDbContextFactory<CoreDbContext>>().CreateDbContext());
         services.AddSingleton<ITenantSchemaNameGenerator, TenantSchemaNameGenerator>();
         services.AddScoped<ICompanyProvisioningService, CompanyProvisioningService>();
         services.AddScoped<ITenantSchemaProvisioner, TenantSchemaProvisioner>();
@@ -79,6 +82,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddPostesRecrutementModule(config);
         services.AddEntretienModule(config);
         services.AddSuiviEvolutifModule(config);
+        services.AddAnalyticsModule();
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
         // PostesRecrutement mais enregistrée ici (pas depuis Compatibilite).
@@ -99,6 +103,7 @@ public sealed class ServiceFixture : IAsyncLifetime
             moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
 
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
             await coreDb.Database.MigrateAsync();
@@ -186,6 +191,9 @@ public sealed class ServiceFixture : IAsyncLifetime
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest.Code, coreDb);
+        // Analytics n'a pas de schéma propre (voir TenantModules ci-dessus, volontairement absent) — rien à
+        // provisionner, seulement l'activation.
+        await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest.Code, coreDb);
 
         return company;
     }

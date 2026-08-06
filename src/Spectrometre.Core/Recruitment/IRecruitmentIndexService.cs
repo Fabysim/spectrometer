@@ -2,7 +2,16 @@ namespace Spectrometre.Core.Recruitment;
 
 public sealed record PosteIndexView(int CompanyId, string CompanyName, int PosteId, string Titre, string? Description, string? Departement, string Statut);
 
-public sealed record CandidatureIndexView(int CompanyId, int PosteId, string PosteTitre, int CandidateProfileId, string Statut, int? ScoreCompatibilite, IReadOnlyList<string> TagsCles, DateTimeOffset UpdatedAt);
+/// <summary>Regroupe les 5 scores par axe (voir <see cref="CandidatureIndexEntry"/>) pour éviter une signature à rallonge sur <see cref="IRecruitmentIndexService.UpsertCandidatureAsync"/>.</summary>
+public sealed record CandidatureAxisScores(int? Technique, int? Comportementale, int? Culturelle, int? Organisationnelle, int? Motivationnelle)
+{
+    public static readonly CandidatureAxisScores Vide = new(null, null, null, null, null);
+}
+
+public sealed record CandidatureIndexView(
+    int CompanyId, int PosteId, string PosteTitre, int CandidateProfileId, string Statut,
+    int? ScoreCompatibilite, IReadOnlyList<string> TagsCles, DateTimeOffset UpdatedAt,
+    CandidatureAxisScores AxisScores, IReadOnlyList<string> PointsVigilanceTags, bool GrilleCandidatComplete);
 
 /// <summary>
 /// Point d'entrée public de l'index partagé de recrutement (schéma <c>core</c>). Vit dans le noyau —
@@ -25,10 +34,22 @@ public interface IRecruitmentIndexService
 {
     Task UpsertPosteAsync(int companyId, string companyName, int posteId, string titre, string? description, string? departement, string statut, CancellationToken cancellationToken = default);
 
-    Task UpsertCandidatureAsync(int companyId, int posteId, string posteTitre, int candidateProfileId, string statut, int? scoreCompatibilite, IReadOnlyList<string> tagsCles, CancellationToken cancellationToken = default);
+    /// <summary><paramref name="axisScores"/> et <paramref name="pointsVigilanceTags"/> restent <c>null</c>/vides tant que Compatibilite n'est pas actif ou pas encore calculé pour cette candidature — voir <see cref="CandidatureIndexEntry"/>.</summary>
+    Task UpsertCandidatureAsync(
+        int companyId, int posteId, string posteTitre, int candidateProfileId, string statut,
+        int? scoreCompatibilite, IReadOnlyList<string> tagsCles,
+        CandidatureAxisScores? axisScores, IReadOnlyList<string> pointsVigilanceTags, bool grilleCandidatComplete,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Tous les postes au statut "Ouvert", tous tenants confondus — remplace l'itération schéma par schéma.</summary>
     Task<IReadOnlyList<PosteIndexView>> GetPostesOuvertsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Tous les postes d'UNE entreprise, quel que soit leur statut — utilisé par le tableau de bord Analytics
+    /// pour le compte "ouverts/fermés" de l'entreprise active, contrairement à <see cref="GetPostesOuvertsAsync"/>
+    /// qui est volontairement multi-tenant (vue candidat) et filtré sur "Ouvert" seulement.
+    /// </summary>
+    Task<IReadOnlyList<PosteIndexView>> GetPostesPourEntrepriseAsync(int companyId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Postes auxquels ce candidat a déjà postulé, tous tenants confondus — identifiés par la paire

@@ -1,0 +1,181 @@
+@page "/entreprise/analytics"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.Analytics.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IAnalyticsService AnalyticsService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+
+<PageTitle>Analytics / Décideurs</PageTitle>
+
+<h1>Analytics / Décideurs</h1>
+<p class="hint">
+    Vue d'ensemble du recrutement de votre entreprise — plutôt que de naviguer poste par poste. Calculé à
+    partir de l'index de recrutement, mis à jour à chaque évènement (candidature, changement de statut,
+    score recalculé).
+</p>
+
+@if (_companies is null)
+{
+    <p>Chargement…</p>
+}
+else if (_companies.Count == 0)
+{
+    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+}
+else
+{
+    <div class="entreprise-header">
+        @if (_companies.Count > 1)
+        {
+            <label>
+                Entreprise active :
+                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+                    @foreach (var company in _companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+            </label>
+        }
+        else
+        {
+            <strong>@_companies[0].Name</strong>
+        }
+    </div>
+
+    @if (_dashboard is null)
+    {
+        <p>Chargement du tableau de bord…</p>
+    }
+    else if (_dashboard.TotalCandidatures == 0)
+    {
+        <div class="analytics-etat-vide">
+            <p>
+                Aucune candidature reçue pour le moment pour cette entreprise.
+                @(_dashboard.PostesOuverts + _dashboard.PostesFermes > 0
+                    ? $"({_dashboard.PostesOuverts} poste(s) ouvert(s), {_dashboard.PostesFermes} fermé(s).)"
+                    : "Aucun poste créé non plus — commencez par publier un poste.")
+            </p>
+            <p class="hint">Les chiffres apparaîtront ici dès la première candidature reçue.</p>
+        </div>
+    }
+    else
+    {
+        <section class="analytics-cartes">
+            <div class="analytics-carte">
+                <span class="valeur">@_dashboard.PostesOuverts</span>
+                <span class="libelle">Postes ouverts</span>
+            </div>
+            <div class="analytics-carte">
+                <span class="valeur">@_dashboard.PostesFermes</span>
+                <span class="libelle">Postes fermés</span>
+            </div>
+            <div class="analytics-carte">
+                <span class="valeur">@_dashboard.TotalCandidatures</span>
+                <span class="libelle">Candidatures reçues</span>
+            </div>
+            <div class="analytics-carte">
+                <span class="valeur">@(_dashboard.ScoreMoyenGlobal is int s ? $"{s}%" : "—")</span>
+                <span class="libelle">Score de compatibilité moyen</span>
+            </div>
+            <div class="analytics-carte">
+                <span class="valeur">@(_dashboard.TauxCompletionGrilleH is double t ? $"{t:F0}%" : "—")</span>
+                <span class="libelle">Grilles H complètes (@_dashboard.CandidatsAvecGrilleComplete / @_dashboard.CandidatsUniques candidat(s))</span>
+            </div>
+        </section>
+
+        <div class="analytics-layout">
+            <section class="analytics-bloc">
+                <h3>Funnel des candidatures</h3>
+                @foreach (var etape in _dashboard.Funnel)
+                {
+                    <div class="barre-ligne">
+                        <span class="barre-libelle">@etape.Libelle</span>
+                        <div class="barre-piste">
+                            <div class="barre-remplissage" style="width:@LargeurPourcentage(etape.Nombre, _dashboard.TotalCandidatures)%"></div>
+                        </div>
+                        <span class="barre-valeur">@etape.Nombre</span>
+                    </div>
+                }
+            </section>
+
+            <section class="analytics-bloc">
+                <h3>Score moyen par axe</h3>
+                @foreach (var axe in _dashboard.MoyennesParAxe)
+                {
+                    <div class="barre-ligne">
+                        <span class="barre-libelle">@axe.Axe</span>
+                        <div class="barre-piste">
+                            <div class="barre-remplissage" style="width:@(axe.Moyenne ?? 0)%"></div>
+                        </div>
+                        <span class="barre-valeur">@(axe.Moyenne is double m ? $"{m:F1}%" : "—")</span>
+                    </div>
+                }
+            </section>
+
+            <section class="analytics-bloc">
+                <h3>Points de vigilance les plus fréquents</h3>
+                @if (_dashboard.TopPointsDeVigilance.Count == 0)
+                {
+                    <p class="hint">Aucun point de vigilance partagé détecté pour l'instant.</p>
+                }
+                else
+                {
+                    <ul class="vigilance-liste">
+                        @foreach (var tag in _dashboard.TopPointsDeVigilance)
+                        {
+                            <li><span class="tag">@tag.Tag</span> <span class="compte">× @tag.Nombre</span></li>
+                        }
+                    </ul>
+                }
+            </section>
+        </div>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private List<Company>? _companies;
+    private int _selectedCompanyId;
+    private AnalyticsDashboardView? _dashboard;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        if (_companies.Count > 0)
+            await ActivateCompanyAsync(_companies[0]);
+    }
+
+    private async Task ActivateCompanyAsync(Company company)
+    {
+        _selectedCompanyId = company.Id;
+        TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+        _dashboard = await AnalyticsService.GetDashboardAsync();
+    }
+
+    private async Task OnCompanyChangedAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var company = _companies!.First(c => c.Id == id);
+            await ActivateCompanyAsync(company);
+        }
+    }
+
+    private static int LargeurPourcentage(int nombre, int total) => total == 0 ? 0 : (int)Math.Round(100.0 * nombre / total);
+}

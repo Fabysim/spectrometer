@@ -32,14 +32,22 @@ public static class ServiceCollectionExtensions
             options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "core"));
         };
 
-        services.AddDbContext<CoreDbContext>(configureCoreDbContext);
-        // En PLUS de l'injection directe ci-dessus (utilisée partout ailleurs — pages Razor, etc., où un
-        // seul CoreDbContext par circuit suffit) : une factory pour les consommateurs qui doivent créer une
-        // instance fraîche à chaque appel plutôt que de partager celle du circuit — ex. IProfileChangeRecorder,
-        // appelé depuis des mutations qui peuvent se chevaucher (deux cases cochées coup sur coup), où un
-        // CoreDbContext scoped partagé planterait ("A second operation was started on this context
-        // instance…"), même raison que pour tous les DbContext tenant-scopés de la solution.
+        // Une SEULE source de vérité pour DbContextOptions<CoreDbContext> : la factory (Singleton). Appeler
+        // AUSSI AddDbContext<CoreDbContext> enregistrerait une deuxième fois DbContextOptions<CoreDbContext>
+        // (Scoped, cette fois) sous un mécanisme différent (IDbContextOptionsConfiguration) — ce qui a deux
+        // conséquences constatées : une dépendance captive (Singleton IDbContextFactory dépendant d'un
+        // service Scoped, détectée par la validation de graphe de DI activée en Development) ET une
+        // résolution cassée pour les outils de conception EF Core (`dotnet ef migrations add` échoue en
+        // essayant de résoudre CoreDbContext depuis le fournisseur racine). D'où l'enregistrement scoped de
+        // CoreDbContext ci-dessous via un simple délégué sur la factory, plutôt que via AddDbContext.
         services.AddDbContextFactory<CoreDbContext>(configureCoreDbContext);
+        // CoreDbContext reste injectable directement en Scoped (pages Razor, AddEntityFrameworkStores
+        // d'Identity juste en dessous, etc.) — une instance par circuit, construite via la factory ci-dessus.
+        // Les consommateurs qui doivent éviter tout partage d'instance entre appels concurrents (ex.
+        // IProfileChangeRecorder, invoqué depuis des mutations qui peuvent se chevaucher — deux cases
+        // cochées coup sur coup — où un CoreDbContext partagé planterait avec "A second operation was
+        // started on this context instance…") utilisent directement IDbContextFactory<CoreDbContext>.
+        services.AddScoped<CoreDbContext>(sp => sp.GetRequiredService<IDbContextFactory<CoreDbContext>>().CreateDbContext());
 
         services.AddIdentityCore<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddRoles<IdentityRole>()

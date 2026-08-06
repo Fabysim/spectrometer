@@ -9,6 +9,7 @@ using PostesRecrutementModule = Spectrometre.Modules.PostesRecrutement.ServiceCo
 using VivierModule = Spectrometre.Modules.Vivier.ServiceCollectionExtensions;
 using EntretienModule = Spectrometre.Modules.Entretien.ServiceCollectionExtensions;
 using SuiviEvolutifModule = Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions;
+using AnalyticsModule = Spectrometre.Modules.Analytics.ServiceCollectionExtensions;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -54,6 +55,9 @@ public sealed class CompanyOnboardingService(
                      VivierModule.Manifest,
                      EntretienModule.Manifest,
                      SuiviEvolutifModule.Manifest,
+                     // Analytics n'a pas non plus de schéma propre (voir son ServiceCollectionExtensions) —
+                     // même situation que Vivier, seulement l'activation ci-dessous.
+                     AnalyticsModule.Manifest,
                  })
         {
             if (await moduleRegistry.IsActiveAsync(company.Id, manifest.Code, coreDb, cancellationToken))

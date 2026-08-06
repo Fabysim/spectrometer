@@ -9,6 +9,7 @@ using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Host.Components;
 using Spectrometre.Host.Onboarding;
+using Spectrometre.Modules.Analytics;
 using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Entretien;
 using Spectrometre.Modules.PostesRecrutement;
@@ -35,6 +36,7 @@ builder.Services.AddPostesRecrutementModule(builder.Configuration);
 builder.Services.AddVivierModule();
 builder.Services.AddEntretienModule(builder.Configuration);
 builder.Services.AddSuiviEvolutifModule(builder.Configuration);
+builder.Services.AddAnalyticsModule();
 
 // Inversion de dépendance : Compatibilite consomme ICandidatureExistenceChecker (défini dans Core) sans
 // connaître son implémentation. C'est ICI, dans Host — le seul projet qui référence à la fois Compatibilite
@@ -73,6 +75,7 @@ using (var startupScope = app.Services.CreateScope())
     moduleRegistry.Register(Spectrometre.Modules.Vivier.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
 
     // Migrations appliquées globalement pour le noyau et Profil Candidat (schémas fixes, non tenant-scopés).
     // Profil Entreprise / Compatibilité sont tenant-scopés : leur schéma est appliqué par tenant lors
@@ -135,6 +138,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Vivier.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Entretien.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.Analytics.ServiceCollectionExtensions).Assembly);
 
 app.Run();

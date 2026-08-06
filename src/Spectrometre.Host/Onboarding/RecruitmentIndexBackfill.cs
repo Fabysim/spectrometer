@@ -60,9 +60,14 @@ internal static class RecruitmentIndexBackfill
                 foreach (var candidature in candidatures)
                 {
                     var posteTitre = postes.FirstOrDefault(p => p.Id == candidature.PosteId)?.Titre ?? "(poste supprimé)";
+                    // Comme avant ce cycle : score/tags laissés vides ici, reconstitués au premier évènement
+                    // réel (lecture des candidatures côté entreprise ou changement de statut) — voir
+                    // PosteService.UpsertCandidatureIndexAsync. Idem pour les scores par axe, les tags de
+                    // vigilance et la complétion de grille H, ajoutés ce cycle pour Analytics.
                     await recruitmentIndex.UpsertCandidatureAsync(
                         company.Id, candidature.PosteId, posteTitre, candidature.CandidateProfileId,
-                        candidature.Statut.ToString(), scoreCompatibilite: null, tagsCles: []);
+                        candidature.Statut.ToString(), scoreCompatibilite: null, tagsCles: [],
+                        axisScores: null, pointsVigilanceTags: [], grilleCandidatComplete: false);
                 }
             }
         }

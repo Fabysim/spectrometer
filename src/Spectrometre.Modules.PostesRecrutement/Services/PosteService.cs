@@ -3,6 +3,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
+using Spectrometre.Modules.Compatibilite.Entities;
 using Spectrometre.Modules.Compatibilite.Services;
 using Spectrometre.Modules.PostesRecrutement.Data;
 using Spectrometre.Modules.PostesRecrutement.Entities;
@@ -118,20 +119,17 @@ public sealed class PosteService(
         var result = new List<CandidatureView>();
         foreach (var c in candidatures)
         {
-            int? score = null;
+            CompatibiliteResultView? calcul = null;
             if (compatibiliteActif && companyProfileId is int cpid)
-            {
-                var calcul = await compatibiliteService.CalculerCompatibiliteAsync(c.CandidateProfileId, cpid, cancellationToken);
-                score = calcul.ScoreGlobal;
-            }
+                calcul = await compatibiliteService.CalculerCompatibiliteAsync(c.CandidateProfileId, cpid, cancellationToken);
 
-            result.Add(new CandidatureView(c.Id, c.PosteId, c.CandidateProfileId, c.Statut, c.CreatedAt, score));
+            result.Add(new CandidatureView(c.Id, c.PosteId, c.CandidateProfileId, c.Statut, c.CreatedAt, calcul?.ScoreGlobal));
 
             // Recalcul de compatibilité = un des deux évènements qui doivent tenir l'index à jour (voir
             // IRecruitmentIndexService) : dès que ce score est (re)connu, on le reporte dans l'index lu
-            // par le Vivier, sans attendre un futur changement de statut.
+            // par le Vivier et le tableau de bord Analytics, sans attendre un futur changement de statut.
             if (poste is not null)
-                await UpsertCandidatureIndexAsync(c, poste.Titre, company.Id, score, cancellationToken);
+                await UpsertCandidatureIndexAsync(c, poste.Titre, company.Id, calcul, cancellationToken);
         }
 
         return result;
@@ -153,40 +151,60 @@ public sealed class PosteService(
         var company = await GetActiveCompanyAsync(cancellationToken);
         // Le tenant ambiant est bien celui de cette candidature (opération côté entreprise) : sûr d'appeler
         // le Moteur de Compatibilité ici, à la différence de PostulerAsync qui traverse un AUTRE tenant.
-        await UpsertCandidatureIndexAsync(candidature, poste.Titre, company.Id, precomputedScore: null, cancellationToken);
+        await UpsertCandidatureIndexAsync(candidature, poste.Titre, company.Id, precomputed: null, cancellationToken);
     }
 
     /// <summary>
-    /// Recalcule (si Compatibilite est actif) et reporte dans l'index partagé le score + les tags clés
-    /// d'une candidature. <paramref name="precomputedScore"/> évite un second calcul quand l'appelant
-    /// vient juste de l'obtenir (voir <see cref="GetCandidaturesAsync"/>).
+    /// Recalcule (si Compatibilite est actif) et reporte dans l'index partagé le score global, les scores
+    /// par axe, les tags clés et de vigilance, ainsi que la complétion de la grille H — cette dernière
+    /// alimente le tableau de bord Analytics indépendamment de l'activation de Compatibilite (c'est une
+    /// donnée du candidat, pas un résultat de calcul de compatibilité). <paramref name="precomputed"/> évite
+    /// un second calcul quand l'appelant vient juste de l'obtenir (voir <see cref="GetCandidaturesAsync"/>).
     /// </summary>
-    private async Task UpsertCandidatureIndexAsync(Candidature candidature, string posteTitre, int companyId, int? precomputedScore, CancellationToken cancellationToken)
+    private async Task UpsertCandidatureIndexAsync(Candidature candidature, string posteTitre, int companyId, CompatibiliteResultView? precomputed, CancellationToken cancellationToken)
     {
         var compatibiliteActif = await moduleRegistry.IsActiveAsync(companyId, "Compatibilite", coreDb, cancellationToken);
 
-        int? score = precomputedScore;
-        IReadOnlyList<string> tagsCles = [];
-
-        if (compatibiliteActif)
+        var calcul = precomputed;
+        if (compatibiliteActif && calcul is null)
         {
-            if (score is null)
-            {
-                var companyProfileId = await companyProfileService.GetOrCreateProfileIdAsync(cancellationToken);
-                var calcul = await compatibiliteService.CalculerCompatibiliteAsync(candidature.CandidateProfileId, companyProfileId, cancellationToken);
-                score = calcul.ScoreGlobal;
-            }
-
-            // Tags clés = compétences techniques déclarées par le candidat (grille H) : la dimension la
-            // plus parlante pour un premier tri visuel dans le Vivier, sans dupliquer toute la grille.
-            var candidateCriteria = await candidateProfileService.GetCompatibilityCriteriaAsync(candidature.CandidateProfileId, cancellationToken);
-            tagsCles = candidateCriteria?.TechniqueTags ?? [];
+            var companyProfileId = await companyProfileService.GetOrCreateProfileIdAsync(cancellationToken);
+            calcul = await compatibiliteService.CalculerCompatibiliteAsync(candidature.CandidateProfileId, companyProfileId, cancellationToken);
         }
+
+        var candidateCriteria = await candidateProfileService.GetCompatibilityCriteriaAsync(candidature.CandidateProfileId, cancellationToken);
+
+        // Tags clés = compétences techniques déclarées par le candidat (grille H) : la dimension la plus
+        // parlante pour un premier tri visuel dans le Vivier, sans dupliquer toute la grille. Contrairement
+        // à la complétion de grille ci-dessous, on la garde volontairement conditionnée à Compatibilite actif
+        // (comportement inchangé par rapport à avant ce cycle).
+        var tagsCles = compatibiliteActif ? candidateCriteria?.TechniqueTags ?? [] : [];
+        var grilleCandidatComplete = EstGrilleComplete(candidateCriteria);
+        var axisScores = calcul is null ? null : ToAxisScores(calcul.ScoresParAxe);
+        var pointsVigilanceTags = calcul?.PointsVigilanceTagsPartages ?? [];
 
         await recruitmentIndex.UpsertCandidatureAsync(
             companyId, candidature.PosteId, posteTitre, candidature.CandidateProfileId,
-            candidature.Statut.ToString(), score, tagsCles, cancellationToken);
+            candidature.Statut.ToString(), calcul?.ScoreGlobal, tagsCles,
+            axisScores, pointsVigilanceTags, grilleCandidatComplete, cancellationToken);
     }
+
+    private static CandidatureAxisScores ToAxisScores(IReadOnlyList<AxisScoreView> scores) => new(
+        Technique: scores.FirstOrDefault(s => s.Axis == CompatibilityAxis.Technique)?.Score,
+        Comportementale: scores.FirstOrDefault(s => s.Axis == CompatibilityAxis.Comportementale)?.Score,
+        Culturelle: scores.FirstOrDefault(s => s.Axis == CompatibilityAxis.Culturelle)?.Score,
+        Organisationnelle: scores.FirstOrDefault(s => s.Axis == CompatibilityAxis.Organisationnelle)?.Score,
+        Motivationnelle: scores.FirstOrDefault(s => s.Axis == CompatibilityAxis.Motivationnelle)?.Score);
+
+    /// <summary>Même définition que <c>GrilleComplete</c> dans <c>QuestionnaireCandidat.razor</c> — les 4 axes à tags, le rythme, et les points de vigilance doivent tous être renseignés.</summary>
+    private static bool EstGrilleComplete(CandidateCompatibilityCriteriaView? criteria) =>
+        criteria is not null
+        && criteria.TechniqueTags.Count > 0
+        && criteria.ComportementaleTags.Count > 0
+        && criteria.CulturelleTags.Count > 0
+        && criteria.RythmeTravail is not null
+        && criteria.MotivationnelleTags.Count > 0
+        && criteria.PointsVigilanceTags.Count > 0;
 
     public async Task<IReadOnlyList<PosteOuvertView>> GetPostesOuvertsAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
@@ -227,8 +245,12 @@ public sealed class PosteService(
         // ITenantContext) — appeler ICompanyProfileService/ICompatibiliteService ici lirait le mauvais
         // schéma. Le score sera calculé au premier passage de l'entreprise sur GetCandidaturesAsync
         // (déjà le comportement existant avant ce cycle) et reporté dans l'index à ce moment-là.
+        // ICandidateProfileService, lui, est un schéma FIXE (pas tenant-scopé) — sûr à appeler ici pour
+        // connaître la complétion de grille H dès la candidature, sans attendre ce premier passage.
+        var candidateCriteria = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
         await recruitmentIndex.UpsertCandidatureAsync(
             companyId, posteId, poste.Titre, candidateProfileId,
-            candidature.Statut.ToString(), scoreCompatibilite: null, tagsCles: [], cancellationToken);
+            candidature.Statut.ToString(), scoreCompatibilite: null, tagsCles: [],
+            axisScores: null, pointsVigilanceTags: [], grilleCandidatComplete: EstGrilleComplete(candidateCriteria), cancellationToken);
     }
 }

@@ -34,7 +34,11 @@ public sealed class RecruitmentIndexService(CoreDbContext db) : IRecruitmentInde
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpsertCandidatureAsync(int companyId, int posteId, string posteTitre, int candidateProfileId, string statut, int? scoreCompatibilite, IReadOnlyList<string> tagsCles, CancellationToken cancellationToken = default)
+    public async Task UpsertCandidatureAsync(
+        int companyId, int posteId, string posteTitre, int candidateProfileId, string statut,
+        int? scoreCompatibilite, IReadOnlyList<string> tagsCles,
+        CandidatureAxisScores? axisScores, IReadOnlyList<string> pointsVigilanceTags, bool grilleCandidatComplete,
+        CancellationToken cancellationToken = default)
     {
         // CompanyId fait bien partie de la clé de correspondance : PosteId seul n'est pas un identifiant
         // global (auto-incrémenté par schéma tenant), voir le commentaire sur CandidatureIndexEntry.
@@ -54,10 +58,19 @@ public sealed class RecruitmentIndexService(CoreDbContext db) : IRecruitmentInde
             db.CandidatureIndexEntries.Add(entry);
         }
 
+        axisScores ??= CandidatureAxisScores.Vide;
+
         entry.PosteTitre = posteTitre;
         entry.Statut = statut;
         entry.ScoreCompatibilite = scoreCompatibilite;
         entry.TagsCles = tagsCles.ToList();
+        entry.ScoreTechnique = axisScores.Technique;
+        entry.ScoreComportementale = axisScores.Comportementale;
+        entry.ScoreCulturelle = axisScores.Culturelle;
+        entry.ScoreOrganisationnelle = axisScores.Organisationnelle;
+        entry.ScoreMotivationnelle = axisScores.Motivationnelle;
+        entry.PointsVigilanceTags = pointsVigilanceTags.ToList();
+        entry.GrilleCandidatComplete = grilleCandidatComplete;
         entry.UpdatedAt = DateTimeOffset.UtcNow;
 
         await db.SaveChangesAsync(cancellationToken);
@@ -87,6 +100,17 @@ public sealed class RecruitmentIndexService(CoreDbContext db) : IRecruitmentInde
             .AsNoTracking()
             .Where(c => c.CompanyId == companyId)
             .OrderByDescending(c => c.ScoreCompatibilite ?? -1)
-            .Select(c => new CandidatureIndexView(c.CompanyId, c.PosteId, c.PosteTitre, c.CandidateProfileId, c.Statut, c.ScoreCompatibilite, c.TagsCles, c.UpdatedAt))
+            .Select(c => new CandidatureIndexView(
+                c.CompanyId, c.PosteId, c.PosteTitre, c.CandidateProfileId, c.Statut, c.ScoreCompatibilite, c.TagsCles, c.UpdatedAt,
+                new CandidatureAxisScores(c.ScoreTechnique, c.ScoreComportementale, c.ScoreCulturelle, c.ScoreOrganisationnelle, c.ScoreMotivationnelle),
+                c.PointsVigilanceTags, c.GrilleCandidatComplete))
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<PosteIndexView>> GetPostesPourEntrepriseAsync(int companyId, CancellationToken cancellationToken = default) =>
+        await db.PosteIndexEntries
+            .AsNoTracking()
+            .Where(p => p.CompanyId == companyId)
+            .OrderByDescending(p => p.UpdatedAt)
+            .Select(p => new PosteIndexView(p.CompanyId, p.CompanyName, p.PosteId, p.Titre, p.Description, p.Departement, p.Statut))
             .ToListAsync(cancellationToken);
 }

@@ -52,4 +52,31 @@ public sealed class CandidatureIndexEntry
     public int? ScoreCompatibilite { get; set; }
     public List<string> TagsCles { get; set; } = [];
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    // Champs ajoutés pour le tableau de bord Analytics (module Analytics/Décideurs) : mêmes 5 axes que
+    // CompatibilityResult (Compatibilite), en propriétés à plat plutôt qu'un dictionnaire par CompatibilityAxis —
+    // le noyau ne référence aucun module, donc pas de type d'axe venant de Compatibilite ici (voir le
+    // commentaire sur PosteIndexEntry.Statut pour la même contrainte appliquée au statut). Nuls tant que
+    // Compatibilite n'est pas actif pour ce tenant ou que le score n'a pas encore été calculé pour cette
+    // candidature — même sémantique que ScoreCompatibilite.
+    public int? ScoreTechnique { get; set; }
+    public int? ScoreComportementale { get; set; }
+    public int? ScoreCulturelle { get; set; }
+    public int? ScoreOrganisationnelle { get; set; }
+    public int? ScoreMotivationnelle { get; set; }
+
+    /// <summary>
+    /// Tags de vigilance PARTAGÉS (signalés à la fois par le candidat et l'entreprise, voir
+    /// <c>StructuredCriteriaScorer.SharedVigilanceTags</c>) — distinct de <see cref="TagsCles"/> qui contient
+    /// les compétences techniques du candidat. Alimente le "top des points de vigilance" du tableau de bord
+    /// Analytics sans reparser les phrases déjà formatées de <c>CompatibiliteResultView.PointsDeVigilance</c>.
+    /// </summary>
+    public List<string> PointsVigilanceTags { get; set; } = [];
+
+    /// <summary>
+    /// Grille H (critères structurés du candidat) entièrement renseignée — même définition que
+    /// <c>QuestionnaireCandidat.razor</c>'s <c>GrilleComplete</c>. Indépendant de l'activation de
+    /// Compatibilite pour ce tenant : c'est une donnée du candidat, pas un résultat de calcul.
+    /// </summary>
+    public bool GrilleCandidatComplete { get; set; }
 }

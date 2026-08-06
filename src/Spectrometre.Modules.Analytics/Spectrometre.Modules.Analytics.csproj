@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Pas de DbContext propre à ce module : Analytics lit exclusivement l'index partagé du noyau
+         (Spectrometre.Core.Recruitment.IRecruitmentIndexService, étendu ce cycle avec les scores par axe,
+         les tags de vigilance et la complétion de grille H) — même simplification que Vivier, voir le
+         résumé final. Aucune référence directe à Compatibilite/PostesRecrutement/ProfilEntreprise/
+         ProfilCandidat : le manifeste déclare la dépendance (données nécessaires dans l'index pour que le
+         tableau de bord ait un sens), mais aucun appel de service n'est fait vers ces modules. -->
+    <ProjectReference Include="..\Spectrometre.Core\Spectrometre.Core.csproj" />
+  </ItemGroup>
+
+</Project>
