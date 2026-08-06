@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
+
+  <data name="VivierDeCandidats" xml:space="preserve"><value>Talent Pool</value></data>
+  <data name="VivierIntro" xml:space="preserve"><value>Candidates who have already applied to one of your jobs, sorted and filtered by compatibility — not a search across every candidate profile on the platform.</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
+  <data name="AucuneEntrepriseAssociee" xml:space="preserve"><value>No company associated with your account at the moment.</value></data>
+  <data name="EntrepriseActive" xml:space="preserve"><value>Active company:</value></data>
+  <data name="ChargementDesCandidatures" xml:space="preserve"><value>Loading applications…</value></data>
+  <data name="Filtres" xml:space="preserve"><value>FILTERS</value></data>
+  <data name="ScoreMinimum" xml:space="preserve"><value>Minimum score: {0}%</value></data>
+  <data name="CompetencesTagsTechniques" xml:space="preserve"><value>Skills (technical tags)</value></data>
+  <data name="ReinitialiserLesTags" xml:space="preserve"><value>Reset tags</value></data>
+  <data name="AucuneCandidatureRecue" xml:space="preserve"><value>No applications received yet.</value></data>
+  <data name="Candidat" xml:space="preserve"><value>Candidate</value></data>
+  <data name="ScoreNonCalcule" xml:space="preserve"><value>Score not calculated</value></data>
+  <data name="VoirLeProfilDetaille" xml:space="preserve"><value>View detailed profile</value></data>
+  <data name="DetailDuScore" xml:space="preserve"><value>Score details</value></data>
+  <data name="ProfilCandidat" xml:space="preserve"><value>Candidate profile</value></data>
+  <data name="RetourAuVivier" xml:space="preserve"><value>Back to Talent Pool</value></data>
+  <data name="ProfilIntrouvableHint" xml:space="preserve"><value>Profile not found, or this candidate hasn't applied to a job at your company — the Talent Pool only gives access to candidates who have already applied.</value></data>
+  <data name="CriteresDeclaresHint" xml:space="preserve"><value>Criteria declared by the candidate for the compatibility engine (grid H).</value></data>
+  <data name="PreparerLEntretien" xml:space="preserve"><value>Prepare the interview</value></data>
+  <data name="CompatibiliteTechnique" xml:space="preserve"><value>Technical compatibility</value></data>
+  <data name="CompatibiliteComportementale" xml:space="preserve"><value>Behavioral compatibility</value></data>
+  <data name="CompatibiliteCulturelle" xml:space="preserve"><value>Cultural compatibility</value></data>
+  <data name="RythmeDeTravailTolere" xml:space="preserve"><value>Tolerated work pace</value></data>
+  <data name="NonRenseigne" xml:space="preserve"><value>Not specified</value></data>
+  <data name="CompatibiliteMotivationnelle" xml:space="preserve"><value>Motivational compatibility</value></data>
+  <data name="PointsDeVigilance" xml:space="preserve"><value>Points of caution</value></data>
+
+  <data name="Statut_Recue" xml:space="preserve"><value>Received</value></data>
+  <data name="Statut_EnRevue" xml:space="preserve"><value>Under review</value></data>
+  <data name="Statut_Entretien" xml:space="preserve"><value>Interview</value></data>
+  <data name="Statut_Rejetee" xml:space="preserve"><value>Rejected</value></data>
+  <data name="Statut_Embauchee" xml:space="preserve"><value>Hired</value></data>
+</root>

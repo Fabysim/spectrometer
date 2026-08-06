@@ -1,73 +1,74 @@
 @page "/vivier/candidat/{CandidateProfileId:int}"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Compatibility
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.ProfilCandidat.Services
+@using Spectrometre.Modules.Vivier.Resources
 @using Spectrometre.Modules.Vivier.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IVivierService VivierService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<VivierResource> Localizer
 
-<PageTitle>Profil candidat</PageTitle>
+<PageTitle>@Localizer["ProfilCandidat"]</PageTitle>
 
 @if (!_resolu)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (_criteria is null)
 {
-    <p class="hint">
-        Profil introuvable ou ce candidat n'a pas postulé à un poste de votre entreprise — le Vivier ne
-        donne accès qu'aux candidats ayant déjà postulé.
-    </p>
-    <a href="/vivier">&lt; Retour au Vivier</a>
+    <p class="hint">@Localizer["ProfilIntrouvableHint"]</p>
+    <a href="/vivier">&lt; @Localizer["RetourAuVivier"]</a>
 }
 else
 {
-    <a href="/vivier">&lt; Retour au Vivier</a>
-    <h1>Profil candidat #@CandidateProfileId</h1>
-    <p class="hint">Critères déclarés par le candidat pour le moteur de compatibilité (grille H).</p>
-    <p><a href="@($"/entretien/{CandidateProfileId}")">Préparer l'entretien</a></p>
+    <a href="/vivier">&lt; @Localizer["RetourAuVivier"]</a>
+    <h1>@Localizer["ProfilCandidat"] #@CandidateProfileId</h1>
+    <p class="hint">@Localizer["CriteresDeclaresHint"]</p>
+    <p><a href="@($"/entretien/{CandidateProfileId}")">@Localizer["PreparerLEntretien"]</a></p>
 
     <div class="grille-champ">
-        <label>Compatibilité technique</label>
-        <div class="tags">@foreach (var tag in _criteria.TechniqueTags) { <span class="tag">@tag</span> }</div>
+        <label>@Localizer["CompatibiliteTechnique"]</label>
+        <div class="tags">@foreach (var tag in _criteria.TechniqueTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
         @if (!string.IsNullOrWhiteSpace(_criteria.TechniqueNotes)) { <p class="notes">@_criteria.TechniqueNotes</p> }
     </div>
 
     <div class="grille-champ">
-        <label>Compatibilité comportementale</label>
-        <div class="tags">@foreach (var tag in _criteria.ComportementaleTags) { <span class="tag">@tag</span> }</div>
+        <label>@Localizer["CompatibiliteComportementale"]</label>
+        <div class="tags">@foreach (var tag in _criteria.ComportementaleTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
         @if (!string.IsNullOrWhiteSpace(_criteria.ComportementaleNotes)) { <p class="notes">@_criteria.ComportementaleNotes</p> }
     </div>
 
     <div class="grille-champ">
-        <label>Compatibilité culturelle</label>
-        <div class="tags">@foreach (var tag in _criteria.CulturelleTags) { <span class="tag">@tag</span> }</div>
+        <label>@Localizer["CompatibiliteCulturelle"]</label>
+        <div class="tags">@foreach (var tag in _criteria.CulturelleTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
         @if (!string.IsNullOrWhiteSpace(_criteria.CulturelleNotes)) { <p class="notes">@_criteria.CulturelleNotes</p> }
     </div>
 
     <div class="grille-champ">
-        <label>Rythme de travail toléré</label>
-        <p>@(_criteria.RythmeTravail is int r ? $"{r} — {CompatibilityVocabulary.RythmeTravailLabels[r]}" : "Non renseigné")</p>
+        <label>@Localizer["RythmeDeTravailTolere"]</label>
+        <p>@(_criteria.RythmeTravail is int r ? $"{r} — {CompatibilityVocabulary.DisplayRythmeTravail(r, _english)}" : Localizer["NonRenseigne"])</p>
         @if (!string.IsNullOrWhiteSpace(_criteria.OrganisationnelleNotes)) { <p class="notes">@_criteria.OrganisationnelleNotes</p> }
     </div>
 
     <div class="grille-champ">
-        <label>Compatibilité motivationnelle</label>
-        <div class="tags">@foreach (var tag in _criteria.MotivationnelleTags) { <span class="tag">@tag</span> }</div>
+        <label>@Localizer["CompatibiliteMotivationnelle"]</label>
+        <div class="tags">@foreach (var tag in _criteria.MotivationnelleTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
         @if (!string.IsNullOrWhiteSpace(_criteria.MotivationnelleNotes)) { <p class="notes">@_criteria.MotivationnelleNotes</p> }
     </div>
 
     <div class="grille-champ">
-        <label>Points de vigilance</label>
-        <div class="tags">@foreach (var tag in _criteria.PointsVigilanceTags) { <span class="tag">@tag</span> }</div>
+        <label>@Localizer["PointsDeVigilance"]</label>
+        <div class="tags">@foreach (var tag in _criteria.PointsVigilanceTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
         @if (!string.IsNullOrWhiteSpace(_criteria.PointsVigilanceNotes)) { <p class="notes">@_criteria.PointsVigilanceNotes</p> }
     </div>
 }
@@ -78,6 +79,7 @@ else
 
     private bool _resolu;
     private CandidateCompatibilityCriteriaView? _criteria;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     protected override async Task OnInitializedAsync()
     {

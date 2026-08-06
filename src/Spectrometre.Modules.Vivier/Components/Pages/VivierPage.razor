@@ -1,33 +1,34 @@
 @page "/vivier"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Compatibility
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.Vivier.Resources
 @using Spectrometre.Modules.Vivier.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IVivierService VivierService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<VivierResource> Localizer
 
-<PageTitle>Vivier de candidats</PageTitle>
+<PageTitle>@Localizer["VivierDeCandidats"]</PageTitle>
 
-<h1>Vivier de candidats</h1>
-<p class="hint">
-    Les candidats ayant déjà postulé à l'un de vos postes, triés et filtrés par compatibilité — pas une
-    recherche dans l'ensemble des profils candidats de la plateforme.
-</p>
+<h1>@Localizer["VivierDeCandidats"]</h1>
+<p class="hint">@Localizer["VivierIntro"]</p>
 
 @if (_companies is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (_companies.Count == 0)
 {
-    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+    <p>@Localizer["AucuneEntrepriseAssociee"]</p>
 }
 else
 {
@@ -35,7 +36,7 @@ else
         @if (_companies.Count > 1)
         {
             <label>
-                Entreprise active :
+                @Localizer["EntrepriseActive"]
                 <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
                     @foreach (var company in _companies)
                     {
@@ -52,29 +53,29 @@ else
 
     @if (_candidatures is null)
     {
-        <p>Chargement des candidatures…</p>
+        <p>@Localizer["ChargementDesCandidatures"]</p>
     }
     else
     {
         <div class="vivier-layout">
             <aside class="vivier-filtres">
-                <h3>FILTRES</h3>
+                <h3>@Localizer["Filtres"]</h3>
 
                 <div class="filtre-champ">
-                    <label>Score minimum : @_scoreMinimum%</label>
+                    <label>@string.Format(Localizer["ScoreMinimum"].Value, _scoreMinimum)</label>
                     <input type="range" min="0" max="100" step="5" value="@_scoreMinimum"
                            @oninput="e => _scoreMinimum = int.Parse(e.Value!.ToString()!)" />
                 </div>
 
                 <div class="filtre-champ">
-                    <label>Compétences (tags techniques)</label>
+                    <label>@Localizer["CompetencesTagsTechniques"]</label>
                     <div class="tag-checkboxes">
                         @foreach (var tag in CompatibilityVocabulary.TechniqueTags)
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_tagsSelectionnes.Contains(tag)"
                                        @onchange="e => ToggleTagFiltre(tag, (bool)e.Value!)" />
-                                @tag
+                                @CompatibilityVocabulary.DisplayTag(tag, _english)
                             </label>
                         }
                     </div>
@@ -82,14 +83,14 @@ else
 
                 @if (_tagsSelectionnes.Count > 0)
                 {
-                    <button @onclick="() => _tagsSelectionnes.Clear()">Réinitialiser les tags</button>
+                    <button @onclick="() => _tagsSelectionnes.Clear()">@Localizer["ReinitialiserLesTags"]</button>
                 }
             </aside>
 
             <section class="vivier-candidats">
                 @if (_candidatures.Count == 0)
                 {
-                    <p class="hint">Aucune candidature reçue pour le moment.</p>
+                    <p class="hint">@Localizer["AucuneCandidatureRecue"]</p>
                 }
                 else
                 {
@@ -98,24 +99,24 @@ else
                         var horsFiltre = EstHorsFiltre(candidature);
                         <div class="candidat-carte @(horsFiltre ? "hors-filtre" : "")">
                             <div class="candidat-entete">
-                                <strong>Candidat #@candidature.CandidateProfileId</strong>
+                                <strong>@Localizer["Candidat"] #@candidature.CandidateProfileId</strong>
                                 <span class="poste-origine">→ @candidature.PosteTitre</span>
                                 <span class="score @ScoreClasse(candidature.ScoreCompatibilite)">
-                                    @(candidature.ScoreCompatibilite is int s ? $"{s}%" : "Score non calculé")
+                                    @(candidature.ScoreCompatibilite is int s ? $"{s}%" : Localizer["ScoreNonCalcule"])
                                 </span>
                             </div>
                             <div class="tags">
                                 @foreach (var tag in candidature.TagsCles)
                                 {
-                                    <span class="tag @(_tagsSelectionnes.Contains(tag) ? "tag-actif" : "")">@tag</span>
+                                    <span class="tag @(_tagsSelectionnes.Contains(tag) ? "tag-actif" : "")">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
                                 }
                             </div>
                             <div class="candidat-pied">
-                                <span class="statut">@candidature.Statut</span>
-                                <a href="@($"/vivier/candidat/{candidature.CandidateProfileId}")">Voir le profil détaillé</a>
+                                <span class="statut">@StatutLabel(candidature.Statut)</span>
+                                <a href="@($"/vivier/candidat/{candidature.CandidateProfileId}")">@Localizer["VoirLeProfilDetaille"]</a>
                                 @if (candidature.ScoreCompatibilite is not null)
                                 {
-                                    <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">Détail du score</a>
+                                    <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">@Localizer["DetailDuScore"]</a>
                                 }
                             </div>
                         </div>
@@ -135,6 +136,22 @@ else
 
     private int _scoreMinimum;
     private readonly HashSet<string> _tagsSelectionnes = new(StringComparer.OrdinalIgnoreCase);
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+    /// <summary>
+    /// Traduit le statut (chaîne partagée avec l'index de recrutement, voir CandidatureIndexEntry.Statut) —
+    /// duplication volontaire de CandidatureStatutLabels (module PostesRecrutement) pour ne pas créer de
+    /// dépendance croisée entre Vivier et PostesRecrutement (voir le commentaire du .csproj).
+    /// </summary>
+    private string StatutLabel(string statut) => statut switch
+    {
+        "Recue" => Localizer["Statut_Recue"],
+        "EnRevue" => Localizer["Statut_EnRevue"],
+        "Entretien" => Localizer["Statut_Entretien"],
+        "Rejetee" => Localizer["Statut_Rejetee"],
+        "Embauchee" => Localizer["Statut_Embauchee"],
+        _ => statut,
+    };
 
     protected override async Task OnInitializedAsync()
     {

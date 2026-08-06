@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="VivierDeCandidats" xml:space="preserve"><value>Vivier de candidats</value></data>
+  <data name="VivierIntro" xml:space="preserve"><value>Les candidats ayant déjà postulé à l'un de vos postes, triés et filtrés par compatibilité — pas une recherche dans l'ensemble des profils candidats de la plateforme.</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
+  <data name="AucuneEntrepriseAssociee" xml:space="preserve"><value>Aucune entreprise associée à votre compte pour le moment.</value></data>
+  <data name="EntrepriseActive" xml:space="preserve"><value>Entreprise active :</value></data>
+  <data name="ChargementDesCandidatures" xml:space="preserve"><value>Chargement des candidatures…</value></data>
+  <data name="Filtres" xml:space="preserve"><value>FILTRES</value></data>
+  <data name="ScoreMinimum" xml:space="preserve"><value>Score minimum : {0}%</value></data>
+  <data name="CompetencesTagsTechniques" xml:space="preserve"><value>Compétences (tags techniques)</value></data>
+  <data name="ReinitialiserLesTags" xml:space="preserve"><value>Réinitialiser les tags</value></data>
+  <data name="AucuneCandidatureRecue" xml:space="preserve"><value>Aucune candidature reçue pour le moment.</value></data>
+  <data name="Candidat" xml:space="preserve"><value>Candidat</value></data>
+  <data name="ScoreNonCalcule" xml:space="preserve"><value>Score non calculé</value></data>
+  <data name="VoirLeProfilDetaille" xml:space="preserve"><value>Voir le profil détaillé</value></data>
+  <data name="DetailDuScore" xml:space="preserve"><value>Détail du score</value></data>
+  <data name="ProfilCandidat" xml:space="preserve"><value>Profil candidat</value></data>
+  <data name="RetourAuVivier" xml:space="preserve"><value>Retour au Vivier</value></data>
+  <data name="ProfilIntrouvableHint" xml:space="preserve"><value>Profil introuvable ou ce candidat n'a pas postulé à un poste de votre entreprise — le Vivier ne donne accès qu'aux candidats ayant déjà postulé.</value></data>
+  <data name="CriteresDeclaresHint" xml:space="preserve"><value>Critères déclarés par le candidat pour le moteur de compatibilité (grille H).</value></data>
+  <data name="PreparerLEntretien" xml:space="preserve"><value>Préparer l'entretien</value></data>
+  <data name="CompatibiliteTechnique" xml:space="preserve"><value>Compatibilité technique</value></data>
+  <data name="CompatibiliteComportementale" xml:space="preserve"><value>Compatibilité comportementale</value></data>
+  <data name="CompatibiliteCulturelle" xml:space="preserve"><value>Compatibilité culturelle</value></data>
+  <data name="RythmeDeTravailTolere" xml:space="preserve"><value>Rythme de travail toléré</value></data>
+  <data name="NonRenseigne" xml:space="preserve"><value>Non renseigné</value></data>
+  <data name="CompatibiliteMotivationnelle" xml:space="preserve"><value>Compatibilité motivationnelle</value></data>
+  <data name="PointsDeVigilance" xml:space="preserve"><value>Points de vigilance</value></data>
+
+  <!-- Statuts de candidature (chaînes partagées avec l'index de recrutement — voir CandidatureIndexEntry.Statut
+       dans Core) : mêmes valeurs que CandidatureStatutLabels (module PostesRecrutement), dupliquées ici
+       volontairement pour ne pas créer de dépendance croisée entre Vivier et PostesRecrutement. -->
+  <data name="Statut_Recue" xml:space="preserve"><value>Reçue</value></data>
+  <data name="Statut_EnRevue" xml:space="preserve"><value>En revue</value></data>
+  <data name="Statut_Entretien" xml:space="preserve"><value>Entretien</value></data>
+  <data name="Statut_Rejetee" xml:space="preserve"><value>Rejetée</value></data>
+  <data name="Statut_Embauchee" xml:space="preserve"><value>Embauchée</value></data>
+</root>
