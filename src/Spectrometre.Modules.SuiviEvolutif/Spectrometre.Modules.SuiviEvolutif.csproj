@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Dépendance manifeste : ProfilCandidat + ProfilEntreprise (sens autorisé — voir ICandidateProfileService).
+    <!-- Référence de projet (pas une dépendance de manifeste — ProfilCandidat n'est plus dans
+         RequiredModuleCodes, voir son commentaire) : consomme ICandidateProfileService pour la page
+         Historique candidat. ProfilEntreprise reste dans RequiredModuleCodes (module tenant réel).
          ProfilCandidat/ProfilEntreprise ne référencent JAMAIS ce projet en retour : ils consomment
          IProfileChangeRecorder (Core), implémenté ici et câblé depuis Host. -->
     <ProjectReference Include="..\Spectrometre.Core\Spectrometre.Core.csproj" />

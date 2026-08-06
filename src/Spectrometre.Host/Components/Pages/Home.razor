@@ -3,6 +3,7 @@
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
+@using Spectrometre.Host.Onboarding
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
@@ -74,6 +75,12 @@ else
     /// Tableau de bord entièrement dynamique — mêmes vérifications que le menu principal (voir
     /// MainLayout) : IsActiveAsync/IsActiveForCandidateAsync module par module, jamais GetActiveModuleCodesAsync.
     /// </summary>
+    /// <remarks>
+    /// Côté entreprise, <see cref="PersonalModuleCodes"/> est exclu de l'énumération — un module personnel
+    /// (Profil Candidat) n'a pas sa place dans le tableau de bord d'une entreprise, même si une ligne
+    /// <c>ModuleActivation</c> existe pour ce sujet (voir le commentaire sur <see cref="PersonalModuleCodes"/>).
+    /// Jamais appliqué côté candidat : ses propres modules personnels sont précisément ce qu'il doit voir ici.
+    /// </remarks>
     protected override async Task OnInitializedAsync()
     {
         if (AuthenticationStateTask is null)
@@ -95,6 +102,8 @@ else
             _company = companies[0];
             foreach (var manifest in ModuleRegistry.AllModules)
             {
+                if (PersonalModuleCodes.Codes.Contains(manifest.Code))
+                    continue;
                 if (await ModuleRegistry.IsActiveAsync(_company.Id, manifest.Code, CoreDb))
                     _companyModuleNames.Add(manifest.DisplayName);
             }

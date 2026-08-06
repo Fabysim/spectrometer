@@ -43,15 +43,19 @@ public sealed class CompanyOnboardingService(
     private static readonly IReadOnlyList<string> FreeTierModuleCodes = [ProfilEntrepriseModule.Manifest.Code];
 
     /// <summary>
-    /// « Recrutement (Postes & Recrutement et modules associés) » de l'écran Ajouter un module — inclut
-    /// <see cref="ProfilCandidatModule"/> en dépendance invisible (Compatibilite l'exige pour CE sujet
-    /// entreprise, même si une entreprise n'a pas de profil candidat à elle) et exclut délibérément
-    /// SuiviEvolutif (affiché « à venir », non activable dans ce cycle) et GestionDuTemps (vendu à part,
-    /// voir <see cref="ActivateGestionDuTempsAsync"/>).
+    /// « Recrutement (Postes & Recrutement et modules associés) » de l'écran Ajouter un module — exclut
+    /// délibérément SuiviEvolutif (affiché « à venir », non activable dans ce cycle) et GestionDuTemps
+    /// (vendu à part, voir <see cref="ActivateGestionDuTempsAsync"/>).
     /// </summary>
+    /// <remarks>
+    /// <see cref="ProfilCandidatModule"/> n'y figure PLUS (cycle correctif « modules personnels ») : son
+    /// manifeste n'est plus une dépendance de Compatibilite (voir le commentaire sur
+    /// <c>Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest</c>) — l'activer pour le
+    /// sujet Company n'a jamais eu d'utilité réelle et faisait apparaître à tort ce module personnel
+    /// (scopé UserId, sans écran entreprise) dans le menu/tableau de bord d'une entreprise.
+    /// </remarks>
     public static readonly IReadOnlyList<string> RecruitmentBundleModuleCodes =
     [
-        ProfilCandidatModule.Manifest.Code,
         CompatibiliteModule.Manifest.Code,
         PostesRecrutementModule.Manifest.Code,
         VivierModule.Manifest.Code,

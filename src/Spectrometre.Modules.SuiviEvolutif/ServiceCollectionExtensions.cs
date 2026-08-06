@@ -11,11 +11,21 @@ namespace Spectrometre.Modules.SuiviEvolutif;
 
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// <c>RequiredModuleCodes</c> ne liste que ProfilEntreprise — ProfilCandidat en a été retiré, pour la
+    /// même raison que Compatibilite (voir son manifeste) : le côté candidat de Suivi évolutif est TOUJOURS
+    /// tracé (<see cref="Services.ProfileChangeRecorder"/>, schéma fixe, jamais gaté par une activation de
+    /// module — voir sa remarque), et le côté entreprise ne consulte que sa PROPRE activation
+    /// (<c>IsActiveAsync(companyId, "SuiviEvolutif", ...)</c>), jamais celle de ProfilCandidat pour ce
+    /// sujet. Cette dépendance ne servait qu'à forcer une ligne <c>ModuleActivation</c> artificielle sur le
+    /// sujet Company, faisant apparaître à tort « Profil Candidat » (module personnel) dans le menu/tableau
+    /// de bord d'une entreprise ayant activé Suivi évolutif.
+    /// </summary>
     public static readonly ModuleManifest Manifest = new(
         Code: "SuiviEvolutif",
         DisplayName: "Suivi évolutif",
         Version: "1.0.0",
-        RequiredModuleCodes: ["ProfilCandidat", "ProfilEntreprise"]);
+        RequiredModuleCodes: ["ProfilEntreprise"]);
 
     public static IServiceCollection AddSuiviEvolutifModule(this IServiceCollection services, IConfiguration configuration)
     {

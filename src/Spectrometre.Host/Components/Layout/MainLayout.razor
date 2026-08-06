@@ -4,6 +4,7 @@
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
+@using Spectrometre.Host.Onboarding
 @using Spectrometre.Modules.GestionDuTemps.Services
 @inject IGestionDuTempsAccessService GestionDuTempsAccessService
 @inject IModuleRegistry ModuleRegistry
@@ -115,6 +116,7 @@
             foreach (var manifest in ModuleRegistry.AllModules)
             {
                 if (manifest.Code == "GestionDuTemps") continue; // gating séparé ci-dessous (couvre aussi le cas candidat)
+                if (PersonalModuleCodes.Codes.Contains(manifest.Code)) continue; // jamais pertinent pour une entreprise (voir PersonalModuleCodes)
                 if (await ModuleRegistry.IsActiveAsync(companyId, manifest.Code, coreDb))
                     _companyActiveModules.Add(manifest.Code);
             }

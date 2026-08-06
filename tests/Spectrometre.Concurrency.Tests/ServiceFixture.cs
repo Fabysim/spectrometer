@@ -208,9 +208,11 @@ public sealed class ServiceFixture : IAsyncLifetime
             await provisioner.ApplyModuleSchemaAsync(db, "public", company.SchemaName);
         }
 
-        // Ordre imposé par les dépendances déclarées aux manifestes (Compatibilite requiert ProfilCandidat
-        // + ProfilEntreprise ; PostesRecrutement requiert ProfilEntreprise ; Entretien requiert Compatibilite).
-        await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest.Code, coreDb);
+        // Ordre imposé par les dépendances déclarées aux manifestes (Compatibilite requiert ProfilEntreprise ;
+        // PostesRecrutement requiert ProfilEntreprise ; Entretien requiert Compatibilite). ProfilCandidat
+        // n'est PLUS activé ici pour le sujet Company (cycle correctif « modules personnels ») : Compatibilite
+        // ne le liste plus comme dépendance (voir son manifeste) — l'activer artificiellement pour l'entreprise
+        // n'a jamais servi à rien à l'exécution et faisait apparaître à tort ce module personnel dans son menu.
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest.Code, coreDb);
