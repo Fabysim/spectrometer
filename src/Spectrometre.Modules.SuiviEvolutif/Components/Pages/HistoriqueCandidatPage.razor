@@ -1,26 +1,30 @@
 @page "/candidat/historique"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Modules.ProfilCandidat.Services
+@using Spectrometre.Modules.SuiviEvolutif.Resources
 @using Spectrometre.Modules.SuiviEvolutif.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject ICandidateProfileService CandidateProfileService
 @inject ISuiviEvolutifService SuiviEvolutifService
+@inject IStringLocalizer<SuiviEvolutifResource> Localizer
 
-<PageTitle>Historique de mon profil</PageTitle>
+<PageTitle>@Localizer["HistoriqueDeMonProfil"]</PageTitle>
 
-<h1>Historique de mon profil</h1>
-<p class="hint">Les modifications apportées à votre grille de compatibilité, les plus récentes en premier.</p>
+<h1>@Localizer["HistoriqueDeMonProfil"]</h1>
+<p class="hint">@Localizer["HistoriqueCandidatHint"]</p>
 
 @if (_historique is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (_historique.Count == 0)
 {
-    <p class="hint">Aucune modification enregistrée pour le moment.</p>
+    <p class="hint">@Localizer["AucuneModificationEnregistree"]</p>
 }
 else
 {
@@ -28,7 +32,7 @@ else
         @foreach (var entree in _historique)
         {
             <li class="historique-entree">
-                <span class="historique-date">@entree.Horodatage.LocalDateTime.ToString("d MMMM yyyy à HH:mm")</span>
+                <span class="historique-date">@entree.Horodatage.LocalDateTime.ToString(Localizer["DateFormat"].Value, CultureInfo.CurrentUICulture)</span>
                 <p>@Phrase(entree)</p>
             </li>
         }
@@ -62,11 +66,15 @@ else
     /// des deux côtés reste honnête et lisible, plutôt que de prétendre isoler « le » changement. Les
     /// réponses au questionnaire étant du texte libre potentiellement long, les valeurs affichées sont
     /// tronquées (voir <see cref="Tronquer"/>) — jamais la donnée stockée elle-même, qui reste complète en base.
+    /// AncienneValeur/NouvelleValeur restent toujours dans leur langue de saisie d'origine (contenu
+    /// utilisateur, jamais traduit) — seul <c>entree.Description</c> (voir SuiviEvolutifService.LabelPourChamp)
+    /// et le mot « (aucun) » sont bilingues.
     /// </summary>
-    private static string Phrase(HistoriqueEntreeView entree)
+    private string Phrase(HistoriqueEntreeView entree)
     {
-        var ancien = string.IsNullOrEmpty(entree.AncienneValeur) ? "(aucun)" : Tronquer(entree.AncienneValeur);
-        var nouveau = string.IsNullOrEmpty(entree.NouvelleValeur) ? "(aucun)" : Tronquer(entree.NouvelleValeur);
+        var aucun = Localizer["Aucun"].Value;
+        var ancien = string.IsNullOrEmpty(entree.AncienneValeur) ? aucun : Tronquer(entree.AncienneValeur);
+        var nouveau = string.IsNullOrEmpty(entree.NouvelleValeur) ? aucun : Tronquer(entree.NouvelleValeur);
         return $"{entree.Description} : « {ancien} » → « {nouveau} ».";
     }
 
