@@ -46,4 +46,39 @@ public static class CompanyThemeLabels
         CompanyTheme.Synthese => "J. Synthèse",
         _ => theme.ToString(),
     };
+
+    /// <summary>Traduction automatique pour l'instant (bilinguisme, cycle contenu métier) — à affiner plus tard.</summary>
+    public static string LabelEn(CompanyTheme theme) => theme switch
+    {
+        CompanyTheme.Identification => "A. General identification of the company",
+        CompanyTheme.MissionVision => "B. Mission, vision and social purpose of the company",
+        CompanyTheme.Valeurs => "C. Stated values and values actually practiced",
+        CompanyTheme.CultureClimat => "D. Work culture and organizational climate",
+        CompanyTheme.Leadership => "E. Leadership style and management approach",
+        CompanyTheme.ModeRelationnel => "F. Relational style and internal communication",
+        CompanyTheme.Reconnaissance => "G. Recognition, motivation and career progression",
+        CompanyTheme.ConditionsTravail => "H. Working conditions and job requirements",
+        CompanyTheme.ProfilCollaborateurs => "I. Profile of employees who thrive at the company",
+        CompanyTheme.Synthese => "J. Synthesis of the company's socio-professional profile",
+        _ => theme.ToString(),
+    };
+
+    /// <summary>Traduction automatique pour l'instant (bilinguisme, cycle contenu métier) — à affiner plus tard.</summary>
+    public static string TabLabelEn(CompanyTheme theme) => theme switch
+    {
+        CompanyTheme.Identification => "A. Identity",
+        CompanyTheme.MissionVision => "B. Mission",
+        CompanyTheme.Valeurs => "C. Values",
+        CompanyTheme.CultureClimat => "D. Culture",
+        CompanyTheme.Leadership => "E. Leadership",
+        CompanyTheme.ModeRelationnel => "F. Relational",
+        CompanyTheme.Reconnaissance => "G. Recognition",
+        CompanyTheme.ConditionsTravail => "H. Conditions",
+        CompanyTheme.ProfilCollaborateurs => "I. Desired profile",
+        CompanyTheme.Synthese => "J. Synthesis",
+        _ => theme.ToString(),
+    };
+
+    public static string Label(CompanyTheme theme, bool english) => english ? LabelEn(theme) : Label(theme);
+    public static string TabLabel(CompanyTheme theme, bool english) => english ? TabLabelEn(theme) : TabLabel(theme);
 }

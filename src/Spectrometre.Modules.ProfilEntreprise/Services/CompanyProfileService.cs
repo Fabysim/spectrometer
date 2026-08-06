@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Compatibility;
 using Spectrometre.Core.Suivi;
@@ -47,10 +48,14 @@ public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbCo
 
         var questions = await db.CompanyQuestions.OrderBy(q => q.Number).ToListAsync(cancellationToken);
 
+        // Bilinguisme (cycle contenu métier) : Text/TextEn choisis selon la culture courante — jamais
+        // AnswerText, qui reste la réponse libre de l'entreprise, dans la langue où elle l'a saisie.
+        var english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
         return questions.Select(q =>
         {
             answers.TryGetValue(q.Id, out var answer);
-            return new CompanyQuestionView(q.Id, q.Theme, q.Number, q.Text, answer?.AnswerText, answer?.UpdatedAt);
+            return new CompanyQuestionView(q.Id, q.Theme, q.Number, english ? q.TextEn ?? q.Text : q.Text, answer?.AnswerText, answer?.UpdatedAt);
         }).ToList();
     }
 

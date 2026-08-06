@@ -1,28 +1,32 @@
 @page "/entreprise/profil"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Compatibility
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.ProfilEntreprise.Entities
+@using Spectrometre.Modules.ProfilEntreprise.Resources
 @using Spectrometre.Modules.ProfilEntreprise.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject ICompanyProfileService CompanyProfileService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<ProfilEntrepriseResource> Localizer
 
-<PageTitle>Profil entreprise</PageTitle>
+<PageTitle>@Localizer["ProfilEntreprise"]</PageTitle>
 
 @if (_companies is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (_companies.Count == 0)
 {
-    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+    <p>@Localizer["AucuneEntrepriseAssociee"]</p>
 }
 else
 {
@@ -30,7 +34,7 @@ else
         @if (_companies.Count > 1)
         {
             <label>
-                Entreprise active :
+                @Localizer["EntrepriseActive"]
                 <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
                     @foreach (var company in _companies)
                     {
@@ -53,11 +57,11 @@ else
             @foreach (var theme in themes)
             {
                 <button class="@(!_showGrilleK && theme == _activeTheme ? "active" : "")" @onclick="() => { _showGrilleK = false; _activeTheme = theme; }">
-                    @CompanyThemeLabels.TabLabel(theme)
+                    @CompanyThemeLabels.TabLabel(theme, _english)
                 </button>
             }
             <button class="@(_showGrilleK ? "active" : "")" @onclick="() => _showGrilleK = true">
-                @(GrilleComplete ? "✅" : "◯") K. Grille compatibilité
+                @(GrilleComplete ? "✅" : "◯") @Localizer["GrilleCompatibiliteTab"]
             </button>
         </div>
 
@@ -65,7 +69,7 @@ else
         {
             <div class="entreprise-body">
                 <section class="entreprise-form">
-                    <h3>@CompanyThemeLabels.Label(_activeTheme)</h3>
+                    <h3>@CompanyThemeLabels.Label(_activeTheme, _english)</h3>
                     @foreach (var question in _questions.Where(q => q.Theme == _activeTheme))
                     {
                         <div class="question">
@@ -76,8 +80,8 @@ else
                 </section>
 
                 <aside class="entreprise-synthese">
-                    <h3>SYNTHÈSE ENTREPRISE</h3>
-                    <p class="hint">La synthèse (section J) est renseignée directement par l'entreprise dans l'onglet « J. Synthèse ».</p>
+                    <h3>@Localizer["SyntheseEntreprise"]</h3>
+                    <p class="hint">@Localizer["SyntheseEntrepriseHint"]</p>
                 </aside>
             </div>
         }
@@ -85,115 +89,112 @@ else
         {
             <div class="entreprise-body">
                 <section class="entreprise-form">
-                    <h3>K. Grille complémentaire des critères pour le moteur de compatibilité</h3>
-                    <p class="hint">
-                        Transforme les informations qualitatives du profil en critères directement
-                        comparables avec le profil du candidat.
-                    </p>
+                    <h3>@Localizer["GrilleK_Entete"]</h3>
+                    <p class="hint">@Localizer["GrilleK_Hint"]</p>
 
                     <div class="grille-champ">
-                        <label>Compatibilité technique</label>
-                        <p class="grille-question">Sélectionnez les compétences indispensables dès l'entrée en fonction.</p>
+                        <label>@Localizer["CompatibiliteTechnique"]</label>
+                        <p class="grille-question">@Localizer["QuestionTechnique"]</p>
                         <div class="tag-checkboxes">
                             @foreach (var tag in CompatibilityVocabulary.TechniqueTags)
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.TechniqueTags.Contains(tag)"
                                            @onchange="e => ToggleTagAsync(CriteriaField.Technique, _grille.TechniqueTags, tag, (bool)e.Value!)" />
-                                    @tag
+                                    @CompatibilityVocabulary.DisplayTag(tag, _english)
                                 </label>
                             }
                         </div>
                         <textarea @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Technique, e.Value?.ToString())"
-                                  placeholder="Notes libres (optionnel — sert à l'entretien, n'entre pas dans le calcul)" rows="2"></textarea>
+                                  placeholder="@Localizer["NotesLibresTechnique"]" rows="2"></textarea>
                     </div>
 
                     <div class="grille-champ">
-                        <label>Compatibilité comportementale</label>
-                        <p class="grille-question">Sélectionnez les comportements professionnels attendus au quotidien.</p>
+                        <label>@Localizer["CompatibiliteComportementale"]</label>
+                        <p class="grille-question">@Localizer["QuestionComportementale"]</p>
                         <div class="tag-checkboxes">
                             @foreach (var tag in CompatibilityVocabulary.ComportementaleTags)
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.ComportementaleTags.Contains(tag)"
                                            @onchange="e => ToggleTagAsync(CriteriaField.Comportementale, _grille.ComportementaleTags, tag, (bool)e.Value!)" />
-                                    @tag
+                                    @CompatibilityVocabulary.DisplayTag(tag, _english)
                                 </label>
                             }
                         </div>
                         <textarea @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Comportementale, e.Value?.ToString())"
-                                  placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                                  placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                     </div>
 
                     <div class="grille-champ">
-                        <label>Compatibilité culturelle</label>
-                        <p class="grille-question">Sélectionnez les valeurs réellement pratiquées dans l'entreprise.</p>
+                        <label>@Localizer["CompatibiliteCulturelle"]</label>
+                        <p class="grille-question">@Localizer["QuestionCulturelle"]</p>
                         <div class="tag-checkboxes">
                             @foreach (var tag in CompatibilityVocabulary.CulturelleTags)
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.CulturelleTags.Contains(tag)"
                                            @onchange="e => ToggleTagAsync(CriteriaField.Culturelle, _grille.CulturelleTags, tag, (bool)e.Value!)" />
-                                    @tag
+                                    @CompatibilityVocabulary.DisplayTag(tag, _english)
                                 </label>
                             }
                         </div>
                         <textarea @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Culturelle, e.Value?.ToString())"
-                                  placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                                  placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                     </div>
 
                     <div class="grille-champ">
-                        <label>Compatibilité organisationnelle — rythme de travail</label>
-                        <p class="grille-question">Quel rythme de travail le poste exige-t-il réellement ?</p>
+                        <label>@Localizer["CompatibiliteOrganisationnelle"]</label>
+                        <p class="grille-question">@Localizer["QuestionRythme"]</p>
                         <select value="@(_grille.RythmeTravail?.ToString() ?? "")" @onchange="OnRythmeChangedAsync">
-                            <option value="">— Choisir —</option>
+                            <option value="">@Localizer["ChoisirOption"]</option>
                             @foreach (var (valeur, libelle) in CompatibilityVocabulary.RythmeTravailLabels)
                             {
-                                <option value="@valeur">@valeur — @libelle</option>
+                                <option value="@valeur">@valeur — @CompatibilityVocabulary.DisplayRythmeTravail(valeur, _english)</option>
                             }
                         </select>
                         <textarea @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Organisationnelle, e.Value?.ToString())"
-                                  placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                                  placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                     </div>
 
                     <div class="grille-champ">
-                        <label>Compatibilité motivationnelle</label>
-                        <p class="grille-question">Sélectionnez ce qui motive généralement les collaborateurs dans cette entreprise.</p>
+                        <label>@Localizer["CompatibiliteMotivationnelle"]</label>
+                        <p class="grille-question">@Localizer["QuestionMotivationnelle"]</p>
                         <div class="tag-checkboxes">
                             @foreach (var tag in CompatibilityVocabulary.MotivationnelleTags)
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.MotivationnelleTags.Contains(tag)"
                                            @onchange="e => ToggleTagAsync(CriteriaField.Motivationnelle, _grille.MotivationnelleTags, tag, (bool)e.Value!)" />
-                                    @tag
+                                    @CompatibilityVocabulary.DisplayTag(tag, _english)
                                 </label>
                             }
                         </div>
                         <textarea @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Motivationnelle, e.Value?.ToString())"
-                                  placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                                  placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                     </div>
 
                     <div class="grille-champ">
-                        <label>Points de vigilance</label>
-                        <p class="grille-question">Sélectionnez les situations qui peuvent créer de la fatigue, du stress ou des départs prématurés.</p>
+                        <label>@Localizer["PointsDeVigilance"]</label>
+                        <p class="grille-question">@Localizer["QuestionPointsVigilance"]</p>
                         <div class="tag-checkboxes">
                             @foreach (var tag in CompatibilityVocabulary.PointsVigilanceTags)
                             {
                                 <label class="tag-checkbox">
                                     <input type="checkbox" checked="@_grille.PointsVigilanceTags.Contains(tag)"
                                            @onchange="e => ToggleTagAsync(CriteriaField.PointsVigilance, _grille.PointsVigilanceTags, tag, (bool)e.Value!)" />
-                                    @tag
+                                    @CompatibilityVocabulary.DisplayTag(tag, _english)
                                 </label>
                             }
                         </div>
                         <textarea @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.PointsVigilance, e.Value?.ToString())"
-                                  placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                                  placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                     </div>
                 </section>
 
                 <aside class="entreprise-synthese">
-                    <h3>SYNTHÈSE ENTREPRISE</h3>
-                    <p class="hint">@(GrilleComplete ? "✅ Grille de compatibilité complète." : "◯ Grille de compatibilité incomplète.")</p>
+                    <h3>@Localizer["SyntheseEntreprise"]</h3>
+                    <p class="hint">@(GrilleComplete ? "✅ " + Localizer["GrilleComplete"] : "◯ " + Localizer["GrilleIncomplete"])</p>
                 </aside>
             </div>
         }
@@ -210,6 +211,7 @@ else
     private CompanyTheme _activeTheme = CompanyTheme.Identification;
     private bool _showGrilleK;
     private readonly GrilleModel _grille = new();
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     private bool GrilleComplete =>
         _grille.TechniqueTags.Count > 0

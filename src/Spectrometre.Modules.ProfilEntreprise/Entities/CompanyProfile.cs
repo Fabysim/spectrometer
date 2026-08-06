@@ -18,6 +18,9 @@ public sealed class CompanyQuestion
     public CompanyTheme Theme { get; set; }
     public int Number { get; set; }
     public required string Text { get; set; }
+
+    /// <summary>Traduction automatique pour l'instant (bilinguisme, cycle contenu métier) — à affiner plus tard. Nullable : retombe sur <see cref="Text"/> à l'affichage si absente.</summary>
+    public string? TextEn { get; set; }
 }
 
 public sealed class CompanyAnswer

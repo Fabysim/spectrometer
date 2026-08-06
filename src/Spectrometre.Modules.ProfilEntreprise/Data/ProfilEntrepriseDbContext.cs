@@ -50,6 +50,7 @@ public sealed class ProfilEntrepriseDbContext(DbContextOptions<ProfilEntrepriseD
             Number = seed.Number,
             Theme = seed.Theme,
             Text = seed.Text,
+            TextEn = seed.TextEn,
         });
 
         builder.Entity<CompanyQuestion>().HasData(questions);

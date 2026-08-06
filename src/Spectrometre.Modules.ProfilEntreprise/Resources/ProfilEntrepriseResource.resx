@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="ProfilEntreprise" xml:space="preserve"><value>Profil entreprise</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
+  <data name="AucuneEntrepriseAssociee" xml:space="preserve"><value>Aucune entreprise associée à votre compte pour le moment.</value></data>
+  <data name="EntrepriseActive" xml:space="preserve"><value>Entreprise active :</value></data>
+  <data name="GrilleCompatibiliteTab" xml:space="preserve"><value>K. Grille compatibilité</value></data>
+  <data name="SyntheseEntreprise" xml:space="preserve"><value>SYNTHÈSE ENTREPRISE</value></data>
+  <data name="SyntheseEntrepriseHint" xml:space="preserve"><value>La synthèse (section J) est renseignée directement par l'entreprise dans l'onglet « J. Synthèse ».</value></data>
+  <data name="GrilleK_Entete" xml:space="preserve"><value>K. Grille complémentaire des critères pour le moteur de compatibilité</value></data>
+  <data name="GrilleK_Hint" xml:space="preserve"><value>Transforme les informations qualitatives du profil en critères directement comparables avec le profil du candidat.</value></data>
+  <data name="CompatibiliteTechnique" xml:space="preserve"><value>Compatibilité technique</value></data>
+  <data name="QuestionTechnique" xml:space="preserve"><value>Sélectionnez les compétences indispensables dès l'entrée en fonction.</value></data>
+  <data name="NotesLibresTechnique" xml:space="preserve"><value>Notes libres (optionnel — sert à l'entretien, n'entre pas dans le calcul)</value></data>
+  <data name="CompatibiliteComportementale" xml:space="preserve"><value>Compatibilité comportementale</value></data>
+  <data name="QuestionComportementale" xml:space="preserve"><value>Sélectionnez les comportements professionnels attendus au quotidien.</value></data>
+  <data name="NotesLibres" xml:space="preserve"><value>Notes libres (optionnel)</value></data>
+  <data name="CompatibiliteCulturelle" xml:space="preserve"><value>Compatibilité culturelle</value></data>
+  <data name="QuestionCulturelle" xml:space="preserve"><value>Sélectionnez les valeurs réellement pratiquées dans l'entreprise.</value></data>
+  <data name="CompatibiliteOrganisationnelle" xml:space="preserve"><value>Compatibilité organisationnelle — rythme de travail</value></data>
+  <data name="QuestionRythme" xml:space="preserve"><value>Quel rythme de travail le poste exige-t-il réellement ?</value></data>
+  <data name="ChoisirOption" xml:space="preserve"><value>— Choisir —</value></data>
+  <data name="CompatibiliteMotivationnelle" xml:space="preserve"><value>Compatibilité motivationnelle</value></data>
+  <data name="QuestionMotivationnelle" xml:space="preserve"><value>Sélectionnez ce qui motive généralement les collaborateurs dans cette entreprise.</value></data>
+  <data name="PointsDeVigilance" xml:space="preserve"><value>Points de vigilance</value></data>
+  <data name="QuestionPointsVigilance" xml:space="preserve"><value>Sélectionnez les situations qui peuvent créer de la fatigue, du stress ou des départs prématurés.</value></data>
+  <data name="GrilleComplete" xml:space="preserve"><value>Grille de compatibilité complète.</value></data>
+  <data name="GrilleIncomplete" xml:space="preserve"><value>Grille de compatibilité incomplète.</value></data>
+</root>
