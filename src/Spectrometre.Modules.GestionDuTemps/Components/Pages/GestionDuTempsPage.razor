@@ -1,0 +1,340 @@
+@page "/gestion-du-temps"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IGestionDuTempsService GdtService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject CoreDbContext CoreDb
+
+<PageTitle>Gestion du temps</PageTitle>
+
+<h1>Gestion du temps</h1>
+<p class="hint">
+    Vos rituels (catégories récurrentes) et vos rappels (occurrences datées) — personnels ou rattachés à
+    l'une des entreprises que vous gérez. Module indépendant du domaine Matching Emploi, disponible pour
+    tout profil.
+</p>
+
+@if (_userId is null)
+{
+    <p>Chargement…</p>
+}
+else
+{
+    <div class="entreprise-header">
+        <label>
+            Filtrer :
+            <select value="@_filtreValue" @onchange="OnFiltreChangedAsync">
+                <option value="tout">Tous mes rituels</option>
+                <option value="personnel">Personnels uniquement</option>
+                @foreach (var company in _companies)
+                {
+                    <option value="@company.Id">@company.Name</option>
+                }
+            </select>
+        </label>
+    </div>
+
+    <section class="gdt-types">
+        <h3>Mes catégories de temps</h3>
+        @if (_types is null)
+        {
+            <p>Chargement…</p>
+        }
+        else
+        {
+            @foreach (var type in _types)
+            {
+                <div class="gdt-type-carte">
+                    <span class="gdt-couleur" style="background:@CouleurCategorie(type.Cle)"></span>
+                    <strong>@type.Libelle</strong>
+                    <span class="gdt-horaire">@type.HeureDebut.ToString("HH:mm") – @type.HeureFin.ToString("HH:mm")</span>
+                    <span class="gdt-recurrence">@type.RecurrenceJours</span>
+                    @if (type.CompanyId is int cid)
+                    {
+                        <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
+                    }
+                    <button @onclick="() => CommencerEditionType(type)">Modifier</button>
+                </div>
+            }
+
+            <div class="gdt-form">
+                <h4>@(_typeEnEdition is null ? "Nouvelle catégorie" : $"Modifier « {_typeEnEdition.Libelle} »")</h4>
+                <div class="champ">
+                    <label>Clé</label>
+                    <input @bind="_typeCle" @bind:event="oninput" placeholder="ex. pro" />
+                </div>
+                <div class="champ">
+                    <label>Libellé</label>
+                    <input @bind="_typeLibelle" @bind:event="oninput" placeholder="ex. Professionnel" />
+                </div>
+                <div class="champ">
+                    <label>Heure de début</label>
+                    <input type="time" @bind="_typeHeureDebut" />
+                </div>
+                <div class="champ">
+                    <label>Heure de fin</label>
+                    <input type="time" @bind="_typeHeureFin" />
+                </div>
+                <div class="champ">
+                    <label>Jours de récurrence</label>
+                    <input @bind="_typeRecurrence" @bind:event="oninput" placeholder="ex. L,M,Me,J,V" />
+                </div>
+                <div class="champ">
+                    <label>Entreprise (optionnel)</label>
+                    <select @bind="_typeCompanyIdText">
+                        <option value="">Personnel</option>
+                        @foreach (var company in _companies)
+                        {
+                            <option value="@company.Id">@company.Name</option>
+                        }
+                    </select>
+                </div>
+                <button @onclick="EnregistrerTypeAsync" disabled="@(string.IsNullOrWhiteSpace(_typeCle) || string.IsNullOrWhiteSpace(_typeLibelle))">Enregistrer</button>
+                @if (_typeEnEdition is not null)
+                {
+                    <button @onclick="AnnulerEditionType">Annuler</button>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="gdt-activites">
+        <h3>Mes rappels</h3>
+        @if (_activites is null)
+        {
+            <p>Chargement…</p>
+        }
+        else if (_activites.Count == 0)
+        {
+            <p class="hint">Aucun rappel pour ce filtre — créez-en un ci-dessous.</p>
+        }
+        else
+        {
+            @foreach (var activite in _activites)
+            {
+                <div class="gdt-activite-carte @(activite.Statut == ActiviteStatuts.Fait ? "gdt-fait" : "")">
+                    <span class="gdt-couleur" style="background:@activite.TypeCouleur"></span>
+                    <strong>@activite.Nom</strong>
+                    <span class="gdt-type-libelle">@activite.TypeLibelle</span>
+                    <span class="gdt-date">@activite.DateActivite.ToString("dd/MM/yyyy") @activite.HeureDebut.ToString("HH:mm") · @activite.DureeMinutes min</span>
+                    @if (activite.CompanyId is int cid)
+                    {
+                        <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
+                    }
+                    <button @onclick="() => BasculerStatutAsync(activite)">
+                        @(activite.Statut == ActiviteStatuts.Fait ? "Marquer à faire" : "Marquer fait")
+                    </button>
+                    <button @onclick="() => SupprimerActiviteAsync(activite.Id)">Supprimer</button>
+                </div>
+            }
+        }
+
+        @if (_types is { Count: > 0 })
+        {
+            <div class="gdt-form">
+                <h4>Nouveau rappel</h4>
+                <div class="champ">
+                    <label>Nom</label>
+                    <input @bind="_activiteNom" @bind:event="oninput" placeholder="ex. Point d'équipe" />
+                </div>
+                <div class="champ">
+                    <label>Catégorie</label>
+                    <select @bind="_activiteTypeDeTempsId">
+                        @foreach (var type in _types)
+                        {
+                            <option value="@type.Id">@type.Libelle</option>
+                        }
+                    </select>
+                </div>
+                <div class="champ">
+                    <label>Date</label>
+                    <input type="date" @bind="_activiteDate" />
+                </div>
+                <div class="champ">
+                    <label>Heure de début</label>
+                    <input type="time" @bind="_activiteHeureDebut" />
+                </div>
+                <div class="champ">
+                    <label>Durée (minutes)</label>
+                    <input type="number" min="5" step="5" @bind="_activiteDuree" />
+                </div>
+                <div class="champ">
+                    <label>Entreprise (optionnel)</label>
+                    <select @bind="_activiteCompanyIdText">
+                        <option value="">Personnel</option>
+                        @foreach (var company in _companies)
+                        {
+                            <option value="@company.Id">@company.Name</option>
+                        }
+                    </select>
+                </div>
+                <button @onclick="CreerActiviteAsync" disabled="@string.IsNullOrWhiteSpace(_activiteNom)">Créer le rappel</button>
+            </div>
+        }
+    </section>
+
+    @if (!string.IsNullOrEmpty(_erreur))
+    {
+        <p class="erreur">@_erreur</p>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private List<Company> _companies = [];
+    private List<TypeDeTempsView>? _types;
+    private List<ActiviteView>? _activites;
+    private string? _erreur;
+
+    // Filtre : "tout" | "personnel" | "<companyId>"
+    private string _filtreValue = "tout";
+
+    private TypeDeTempsView? _typeEnEdition;
+    private string _typeCle = "";
+    private string _typeLibelle = "";
+    private TimeOnly _typeHeureDebut = new(9, 0);
+    private TimeOnly _typeHeureFin = new(17, 0);
+    private string _typeRecurrence = "L,M,Me,J,V";
+    private string _typeCompanyIdText = "";
+
+    private string _activiteNom = "";
+    private int _activiteTypeDeTempsId;
+    private DateOnly _activiteDate = DateOnly.FromDateTime(DateTime.Today);
+    private TimeOnly _activiteHeureDebut = new(9, 0);
+    private int _activiteDuree = 30;
+    private string _activiteCompanyIdText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _userId = userId;
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+
+        await RefreshTypesAsync();
+        await RefreshActivitesAsync();
+    }
+
+    private (int? CompanyId, bool PersonnelUniquement) ParseFiltre() => _filtreValue switch
+    {
+        "tout" => (null, false),
+        "personnel" => (null, true),
+        _ => (int.Parse(_filtreValue), false),
+    };
+
+    private async Task RefreshTypesAsync()
+    {
+        _types = (await GdtService.GetTypesDeTempsAsync(_userId!)).ToList();
+        if (_types.Count > 0 && _types.All(t => t.Id != _activiteTypeDeTempsId))
+            _activiteTypeDeTempsId = _types[0].Id;
+    }
+
+    private async Task RefreshActivitesAsync()
+    {
+        var (companyId, personnelUniquement) = ParseFiltre();
+        _activites = (await GdtService.GetActivitesAsync(_userId!, companyId, personnelUniquement)).ToList();
+    }
+
+    private async Task OnFiltreChangedAsync(ChangeEventArgs e)
+    {
+        _filtreValue = e.Value?.ToString() ?? "tout";
+        await RefreshActivitesAsync();
+    }
+
+    private string? NomEntreprise(int companyId) => _companies.FirstOrDefault(c => c.Id == companyId)?.Name;
+
+    private static string CouleurCategorie(string cle) => cle switch
+    {
+        "sommeil" => "#4a3f6b",
+        "perso" => "#345f6d",
+        "pro" => "#1e6b4a",
+        "admin" => "#7a5c1e",
+        "famille" => "#7a3f2d",
+        "social" => "#3d4f8a",
+        _ => "#6b5248",
+    };
+
+    private void CommencerEditionType(TypeDeTempsView type)
+    {
+        _typeEnEdition = type;
+        _typeCle = type.Cle;
+        _typeLibelle = type.Libelle;
+        _typeHeureDebut = type.HeureDebut;
+        _typeHeureFin = type.HeureFin;
+        _typeRecurrence = type.RecurrenceJours;
+        _typeCompanyIdText = type.CompanyId?.ToString() ?? "";
+    }
+
+    private void AnnulerEditionType()
+    {
+        _typeEnEdition = null;
+        _typeCle = "";
+        _typeLibelle = "";
+        _typeHeureDebut = new(9, 0);
+        _typeHeureFin = new(17, 0);
+        _typeRecurrence = "L,M,Me,J,V";
+        _typeCompanyIdText = "";
+    }
+
+    private async Task EnregistrerTypeAsync()
+    {
+        _erreur = null;
+        var companyId = string.IsNullOrWhiteSpace(_typeCompanyIdText) ? (int?)null : int.Parse(_typeCompanyIdText);
+        try
+        {
+            await GdtService.UpsertTypeDeTempsAsync(
+                _userId!, _typeEnEdition?.Id, _typeCle, _typeLibelle, _typeHeureDebut, _typeHeureFin, _typeRecurrence,
+                _typeEnEdition?.OrdreAffichage ?? (_types?.Count ?? 0), companyId);
+
+            AnnulerEditionType();
+            await RefreshTypesAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private async Task CreerActiviteAsync()
+    {
+        _erreur = null;
+        var companyId = string.IsNullOrWhiteSpace(_activiteCompanyIdText) ? (int?)null : int.Parse(_activiteCompanyIdText);
+        try
+        {
+            await GdtService.CreateActiviteAsync(_userId!, _activiteTypeDeTempsId, _activiteNom, _activiteDate, _activiteHeureDebut, _activiteDuree, companyId);
+            _activiteNom = "";
+            await RefreshActivitesAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private async Task BasculerStatutAsync(ActiviteView activite)
+    {
+        var nouveauStatut = activite.Statut == ActiviteStatuts.Fait ? ActiviteStatuts.AFaire : ActiviteStatuts.Fait;
+        await GdtService.SetActiviteStatutAsync(_userId!, activite.Id, nouveauStatut);
+        await RefreshActivitesAsync();
+    }
+
+    private async Task SupprimerActiviteAsync(int activiteId)
+    {
+        await GdtService.DeleteActiviteAsync(_userId!, activiteId);
+        await RefreshActivitesAsync();
+    }
+}

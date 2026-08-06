@@ -12,6 +12,8 @@ using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Compatibilite.Data;
 using Spectrometre.Modules.Entretien;
 using Spectrometre.Modules.Entretien.Data;
+using Spectrometre.Modules.GestionDuTemps;
+using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Data;
 using Spectrometre.Modules.PostesRecrutement.Services;
@@ -83,6 +85,9 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddEntretienModule(config);
         services.AddSuiviEvolutifModule(config);
         services.AddAnalyticsModule();
+        // Pas de moduleRegistry.Register/ActivateForCompanyAsync pour ce module : voir le commentaire sur
+        // GestionDuTemps.ServiceCollectionExtensions.Manifest — indépendant de toute notion d'entreprise.
+        services.AddGestionDuTempsModule(config);
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
         // PostesRecrutement mais enregistrée ici (pas depuis Compatibilite).
@@ -132,6 +137,9 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         await using var suiviEntrepriseDb = await Services.GetRequiredService<IDbContextFactory<SuiviEvolutifEntrepriseDbContext>>().CreateDbContextAsync();
         await suiviEntrepriseDb.Database.MigrateAsync();
+
+        await using var gestionDuTempsDb = await Services.GetRequiredService<IDbContextFactory<GestionDuTempsDbContext>>().CreateDbContextAsync();
+        await gestionDuTempsDb.Database.MigrateAsync();
     }
 
     /// <summary>

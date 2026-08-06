@@ -28,6 +28,7 @@
     <ProjectReference Include="..\Spectrometre.Modules.Entretien\Spectrometre.Modules.Entretien.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.SuiviEvolutif\Spectrometre.Modules.SuiviEvolutif.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.Analytics\Spectrometre.Modules.Analytics.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.GestionDuTemps\Spectrometre.Modules.GestionDuTemps.csproj" />
   </ItemGroup>
 
 </Project>

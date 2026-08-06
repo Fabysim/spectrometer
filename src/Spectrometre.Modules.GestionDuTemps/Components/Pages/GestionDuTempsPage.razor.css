@@ -1,0 +1,62 @@
+.gdt-type-carte, .gdt-activite-carte {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.gdt-activite-carte.gdt-fait {
+    opacity: 0.6;
+}
+
+.gdt-couleur {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 999px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.gdt-horaire, .gdt-recurrence, .gdt-date, .gdt-type-libelle {
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.gdt-tag-entreprise {
+    background: #eef2ff;
+    color: #3d4f8a;
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    font-size: 0.8rem;
+}
+
+.gdt-form {
+    border: 1px solid #ccd6f6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    max-width: 500px;
+}
+
+.gdt-form .champ {
+    margin-bottom: 0.75rem;
+}
+
+.gdt-form .champ label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.gdt-form .champ input, .gdt-form .champ select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.erreur {
+    color: #b3261e;
+}

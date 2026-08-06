@@ -12,6 +12,8 @@ using Spectrometre.Host.Onboarding;
 using Spectrometre.Modules.Analytics;
 using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Entretien;
+using Spectrometre.Modules.GestionDuTemps;
+using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
@@ -37,6 +39,9 @@ builder.Services.AddVivierModule();
 builder.Services.AddEntretienModule(builder.Configuration);
 builder.Services.AddSuiviEvolutifModule(builder.Configuration);
 builder.Services.AddAnalyticsModule();
+// Indépendant du domaine Matching Emploi (voir son manifeste) — l'ordre par rapport aux autres AddXxxModule
+// n'a pas d'importance, aucune dépendance croisée.
+builder.Services.AddGestionDuTempsModule(builder.Configuration);
 
 // Inversion de dépendance : Compatibilite consomme ICandidatureExistenceChecker (défini dans Core) sans
 // connaître son implémentation. C'est ICI, dans Host — le seul projet qui référence à la fois Compatibilite
@@ -100,6 +105,16 @@ using (var startupScope = app.Services.CreateScope())
         suiviEvolutifCandidatDb.Database.Migrate();
     }
 
+    // Gestion du temps : schéma fixe non tenant-scopé, comme ProfilCandidat — migré globalement ici. Ce
+    // module n'a pas de notion d'entreprise, il n'est donc PAS inscrit à moduleRegistry.Register/
+    // TenantSchemaModuleCatalog/CompanyOnboardingService (voir le commentaire sur son Manifest).
+    using (var gestionDuTempsDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<GestionDuTempsDbContext>>()
+               .CreateDbContext())
+    {
+        gestionDuTempsDb.Database.Migrate();
+    }
+
     // Comble rétroactivement le schéma de tout module tenant-scopé marqué actif pour une entreprise
     // existante mais pas encore provisionné (ex. une entreprise créée avant l'ajout d'un module) — voir
     // TenantSchemaSynchronizer. Remplace les scripts one-off manuels utilisés jusqu'ici à chaque nouveau
@@ -139,6 +154,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.Vivier.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Entretien.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.Analytics.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.Analytics.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions).Assembly);
 
 app.Run();
