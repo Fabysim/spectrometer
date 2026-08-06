@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
+
+  <data name="PostesRecrutement" xml:space="preserve"><value>Jobs &amp; recruitment</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
+  <data name="AucuneEntrepriseAssociee" xml:space="preserve"><value>No company associated with your account at the moment.</value></data>
+  <data name="EntrepriseActive" xml:space="preserve"><value>Active company:</value></data>
+  <data name="NouveauPoste" xml:space="preserve"><value>New job</value></data>
+  <data name="Titre" xml:space="preserve"><value>Title</value></data>
+  <data name="Departement" xml:space="preserve"><value>Department</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="CreerLePoste" xml:space="preserve"><value>Create job</value></data>
+  <data name="PostesDeLEntreprise" xml:space="preserve"><value>Company jobs</value></data>
+  <data name="AucunPosteCree" xml:space="preserve"><value>No job created yet.</value></data>
+  <data name="Fermer" xml:space="preserve"><value>Close</value></data>
+  <data name="Rouvrir" xml:space="preserve"><value>Reopen</value></data>
+  <data name="MasquerLesCandidatures" xml:space="preserve"><value>Hide applications</value></data>
+  <data name="VoirLesCandidatures" xml:space="preserve"><value>View applications</value></data>
+  <data name="ChargementDesCandidatures" xml:space="preserve"><value>Loading applications…</value></data>
+  <data name="AucuneCandidaturePourPoste" xml:space="preserve"><value>No applications received for this job.</value></data>
+  <data name="CandidatProfil" xml:space="preserve"><value>Candidate (profile)</value></data>
+  <data name="Statut" xml:space="preserve"><value>Status</value></data>
+  <data name="Compatibilite" xml:space="preserve"><value>Compatibility</value></data>
+  <data name="Detail" xml:space="preserve"><value>Details</value></data>
+  <data name="PreparerLEntretien" xml:space="preserve"><value>Prepare the interview</value></data>
+  <data name="PostesOuverts" xml:space="preserve"><value>Open jobs</value></data>
+  <data name="TousLesPostesOuverts" xml:space="preserve"><value>All open jobs, across all employers.</value></data>
+  <data name="AucunPosteOuvert" xml:space="preserve"><value>No open jobs at the moment.</value></data>
+  <data name="CandidatureEnvoyee" xml:space="preserve"><value>Application sent</value></data>
+  <data name="Postuler" xml:space="preserve"><value>Apply</value></data>
+</root>

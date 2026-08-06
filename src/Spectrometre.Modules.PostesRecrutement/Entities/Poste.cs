@@ -6,6 +6,17 @@ public enum PosteStatut
     Ferme = 1,
 }
 
+/// <summary>Libellés d'affichage du statut (bilinguisme, cycle contenu métier) — le statut lui-même reste un enum stocké tel quel, ces libellés ne sont utilisés qu'à l'affichage.</summary>
+public static class PosteStatutLabels
+{
+    public static string Label(PosteStatut statut, bool english) => statut switch
+    {
+        PosteStatut.Ouvert => english ? "Open" : "Ouvert",
+        PosteStatut.Ferme => english ? "Closed" : "Fermé",
+        _ => statut.ToString(),
+    };
+}
+
 /// <summary>
 /// Un poste à pourvoir, rattaché à l'entreprise active (schéma tenant — voir <c>ITenantScopedDbContext</c>,
 /// même principe que Profil Entreprise). Périmètre volontairement minimal pour ce cycle : pas encore de

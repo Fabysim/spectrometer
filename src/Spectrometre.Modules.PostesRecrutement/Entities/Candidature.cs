@@ -9,6 +9,20 @@ public enum CandidatureStatut
     Embauchee = 4,
 }
 
+/// <summary>Libellés d'affichage du statut (bilinguisme, cycle contenu métier) — le statut lui-même reste un enum stocké tel quel (et la chaîne partagée avec l'index Analytics via <c>CandidatureIndexEntry.Statut</c>), ces libellés ne sont utilisés qu'à l'affichage.</summary>
+public static class CandidatureStatutLabels
+{
+    public static string Label(CandidatureStatut statut, bool english) => statut switch
+    {
+        CandidatureStatut.Recue => english ? "Received" : "Reçue",
+        CandidatureStatut.EnRevue => english ? "Under review" : "En revue",
+        CandidatureStatut.Entretien => english ? "Interview" : "Entretien",
+        CandidatureStatut.Rejetee => english ? "Rejected" : "Rejetée",
+        CandidatureStatut.Embauchee => english ? "Hired" : "Embauchée",
+        _ => statut.ToString(),
+    };
+}
+
 /// <summary>
 /// Candidature d'un candidat à un poste. Vit dans le schéma de l'entreprise qui a publié le poste
 /// (donnée de recrutement de cette entreprise). <see cref="CandidateProfileId"/> est une référence par

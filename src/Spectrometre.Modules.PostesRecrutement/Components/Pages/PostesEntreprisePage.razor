@@ -1,27 +1,31 @@
 @page "/entreprise/postes"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.PostesRecrutement.Entities
+@using Spectrometre.Modules.PostesRecrutement.Resources
 @using Spectrometre.Modules.PostesRecrutement.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IPosteService PosteService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<PostesRecrutementResource> Localizer
 
-<PageTitle>Postes & recrutement</PageTitle>
+<PageTitle>@Localizer["PostesRecrutement"]</PageTitle>
 
 @if (_companies is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (_companies.Count == 0)
 {
-    <p>Aucune entreprise associée à votre compte pour le moment.</p>
+    <p>@Localizer["AucuneEntrepriseAssociee"]</p>
 }
 else
 {
@@ -29,7 +33,7 @@ else
         @if (_companies.Count > 1)
         {
             <label>
-                Entreprise active :
+                @Localizer["EntrepriseActive"]
                 <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
                     @foreach (var company in _companies)
                     {
@@ -45,29 +49,29 @@ else
     </div>
 
     <section class="poste-form">
-        <h3>Nouveau poste</h3>
+        <h3>@Localizer["NouveauPoste"]</h3>
         <div class="champ">
-            <label>Titre</label>
+            <label>@Localizer["Titre"]</label>
             <input @bind="_nouveauTitre" @bind:event="oninput" />
         </div>
         <div class="champ">
-            <label>Département</label>
+            <label>@Localizer["Departement"]</label>
             <input @bind="_nouveauDepartement" @bind:event="oninput" />
         </div>
         <div class="champ">
-            <label>Description</label>
+            <label>@Localizer["Description"]</label>
             <textarea @bind="_nouvelleDescription" @bind:event="oninput" rows="2"></textarea>
         </div>
-        <button @onclick="CreerPosteAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauTitre)">Créer le poste</button>
+        <button @onclick="CreerPosteAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauTitre)">@Localizer["CreerLePoste"]</button>
     </section>
 
     @if (_postes is not null)
     {
         <section class="postes-liste">
-            <h3>Postes de l'entreprise</h3>
+            <h3>@Localizer["PostesDeLEntreprise"]</h3>
             @if (_postes.Count == 0)
             {
-                <p class="hint">Aucun poste créé pour le moment.</p>
+                <p class="hint">@Localizer["AucunPosteCree"]</p>
             }
             @foreach (var poste in _postes)
             {
@@ -75,13 +79,13 @@ else
                     <div class="poste-entete">
                         <strong>@poste.Titre</strong>
                         <span class="statut @(poste.Statut == PosteStatut.Ouvert ? "ouvert" : "ferme")">
-                            @(poste.Statut == PosteStatut.Ouvert ? "Ouvert" : "Fermé")
+                            @PosteStatutLabels.Label(poste.Statut, _english)
                         </span>
                         <button @onclick="() => ToggleStatutAsync(poste)">
-                            @(poste.Statut == PosteStatut.Ouvert ? "Fermer" : "Rouvrir")
+                            @(poste.Statut == PosteStatut.Ouvert ? Localizer["Fermer"] : Localizer["Rouvrir"])
                         </button>
                         <button @onclick="() => ToggleCandidaturesAsync(poste.Id)">
-                            @(_posteIdOuvert == poste.Id ? "Masquer les candidatures" : "Voir les candidatures")
+                            @(_posteIdOuvert == poste.Id ? Localizer["MasquerLesCandidatures"] : Localizer["VoirLesCandidatures"])
                         </button>
                     </div>
                     @if (!string.IsNullOrWhiteSpace(poste.Departement))
@@ -98,20 +102,20 @@ else
                         <div class="candidatures">
                             @if (_candidatures is null)
                             {
-                                <p>Chargement des candidatures…</p>
+                                <p>@Localizer["ChargementDesCandidatures"]</p>
                             }
                             else if (_candidatures.Count == 0)
                             {
-                                <p class="hint">Aucune candidature reçue pour ce poste.</p>
+                                <p class="hint">@Localizer["AucuneCandidaturePourPoste"]</p>
                             }
                             else
                             {
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Candidat (profil)</th>
-                                            <th>Statut</th>
-                                            <th>Compatibilité</th>
+                                            <th>@Localizer["CandidatProfil"]</th>
+                                            <th>@Localizer["Statut"]</th>
+                                            <th>@Localizer["Compatibilite"]</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -124,7 +128,7 @@ else
                                                     <select value="@candidature.Statut" @onchange="e => ChangerStatutCandidatureAsync(candidature.Id, e.Value)">
                                                         @foreach (var statut in Enum.GetValues<CandidatureStatut>())
                                                         {
-                                                            <option value="@statut">@statut</option>
+                                                            <option value="@statut">@CandidatureStatutLabels.Label(statut, _english)</option>
                                                         }
                                                     </select>
                                                 </td>
@@ -132,9 +136,9 @@ else
                                                 <td>
                                                     @if (candidature.ScoreCompatibilite is not null)
                                                     {
-                                                        <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">Détail</a>
+                                                        <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">@Localizer["Detail"]</a>
                                                         <text> · </text>
-                                                        <a href="@($"/entretien/{candidature.CandidateProfileId}")">Préparer l'entretien</a>
+                                                        <a href="@($"/entretien/{candidature.CandidateProfileId}")">@Localizer["PreparerLEntretien"]</a>
                                                     }
                                                 </td>
                                             </tr>
@@ -162,6 +166,7 @@ else
     private string _nouveauTitre = "";
     private string? _nouveauDepartement;
     private string? _nouvelleDescription;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     protected override async Task OnInitializedAsync()
     {

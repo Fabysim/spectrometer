@@ -3,24 +3,27 @@
 @rendermode InteractiveServer
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.PostesRecrutement.Resources
 @using Spectrometre.Modules.PostesRecrutement.Services
 @using Spectrometre.Modules.ProfilCandidat.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IPosteService PosteService
 @inject ICandidateProfileService CandidateProfileService
+@inject IStringLocalizer<PostesRecrutementResource> Localizer
 
-<PageTitle>Postes ouverts</PageTitle>
+<PageTitle>@Localizer["PostesOuverts"]</PageTitle>
 
-<h1>Postes ouverts</h1>
-<p class="hint">Tous les postes ouverts, tous employeurs confondus.</p>
+<h1>@Localizer["PostesOuverts"]</h1>
+<p class="hint">@Localizer["TousLesPostesOuverts"]</p>
 
 @if (_postes is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else if (_postes.Count == 0)
 {
-    <p>Aucun poste ouvert pour le moment.</p>
+    <p>@Localizer["AucunPosteOuvert"]</p>
 }
 else
 {
@@ -41,11 +44,11 @@ else
             }
             @if (poste.DejaPostule)
             {
-                <span class="deja-postule">✅ Candidature envoyée</span>
+                <span class="deja-postule">✅ @Localizer["CandidatureEnvoyee"]</span>
             }
             else
             {
-                <button @onclick="() => PostulerAsync(poste)">Postuler</button>
+                <button @onclick="() => PostulerAsync(poste)">@Localizer["Postuler"]</button>
             }
         </div>
     }
