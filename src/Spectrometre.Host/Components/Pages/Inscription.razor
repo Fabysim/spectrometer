@@ -1,19 +1,22 @@
 @page "/inscription"
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Identity
 @using Spectrometre.Host.Onboarding
+@using Spectrometre.Host.Resources
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject CompanyOnboardingService CompanyOnboarding
 @inject CandidateOnboardingService CandidateOnboarding
 @inject CoreDbContext CoreDb
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> Localizer
 
-<PageTitle>Créer un compte</PageTitle>
+<PageTitle>@Localizer["CreerUnCompte"]</PageTitle>
 
-<h1>Créer un compte</h1>
+<h1>@Localizer["CreerUnCompte"]</h1>
 
 @* Rendu statique (pas d'InteractiveServer), comme /login : la création du compte se termine par
    SignInManager.SignInAsync, qui doit écrire le cookie d'authentification avant que la réponse ne
@@ -25,45 +28,45 @@
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <h2>Informations du compte</h2>
+    <h2>@Localizer["Inscription_InformationsDuCompte"]</h2>
     <div class="champ">
-        <label>Nom <InputText @bind-Value="_model.Nom" /></label>
+        <label>@Localizer["Nom"] <InputText @bind-Value="_model.Nom" /></label>
     </div>
     <div class="champ">
-        <label>Prénom <InputText @bind-Value="_model.Prenom" /></label>
+        <label>@Localizer["Prenom"] <InputText @bind-Value="_model.Prenom" /></label>
     </div>
     <div class="champ">
-        <label>Email <InputText @bind-Value="_model.Email" /></label>
+        <label>@Localizer["Email"] <InputText @bind-Value="_model.Email" /></label>
     </div>
     <div class="champ">
-        <label>Mot de passe <InputText @bind-Value="_model.MotDePasse" type="password" id="motDePasse" oninput="spectrometreUpdateStrength(this.value)" /></label>
-        <button type="button" onclick="spectrometreSuggestPassword()">Suggérer un mot de passe fort</button>
-        <p id="forceIndicateur" class="hint">Robustesse : —</p>
+        <label>@Localizer["MotDePasse"] <InputText @bind-Value="_model.MotDePasse" type="password" id="motDePasse" oninput="spectrometreUpdateStrength(this.value)" /></label>
+        <button type="button" onclick="spectrometreSuggestPassword()">@Localizer["Inscription_SuggererMotDePasseFort"]</button>
+        <p id="forceIndicateur" class="hint">@Localizer["Robustesse"] —</p>
     </div>
     <div class="champ">
-        <label>Confirmation du mot de passe <InputText @bind-Value="_model.ConfirmationMotDePasse" type="password" id="confirmationMotDePasse" /></label>
+        <label>@Localizer["Inscription_ConfirmationMotDePasse"] <InputText @bind-Value="_model.ConfirmationMotDePasse" type="password" id="confirmationMotDePasse" /></label>
     </div>
 
-    <h2>Choix du profil</h2>
+    <h2>@Localizer["Inscription_ChoixDuProfil"]</h2>
     <InputRadioGroup @bind-Value="_model.Profil">
         <div class="profil-choix">
             <label>
-                <InputRadio Value="@("Entreprise")" /> Entreprise
+                <InputRadio Value="@("Entreprise")" /> @Localizer["Entreprise"]
             </label>
             <label class="profil-desactive">
-                <input type="radio" disabled /> Indépendant <em>(Bientôt disponible)</em>
+                <input type="radio" disabled /> @Localizer["Independant"] <em>(@Localizer["BientotDisponible"])</em>
             </label>
             <label>
-                <InputRadio Value="@("Candidat")" /> Candidat
+                <InputRadio Value="@("Candidat")" /> @Localizer["Candidat"]
             </label>
         </div>
     </InputRadioGroup>
 
     <div class="champ" id="champNomEntreprise" style="display:none">
-        <label>Nom de l'entreprise <InputText @bind-Value="_model.NomEntreprise" /></label>
+        <label>@Localizer["NomDeLEntreprise"] <InputText @bind-Value="_model.NomEntreprise" /></label>
     </div>
 
-    <button type="submit">Créer mon compte</button>
+    <button type="submit">@Localizer["Inscription_CreerMonCompte"]</button>
 </EditForm>
 
 @if (!string.IsNullOrEmpty(_message))
@@ -71,9 +74,15 @@
     <p class="erreur">@_message</p>
 }
 
-<p class="hint"><a href="/login">Déjà un compte ? Se connecter</a></p>
+<p class="hint"><a href="/login">@Localizer["Inscription_DejaUnCompte"]</a></p>
 
 <script>
+    // Libellés injectés côté serveur (culture déjà résolue lors du rendu de la page) : voir la remarque
+    // sur la culture de circuit dans Program.cs — ce script s'exécute au chargement initial de la page,
+    // dans la même culture que le reste du rendu HTML.
+    const spectrometreStrengthLabels = ["@Localizer["TresFaible"]", "@Localizer["Faible"]", "@Localizer["Moyen"]", "@Localizer["Bon"]", "@Localizer["Fort"]", "@Localizer["TresFort"]"];
+    const spectrometreRobustessePrefix = "@Localizer["Robustesse"]";
+
     function spectrometreSuggestPassword() {
         const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
         const lower = "abcdefghijkmnpqrstuvwxyz";
@@ -103,9 +112,9 @@
         if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
         if (/\d/.test(password)) score++;
         if (/[^A-Za-z0-9]/.test(password)) score++;
-        const labels = ["Très faible", "Faible", "Moyen", "Bon", "Fort", "Très fort"];
+        const labels = spectrometreStrengthLabels;
         const el = document.getElementById('forceIndicateur');
-        if (el) el.textContent = "Robustesse : " + (password.length === 0 ? "—" : labels[Math.min(score, labels.length - 1)]);
+        if (el) el.textContent = spectrometreRobustessePrefix + " " + (password.length === 0 ? "—" : labels[Math.min(score, labels.length - 1)]);
     }
 
     function spectrometreOnProfilChange() {
@@ -161,13 +170,13 @@
         // donc ce test suffit à couvrir aussi bien une valeur absente qu'une valeur inattendue.
         if (_model.Profil != "Entreprise" && _model.Profil != "Candidat")
         {
-            _message = "Veuillez choisir un profil (Entreprise ou Candidat).";
+            _message = Localizer["Inscription_ChoisirProfil"];
             return;
         }
 
         if (_model.Profil == "Entreprise" && string.IsNullOrWhiteSpace(_model.NomEntreprise))
         {
-            _message = "Le nom de l'entreprise est requis.";
+            _message = Localizer["Inscription_NomEntrepriseRequis"];
             return;
         }
 

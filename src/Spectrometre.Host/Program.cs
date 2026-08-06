@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core;
 using Spectrometre.Core.Billing;
@@ -28,6 +29,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+// Localisation du « chrome » de l'application (connexion, inscription, menu, tableau de bord) — voir
+// Spectrometre.Host.Resources.SharedResource. Ne couvre PAS le contenu métier des modules (hors périmètre
+// de ce cycle, voir leur propre remarque). Vit dans Host (jamais dans un module), donc aucune dépendance
+// inter-module créée par la localisation.
+// Pas de ResourcesPath explicite : SharedResource vit déjà dans le namespace/dossier Resources/, donc le
+// nom de ressource intégré par défaut ("Spectrometre.Host.Resources.SharedResource") correspond directement
+// au nom de fichier .resx compilé — fixer ResourcesPath="Resources" ici doublerait ce segment
+// ("...Resources.Resources.SharedResource") et ferait échouer silencieusement toute résolution
+// (IStringLocalizer retombe alors sur la clé brute, sans lever d'exception).
+builder.Services.AddLocalization();
 
 // Noyau, puis chaque module — dans l'ordre de dépendance déclaré par son manifeste
 // (Compatibilite dépend de ProfilCandidat + ProfilEntreprise).
@@ -67,6 +79,15 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
+
+// Français = culture par défaut (tout le contenu existant est en français) ; anglais = seule autre culture
+// supportée pour l'instant. Cultures neutres ("fr"/"en", pas "fr-FR"/"en-US") : le chrome n'a pas besoin de
+// variantes régionales, et ça garde SharedResource.resx/.en.resx alignés sans complexité supplémentaire.
+string[] supportedCultures = ["fr", "en"];
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture(supportedCultures[0])
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
 
 var app = builder.Build();
 
@@ -149,9 +170,35 @@ else
 
 app.UseHttpsRedirection();
 
+// AVANT l'authentification/le routage des composants : la culture doit être résolue avant tout rendu Razor,
+// y compris le rendu statique des pages de connexion/inscription. Note Blazor Server (voir Étape 1 du
+// rapport) : pour un circuit interactif, cette résolution ne s'applique qu'à la requête HTTP initiale
+// (préaffichage) — la culture reste ensuite fixée pour toute la durée du circuit, elle ne se re-résout
+// jamais à chaque évènement SignalR. Changer de langue exige donc un rechargement complet de page (voir
+// /culture/set ci-dessous et le lien de sélection dans MainLayout, un <a> ordinaire avec navigation
+// forcée — jamais un gestionnaire d'évènement Blazor, qui ne rouvrirait pas de nouveau circuit).
+app.UseRequestLocalization(localizationOptions);
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
+
+// Change la langue : écrit le cookie de culture standard ASP.NET Core puis redirige vers la page d'origine
+// (jamais un gestionnaire Blazor — voir la remarque sur UseRequestLocalization ci-dessus). Results.LocalRedirect
+// refuse toute URL non locale (protection open-redirect intégrée), donc sûr même si redirectUri provient
+// d'un lien public non authentifié (connexion/inscription).
+app.MapGet("/culture/set", (string culture, string redirectUri, HttpContext httpContext) =>
+{
+    if (Array.IndexOf(supportedCultures, culture) >= 0)
+    {
+        httpContext.Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+            new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true });
+    }
+
+    return Results.LocalRedirect(redirectUri);
+});
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

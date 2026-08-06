@@ -1,32 +1,35 @@
 @page "/"
 @using System.Security.Claims
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Host.Onboarding
+@using Spectrometre.Host.Resources
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<SharedResource> Localizer
 
-<PageTitle>Tableau de bord</PageTitle>
+<PageTitle>@Localizer["TableauDeBord"]</PageTitle>
 
-<h1>Tableau de bord</h1>
+<h1>@Localizer["TableauDeBord"]</h1>
 
 @if (!_isAuthenticated)
 {
-    <p>Bienvenue sur Spectromètre.</p>
-    <p><a href="/login">Se connecter</a> · <a href="/inscription">Créer un compte</a></p>
+    <p>@Localizer["Home_Bienvenue"]</p>
+    <p><a href="/login">@Localizer["SeConnecter"]</a> · <a href="/inscription">@Localizer["CreerUnCompte"]</a></p>
 }
 else
 {
     @if (_company is not null)
     {
         <section>
-            <h2>Entreprise : @_company.Name</h2>
+            <h2>@Localizer["Home_EntreprisePrefix"] @_company.Name</h2>
             @if (_companyModuleNames.Count == 0)
             {
-                <p class="hint">Aucun module actif pour le moment.</p>
+                <p class="hint">@Localizer["Home_AucunModuleActif"]</p>
             }
             else
             {
@@ -37,28 +40,28 @@ else
                     }
                 </ul>
             }
-            <p><a href="/entreprise/modules">Ajouter un module</a></p>
+            <p><a href="/entreprise/modules">@Localizer["AjouterUnModule"]</a></p>
         </section>
     }
     else
     {
         <section>
-            <p class="hint">Vous ne gérez aucune entreprise pour le moment.</p>
-            <p><a href="/entreprise/creer">Créer une entreprise</a></p>
+            <p class="hint">@Localizer["Home_AucuneEntreprise"]</p>
+            <p><a href="/entreprise/creer">@Localizer["CreerUneEntreprise"]</a></p>
         </section>
     }
 
     @if (_candidateModuleNames.Count > 0)
     {
         <section>
-            <h2>Profil candidat</h2>
+            <h2>@Localizer["Home_ProfilCandidat"]</h2>
             <ul>
                 @foreach (var name in _candidateModuleNames)
                 {
                     <li>@name</li>
                 }
             </ul>
-            <p><a href="/candidat/modules">Ajouter un module</a></p>
+            <p><a href="/candidat/modules">@Localizer["AjouterUnModule"]</a></p>
         </section>
     }
 }

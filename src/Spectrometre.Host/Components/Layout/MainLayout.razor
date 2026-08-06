@@ -1,60 +1,76 @@
 @inherits LayoutComponentBase
+@using System.Globalization
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Localization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Host.Onboarding
+@using Spectrometre.Host.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @inject IGestionDuTempsAccessService GestionDuTempsAccessService
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject IDbContextFactory<CoreDbContext> CoreDbFactory
+@inject IStringLocalizer<SharedResource> Localizer
+@inject NavigationManager Navigation
+
+<div class="lang-switcher">
+    @* <a> ordinaire avec navigation forcée (pas un gestionnaire Blazor) : voir la remarque sur
+       UseRequestLocalization dans Program.cs — un circuit interactif ne re-résout jamais sa culture en
+       cours de route, seul un rechargement complet de page (nouvelle requête HTTP, nouveau circuit) le
+       peut. data-enhance-nav="false" désactive la navigation "enhanced" de Blazor pour CE lien précis
+       (qui ferait sinon un fetch partiel côté client au lieu d'une vraie navigation complète). *@
+    <a href="@CultureLink("fr")" data-enhance-nav="false" class="@(CurrentCultureIsFrench ? "active" : "")">FR</a>
+    <a href="@CultureLink("en")" data-enhance-nav="false" class="@(!CurrentCultureIsFrench ? "active" : "")">EN</a>
+</div>
 
 <nav class="main-nav">
-    <a href="/">Accueil</a>
+    <a href="/">@Localizer["Accueil"]</a>
     @if (_isAuthenticated)
     {
         @if (_hasCompany)
         {
-            <a href="/entreprise/profil">Profil entreprise</a>
-            @if (_companyActiveModules.Contains("PostesRecrutement")) { <a href="/entreprise/postes">Postes (entreprise)</a> }
-            @if (_companyActiveModules.Contains("Vivier")) { <a href="/vivier">Vivier</a> }
-            @if (_companyActiveModules.Contains("SuiviEvolutif")) { <a href="/entreprise/historique">Historique (entreprise)</a> }
-            @if (_companyActiveModules.Contains("Analytics")) { <a href="/entreprise/analytics">Analytics (entreprise)</a> }
-            <a href="/entreprise/modules">Ajouter un module (entreprise)</a>
+            <a href="/entreprise/profil">@Localizer["Module_ProfilEntreprise"]</a>
+            @if (_companyActiveModules.Contains("PostesRecrutement")) { <a href="/entreprise/postes">@Localizer["Module_PostesEntreprise"]</a> }
+            @if (_companyActiveModules.Contains("Vivier")) { <a href="/vivier">@Localizer["Module_Vivier"]</a> }
+            @if (_companyActiveModules.Contains("SuiviEvolutif")) { <a href="/entreprise/historique">@Localizer["Module_HistoriqueEntreprise"]</a> }
+            @if (_companyActiveModules.Contains("Analytics")) { <a href="/entreprise/analytics">@Localizer["Module_AnalyticsEntreprise"]</a> }
+            <a href="/entreprise/modules">@Localizer["AjouterUnModuleEntreprise"]</a>
         }
         else
         {
-            <a href="/entreprise/creer">Créer une entreprise</a>
+            <a href="/entreprise/creer">@Localizer["CreerUneEntreprise"]</a>
         }
 
         @if (_candidateActiveModules.Contains("ProfilCandidat"))
         {
-            <a href="/candidat/questionnaire">Questionnaire candidat</a>
-            <a href="/candidat/cv">Curriculum vitæ</a>
-            <a href="/candidat/postes">Postes ouverts (candidat)</a>
-            <a href="/candidat/historique">Historique (candidat)</a>
-            <a href="/candidat/modules">Ajouter un module (candidat)</a>
+            <a href="/candidat/questionnaire">@Localizer["Module_QuestionnaireCandidat"]</a>
+            <a href="/candidat/cv">@Localizer["Module_CurriculumVitae"]</a>
+            <a href="/candidat/postes">@Localizer["Module_PostesCandidat"]</a>
+            <a href="/candidat/historique">@Localizer["Module_HistoriqueCandidat"]</a>
+            <a href="/candidat/modules">@Localizer["AjouterUnModuleCandidat"]</a>
         }
 
         @if (_showGestionDuTemps)
         {
-            <a href="/gestion-du-temps">Gestion du temps</a>
-            <a href="/gestion-du-temps/kanban">Kanban</a>
-            <a href="/gestion-du-temps/profil">Profil psychosocial</a>
-            <a href="/gestion-du-temps/reflexion">Réflexion consciente</a>
-            <a href="/gestion-du-temps/synthese">Synthèse</a>
+            <a href="/gestion-du-temps">@Localizer["Module_GestionDuTemps"]</a>
+            <a href="/gestion-du-temps/kanban">@Localizer["Module_Kanban"]</a>
+            <a href="/gestion-du-temps/profil">@Localizer["Module_ProfilPsychosocial"]</a>
+            <a href="/gestion-du-temps/reflexion">@Localizer["Module_ReflexionConsciente"]</a>
+            <a href="/gestion-du-temps/synthese">@Localizer["Module_Synthese"]</a>
         }
     }
     <AuthorizeView>
         <Authorized>
-            <span>Connecté</span>
-            <a href="/logout">Déconnexion</a>
+            <span>@Localizer["Connecte"]</span>
+            <a href="/logout">@Localizer["Deconnexion"]</a>
         </Authorized>
         <NotAuthorized>
-            <a href="/login">Connexion</a>
+            <a href="/login">@Localizer["Connexion"]</a>
         </NotAuthorized>
     </AuthorizeView>
 </nav>
@@ -134,5 +150,14 @@
         // couvre à la fois l'activation candidat ET celle de toute entreprise gérée par l'utilisateur.
         // Ce service utilise déjà sa propre IDbContextFactory en interne, indépendante de coreDb ci-dessus.
         _showGestionDuTemps = await GestionDuTempsAccessService.HasAccessAsync(userId);
+    }
+
+    private bool CurrentCultureIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr";
+
+    /// <summary>URL de l'endpoint /culture/set (voir Program.cs), avec la page courante comme retour — jamais construite côté client, jamais un @onclick Blazor (voir la remarque sur le sélecteur ci-dessus).</summary>
+    private string CultureLink(string culture)
+    {
+        var returnUrl = "/" + Navigation.ToBaseRelativePath(Navigation.Uri);
+        return $"/culture/set?culture={culture}&redirectUri={Uri.EscapeDataString(returnUrl)}";
     }
 }

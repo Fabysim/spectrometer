@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traduction automatique pour ce cycle d'infrastructure — à affiner par une relecture humaine dans un
+       cycle ultérieur (voir le rapport de ce cycle). -->
+
+  <data name="Connexion" xml:space="preserve"><value>Log in</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="MotDePasse" xml:space="preserve"><value>Password</value></data>
+  <data name="SeConnecter" xml:space="preserve"><value>Log in</value></data>
+  <data name="CreerUnCompte" xml:space="preserve"><value>Create an account</value></data>
+  <data name="Login_EchecConnexion" xml:space="preserve"><value>Login failed.</value></data>
+
+  <data name="Inscription_InformationsDuCompte" xml:space="preserve"><value>Account information</value></data>
+  <data name="Nom" xml:space="preserve"><value>Last name</value></data>
+  <data name="Prenom" xml:space="preserve"><value>First name</value></data>
+  <data name="Inscription_SuggererMotDePasseFort" xml:space="preserve"><value>Suggest a strong password</value></data>
+  <data name="Robustesse" xml:space="preserve"><value>Strength:</value></data>
+  <data name="TresFaible" xml:space="preserve"><value>Very weak</value></data>
+  <data name="Faible" xml:space="preserve"><value>Weak</value></data>
+  <data name="Moyen" xml:space="preserve"><value>Medium</value></data>
+  <data name="Bon" xml:space="preserve"><value>Good</value></data>
+  <data name="Fort" xml:space="preserve"><value>Strong</value></data>
+  <data name="TresFort" xml:space="preserve"><value>Very strong</value></data>
+  <data name="Inscription_ConfirmationMotDePasse" xml:space="preserve"><value>Confirm password</value></data>
+  <data name="Inscription_ChoixDuProfil" xml:space="preserve"><value>Profile selection</value></data>
+  <data name="Entreprise" xml:space="preserve"><value>Company</value></data>
+  <data name="Independant" xml:space="preserve"><value>Freelancer</value></data>
+  <data name="BientotDisponible" xml:space="preserve"><value>Coming soon</value></data>
+  <data name="Candidat" xml:space="preserve"><value>Candidate</value></data>
+  <data name="NomDeLEntreprise" xml:space="preserve"><value>Company name</value></data>
+  <data name="Inscription_CreerMonCompte" xml:space="preserve"><value>Create my account</value></data>
+  <data name="Inscription_DejaUnCompte" xml:space="preserve"><value>Already have an account? Log in</value></data>
+  <data name="Inscription_ChoisirProfil" xml:space="preserve"><value>Please choose a profile (Company or Candidate).</value></data>
+  <data name="Inscription_NomEntrepriseRequis" xml:space="preserve"><value>The company name is required.</value></data>
+
+  <data name="Logout_EnCours" xml:space="preserve"><value>Logging out…</value></data>
+
+  <data name="CreerUneEntreprise" xml:space="preserve"><value>Create a company</value></data>
+  <data name="Creer" xml:space="preserve"><value>Create</value></data>
+  <data name="UtilisateurNonAuthentifie" xml:space="preserve"><value>User not authenticated.</value></data>
+
+  <data name="AjouterUnModule" xml:space="preserve"><value>Add a module</value></data>
+  <data name="RetourAuTableauDeBord" xml:space="preserve"><value>Back to dashboard</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
+  <data name="AjouterModule_AucuneEntrepriseAssociee" xml:space="preserve"><value>No company associated with this account.</value></data>
+  <data name="Module_Recrutement" xml:space="preserve"><value>Recruitment</value></data>
+  <data name="Module_RecrutementDescription" xml:space="preserve"><value>Job postings &amp; recruitment, and related modules (compatibility, talent pool, interview prep, analytics).</value></data>
+  <data name="DejaActive" xml:space="preserve"><value>Already activated.</value></data>
+  <data name="Activer" xml:space="preserve"><value>Activate</value></data>
+  <data name="Module_GestionDuTemps" xml:space="preserve"><value>Time management</value></data>
+  <data name="Module_GestionDuTempsDescription" xml:space="preserve"><value>Rituals, cycles, Kanban board, timer, psychosocial profile and AI synthesis.</value></data>
+  <data name="Module_SuiviEvaluationEmployes" xml:space="preserve"><value>Employee tracking &amp; evaluation</value></data>
+  <data name="Module_RecrutementActiveMessage" xml:space="preserve"><value>Recruitment module activated.</value></data>
+  <data name="Module_GestionDuTempsActiveMessage" xml:space="preserve"><value>Time management module activated.</value></data>
+
+  <data name="TableauDeBord" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Home_Bienvenue" xml:space="preserve"><value>Welcome to Spectromètre.</value></data>
+  <data name="Home_EntreprisePrefix" xml:space="preserve"><value>Company:</value></data>
+  <data name="Home_AucunModuleActif" xml:space="preserve"><value>No active module at the moment.</value></data>
+  <data name="Home_AucuneEntreprise" xml:space="preserve"><value>You don't manage any company at the moment.</value></data>
+  <data name="Home_ProfilCandidat" xml:space="preserve"><value>Candidate profile</value></data>
+
+  <data name="Accueil" xml:space="preserve"><value>Home</value></data>
+  <data name="Module_ProfilEntreprise" xml:space="preserve"><value>Company profile</value></data>
+  <data name="Module_PostesEntreprise" xml:space="preserve"><value>Job postings (company)</value></data>
+  <data name="Module_Vivier" xml:space="preserve"><value>Talent pool</value></data>
+  <data name="Module_HistoriqueEntreprise" xml:space="preserve"><value>History (company)</value></data>
+  <data name="Module_AnalyticsEntreprise" xml:space="preserve"><value>Analytics (company)</value></data>
+  <data name="AjouterUnModuleEntreprise" xml:space="preserve"><value>Add a module (company)</value></data>
+  <data name="Module_QuestionnaireCandidat" xml:space="preserve"><value>Candidate questionnaire</value></data>
+  <data name="Module_CurriculumVitae" xml:space="preserve"><value>Resume</value></data>
+  <data name="Module_PostesCandidat" xml:space="preserve"><value>Open positions (candidate)</value></data>
+  <data name="Module_HistoriqueCandidat" xml:space="preserve"><value>History (candidate)</value></data>
+  <data name="AjouterUnModuleCandidat" xml:space="preserve"><value>Add a module (candidate)</value></data>
+  <data name="Module_Kanban" xml:space="preserve"><value>Kanban</value></data>
+  <data name="Module_ProfilPsychosocial" xml:space="preserve"><value>Psychosocial profile</value></data>
+  <data name="Module_ReflexionConsciente" xml:space="preserve"><value>Mindful reflection</value></data>
+  <data name="Module_Synthese" xml:space="preserve"><value>Synthesis</value></data>
+  <data name="Connecte" xml:space="preserve"><value>Logged in</value></data>
+  <data name="Deconnexion" xml:space="preserve"><value>Log out</value></data>
+
+  <data name="Enregistrer" xml:space="preserve"><value>Save</value></data>
+  <data name="Annuler" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Suivant" xml:space="preserve"><value>Next</value></data>
+  <data name="Precedent" xml:space="preserve"><value>Previous</value></data>
+</root>

@@ -3,36 +3,39 @@
 @rendermode InteractiveServer
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Modules
 @using Spectrometre.Host.Onboarding
+@using Spectrometre.Host.Resources
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject CandidateOnboardingService CandidateOnboarding
 @inject IModuleRegistry ModuleRegistry
 @inject CoreDbContext CoreDb
+@inject IStringLocalizer<SharedResource> Localizer
 
-<PageTitle>Ajouter un module</PageTitle>
+<PageTitle>@Localizer["AjouterUnModule"]</PageTitle>
 
-<h1>Ajouter un module</h1>
-<p class="hint"><a href="/">Retour au tableau de bord</a></p>
+<h1>@Localizer["AjouterUnModule"]</h1>
+<p class="hint"><a href="/">@Localizer["RetourAuTableauDeBord"]</a></p>
 
 @if (_loading)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else
 {
     <div class="module-carte">
-        <h3>Gestion du temps</h3>
-        <p class="hint">Rituels, cycles, Kanban, minuteur, profil psychosocial et synthèse IA.</p>
+        <h3>@Localizer["Module_GestionDuTemps"]</h3>
+        <p class="hint">@Localizer["Module_GestionDuTempsDescription"]</p>
         @if (_gestionDuTempsActif)
         {
-            <p class="confirmation">Déjà activé.</p>
+            <p class="confirmation">@Localizer["DejaActive"]</p>
         }
         else
         {
-            <button @onclick="ActiverGestionDuTempsAsync">Activer</button>
+            <button @onclick="ActiverGestionDuTempsAsync">@Localizer["Activer"]</button>
         }
     </div>
 
@@ -75,6 +78,6 @@ else
     {
         await CandidateOnboarding.ActivateGestionDuTempsAsync(_candidateProfileId, CoreDb);
         await RefreshStatutAsync();
-        _message = "Module Gestion du temps activé.";
+        _message = Localizer["Module_GestionDuTempsActiveMessage"];
     }
 }

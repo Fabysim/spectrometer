@@ -1,14 +1,17 @@
 @page "/logout"
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Identity
+@using Spectrometre.Host.Resources
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> Localizer
 
 @* Rendu statique, comme /login : SignOutAsync écrit l'annulation du cookie d'authentification, qui doit
    se faire avant que la réponse ne commence à être diffusée — incompatible avec un rendu interactif. *@
-<PageTitle>Déconnexion</PageTitle>
+<PageTitle>@Localizer["Logout_EnCours"]</PageTitle>
 
-<h1>Déconnexion…</h1>
+<h1>@Localizer["Logout_EnCours"]</h1>
 
 @code {
     protected override async Task OnInitializedAsync()

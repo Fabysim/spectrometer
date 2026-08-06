@@ -1,29 +1,32 @@
 @page "/login"
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Identity
+@using Spectrometre.Host.Resources
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> Localizer
 
-<PageTitle>Connexion</PageTitle>
+<PageTitle>@Localizer["Connexion"]</PageTitle>
 
-<h1>Connexion</h1>
+<h1>@Localizer["Connexion"]</h1>
 
 @* Formulaires en rendu statique (pas d'InteractiveServer) : l'écriture du cookie d'authentification
    doit se faire avant que la réponse HTTP ne commence à être diffusée, ce qui exclut un rendu interactif.
    Deux formulaires indépendants (chacun avec ses propres champs) : un formulaire SSR nommé ne reçoit
    que les valeurs de ses propres champs, jamais celles d'un autre formulaire de la page. *@
-<h2>Connexion</h2>
+<h2>@Localizer["Connexion"]</h2>
 <EditForm Model="_loginModel" OnValidSubmit="SubmitLoginAsync" FormName="login" method="post">
     <div>
-        <label>Email <InputText @bind-Value="_loginModel.Email" /></label>
+        <label>@Localizer["Email"] <InputText @bind-Value="_loginModel.Email" /></label>
     </div>
     <div>
-        <label>Mot de passe <InputText @bind-Value="_loginModel.Password" type="password" /></label>
+        <label>@Localizer["MotDePasse"] <InputText @bind-Value="_loginModel.Password" type="password" /></label>
     </div>
-    <button type="submit">Se connecter</button>
+    <button type="submit">@Localizer["SeConnecter"]</button>
 </EditForm>
 
-<p class="hint"><a href="/inscription">Créer un compte</a></p>
+<p class="hint"><a href="/inscription">@Localizer["CreerUnCompte"]</a></p>
 
 @if (!string.IsNullOrEmpty(_message))
 {
@@ -48,6 +51,6 @@
         if (result.Succeeded)
             Navigation.NavigateTo("/");
         else
-            _message = "Échec de connexion.";
+            _message = Localizer["Login_EchecConnexion"];
     }
 }

@@ -3,20 +3,23 @@
 @rendermode InteractiveServer
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Host.Onboarding
+@using Spectrometre.Host.Resources
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject CompanyOnboardingService OnboardingService
 @inject CoreDbContext CoreDb
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> Localizer
 
-<PageTitle>Créer une entreprise</PageTitle>
+<PageTitle>@Localizer["CreerUneEntreprise"]</PageTitle>
 
-<h1>Créer une entreprise</h1>
+<h1>@Localizer["CreerUneEntreprise"]</h1>
 
 <EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="create-company">
-    <label>Nom de l'entreprise <InputText @bind-Value="_model.Name" /></label>
-    <button type="submit">Créer</button>
+    <label>@Localizer["NomDeLEntreprise"] <InputText @bind-Value="_model.Name" /></label>
+    <button type="submit">@Localizer["Creer"]</button>
 </EditForm>
 
 @if (!string.IsNullOrEmpty(_message))
@@ -43,7 +46,7 @@
 
         if (string.IsNullOrEmpty(userId))
         {
-            _message = "Utilisateur non authentifié.";
+            _message = Localizer["UtilisateurNonAuthentifie"];
             return;
         }
 
