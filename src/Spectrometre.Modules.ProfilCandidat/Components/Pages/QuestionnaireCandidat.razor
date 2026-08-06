@@ -1,19 +1,23 @@
 @page "/candidat/questionnaire"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @using Spectrometre.Core.Compatibility
 @using Spectrometre.Modules.ProfilCandidat.Entities
+@using Spectrometre.Modules.ProfilCandidat.Resources
 @using Spectrometre.Modules.ProfilCandidat.Services
 @inject ICandidateProfileService CandidateProfileService
+@inject IStringLocalizer<ProfilCandidatResource> Localizer
 
-<PageTitle>Questionnaire candidat</PageTitle>
+<PageTitle>@Localizer["QuestionnaireCandidat"]</PageTitle>
 
 @if (_questions is null)
 {
-    <p>Chargement…</p>
+    <p>@Localizer["Chargement"]</p>
 }
 else
 {
@@ -22,7 +26,7 @@ else
 
     <div class="candidat-questionnaire">
         <aside class="progression">
-            <h3>PROGRESSION</h3>
+            <h3>@Localizer["Progression"]</h3>
             <ul>
                 @foreach (var theme in themes)
                 {
@@ -30,11 +34,11 @@ else
                     var allAnswered = themeQuestions.Count > 0 && themeQuestions.All(q => !string.IsNullOrWhiteSpace(q.AnswerText));
                     var isActive = !onGrilleStep && _questions[_currentIndex].Theme == theme;
                     <li class="@(isActive ? "active" : "")">
-                        @(allAnswered ? "✅" : "◯") @CandidateThemeLabels.ShortLabel(theme)
+                        @(allAnswered ? "✅" : "◯") @CandidateThemeLabels.ShortLabel(theme, _english)
                     </li>
                 }
                 <li class="@(onGrilleStep ? "active" : "")">
-                    @(GrilleComplete ? "✅" : "◯") Grille de compatibilité
+                    @(GrilleComplete ? "✅" : "◯") @Localizer["GrilleDeCompatibilite"]
                 </li>
             </ul>
         </aside>
@@ -43,7 +47,7 @@ else
         {
             var current = _questions[_currentIndex];
             <section class="question-panel">
-                <p class="counter">Question @(_currentIndex + 1) / @_questions.Count</p>
+                <p class="counter">@string.Format(Localizer["QuestionCompteur"].Value, _currentIndex + 1, _questions.Count)</p>
                 <h2>@current.Text</h2>
 
                 <textarea @bind="_currentAnswer" @bind:event="oninput"
@@ -51,135 +55,131 @@ else
                           rows="5"></textarea>
 
                 <div class="actions">
-                    <button @onclick="PreviousAsync" disabled="@(_currentIndex == 0)">&lt; Précédent</button>
-                    <button @onclick="NextAsync">Suivant &gt;</button>
+                    <button @onclick="PreviousAsync" disabled="@(_currentIndex == 0)">&lt; @Localizer["Precedent"]</button>
+                    <button @onclick="NextAsync">@Localizer["Suivant"] &gt;</button>
                 </div>
             </section>
         }
         else
         {
             <section class="question-panel">
-                <p class="counter">H. Grille complémentaire de compatibilité candidat</p>
-                <h2>Critères pour le moteur de compatibilité</h2>
-                <p class="hint">
-                    Cette grille transforme vos réponses en critères directement comparables avec ceux de
-                    l'entreprise. Elle ne sert pas à vous exclure, mais à préparer un dialogue plus clair
-                    en entretien.
-                </p>
+                <p class="counter">@Localizer["GrilleH_Entete"]</p>
+                <h2>@Localizer["CriteresPourMoteur"]</h2>
+                <p class="hint">@Localizer["GrilleH_Hint"]</p>
 
                 <div class="grille-champ">
-                    <label>Compatibilité technique</label>
-                    <p class="grille-question">Sélectionnez les compétences que vous maîtrisez déjà suffisamment pour être opérationnel.</p>
+                    <label>@Localizer["CompatibiliteTechnique"]</label>
+                    <p class="grille-question">@Localizer["QuestionTechnique"]</p>
                     <div class="tag-checkboxes">
                         @foreach (var tag in CompatibilityVocabulary.TechniqueTags)
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.TechniqueTags.Contains(tag)"
                                        @onchange="e => ToggleTagAsync(CriteriaField.Technique, _grille.TechniqueTags, tag, (bool)e.Value!)" />
-                                @tag
+                                @CompatibilityVocabulary.DisplayTag(tag, _english)
                             </label>
                         }
                     </div>
                     <textarea @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Technique, e.Value?.ToString())"
-                              placeholder="Notes libres (optionnel — sert à l'entretien, n'entre pas dans le calcul)" rows="2"></textarea>
+                              placeholder="@Localizer["NotesLibresTechnique"]" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
-                    <label>Compatibilité comportementale</label>
-                    <p class="grille-question">Sélectionnez les comportements professionnels qui vous décrivent.</p>
+                    <label>@Localizer["CompatibiliteComportementale"]</label>
+                    <p class="grille-question">@Localizer["QuestionComportementale"]</p>
                     <div class="tag-checkboxes">
                         @foreach (var tag in CompatibilityVocabulary.ComportementaleTags)
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.ComportementaleTags.Contains(tag)"
                                        @onchange="e => ToggleTagAsync(CriteriaField.Comportementale, _grille.ComportementaleTags, tag, (bool)e.Value!)" />
-                                @tag
+                                @CompatibilityVocabulary.DisplayTag(tag, _english)
                             </label>
                         }
                     </div>
                     <textarea @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Comportementale, e.Value?.ToString())"
-                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                              placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
-                    <label>Compatibilité culturelle</label>
-                    <p class="grille-question">Sélectionnez les valeurs que vous souhaitez retrouver dans une entreprise.</p>
+                    <label>@Localizer["CompatibiliteCulturelle"]</label>
+                    <p class="grille-question">@Localizer["QuestionCulturelle"]</p>
                     <div class="tag-checkboxes">
                         @foreach (var tag in CompatibilityVocabulary.CulturelleTags)
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.CulturelleTags.Contains(tag)"
                                        @onchange="e => ToggleTagAsync(CriteriaField.Culturelle, _grille.CulturelleTags, tag, (bool)e.Value!)" />
-                                @tag
+                                @CompatibilityVocabulary.DisplayTag(tag, _english)
                             </label>
                         }
                     </div>
                     <textarea @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Culturelle, e.Value?.ToString())"
-                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                              placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
-                    <label>Compatibilité organisationnelle — rythme de travail</label>
-                    <p class="grille-question">Quel rythme de travail pouvez-vous accepter durablement ?</p>
+                    <label>@Localizer["CompatibiliteOrganisationnelle"]</label>
+                    <p class="grille-question">@Localizer["QuestionRythme"]</p>
                     <select value="@(_grille.RythmeTravail?.ToString() ?? "")" @onchange="OnRythmeChangedAsync">
-                        <option value="">— Choisir —</option>
+                        <option value="">@Localizer["ChoisirOption"]</option>
                         @foreach (var (valeur, libelle) in CompatibilityVocabulary.RythmeTravailLabels)
                         {
-                            <option value="@valeur">@valeur — @libelle</option>
+                            <option value="@valeur">@valeur — @CompatibilityVocabulary.DisplayRythmeTravail(valeur, _english)</option>
                         }
                     </select>
                     <textarea @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Organisationnelle, e.Value?.ToString())"
-                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                              placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
-                    <label>Compatibilité motivationnelle</label>
-                    <p class="grille-question">Sélectionnez ce qui vous donne envie de vous investir durablement.</p>
+                    <label>@Localizer["CompatibiliteMotivationnelle"]</label>
+                    <p class="grille-question">@Localizer["QuestionMotivationnelle"]</p>
                     <div class="tag-checkboxes">
                         @foreach (var tag in CompatibilityVocabulary.MotivationnelleTags)
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.MotivationnelleTags.Contains(tag)"
                                        @onchange="e => ToggleTagAsync(CriteriaField.Motivationnelle, _grille.MotivationnelleTags, tag, (bool)e.Value!)" />
-                                @tag
+                                @CompatibilityVocabulary.DisplayTag(tag, _english)
                             </label>
                         }
                     </div>
                     <textarea @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Motivationnelle, e.Value?.ToString())"
-                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                              placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
-                    <label>Points de vigilance</label>
-                    <p class="grille-question">Sélectionnez les situations qui risquent de vous fatiguer, vous stresser ou vous démotiver.</p>
+                    <label>@Localizer["PointsDeVigilance"]</label>
+                    <p class="grille-question">@Localizer["QuestionPointsVigilance"]</p>
                     <div class="tag-checkboxes">
                         @foreach (var tag in CompatibilityVocabulary.PointsVigilanceTags)
                         {
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_grille.PointsVigilanceTags.Contains(tag)"
                                        @onchange="e => ToggleTagAsync(CriteriaField.PointsVigilance, _grille.PointsVigilanceTags, tag, (bool)e.Value!)" />
-                                @tag
+                                @CompatibilityVocabulary.DisplayTag(tag, _english)
                             </label>
                         }
                     </div>
                     <textarea @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.PointsVigilance, e.Value?.ToString())"
-                              placeholder="Notes libres (optionnel)" rows="2"></textarea>
+                              placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
                 <div class="actions">
-                    <button @onclick="PreviousAsync">&lt; Précédent</button>
-                    <button @onclick="() => _grilleSaved = true">Terminé</button>
+                    <button @onclick="PreviousAsync">&lt; @Localizer["Precedent"]</button>
+                    <button @onclick="() => _grilleSaved = true">@Localizer["Termine"]</button>
                 </div>
                 @if (_grilleSaved)
                 {
-                    <p class="hint">Grille enregistrée.</p>
+                    <p class="hint">@Localizer["GrilleEnregistree"]</p>
                 }
             </section>
         }
 
         <aside class="synthese">
-            <h3>SYNTHÈSE DU PROFIL</h3>
-            <p class="grille-statut">@(GrilleComplete ? "✅" : "◯") Grille de compatibilité @(GrilleComplete ? "complète" : "incomplète")</p>
+            <h3>@Localizer["SyntheseDuProfil"]</h3>
+            <p class="grille-statut">@(GrilleComplete ? "✅" : "◯") @Localizer["GrilleDeCompatibilite"] @(GrilleComplete ? Localizer["Complete"] : Localizer["Incomplete"])</p>
             @if (_synthesis is not null)
             {
                 @foreach (var (category, tags) in _synthesis.TagsByCategory)
@@ -198,7 +198,7 @@ else
             }
             else
             {
-                <p class="hint">La synthèse apparaît au fil de vos réponses.</p>
+                <p class="hint">@Localizer["SyntheseHint"]</p>
             }
         </aside>
     </div>
@@ -214,6 +214,7 @@ else
     private CandidateSynthesisView? _synthesis;
     private readonly GrilleModel _grille = new();
     private bool _grilleSaved;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     private bool GrilleComplete =>
         _grille.TechniqueTags.Count > 0

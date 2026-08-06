@@ -11,6 +11,9 @@ public sealed class CandidateQuestion
 
     public required string Text { get; set; }
 
+    /// <summary>Traduction automatique pour l'instant (bilinguisme, cycle contenu métier) — à affiner plus tard. Nullable : une question ajoutée sans version anglaise retombe sur <see cref="Text"/> à l'affichage.</summary>
+    public string? TextEn { get; set; }
+
     public ICollection<CandidateQuestionExample> Examples { get; set; } = new List<CandidateQuestionExample>();
 }
 
@@ -20,5 +23,9 @@ public sealed class CandidateQuestionExample
     public int Id { get; set; }
     public int QuestionId { get; set; }
     public required string Text { get; set; }
+
+    /// <summary>Traduction automatique pour l'instant — voir <see cref="CandidateQuestion.TextEn"/>.</summary>
+    public string? TextEn { get; set; }
+
     public int DisplayOrder { get; set; }
 }

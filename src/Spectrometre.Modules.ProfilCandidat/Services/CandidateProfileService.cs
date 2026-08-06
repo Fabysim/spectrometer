@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Compatibility;
 using Spectrometre.Core.Suivi;
@@ -43,6 +44,10 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
             .OrderBy(q => q.Number)
             .ToListAsync(cancellationToken);
 
+        // Bilinguisme (cycle contenu métier) : Text/TextEn choisis selon la culture courante — jamais
+        // AnswerText, qui reste la réponse libre du candidat, dans la langue où il l'a saisie.
+        var english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
         return questions.Select(q =>
         {
             answers.TryGetValue(q.Id, out var answer);
@@ -50,8 +55,8 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
                 q.Id,
                 q.Theme,
                 q.Number,
-                q.Text,
-                q.Examples.OrderBy(e => e.DisplayOrder).Select(e => e.Text).ToList(),
+                english ? q.TextEn ?? q.Text : q.Text,
+                q.Examples.OrderBy(e => e.DisplayOrder).Select(e => english ? e.TextEn ?? e.Text : e.Text).ToList(),
                 answer?.AnswerText,
                 answer?.UpdatedAt);
         }).ToList();

@@ -39,4 +39,31 @@ public static class CandidateThemeLabels
         CandidateTheme.SignauxAlerte => "Signaux d'alerte",
         _ => theme.ToString(),
     };
+
+    /// <summary>Traduction automatique pour l'instant (bilinguisme, cycle contenu métier) — à affiner plus tard.</summary>
+    public static string LabelEn(CandidateTheme theme) => theme switch
+    {
+        CandidateTheme.ActivitesInterets => "A. Activities that spark interest and energy",
+        CandidateTheme.TalentsNaturels => "B. Natural talents and personal aptitudes",
+        CandidateTheme.CompetencesAcquises => "C. Skills acquired through education, practice and daily life",
+        CandidateTheme.ValeursTravail => "D. Personal values and deep motivations",
+        CandidateTheme.EnvironnementsFavorables => "E. Favorable work environments and contexts",
+        CandidateTheme.SignauxAlerte => "F. Situations that boost or reduce motivation or cause discomfort",
+        _ => theme.ToString(),
+    };
+
+    /// <summary>Traduction automatique pour l'instant (bilinguisme, cycle contenu métier) — à affiner plus tard.</summary>
+    public static string ShortLabelEn(CandidateTheme theme) => theme switch
+    {
+        CandidateTheme.ActivitesInterets => "Activities & interests",
+        CandidateTheme.TalentsNaturels => "Natural talents",
+        CandidateTheme.CompetencesAcquises => "Acquired skills",
+        CandidateTheme.ValeursTravail => "Work values",
+        CandidateTheme.EnvironnementsFavorables => "Favorable environment",
+        CandidateTheme.SignauxAlerte => "Warning signals",
+        _ => theme.ToString(),
+    };
+
+    public static string Label(CandidateTheme theme, bool english) => english ? LabelEn(theme) : Label(theme);
+    public static string ShortLabel(CandidateTheme theme, bool english) => english ? ShortLabelEn(theme) : ShortLabel(theme);
 }

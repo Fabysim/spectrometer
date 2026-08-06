@@ -145,6 +145,7 @@ public sealed class ProfilCandidatDbContext(DbContextOptions<ProfilCandidatDbCon
                 Number = seed.Number,
                 Theme = seed.Theme,
                 Text = seed.Text,
+                TextEn = seed.TextEn,
             });
 
             for (var i = 0; i < seed.Examples.Length; i++)
@@ -154,6 +155,7 @@ public sealed class ProfilCandidatDbContext(DbContextOptions<ProfilCandidatDbCon
                     Id = exampleId++,
                     QuestionId = seed.Number,
                     Text = seed.Examples[i],
+                    TextEn = seed.ExamplesEn[i],
                     DisplayOrder = i,
                 });
             }

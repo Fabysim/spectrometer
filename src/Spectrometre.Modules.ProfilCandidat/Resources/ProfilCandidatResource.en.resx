@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
+
+  <data name="QuestionnaireCandidat" xml:space="preserve"><value>Candidate questionnaire</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Progression" xml:space="preserve"><value>PROGRESS</value></data>
+  <data name="GrilleDeCompatibilite" xml:space="preserve"><value>Compatibility grid</value></data>
+  <data name="QuestionCompteur" xml:space="preserve"><value>Question {0} / {1}</value></data>
+  <data name="Precedent" xml:space="preserve"><value>Previous</value></data>
+  <data name="Suivant" xml:space="preserve"><value>Next</value></data>
+  <data name="GrilleH_Entete" xml:space="preserve"><value>H. Supplementary candidate compatibility grid</value></data>
+  <data name="CriteresPourMoteur" xml:space="preserve"><value>Criteria for the compatibility engine</value></data>
+  <data name="GrilleH_Hint" xml:space="preserve"><value>This grid turns your answers into criteria directly comparable with the company's. It isn't meant to exclude you, but to prepare a clearer conversation at interview time.</value></data>
+  <data name="CompatibiliteTechnique" xml:space="preserve"><value>Technical compatibility</value></data>
+  <data name="QuestionTechnique" xml:space="preserve"><value>Select the skills you already master well enough to be operational.</value></data>
+  <data name="NotesLibresTechnique" xml:space="preserve"><value>Free notes (optional — used at interview time, not part of the calculation)</value></data>
+  <data name="CompatibiliteComportementale" xml:space="preserve"><value>Behavioral compatibility</value></data>
+  <data name="QuestionComportementale" xml:space="preserve"><value>Select the professional behaviors that describe you.</value></data>
+  <data name="NotesLibres" xml:space="preserve"><value>Free notes (optional)</value></data>
+  <data name="CompatibiliteCulturelle" xml:space="preserve"><value>Cultural compatibility</value></data>
+  <data name="QuestionCulturelle" xml:space="preserve"><value>Select the values you'd like to find in a company.</value></data>
+  <data name="CompatibiliteOrganisationnelle" xml:space="preserve"><value>Organizational compatibility — work pace</value></data>
+  <data name="QuestionRythme" xml:space="preserve"><value>What work pace can you sustainably accept?</value></data>
+  <data name="ChoisirOption" xml:space="preserve"><value>— Choose —</value></data>
+  <data name="CompatibiliteMotivationnelle" xml:space="preserve"><value>Motivational compatibility</value></data>
+  <data name="QuestionMotivationnelle" xml:space="preserve"><value>Select what makes you want to commit for the long term.</value></data>
+  <data name="PointsDeVigilance" xml:space="preserve"><value>Points of caution</value></data>
+  <data name="QuestionPointsVigilance" xml:space="preserve"><value>Select the situations likely to tire, stress or demotivate you.</value></data>
+  <data name="Termine" xml:space="preserve"><value>Done</value></data>
+  <data name="GrilleEnregistree" xml:space="preserve"><value>Grid saved.</value></data>
+  <data name="SyntheseDuProfil" xml:space="preserve"><value>PROFILE SYNTHESIS</value></data>
+  <data name="Complete" xml:space="preserve"><value>complete</value></data>
+  <data name="Incomplete" xml:space="preserve"><value>incomplete</value></data>
+  <data name="SyntheseHint" xml:space="preserve"><value>The synthesis appears as you answer.</value></data>
+
+  <data name="CurriculumVitae" xml:space="preserve"><value>Resume</value></data>
+  <data name="Cv_Intro" xml:space="preserve"><value>This form is separate from the self-knowledge questionnaire — it's a classic structured resume, saved section by section.</value></data>
+  <data name="Cv_LienQuestionnaire" xml:space="preserve"><value>self-knowledge questionnaire</value></data>
+  <data name="Cv_Section1" xml:space="preserve"><value>1. Applicant contact information</value></data>
+  <data name="Nom" xml:space="preserve"><value>Last name</value></data>
+  <data name="Prenoms" xml:space="preserve"><value>First name(s)</value></data>
+  <data name="DateNaissance" xml:space="preserve"><value>Date of birth</value></data>
+  <data name="LieuNaissance" xml:space="preserve"><value>Place of birth</value></data>
+  <data name="Nationalite" xml:space="preserve"><value>Nationality</value></data>
+  <data name="AdresseComplete" xml:space="preserve"><value>Full address</value></data>
+  <data name="Telephone" xml:space="preserve"><value>Phone</value></data>
+  <data name="AdresseElectronique" xml:space="preserve"><value>Email address</value></data>
+  <data name="ProfilOuPosteRecherche" xml:space="preserve"><value>Professional profile or desired position</value></data>
+  <data name="EnregistrerLesCoordonnees" xml:space="preserve"><value>Save contact information</value></data>
+  <data name="Enregistre" xml:space="preserve"><value>Saved.</value></data>
+  <data name="Cv_Section2" xml:space="preserve"><value>2. Completed studies and diplomas obtained</value></data>
+  <data name="Cv_PeriodeExemple" xml:space="preserve"><value>Period (e.g. 2015 to 2018)</value></data>
+  <data name="Etablissement" xml:space="preserve"><value>Institution</value></data>
+  <data name="DiplomeCertificatOuNiveau" xml:space="preserve"><value>Diploma, certificate or level</value></data>
+  <data name="DomaineEtudes" xml:space="preserve"><value>Field of study</value></data>
+  <data name="Enregistrer" xml:space="preserve"><value>Save</value></data>
+  <data name="Supprimer" xml:space="preserve"><value>Delete</value></data>
+  <data name="AjouterUneFormation" xml:space="preserve"><value>+ Add education</value></data>
+  <data name="Cv_Section3" xml:space="preserve"><value>3. Specializations and skills acquired through education</value></data>
+  <data name="SpecialitePrincipale" xml:space="preserve"><value>Main specialization</value></data>
+  <data name="CompetencesTechniquesAcquises" xml:space="preserve"><value>Technical skills acquired</value></data>
+  <data name="ConnaissancesTheoriquesImportantes" xml:space="preserve"><value>Important theoretical knowledge</value></data>
+  <data name="LanguesMaitrisees" xml:space="preserve"><value>Languages spoken</value></data>
+  <data name="OutilsLogicielsMethodesEtudies" xml:space="preserve"><value>Tools, software or methods studied</value></data>
+  <data name="Cv_Section4" xml:space="preserve"><value>4. Skills acquired through hands-on experience</value></data>
+  <data name="Periode" xml:space="preserve"><value>Period</value></data>
+  <data name="EntrepriseOrganisationOuLieuStage" xml:space="preserve"><value>Company, organization or internship location</value></data>
+  <data name="FonctionOuActiviteExercee" xml:space="preserve"><value>Role or activity performed</value></data>
+  <data name="CompetencesDeveloppees" xml:space="preserve"><value>Skills developed</value></data>
+  <data name="AjouterUneExperience" xml:space="preserve"><value>+ Add experience</value></data>
+  <data name="Cv_Section5" xml:space="preserve"><value>5. Personal characteristics</value></data>
+  <data name="QualitesPersonnelles" xml:space="preserve"><value>Personal qualities</value></data>
+  <data name="QualitesPersonnellesExemples" xml:space="preserve"><value>Examples: punctuality, sense of responsibility, honesty, perseverance.</value></data>
+  <data name="AptitudesProfessionnelles" xml:space="preserve"><value>Professional aptitudes</value></data>
+  <data name="AptitudesProfessionnellesExemples" xml:space="preserve"><value>Examples: organization, autonomy, ability to learn, initiative.</value></data>
+  <data name="AttitudesRelationnelles" xml:space="preserve"><value>Attitudes in relationships with others</value></data>
+  <data name="AttitudesRelationnellesExemples" xml:space="preserve"><value>Examples: respect, listening, team spirit, communication, service orientation.</value></data>
+  <data name="CapaciteSousPression" xml:space="preserve"><value>Ability to work under pressure</value></data>
+  <data name="DisponibiliteMobilite" xml:space="preserve"><value>Availability and mobility</value></data>
+  <data name="Cv_Section6" xml:space="preserve"><value>6. Hobbies and interests</value></data>
+  <data name="LoisirsPreferes" xml:space="preserve"><value>Favorite hobbies</value></data>
+  <data name="ActivitesSportivesCulturelles" xml:space="preserve"><value>Sports or cultural activities</value></data>
+  <data name="EngagementsAssociatifs" xml:space="preserve"><value>Volunteer, community or association involvement</value></data>
+  <data name="AutresCentresInteret" xml:space="preserve"><value>Other interests</value></data>
+  <data name="Cv_Section7" xml:space="preserve"><value>7. Professional references</value></data>
+  <data name="Cv_ReferencesHint" xml:space="preserve"><value>It's recommended to get these people's consent before listing their contact information.</value></data>
+  <data name="NomEtPrenom" xml:space="preserve"><value>Full name</value></data>
+  <data name="Fonction" xml:space="preserve"><value>Role</value></data>
+  <data name="EntrepriseOuOrganisation" xml:space="preserve"><value>Company or organization</value></data>
+  <data name="TelephoneOuAdresseElectronique" xml:space="preserve"><value>Phone or email address</value></data>
+  <data name="LienAvecLePostulant" xml:space="preserve"><value>Relationship to the applicant</value></data>
+  <data name="AjouterUneReference" xml:space="preserve"><value>+ Add a reference</value></data>
+  <data name="Cv_Section8" xml:space="preserve"><value>8. Applicant declaration</value></data>
+  <data name="Cv_DeclarationHint1" xml:space="preserve"><value>I certify that the information provided in this form is accurate and complete. I authorize companies registered on the platform to view my profile as part of their candidate searches.</value></data>
+  <data name="Cv_DeclarationHint2" xml:space="preserve"><value>This consent is recorded for declarative purposes only: it does not change any access. Your profile's visibility to companies remains governed solely by your actual applications (see Talent Pool).</value></data>
+  <data name="Cv_CertificationExactitude" xml:space="preserve"><value>I certify the accuracy of the information provided</value></data>
+  <data name="Cv_ConsentementConsultation" xml:space="preserve"><value>I authorize companies to view my profile</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Cv_SignatureDuPostulant" xml:space="preserve"><value>Applicant's signature (typed name)</value></data>
+  <data name="EnregistrerLaDeclaration" xml:space="preserve"><value>Save declaration</value></data>
+</root>
