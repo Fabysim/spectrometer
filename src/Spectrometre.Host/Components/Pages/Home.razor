@@ -1,4 +1,5 @@
 @page "/"
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
@@ -108,7 +109,7 @@ else
                 if (PersonalModuleCodes.Codes.Contains(manifest.Code))
                     continue;
                 if (await ModuleRegistry.IsActiveAsync(_company.Id, manifest.Code, CoreDb))
-                    _companyModuleNames.Add(manifest.DisplayName);
+                    _companyModuleNames.Add(DisplayNameFor(manifest));
             }
         }
 
@@ -116,7 +117,15 @@ else
         foreach (var manifest in ModuleRegistry.AllModules)
         {
             if (await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, CoreDb))
-                _candidateModuleNames.Add(manifest.DisplayName);
+                _candidateModuleNames.Add(DisplayNameFor(manifest));
         }
     }
+
+    /// <summary>
+    /// Nom du module selon la culture courante — voir <see cref="ModuleManifest.DisplayNameEn"/> (cycle de
+    /// bilinguisme, écart corrigé) : DisplayName (français) reste le contenu source, DisplayNameEn n'est
+    /// consulté qu'ici et au tableau de bord, jamais par les écrans propres du module (hors périmètre).
+    /// </summary>
+    private static string DisplayNameFor(ModuleManifest manifest) =>
+        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr" ? manifest.DisplayName : manifest.DisplayNameEn;
 }

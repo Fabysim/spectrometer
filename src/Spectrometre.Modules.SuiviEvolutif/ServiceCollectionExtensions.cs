@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
     public static readonly ModuleManifest Manifest = new(
         Code: "SuiviEvolutif",
         DisplayName: "Suivi évolutif",
+        DisplayNameEn: "Change History",
         Version: "1.0.0",
         RequiredModuleCodes: ["ProfilEntreprise"]);
 

@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
     public static readonly ModuleManifest Manifest = new(
         Code: "GestionDuTemps",
         DisplayName: "Gestion du temps",
+        DisplayNameEn: "Time Management",
         Version: "1.0.0",
         RequiredModuleCodes: []);
 

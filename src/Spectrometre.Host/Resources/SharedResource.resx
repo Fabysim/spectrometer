@@ -65,6 +65,18 @@
   <data name="Inscription_ChoisirProfil" xml:space="preserve"><value>Veuillez choisir un profil (Entreprise ou Candidat).</value></data>
   <data name="Inscription_NomEntrepriseRequis" xml:space="preserve"><value>Le nom de l'entreprise est requis.</value></data>
 
+  <!-- Messages de validation du formulaire d'inscription, résolus manuellement via IStringLocalizer
+       (ValidationMessageStore) plutôt que via ErrorMessageResourceType sur les attributs DataAnnotations —
+       voir le commentaire dans Inscription.razor. -->
+  <data name="Inscription_NomRequis" xml:space="preserve"><value>Le nom est requis.</value></data>
+  <data name="Inscription_PrenomRequis" xml:space="preserve"><value>Le prénom est requis.</value></data>
+  <data name="Inscription_EmailRequis" xml:space="preserve"><value>L'adresse email est requise.</value></data>
+  <data name="Inscription_EmailInvalide" xml:space="preserve"><value>Adresse email invalide.</value></data>
+  <data name="Inscription_MotDePasseRequis" xml:space="preserve"><value>Le mot de passe est requis.</value></data>
+  <data name="Inscription_ConfirmationMotDePasseRequise" xml:space="preserve"><value>La confirmation du mot de passe est requise.</value></data>
+  <data name="Inscription_MotsDePasseNeCorrespondentPas" xml:space="preserve"><value>Les mots de passe ne correspondent pas.</value></data>
+  <data name="Inscription_ProfilRequis" xml:space="preserve"><value>Veuillez choisir un profil.</value></data>
+
   <data name="Logout_EnCours" xml:space="preserve"><value>Déconnexion…</value></data>
 
   <data name="CreerUneEntreprise" xml:space="preserve"><value>Créer une entreprise</value></data>

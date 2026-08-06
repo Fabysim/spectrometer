@@ -24,8 +24,7 @@
    (suggestion de mot de passe, indicateur de robustesse, affichage conditionnel du nom d'entreprise)
    sont donc implémentés en JavaScript simple ci-dessous plutôt qu'en gestionnaires d'évènements Blazor,
    qui ne se déclenchent pas sans circuit interactif. *@
-<EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="inscription" method="post">
-    <DataAnnotationsValidator />
+<EditForm EditContext="_editContext" OnValidSubmit="SubmitAsync" FormName="inscription" method="post">
     <ValidationSummary />
 
     <h2>@Localizer["Inscription_InformationsDuCompte"]</h2>
@@ -135,31 +134,62 @@
     [SupplyParameterFromForm(FormName = "inscription")]
     private InscriptionModel _model { get; set; } = new();
 
+    private EditContext _editContext = null!;
+    private ValidationMessageStore _messageStore = null!;
     private string? _message;
 
+    // Les messages de validation sont résolus manuellement (voir HandleValidationRequested) plutôt que via
+    // ErrorMessageResourceType sur les attributs DataAnnotations natifs : cet outillage repose sur une
+    // génération de code resx (Designer.cs) jugée trop fragile à piloter hors Visual Studio, et empêchait de
+    // localiser ces messages au cycle précédent. Le modèle reste donc un simple sac de propriétés, sans
+    // attribut de validation.
     private sealed class InscriptionModel
     {
-        [Required(ErrorMessage = "Le nom est requis.")]
         public string Nom { get; set; } = "";
-
-        [Required(ErrorMessage = "Le prénom est requis.")]
         public string Prenom { get; set; } = "";
-
-        [Required(ErrorMessage = "L'adresse email est requise.")]
-        [EmailAddress(ErrorMessage = "Adresse email invalide.")]
         public string Email { get; set; } = "";
-
-        [Required(ErrorMessage = "Le mot de passe est requis.")]
         public string MotDePasse { get; set; } = "";
-
-        [Required(ErrorMessage = "La confirmation du mot de passe est requise.")]
-        [Compare(nameof(MotDePasse), ErrorMessage = "Les mots de passe ne correspondent pas.")]
         public string ConfirmationMotDePasse { get; set; } = "";
-
-        [Required(ErrorMessage = "Veuillez choisir un profil.")]
         public string? Profil { get; set; }
-
         public string? NomEntreprise { get; set; }
+    }
+
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(_model);
+        _messageStore = new ValidationMessageStore(_editContext);
+        _editContext.OnValidationRequested += HandleValidationRequested;
+    }
+
+    private void HandleValidationRequested(object? sender, ValidationRequestedEventArgs e)
+    {
+        _messageStore.Clear();
+
+        if (string.IsNullOrWhiteSpace(_model.Nom))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Nom)), Localizer["Inscription_NomRequis"].Value);
+
+        if (string.IsNullOrWhiteSpace(_model.Prenom))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Prenom)), Localizer["Inscription_PrenomRequis"].Value);
+
+        if (string.IsNullOrWhiteSpace(_model.Email))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Email)), Localizer["Inscription_EmailRequis"].Value);
+        else if (!new EmailAddressAttribute().IsValid(_model.Email))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Email)), Localizer["Inscription_EmailInvalide"].Value);
+
+        if (string.IsNullOrWhiteSpace(_model.MotDePasse))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.MotDePasse)), Localizer["Inscription_MotDePasseRequis"].Value);
+
+        if (string.IsNullOrWhiteSpace(_model.ConfirmationMotDePasse))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.ConfirmationMotDePasse)), Localizer["Inscription_ConfirmationMotDePasseRequise"].Value);
+        else if (_model.ConfirmationMotDePasse != _model.MotDePasse)
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.ConfirmationMotDePasse)), Localizer["Inscription_MotsDePasseNeCorrespondentPas"].Value);
+
+        if (string.IsNullOrWhiteSpace(_model.Profil))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Profil)), Localizer["Inscription_ProfilRequis"].Value);
+
+        // Requis pour que ValidationSummary/ValidationMessage/le CSS "invalid" reflètent le nouveau contenu
+        // du message store — même mécanisme que DataAnnotationsValidator.ValidateModel() en interne.
+        _editContext.NotifyValidationStateChanged();
     }
 
     private async Task SubmitAsync()

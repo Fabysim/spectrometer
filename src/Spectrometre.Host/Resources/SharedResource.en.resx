@@ -66,6 +66,15 @@
   <data name="Inscription_ChoisirProfil" xml:space="preserve"><value>Please choose a profile (Company or Candidate).</value></data>
   <data name="Inscription_NomEntrepriseRequis" xml:space="preserve"><value>The company name is required.</value></data>
 
+  <data name="Inscription_NomRequis" xml:space="preserve"><value>The last name is required.</value></data>
+  <data name="Inscription_PrenomRequis" xml:space="preserve"><value>The first name is required.</value></data>
+  <data name="Inscription_EmailRequis" xml:space="preserve"><value>The email address is required.</value></data>
+  <data name="Inscription_EmailInvalide" xml:space="preserve"><value>Invalid email address.</value></data>
+  <data name="Inscription_MotDePasseRequis" xml:space="preserve"><value>The password is required.</value></data>
+  <data name="Inscription_ConfirmationMotDePasseRequise" xml:space="preserve"><value>Password confirmation is required.</value></data>
+  <data name="Inscription_MotsDePasseNeCorrespondentPas" xml:space="preserve"><value>Passwords do not match.</value></data>
+  <data name="Inscription_ProfilRequis" xml:space="preserve"><value>Please choose a profile.</value></data>
+
   <data name="Logout_EnCours" xml:space="preserve"><value>Logging out…</value></data>
 
   <data name="CreerUneEntreprise" xml:space="preserve"><value>Create a company</value></data>

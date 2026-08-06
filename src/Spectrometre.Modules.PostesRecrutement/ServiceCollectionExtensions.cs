@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
     public static readonly ModuleManifest Manifest = new(
         Code: "PostesRecrutement",
         DisplayName: "Postes & Recrutement",
+        DisplayNameEn: "Job Postings & Recruitment",
         Version: "1.0.0",
         RequiredModuleCodes: ["ProfilEntreprise"]);
 

@@ -26,6 +26,7 @@ public static class ServiceCollectionExtensions
     public static readonly ModuleManifest Manifest = new(
         Code: "Compatibilite",
         DisplayName: "Moteur de Compatibilité",
+        DisplayNameEn: "Compatibility Engine",
         Version: "1.0.0",
         RequiredModuleCodes: ["ProfilEntreprise"]);
 

@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
     public static readonly ModuleManifest Manifest = new(
         Code: "ProfilEntreprise",
         DisplayName: "Profil Entreprise",
+        DisplayNameEn: "Company Profile",
         Version: "1.0.0",
         RequiredModuleCodes: []);
 

@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
     public static readonly ModuleManifest Manifest = new(
         Code: "Analytics",
         DisplayName: "Analytics / Décideurs",
+        DisplayNameEn: "Analytics / Decision-makers",
         Version: "1.0.0",
         RequiredModuleCodes: ["Compatibilite", "PostesRecrutement"]);
 

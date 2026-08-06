@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
     public static readonly ModuleManifest Manifest = new(
         Code: "Entretien",
         DisplayName: "Préparation d'entretien",
+        DisplayNameEn: "Interview Preparation",
         Version: "1.0.0",
         RequiredModuleCodes: ["Compatibilite"]);
 
