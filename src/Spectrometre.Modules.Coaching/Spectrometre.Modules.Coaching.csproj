@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.18" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Dépendances réelles (pas seulement déclarées au manifeste) : Coaching lit les données Gestion du
+         temps de la personne suivie via IGestionDuTempsService, et résout/affiche l'annuaire via
+         ICoachProfileService — voir la remarque sur ICoachingAccessService. -->
+    <ProjectReference Include="..\Spectrometre.Core\Spectrometre.Core.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.GestionDuTemps\Spectrometre.Modules.GestionDuTemps.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.ProfilCoach\Spectrometre.Modules.ProfilCoach.csproj" />
+  </ItemGroup>
+
+</Project>

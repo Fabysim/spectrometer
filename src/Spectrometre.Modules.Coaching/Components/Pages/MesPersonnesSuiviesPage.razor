@@ -1,0 +1,152 @@
+@page "/coach/suivis"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Identity
+@using Spectrometre.Core.Modules
+@using Spectrometre.Modules.Coaching.Entities
+@using Spectrometre.Modules.Coaching.Resources
+@using Spectrometre.Modules.Coaching.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICoachingService CoachingService
+@inject ICoachSubjectResolver CoachSubjectResolver
+@inject IModuleRegistry ModuleRegistry
+@inject IDbContextFactory<CoreDbContext> CoreDbFactory
+@inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<CoachingResource> Localizer
+
+<PageTitle>@Localizer["MesPersonnesSuiviesTitle"]</PageTitle>
+
+<h1>@Localizer["MesPersonnesSuivies"]</h1>
+
+@if (_userId is null)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (!_hasAccess)
+{
+    <p class="hint">@Localizer["ModuleCoachNonActif"]</p>
+}
+else
+{
+    <section>
+        <h2>@Localizer["DemandesEnAttente"]</h2>
+        @if (_enAttente.Count == 0)
+        {
+            <p class="hint">@Localizer["AucuneDemandeEnAttente"]</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var (lien, nom) in _enAttente)
+                {
+                    <li>
+                        <strong>@nom</strong>
+                        <button @onclick="() => AccepterAsync(lien.Id)">@Localizer["Accepter"]</button>
+                        <button @onclick="() => RefuserAsync(lien.Id)">@Localizer["Refuser"]</button>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section>
+        <h2>@Localizer["LiensActifs"]</h2>
+        @if (_actifs.Count == 0)
+        {
+            <p class="hint">@Localizer["AucunLienActif"]</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var (lien, nom) in _actifs)
+                {
+                    <li>
+                        <strong>@nom</strong>
+                        <a href="/gestion-du-temps/@lien.SuiviUserId">@Localizer["VoirLeSuivi"]</a>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private bool _hasAccess;
+    private List<(LienCoachingView Lien, string Nom)> _enAttente = [];
+    private List<(LienCoachingView Lien, string Nom)> _actifs = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _userId = userId;
+
+        // Accès au module Coaching côté coach conditionné à ProfilCoach actif (voir la remarque sur
+        // ServiceCollectionExtensions du module Coaching : pas d'activation propre).
+        await using var coreDb = await CoreDbFactory.CreateDbContextAsync();
+        var coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
+        _hasAccess = await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, "ProfilCoach", coreDb);
+        if (!_hasAccess)
+            return;
+
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        var liens = await CoachingService.GetLiensPourCoachAsync(_userId!);
+
+        var enAttente = new List<(LienCoachingView, string)>();
+        var actifs = new List<(LienCoachingView, string)>();
+        foreach (var lien in liens)
+        {
+            if (lien.Statut is not (LienCoachingStatut.EnAttente or LienCoachingStatut.Actif))
+                continue;
+
+            var nom = await NomAfficheAsync(lien.SuiviUserId);
+            if (lien.Statut == LienCoachingStatut.EnAttente)
+                enAttente.Add((lien, nom));
+            else
+                actifs.Add((lien, nom));
+        }
+
+        _enAttente = enAttente;
+        _actifs = actifs;
+    }
+
+    private async Task<string> NomAfficheAsync(string userId)
+    {
+        var user = await UserManager.FindByIdAsync(userId);
+        if (user is null)
+            return userId;
+        var nomComplet = $"{user.FirstName} {user.LastName}".Trim();
+        return string.IsNullOrWhiteSpace(nomComplet) ? (user.Email ?? userId) : nomComplet;
+    }
+
+    private async Task AccepterAsync(int lienId)
+    {
+        await CoachingService.AccepterAsync(lienId, _userId!);
+        await RefreshAsync();
+    }
+
+    private async Task RefuserAsync(int lienId)
+    {
+        await CoachingService.RefuserAsync(lienId, _userId!);
+        await RefreshAsync();
+    }
+}

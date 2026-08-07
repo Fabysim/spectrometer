@@ -1,0 +1,38 @@
+namespace Spectrometre.Modules.Coaching.Entities;
+
+public enum LienCoachingStatut
+{
+    EnAttente = 0,
+    Actif = 1,
+    Refuse = 2,
+    Revoque = 3,
+}
+
+/// <summary>
+/// Lien de coaching entre une personne suivie (<see cref="SuiviUserId"/>) et un coach
+/// (<see cref="CoachUserId"/>). Toujours initié par la personne suivie — jamais par le coach, voir
+/// <c>ICoachingService</c> (aucune méthode ne permet à un coach de créer un lien vers lui-même). Deux
+/// origines possibles, distinguées par <see cref="InvitationId"/> :
+/// <list type="bullet">
+/// <item><description>Demande depuis l'annuaire (<see cref="InvitationId"/> null) : les deux comptes
+/// existent déjà, le lien est créé directement en <see cref="LienCoachingStatut.EnAttente"/>, le coach doit
+/// l'accepter depuis « Mes personnes suivies ».</description></item>
+/// <item><description>Invitation par email (<see cref="InvitationId"/> renseigné, référence molle vers
+/// <c>Invitation.Id</c> côté Core — jamais une contrainte de clé étrangère, même principe que
+/// <c>ModuleActivation.SubjectId</c>) : le lien est créé directement en
+/// <see cref="LienCoachingStatut.Actif"/> au moment où l'invité confirme/finalise son compte — accepter le
+/// lien d'invitation sécurisé EST l'acceptation, pas d'étape supplémentaire.</description></item>
+/// </list>
+/// </summary>
+public sealed class LienCoaching
+{
+    public int Id { get; set; }
+    public required string SuiviUserId { get; set; }
+    public required string CoachUserId { get; set; }
+    public LienCoachingStatut Statut { get; set; } = LienCoachingStatut.EnAttente;
+    public int? InvitationId { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? AccepteLe { get; set; }
+    public DateTimeOffset? ClotureLe { get; set; }
+}

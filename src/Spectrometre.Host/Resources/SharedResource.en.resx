@@ -129,4 +129,17 @@
   <data name="Annuler" xml:space="preserve"><value>Cancel</value></data>
   <data name="Suivant" xml:space="preserve"><value>Next</value></data>
   <data name="Precedent" xml:space="preserve"><value>Previous</value></data>
+
+  <data name="InvitationTitle" xml:space="preserve"><value>Invitation · Spectromètre</value></data>
+  <data name="InvitationInvalideOuExpiree" xml:space="preserve"><value>This invitation is invalid, already used, or has expired.</value></data>
+  <data name="InvitationCoachingIntro" xml:space="preserve"><value>You have been invited to become a coach on Spectromètre.</value></data>
+  <data name="InvitationCreerVotreCompte" xml:space="preserve"><value>Create your account</value></data>
+  <data name="InvitationEmailVerrouille" xml:space="preserve"><value>This invitation is reserved for this email address.</value></data>
+  <data name="InvitationUnCompteExisteDeja" xml:space="preserve"><value>An account already exists for {0}.</value></data>
+  <data name="InvitationConnectezVousPourConfirmer" xml:space="preserve"><value>Log in with that account, then come back to this link to confirm the invitation.</value></data>
+  <data name="InvitationSeConnecter" xml:space="preserve"><value>Log in</value></data>
+  <data name="InvitationMauvaisCompte" xml:space="preserve"><value>This invitation is for {0}, but you are logged in with a different account. Log out and log back in with the right account to confirm.</value></data>
+  <data name="InvitationConfirmer" xml:space="preserve"><value>Confirm invitation</value></data>
+  <data name="InvitationConfirmee" xml:space="preserve"><value>Invitation confirmed — you now follow this person.</value></data>
+  <data name="InvitationVoirMesPersonnesSuivies" xml:space="preserve"><value>View my clients</value></data>
 </root>

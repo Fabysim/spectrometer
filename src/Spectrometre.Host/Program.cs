@@ -12,6 +12,8 @@ using Spectrometre.Core.Tenancy;
 using Spectrometre.Host.Components;
 using Spectrometre.Host.Onboarding;
 using Spectrometre.Modules.Analytics;
+using Spectrometre.Modules.Coaching;
+using Spectrometre.Modules.Coaching.Data;
 using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Entretien;
 using Spectrometre.Modules.GestionDuTemps;
@@ -59,6 +61,9 @@ builder.Services.AddAnalyticsModule();
 builder.Services.AddGestionDuTempsModule(builder.Configuration);
 // Idem : profil de base d'un 4e type de sujet (Coach), aucune dépendance croisée avec les modules ci-dessus.
 builder.Services.AddProfilCoachModule(builder.Configuration);
+// Coaching a de vraies dépendances de projet vers GestionDuTemps/ProfilCoach (voir son .csproj) — doit donc
+// être enregistré après les deux. Pas de manifeste/activation propre, voir sa ServiceCollectionExtensions.
+builder.Services.AddCoachingModule(builder.Configuration);
 
 // Inversion de dépendance : Compatibilite consomme ICandidatureExistenceChecker (défini dans Core) sans
 // connaître son implémentation. C'est ICI, dans Host — le seul projet qui référence à la fois Compatibilite
@@ -158,6 +163,14 @@ using (var startupScope = app.Services.CreateScope())
         profilCoachDb.Database.Migrate();
     }
 
+    // Coaching : schéma fixe non tenant-scopé, comme Gestion du temps/Profil Coach — migré globalement ici.
+    using (var coachingDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<CoachingDbContext>>()
+               .CreateDbContext())
+    {
+        coachingDb.Database.Migrate();
+    }
+
     // Comble rétroactivement l'abonnement des entreprises créées avant le gating par plan introduit dans ce
     // cycle — sans ça, elles perdraient l'accès à tous leurs modules déjà activés (échec fermé, voir
     // ModuleRegistry.IsActiveAsync). Exécuté tôt, avant tout ce qui pourrait lire IsActiveAsync.
@@ -230,6 +243,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Analytics.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.Coaching.ServiceCollectionExtensions).Assembly);
 
 app.Run();

@@ -4,6 +4,7 @@
     <Project Path="src/Spectrometre.Host.Client/Spectrometre.Host.Client.csproj" />
     <Project Path="src/Spectrometre.Host/Spectrometre.Host.csproj" />
     <Project Path="src/Spectrometre.Modules.Analytics/Spectrometre.Modules.Analytics.csproj" />
+    <Project Path="src/Spectrometre.Modules.Coaching/Spectrometre.Modules.Coaching.csproj" />
     <Project Path="src/Spectrometre.Modules.Compatibilite/Spectrometre.Modules.Compatibilite.csproj" />
     <Project Path="src/Spectrometre.Modules.Entretien/Spectrometre.Modules.Entretien.csproj" />
     <Project Path="src/Spectrometre.Modules.GestionDuTemps/Spectrometre.Modules.GestionDuTemps.csproj" />

@@ -1,0 +1,188 @@
+@page "/mon-coach"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.Coaching.Entities
+@using Spectrometre.Modules.Coaching.Resources
+@using Spectrometre.Modules.Coaching.Services
+@using Spectrometre.Modules.GestionDuTemps.Services
+@using Spectrometre.Modules.ProfilCoach.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IGestionDuTempsAccessService GestionDuTempsAccessService
+@inject ICoachingService CoachingService
+@inject ICoachProfileService CoachProfileService
+@inject NavigationManager Navigation
+@inject IStringLocalizer<CoachingResource> Localizer
+
+<PageTitle>@Localizer["MonCoachTitle"]</PageTitle>
+
+<h1>@Localizer["MonCoach"]</h1>
+
+@if (_userId is null)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (!_hasAccess)
+{
+    <p class="hint">@Localizer["ModuleNonActive"]</p>
+}
+else
+{
+    <section>
+        <h2>@Localizer["MesLiens"]</h2>
+        @if (_liens.Count == 0)
+        {
+            <p class="hint">@Localizer["AucunLien"]</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var (lien, nomAffiche) in _liens)
+                {
+                    <li>
+                        <strong>@nomAffiche</strong> — @StatutLabel(lien.Statut)
+                        @if (lien.Statut is LienCoachingStatut.EnAttente or LienCoachingStatut.Actif)
+                        {
+                            <button @onclick="() => RevoquerAsync(lien.Id)">@Localizer["Revoquer"]</button>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section>
+        <h2>@Localizer["AnnuaireDesCoachs"]</h2>
+        <input @bind="_recherche" @bind:event="oninput" @bind:after="RefreshAnnuaireAsync" placeholder="@Localizer["RechercherUnCoach"]" />
+        @if (_annuaire.Count == 0)
+        {
+            <p class="hint">@Localizer["AucunCoachTrouve"]</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var entry in _annuaire)
+                {
+                    <li>
+                        <strong>@entry.NomAffiche</strong>
+                        @if (!string.IsNullOrWhiteSpace(entry.Specialites)) { <span> — @entry.Specialites</span> }
+                        @if (!string.IsNullOrWhiteSpace(entry.BioCourte)) { <p class="hint">@entry.BioCourte</p> }
+                        <button @onclick="() => DemanderAsync(entry.CoachProfileId)">@Localizer["EnvoyerUneDemande"]</button>
+                    </li>
+                }
+            </ul>
+        }
+        @if (_messageAnnuaire is not null)
+        {
+            <p class="hint">@_messageAnnuaire</p>
+        }
+    </section>
+
+    <section>
+        <h2>@Localizer["InviterUnAutreCoach"]</h2>
+        <p class="hint">@Localizer["InviterUnAutreCoachHint"]</p>
+        <input @bind="_emailInvitation" placeholder="@Localizer["EmailDuCoach"]" />
+        <button @onclick="InviterAsync" disabled="@_invitationEnCours">@Localizer["EnvoyerLInvitation"]</button>
+        @if (_lienInvitation is not null)
+        {
+            <p class="gdt-confirmation">
+                @Localizer["LienDInvitationGenere"]<br />
+                <code>@_lienInvitation</code>
+            </p>
+        }
+    </section>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private bool _hasAccess;
+    private List<(LienCoachingView Lien, string NomAffiche)> _liens = [];
+    private List<CoachAnnuaireEntry> _annuaire = [];
+    private string _recherche = "";
+    private string? _messageAnnuaire;
+    private string _emailInvitation = "";
+    private bool _invitationEnCours;
+    private string? _lienInvitation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _userId = userId;
+        _hasAccess = await GestionDuTempsAccessService.HasAccessAsync(userId);
+        if (!_hasAccess)
+            return;
+
+        await RefreshLiensAsync();
+        await RefreshAnnuaireAsync();
+    }
+
+    private async Task RefreshLiensAsync()
+    {
+        var liens = await CoachingService.GetLiensPourSuiviAsync(_userId!);
+        var resolved = new List<(LienCoachingView, string)>();
+        foreach (var lien in liens)
+        {
+            var profil = await CoachProfileService.GetProfilAsync(lien.CoachUserId);
+            resolved.Add((lien, string.IsNullOrWhiteSpace(profil?.NomAffiche) ? lien.CoachUserId : profil.NomAffiche));
+        }
+        _liens = resolved;
+    }
+
+    private async Task RefreshAnnuaireAsync() =>
+        _annuaire = (await CoachProfileService.GetAnnuaireVisibleAsync(_recherche)).ToList();
+
+    private async Task DemanderAsync(int coachProfileId)
+    {
+        _messageAnnuaire = null;
+        var coachUserId = await CoachProfileService.GetUserIdAsync(coachProfileId);
+        if (coachUserId is null)
+            return;
+
+        var ok = await CoachingService.DemanderCoachDepuisAnnuaireAsync(_userId!, coachUserId);
+        _messageAnnuaire = Localizer[ok ? "DemandeEnvoyee" : "DemandeDejaEnvoyee"];
+        await RefreshLiensAsync();
+    }
+
+    private async Task RevoquerAsync(int lienId)
+    {
+        await CoachingService.RevoquerAsync(lienId, _userId!);
+        await RefreshLiensAsync();
+    }
+
+    private async Task InviterAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_emailInvitation))
+            return;
+
+        _invitationEnCours = true;
+        try
+        {
+            var invitation = await CoachingService.InviterCoachParEmailAsync(_userId!, _emailInvitation.Trim());
+            _lienInvitation = $"{Navigation.BaseUri}invitations/accepter/{invitation.Token}";
+        }
+        finally
+        {
+            _invitationEnCours = false;
+        }
+    }
+
+    private string StatutLabel(LienCoachingStatut statut) => statut switch
+    {
+        LienCoachingStatut.EnAttente => Localizer["StatutEnAttente"],
+        LienCoachingStatut.Actif => Localizer["StatutActif"],
+        LienCoachingStatut.Refuse => Localizer["StatutRefuse"],
+        LienCoachingStatut.Revoque => Localizer["StatutRevoque"],
+        _ => statut.ToString(),
+    };
+}

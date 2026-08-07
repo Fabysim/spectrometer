@@ -1,0 +1,206 @@
+@page "/invitations/accepter/{Token}"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Identity
+@using Spectrometre.Core.Invitations
+@using Spectrometre.Host.Onboarding
+@using Spectrometre.Host.Resources
+@using Spectrometre.Modules.Coaching.Services
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IInvitationService InvitationService
+@inject CoachOnboardingService CoachOnboarding
+@inject ICoachingService CoachingService
+@inject CoreDbContext CoreDb
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["InvitationTitle"]</PageTitle>
+
+<h1>@Localizer["InvitationTitle"]</h1>
+
+@* Rendu statique (pas d'InteractiveServer), comme /inscription et /login : la confirmation d'invitation
+   se termine par SignInManager.SignInAsync (chemin "nouveau compte") ou lit l'état d'authentification déjà
+   posé par le cookie (chemin "compte existant") — les deux sont incompatibles avec un circuit interactif
+   qui n'écrit/relit le cookie qu'au tout premier rendu. *@
+
+@if (_invitation is null)
+{
+    <p class="erreur">@Localizer["InvitationInvalideOuExpiree"]</p>
+}
+else if (_existingUser is null)
+{
+    <p>@Localizer["InvitationCoachingIntro"]</p>
+    <p class="hint">@Localizer["InvitationEmailVerrouille"] <strong>@_invitation.EmailInvite</strong></p>
+
+    <EditForm EditContext="_editContext" OnValidSubmit="RegisterAndFinalizeAsync" FormName="invitation-inscription" method="post">
+        <ValidationSummary />
+        <div class="champ">
+            <label>@Localizer["Nom"] <InputText @bind-Value="_model.Nom" /></label>
+        </div>
+        <div class="champ">
+            <label>@Localizer["Prenom"] <InputText @bind-Value="_model.Prenom" /></label>
+        </div>
+        <div class="champ">
+            <label>@Localizer["MotDePasse"] <InputText @bind-Value="_model.MotDePasse" type="password" /></label>
+        </div>
+        <div class="champ">
+            <label>@Localizer["Inscription_ConfirmationMotDePasse"] <InputText @bind-Value="_model.ConfirmationMotDePasse" type="password" /></label>
+        </div>
+        <button type="submit">@Localizer["InvitationCreerVotreCompte"]</button>
+    </EditForm>
+}
+else if (!_isAuthenticatedAsInvitee)
+{
+    @if (_isAuthenticatedAsSomeoneElse)
+    {
+        <p class="erreur">@string.Format(Localizer["InvitationMauvaisCompte"].Value, _invitation.EmailInvite)</p>
+    }
+    else
+    {
+        <p>@string.Format(Localizer["InvitationUnCompteExisteDeja"].Value, _invitation.EmailInvite)</p>
+        <p class="hint">@Localizer["InvitationConnectezVousPourConfirmer"]</p>
+        <p><a href="/login">@Localizer["InvitationSeConnecter"]</a></p>
+    }
+}
+else if (_confirme)
+{
+    <p class="gdt-confirmation">@Localizer["InvitationConfirmee"]</p>
+    <p><a href="/coach/suivis">@Localizer["InvitationVoirMesPersonnesSuivies"]</a></p>
+}
+else
+{
+    <EditForm Model="_confirmModel" OnValidSubmit="ConfirmerAsync" FormName="invitation-confirmation" method="post">
+        <button type="submit">@Localizer["InvitationConfirmer"]</button>
+    </EditForm>
+}
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <p class="erreur">@_message</p>
+}
+
+@code {
+    [Parameter] public string Token { get; set; } = "";
+
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [SupplyParameterFromForm(FormName = "invitation-inscription")]
+    private InscriptionModel _model { get; set; } = new();
+
+    [SupplyParameterFromForm(FormName = "invitation-confirmation")]
+    private ConfirmModel _confirmModel { get; set; } = new();
+
+    private EditContext _editContext = null!;
+    private ValidationMessageStore _messageStore = null!;
+    private string? _message;
+    private Invitation? _invitation;
+    private ApplicationUser? _existingUser;
+    private bool _isAuthenticatedAsInvitee;
+    private bool _isAuthenticatedAsSomeoneElse;
+    private bool _confirme;
+
+    private sealed class InscriptionModel
+    {
+        public string Nom { get; set; } = "";
+        public string Prenom { get; set; } = "";
+        public string MotDePasse { get; set; } = "";
+        public string ConfirmationMotDePasse { get; set; } = "";
+    }
+
+    private sealed class ConfirmModel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(_model);
+        _messageStore = new ValidationMessageStore(_editContext);
+        _editContext.OnValidationRequested += HandleValidationRequested;
+
+        _invitation = await InvitationService.ObtenirValidePourAcceptationAsync(Token, CoreDb);
+        if (_invitation is null)
+            return;
+
+        _existingUser = await UserManager.FindByEmailAsync(_invitation.EmailInvite);
+        if (_existingUser is null)
+            return;
+
+        var authenticatedUserId = AuthenticationStateTask is null
+            ? null
+            : (await AuthenticationStateTask).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (authenticatedUserId is null)
+            return;
+
+        if (authenticatedUserId == _existingUser.Id)
+            _isAuthenticatedAsInvitee = true;
+        else
+            _isAuthenticatedAsSomeoneElse = true;
+    }
+
+    private void HandleValidationRequested(object? sender, ValidationRequestedEventArgs e)
+    {
+        _messageStore.Clear();
+
+        if (string.IsNullOrWhiteSpace(_model.Nom))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Nom)), Localizer["Inscription_NomRequis"].Value);
+        if (string.IsNullOrWhiteSpace(_model.Prenom))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Prenom)), Localizer["Inscription_PrenomRequis"].Value);
+        if (string.IsNullOrWhiteSpace(_model.MotDePasse))
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.MotDePasse)), Localizer["Inscription_MotDePasseRequis"].Value);
+        if (_model.ConfirmationMotDePasse != _model.MotDePasse)
+            _messageStore.Add(_editContext.Field(nameof(InscriptionModel.ConfirmationMotDePasse)), Localizer["Inscription_MotsDePasseNeCorrespondentPas"].Value);
+
+        _editContext.NotifyValidationStateChanged();
+    }
+
+    private async Task RegisterAndFinalizeAsync()
+    {
+        _message = null;
+
+        var user = new ApplicationUser
+        {
+            UserName = _invitation!.EmailInvite,
+            Email = _invitation.EmailInvite,
+            // Même contournement que /inscription — voir son commentaire.
+            EmailConfirmed = true,
+            FirstName = _model.Prenom,
+            LastName = _model.Nom,
+        };
+
+        var createResult = await UserManager.CreateAsync(user, _model.MotDePasse);
+        if (!createResult.Succeeded)
+        {
+            _message = string.Join(" ", createResult.Errors.Select(e => e.Description));
+            return;
+        }
+
+        await FinaliserSelonTypeAsync(user.Id);
+        await InvitationService.MarquerAccepteeAsync(_invitation.Id, CoreDb);
+        await SignInManager.SignInAsync(user, isPersistent: true);
+        Navigation.NavigateTo("/coach/suivis");
+    }
+
+    private async Task ConfirmerAsync()
+    {
+        await FinaliserSelonTypeAsync(_existingUser!.Id);
+        await InvitationService.MarquerAccepteeAsync(_invitation!.Id, CoreDb);
+        _confirme = true;
+    }
+
+    /// <summary>
+    /// Seul <see cref="InvitationType.Coaching"/> est câblé ce cycle — voir la remarque sur <see cref="Invitation.Type"/>
+    /// pour l'extension future (ex. un type manager sous entreprise ajouterait un cas ici, rien d'autre).
+    /// </summary>
+    private async Task FinaliserSelonTypeAsync(string accepteurUserId)
+    {
+        switch (_invitation!.Type)
+        {
+            case InvitationType.Coaching:
+                await CoachOnboarding.CreateCoachAsync(accepteurUserId, CoreDb);
+                await CoachingService.FinaliserDepuisInvitationAsync(_invitation, accepteurUserId);
+                break;
+        }
+    }
+}

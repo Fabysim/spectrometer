@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
+
+  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
+  <data name="ModuleNonActive" xml:space="preserve"><value>This module is not enabled for your account.</value></data>
+
+  <data name="MonCoachTitle" xml:space="preserve"><value>My coach · Spectromètre</value></data>
+  <data name="MonCoach" xml:space="preserve"><value>My coach</value></data>
+  <data name="MesLiens" xml:space="preserve"><value>My requests and links</value></data>
+  <data name="AucunLien" xml:space="preserve"><value>No request or link yet.</value></data>
+  <data name="Revoquer" xml:space="preserve"><value>Revoke</value></data>
+  <data name="AnnuaireDesCoachs" xml:space="preserve"><value>Coach directory</value></data>
+  <data name="RechercherUnCoach" xml:space="preserve"><value>Search a coach (name, specialty)</value></data>
+  <data name="AucunCoachTrouve" xml:space="preserve"><value>No coach found.</value></data>
+  <data name="EnvoyerUneDemande" xml:space="preserve"><value>Send a request</value></data>
+  <data name="DemandeEnvoyee" xml:space="preserve"><value>Request sent.</value></data>
+  <data name="DemandeDejaEnvoyee" xml:space="preserve"><value>A request or link already exists for this coach.</value></data>
+  <data name="InviterUnAutreCoach" xml:space="preserve"><value>Invite another coach</value></data>
+  <data name="InviterUnAutreCoachHint" xml:space="preserve"><value>If the person you're looking for doesn't appear in the directory, invite them by email. No email is sent automatically in this version: copy and share the generated link yourself.</value></data>
+  <data name="EmailDuCoach" xml:space="preserve"><value>Coach's email</value></data>
+  <data name="EnvoyerLInvitation" xml:space="preserve"><value>Generate invitation link</value></data>
+  <data name="LienDInvitationGenere" xml:space="preserve"><value>Invitation link generated — copy it and share it with the invited person:</value></data>
+  <data name="StatutEnAttente" xml:space="preserve"><value>pending</value></data>
+  <data name="StatutActif" xml:space="preserve"><value>active</value></data>
+  <data name="StatutRefuse" xml:space="preserve"><value>declined</value></data>
+  <data name="StatutRevoque" xml:space="preserve"><value>revoked</value></data>
+
+  <data name="MesPersonnesSuiviesTitle" xml:space="preserve"><value>My clients · Spectromètre</value></data>
+  <data name="MesPersonnesSuivies" xml:space="preserve"><value>My clients</value></data>
+  <data name="ModuleCoachNonActif" xml:space="preserve"><value>The Coach profile is not enabled for your account.</value></data>
+  <data name="DemandesEnAttente" xml:space="preserve"><value>Pending requests</value></data>
+  <data name="AucuneDemandeEnAttente" xml:space="preserve"><value>No pending requests.</value></data>
+  <data name="Accepter" xml:space="preserve"><value>Accept</value></data>
+  <data name="Refuser" xml:space="preserve"><value>Decline</value></data>
+  <data name="LiensActifs" xml:space="preserve"><value>Active clients</value></data>
+  <data name="AucunLienActif" xml:space="preserve"><value>No clients yet.</value></data>
+  <data name="VoirLeSuivi" xml:space="preserve"><value>View</value></data>
+</root>

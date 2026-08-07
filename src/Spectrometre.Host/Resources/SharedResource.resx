@@ -135,4 +135,18 @@
   <data name="Annuler" xml:space="preserve"><value>Annuler</value></data>
   <data name="Suivant" xml:space="preserve"><value>Suivant</value></data>
   <data name="Precedent" xml:space="preserve"><value>Précédent</value></data>
+
+  <!-- InvitationAcceptancePage.razor (/invitations/accepter/{Token}) -->
+  <data name="InvitationTitle" xml:space="preserve"><value>Invitation · Spectromètre</value></data>
+  <data name="InvitationInvalideOuExpiree" xml:space="preserve"><value>Cette invitation est invalide, déjà utilisée ou a expiré.</value></data>
+  <data name="InvitationCoachingIntro" xml:space="preserve"><value>Vous avez été invité(e) à devenir coach sur Spectromètre.</value></data>
+  <data name="InvitationCreerVotreCompte" xml:space="preserve"><value>Créer votre compte</value></data>
+  <data name="InvitationEmailVerrouille" xml:space="preserve"><value>Cette invitation est réservée à cette adresse email.</value></data>
+  <data name="InvitationUnCompteExisteDeja" xml:space="preserve"><value>Un compte existe déjà pour {0}.</value></data>
+  <data name="InvitationConnectezVousPourConfirmer" xml:space="preserve"><value>Connectez-vous avec ce compte, puis revenez sur ce lien pour confirmer l'invitation.</value></data>
+  <data name="InvitationSeConnecter" xml:space="preserve"><value>Se connecter</value></data>
+  <data name="InvitationMauvaisCompte" xml:space="preserve"><value>Cette invitation est destinée à {0}, mais vous êtes connecté(e) avec un autre compte. Déconnectez-vous puis reconnectez-vous avec le bon compte pour confirmer.</value></data>
+  <data name="InvitationConfirmer" xml:space="preserve"><value>Confirmer l'invitation</value></data>
+  <data name="InvitationConfirmee" xml:space="preserve"><value>Invitation confirmée — vous suivez désormais cette personne.</value></data>
+  <data name="InvitationVoirMesPersonnesSuivies" xml:space="preserve"><value>Voir mes personnes suivies</value></data>
 </root>
