@@ -69,4 +69,10 @@
   <data name="LiensActifs" xml:space="preserve"><value>Personnes suivies actives</value></data>
   <data name="AucunLienActif" xml:space="preserve"><value>Aucune personne suivie pour le moment.</value></data>
   <data name="VoirLeSuivi" xml:space="preserve"><value>Voir le suivi</value></data>
+  <data name="Anamnese" xml:space="preserve"><value>Anamnèse</value></data>
+  <data name="AucuneAnamnese" xml:space="preserve"><value>Aucune anamnèse générée pour le moment.</value></data>
+  <data name="GenererLAnamnese" xml:space="preserve"><value>Générer l'anamnèse</value></data>
+  <data name="RegenererLAnamnese" xml:space="preserve"><value>Régénérer l'anamnèse</value></data>
+  <data name="AnamneseGenereeParIa" xml:space="preserve"><value>Générée par IA.</value></data>
+  <data name="AnamneseRepli" xml:space="preserve"><value>Générée localement (service IA non disponible pour le moment).</value></data>
 </root>

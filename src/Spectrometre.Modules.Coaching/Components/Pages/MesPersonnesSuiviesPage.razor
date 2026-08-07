@@ -65,11 +65,29 @@ else
         else
         {
             <ul>
-                @foreach (var (lien, nom) in _actifs)
+                @foreach (var (lien, nom, anamnese) in _actifs)
                 {
                     <li>
                         <strong>@nom</strong>
                         <a href="/gestion-du-temps/@lien.SuiviUserId">@Localizer["VoirLeSuivi"]</a>
+
+                        <div class="gdt-form">
+                            <h4>@Localizer["Anamnese"]</h4>
+                            @if (anamnese is not null)
+                            {
+                                <p>@anamnese.Contenu</p>
+                                <p class="hint">
+                                    @(anamnese.GenereeParIa ? Localizer["AnamneseGenereeParIa"] : Localizer["AnamneseRepli"])
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="hint">@Localizer["AucuneAnamnese"]</p>
+                            }
+                            <button @onclick="() => GenererAnamneseAsync(lien.Id)" disabled="@_anamneseEnCours.Contains(lien.Id)">
+                                @(anamnese is null ? Localizer["GenererLAnamnese"] : Localizer["RegenererLAnamnese"])
+                            </button>
+                        </div>
                     </li>
                 }
             </ul>
@@ -83,7 +101,8 @@ else
     private string? _userId;
     private bool _hasAccess;
     private List<(LienCoachingView Lien, string Nom)> _enAttente = [];
-    private List<(LienCoachingView Lien, string Nom)> _actifs = [];
+    private List<(LienCoachingView Lien, string Nom, AnamneseCoachingView? Anamnese)> _actifs = [];
+    private readonly HashSet<int> _anamneseEnCours = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -112,7 +131,7 @@ else
         var liens = await CoachingService.GetLiensPourCoachAsync(_userId!);
 
         var enAttente = new List<(LienCoachingView, string)>();
-        var actifs = new List<(LienCoachingView, string)>();
+        var actifs = new List<(LienCoachingView, string, AnamneseCoachingView?)>();
         foreach (var lien in liens)
         {
             if (lien.Statut is not (LienCoachingStatut.EnAttente or LienCoachingStatut.Actif))
@@ -120,9 +139,14 @@ else
 
             var nom = await NomAfficheAsync(lien.SuiviUserId);
             if (lien.Statut == LienCoachingStatut.EnAttente)
+            {
                 enAttente.Add((lien, nom));
+            }
             else
-                actifs.Add((lien, nom));
+            {
+                var anamnese = await CoachingService.GetAnamneseAsync(lien.Id, _userId!);
+                actifs.Add((lien, nom, anamnese));
+            }
         }
 
         _enAttente = enAttente;
@@ -148,5 +172,19 @@ else
     {
         await CoachingService.RefuserAsync(lienId, _userId!);
         await RefreshAsync();
+    }
+
+    private async Task GenererAnamneseAsync(int lienId)
+    {
+        _anamneseEnCours.Add(lienId);
+        try
+        {
+            await CoachingService.GenererAnamneseAsync(lienId, _userId!);
+            await RefreshAsync();
+        }
+        finally
+        {
+            _anamneseEnCours.Remove(lienId);
+        }
     }
 }
