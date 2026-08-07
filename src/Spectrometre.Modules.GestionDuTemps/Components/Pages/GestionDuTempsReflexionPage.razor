@@ -19,7 +19,7 @@
 
 <h1>@Localizer["NavReflexionConsciente"]</h1>
 <p class="hint">
-    @Localizer["ReflexionHint"] <a href="/gestion-du-temps">@Localizer["NavRetourAuxRituels"]</a>.
+    @Localizer["ReflexionHint"] <a href="@Href("/gestion-du-temps")">@Localizer["NavRetourAuxRituels"]</a>.
 </p>
 
 @if (_userId is null)
@@ -72,6 +72,9 @@ else
 
     [Parameter] public string? Suivi { get; set; }
     private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+
+    /// <summary>Ajoute le segment Suivi aux liens croisés vers les autres écrans du module, pour qu'un coach en mode lecture seule reste sur les données de la personne suivie en naviguant.</summary>
+    private string Href(string basePath) => _readOnly ? $"{basePath}/{Suivi}" : basePath;
 
     private string? _userId;
     private bool _hasAccess;

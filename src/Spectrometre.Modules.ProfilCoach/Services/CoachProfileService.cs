@@ -23,7 +23,21 @@ public sealed class CoachProfileService(IDbContextFactory<ProfilCoachDbContext> 
 
         var profile = new CoachProfile { UserId = userId };
         db.CoachProfiles.Add(profile);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
+        {
+            // Doublon de course : Home.razor et MainLayout.razor résolvent chacun indépendamment le profil
+            // coach dès le premier rendu (voir leur remarque), potentiellement en concurrence lors du
+            // pré-rendu SSR d'une même requête — l'un des deux perd la course sur l'index unique UserId. Pas
+            // une vraie erreur : le profil existe désormais, il suffit de le relire — sur un DbContext frais,
+            // le précédent ayant sa transaction implicite avortée par l'échec de l'insertion.
+            await using var freshDb = await dbFactory.CreateDbContextAsync(cancellationToken);
+            return (await freshDb.CoachProfiles.FirstAsync(p => p.UserId == userId, cancellationToken)).Id;
+        }
+
         return profile.Id;
     }
 
