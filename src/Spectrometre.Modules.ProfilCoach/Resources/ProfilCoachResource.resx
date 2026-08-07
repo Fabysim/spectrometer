@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="ProfilCoachTitle" xml:space="preserve"><value>Profil Coach · Spectromètre</value></data>
+  <data name="ProfilCoach" xml:space="preserve"><value>Profil Coach</value></data>
+  <data name="ProfilCoachIntro" xml:space="preserve"><value>Ces informations sont utilisées pour votre présentation aux personnes que vous accompagnez, et — si vous l'activez — dans l'annuaire public des coachs.</value></data>
+  <data name="NomAffiche" xml:space="preserve"><value>Nom affiché</value></data>
+  <data name="BioCourte" xml:space="preserve"><value>Bio courte</value></data>
+  <data name="Specialites" xml:space="preserve"><value>Spécialités (séparées par des virgules)</value></data>
+  <data name="SpecialitesPlaceholder" xml:space="preserve"><value>ex. gestion du stress, organisation, transitions de carrière</value></data>
+  <data name="VisibleDansAnnuaire" xml:space="preserve"><value>Visible dans l'annuaire des coachs</value></data>
+  <data name="VisibleDansAnnuaireHint" xml:space="preserve"><value>Désactivé par défaut. Si activé, votre nom affiché, votre bio et vos spécialités apparaissent dans l'annuaire consulté par les personnes cherchant un coach — jamais votre email ni votre identité de compte.</value></data>
+  <data name="EnregistrerLeProfil" xml:space="preserve"><value>Enregistrer le profil</value></data>
+  <data name="ProfilEnregistre" xml:space="preserve"><value>Profil enregistré.</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
+</root>

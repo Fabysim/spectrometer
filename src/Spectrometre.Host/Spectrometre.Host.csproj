@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Spectrometre.Core\Spectrometre.Core.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.ProfilCandidat\Spectrometre.Modules.ProfilCandidat.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.ProfilCoach\Spectrometre.Modules.ProfilCoach.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.ProfilEntreprise\Spectrometre.Modules.ProfilEntreprise.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.Compatibilite\Spectrometre.Modules.Compatibilite.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.PostesRecrutement\Spectrometre.Modules.PostesRecrutement.csproj" />

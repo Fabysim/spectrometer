@@ -19,6 +19,8 @@ using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
+using Spectrometre.Modules.ProfilCoach;
+using Spectrometre.Modules.ProfilCoach.Data;
 using Spectrometre.Modules.ProfilEntreprise;
 using Spectrometre.Modules.SuiviEvolutif;
 using Spectrometre.Modules.SuiviEvolutif.Services;
@@ -55,6 +57,8 @@ builder.Services.AddAnalyticsModule();
 // Indépendant du domaine Matching Emploi (voir son manifeste) — l'ordre par rapport aux autres AddXxxModule
 // n'a pas d'importance, aucune dépendance croisée.
 builder.Services.AddGestionDuTempsModule(builder.Configuration);
+// Idem : profil de base d'un 4e type de sujet (Coach), aucune dépendance croisée avec les modules ci-dessus.
+builder.Services.AddProfilCoachModule(builder.Configuration);
 
 // Inversion de dépendance : Compatibilite consomme ICandidatureExistenceChecker (défini dans Core) sans
 // connaître son implémentation. C'est ICI, dans Host — le seul projet qui référence à la fois Compatibilite
@@ -108,6 +112,8 @@ using (var startupScope = app.Services.CreateScope())
     // seule entreprise (voir ModuleActivationSubjectType). Ne signifie PAS qu'il est activé par défaut pour
     // toute entreprise (voir le commentaire dans CompanyOnboardingService : vendu indépendamment).
     moduleRegistry.Register(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions.Manifest);
+    // Enregistré pour Coach uniquement — voir ModuleActivationSubjectType.Coach.
+    moduleRegistry.Register(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions.Manifest);
 
     // Migrations appliquées globalement pour le noyau et Profil Candidat (schémas fixes, non tenant-scopés).
     // Profil Entreprise / Compatibilité sont tenant-scopés : leur schéma est appliqué par tenant lors
@@ -141,6 +147,14 @@ using (var startupScope = app.Services.CreateScope())
                .CreateDbContext())
     {
         gestionDuTempsDb.Database.Migrate();
+    }
+
+    // Profil Coach : schéma fixe non tenant-scopé, comme ProfilCandidat — migré globalement ici.
+    using (var profilCoachDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<ProfilCoachDbContext>>()
+               .CreateDbContext())
+    {
+        profilCoachDb.Database.Migrate();
     }
 
     // Comble rétroactivement l'abonnement des entreprises créées avant le gating par plan introduit dans ce
@@ -214,6 +228,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.Entretien.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Analytics.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions).Assembly);
 
 app.Run();

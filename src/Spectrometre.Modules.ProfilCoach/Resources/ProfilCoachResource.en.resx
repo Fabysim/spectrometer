@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
+
+  <data name="ProfilCoachTitle" xml:space="preserve"><value>Coach Profile · Spectromètre</value></data>
+  <data name="ProfilCoach" xml:space="preserve"><value>Coach Profile</value></data>
+  <data name="ProfilCoachIntro" xml:space="preserve"><value>This information is used for your introduction to the people you support, and — if you enable it — in the public coach directory.</value></data>
+  <data name="NomAffiche" xml:space="preserve"><value>Display name</value></data>
+  <data name="BioCourte" xml:space="preserve"><value>Short bio</value></data>
+  <data name="Specialites" xml:space="preserve"><value>Specialties (comma-separated)</value></data>
+  <data name="SpecialitesPlaceholder" xml:space="preserve"><value>e.g. stress management, organization, career transitions</value></data>
+  <data name="VisibleDansAnnuaire" xml:space="preserve"><value>Visible in the coach directory</value></data>
+  <data name="VisibleDansAnnuaireHint" xml:space="preserve"><value>Disabled by default. If enabled, your display name, bio, and specialties appear in the directory browsed by people looking for a coach — never your email or account identity.</value></data>
+  <data name="EnregistrerLeProfil" xml:space="preserve"><value>Save profile</value></data>
+  <data name="ProfilEnregistre" xml:space="preserve"><value>Profile saved.</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
+</root>

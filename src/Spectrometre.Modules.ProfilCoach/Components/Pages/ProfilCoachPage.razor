@@ -1,0 +1,104 @@
+@page "/coach/profil"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.ProfilCoach.Resources
+@using Spectrometre.Modules.ProfilCoach.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICoachProfileService CoachProfileService
+@inject IStringLocalizer<ProfilCoachResource> Localizer
+
+<PageTitle>@Localizer["ProfilCoachTitle"]</PageTitle>
+
+<h1>@Localizer["ProfilCoach"]</h1>
+<p class="hint">@Localizer["ProfilCoachIntro"]</p>
+
+@if (_userId is null || _modele is null)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else
+{
+    <div class="gdt-form">
+        <div class="champ">
+            <label>@Localizer["NomAffiche"]</label>
+            <input @bind="_modele.NomAffiche" @bind:event="oninput" />
+        </div>
+        <div class="champ">
+            <label>@Localizer["BioCourte"]</label>
+            <textarea rows="4" @bind="_modele.BioCourte" @bind:event="oninput"></textarea>
+        </div>
+        <div class="champ">
+            <label>@Localizer["Specialites"]</label>
+            <input @bind="_modele.Specialites" @bind:event="oninput" placeholder="@Localizer["SpecialitesPlaceholder"]" />
+        </div>
+        <div class="champ-case">
+            <label><input type="checkbox" @bind="_modele.VisibleDansAnnuaire" /> @Localizer["VisibleDansAnnuaire"]</label>
+            <p class="hint">@Localizer["VisibleDansAnnuaireHint"]</p>
+        </div>
+        <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">@Localizer["EnregistrerLeProfil"]</button>
+        @if (_messageConfirmation is not null)
+        {
+            <span class="gdt-confirmation">@_messageConfirmation</span>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private bool _enregistrementEnCours;
+    private string? _messageConfirmation;
+
+    private sealed class Modele
+    {
+        public string NomAffiche { get; set; } = "";
+        public string BioCourte { get; set; } = "";
+        public string Specialites { get; set; } = "";
+        public bool VisibleDansAnnuaire { get; set; }
+    }
+
+    private Modele? _modele;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _userId = userId;
+
+        var profil = await CoachProfileService.GetProfilAsync(userId);
+        _modele = profil is null
+            ? new Modele()
+            : new Modele
+            {
+                NomAffiche = profil.NomAffiche,
+                BioCourte = profil.BioCourte,
+                Specialites = profil.Specialites,
+                VisibleDansAnnuaire = profil.VisibleDansAnnuaire,
+            };
+    }
+
+    private async Task EnregistrerAsync()
+    {
+        _enregistrementEnCours = true;
+        _messageConfirmation = null;
+        try
+        {
+            var m = _modele!;
+            await CoachProfileService.SaveProfilAsync(_userId!, m.NomAffiche, m.BioCourte, m.Specialites, m.VisibleDansAnnuaire);
+            _messageConfirmation = Localizer["ProfilEnregistre"];
+        }
+        finally
+        {
+            _enregistrementEnCours = false;
+        }
+    }
+}
