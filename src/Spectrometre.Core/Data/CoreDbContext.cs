@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Billing;
 using Spectrometre.Core.Identity;
+using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
@@ -20,9 +21,11 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     public DbSet<ModuleActivation> ModuleActivations => Set<ModuleActivation>();
     public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
     public DbSet<CandidateSubscription> CandidateSubscriptions => Set<CandidateSubscription>();
+    public DbSet<CoachSubscription> CoachSubscriptions => Set<CoachSubscription>();
     public DbSet<PlanModuleEntitlement> PlanModuleEntitlements => Set<PlanModuleEntitlement>();
     public DbSet<PosteIndexEntry> PosteIndexEntries => Set<PosteIndexEntry>();
     public DbSet<CandidatureIndexEntry> CandidatureIndexEntries => Set<CandidatureIndexEntry>();
+    public DbSet<Invitation> Invitations => Set<Invitation>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -59,6 +62,11 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
             e.HasIndex(s => s.CandidateProfileId).IsUnique();
         });
 
+        builder.Entity<CoachSubscription>(e =>
+        {
+            e.HasIndex(s => s.CoachProfileId).IsUnique();
+        });
+
         builder.Entity<PlanModuleEntitlement>(e =>
         {
             e.HasIndex(x => new { x.PlanCode, x.ModuleCode }).IsUnique();
@@ -77,6 +85,13 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
             // CompanyId fait partie de la clé : PosteId seul n'est pas global (voir CandidatureIndexEntry).
             e.HasIndex(c => new { c.CompanyId, c.PosteId, c.CandidateProfileId }).IsUnique();
             e.HasIndex(c => c.CandidateProfileId);
+        });
+
+        builder.Entity<Invitation>(e =>
+        {
+            e.HasIndex(i => i.Token).IsUnique();
+            e.HasIndex(i => new { i.EmailInvite, i.Type });
+            e.HasIndex(i => i.EmetteurUserId);
         });
     }
 
@@ -104,6 +119,9 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
 
         foreach (var moduleCode in modulesMatchingEmploi.Append("GestionDuTemps"))
             entitlements.Add(new PlanModuleEntitlement { Id = id++, PlanCode = PlanCodes.StandardPlusTemps, ModuleCode = moduleCode });
+
+        // Plan Coach : gratuit, un seul module inclus (ProfilCoach — voir CoachOnboardingService).
+        entitlements.Add(new PlanModuleEntitlement { Id = id++, PlanCode = PlanCodes.Coach, ModuleCode = "ProfilCoach" });
 
         builder.Entity<PlanModuleEntitlement>().HasData(entitlements);
     }

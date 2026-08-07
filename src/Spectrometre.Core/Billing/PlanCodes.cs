@@ -13,4 +13,7 @@ public static class PlanCodes
 
     /// <summary>Standard + Gestion du temps.</summary>
     public const string StandardPlusTemps = "StandardPlusTemps";
+
+    /// <summary>Plan unique, gratuit, du profil Coach — inclut uniquement ProfilCoach.</summary>
+    public const string Coach = "Coach";
 }

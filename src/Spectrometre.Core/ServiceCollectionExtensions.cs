@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
+using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Suivi;
@@ -61,6 +62,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantSchemaProvisioner, TenantSchemaProvisioner>();
         services.AddSingleton<IModuleRegistry, ModuleRegistry>();
         services.AddScoped<IRecruitmentIndexService, RecruitmentIndexService>();
+        services.AddScoped<IInvitationService, InvitationService>();
 
         // Filet de sécurité : voir NoOpProfileChangeRecorder. Program.cs branche l'implémentation réelle
         // de SuiviEvolutif PAR-DESSUS cet enregistrement (la dernière inscription gagne à la résolution).

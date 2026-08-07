@@ -59,13 +59,21 @@ public interface IModuleRegistry
 
     Task ActivateForCompanyAsync(int companyId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 
-    // --- Équivalents côté candidat (nouveaux ce cycle) ---
+    // --- Équivalents côté candidat ---
 
     Task<IReadOnlyList<string>> GetActiveModuleCodesForCandidateAsync(int candidateProfileId, CoreDbContext db, CancellationToken cancellationToken = default);
 
     Task<bool> IsActiveForCandidateAsync(int candidateProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 
     Task ActivateForCandidateAsync(int candidateProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
+
+    // --- Équivalents côté coach (nouveaux ce cycle) ---
+
+    Task<IReadOnlyList<string>> GetActiveModuleCodesForCoachAsync(int coachProfileId, CoreDbContext db, CancellationToken cancellationToken = default);
+
+    Task<bool> IsActiveForCoachAsync(int coachProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
+
+    Task ActivateForCoachAsync(int coachProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 }
 
 public sealed class ModuleRegistry : IModuleRegistry
@@ -129,6 +137,11 @@ public sealed class ModuleRegistry : IModuleRegistry
                     .FirstOrDefaultAsync(s => s.CandidateProfileId == subjectId, cancellationToken);
                 return candidateSub is { Status: SubscriptionStatus.Essai or SubscriptionStatus.Active } ? candidateSub.PlanCode : null;
 
+            case ModuleActivationSubjectType.Coach:
+                var coachSub = await db.CoachSubscriptions.AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.CoachProfileId == subjectId, cancellationToken);
+                return coachSub is { Status: SubscriptionStatus.Essai or SubscriptionStatus.Active } ? coachSub.PlanCode : null;
+
             default:
                 throw new NotSupportedException($"Type de sujet d'activation non pris en charge : {subjectType}");
         }
@@ -168,4 +181,15 @@ public sealed class ModuleRegistry : IModuleRegistry
 
     public Task ActivateForCandidateAsync(int candidateProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default) =>
         ActivateAsync(ModuleActivationSubjectType.Candidate, candidateProfileId, moduleCode, db, cancellationToken);
+
+    // --- Enveloppes "coach" ---
+
+    public Task<IReadOnlyList<string>> GetActiveModuleCodesForCoachAsync(int coachProfileId, CoreDbContext db, CancellationToken cancellationToken = default) =>
+        GetActiveModuleCodesAsync(ModuleActivationSubjectType.Coach, coachProfileId, db, cancellationToken);
+
+    public Task<bool> IsActiveForCoachAsync(int coachProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default) =>
+        IsActiveAsync(ModuleActivationSubjectType.Coach, coachProfileId, moduleCode, db, cancellationToken);
+
+    public Task ActivateForCoachAsync(int coachProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default) =>
+        ActivateAsync(ModuleActivationSubjectType.Coach, coachProfileId, moduleCode, db, cancellationToken);
 }
