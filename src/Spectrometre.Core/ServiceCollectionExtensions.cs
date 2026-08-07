@@ -68,6 +68,9 @@ public static class ServiceCollectionExtensions
         // de SuiviEvolutif PAR-DESSUS cet enregistrement (la dernière inscription gagne à la résolution).
         services.AddScoped<IProfileChangeRecorder, NoOpProfileChangeRecorder>();
 
+        // Même filet de sécurité pour Coaching — voir NoOpCoachingAccessChecker.
+        services.AddScoped<ICoachingAccessChecker, NoOpCoachingAccessChecker>();
+
         return services;
     }
 }

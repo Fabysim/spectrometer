@@ -1,16 +1,19 @@
 @page "/gestion-du-temps/synthese"
+@page "/gestion-du-temps/synthese/{Suivi}"
 @attribute [Authorize]
 @rendermode InteractiveServer
 @using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Modules
 @using Spectrometre.Modules.GestionDuTemps.Entities
 @using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
+@inject ICoachingAccessChecker CoachingAccessChecker
 @inject IStringLocalizer<GestionDuTempsResource> Localizer
 
 <PageTitle>@Localizer["SyntheseTitle"]</PageTitle>
@@ -110,6 +113,9 @@ else
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
+    [Parameter] public string? Suivi { get; set; }
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+
     private string? _userId;
     private bool _hasAccess;
     private bool _generationEnCours;
@@ -130,12 +136,22 @@ else
             userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
         }
 
-        _userId = userId;
-        _hasAccess = await AccessService.HasAccessAsync(userId);
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, userId);
+            _userId = autorise ?? userId;
+            _hasAccess = autorise is not null;
+        }
+        else
+        {
+            _userId = userId;
+            _hasAccess = await AccessService.HasAccessAsync(userId);
+        }
+
         if (!_hasAccess)
             return;
 
-        _synthese = await GdtService.GetSyntheseAsync(userId);
+        _synthese = await GdtService.GetSyntheseAsync(_userId);
     }
 
     private async Task GenererAsync()

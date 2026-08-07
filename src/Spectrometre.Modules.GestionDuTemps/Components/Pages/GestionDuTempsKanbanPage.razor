@@ -1,10 +1,12 @@
 @page "/gestion-du-temps/kanban"
+@page "/gestion-du-temps/kanban/{Suivi}"
 @attribute [Authorize]
 @rendermode InteractiveServer
 @using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Modules
 @using Spectrometre.Modules.GestionDuTemps.Entities
 @using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
@@ -12,6 +14,7 @@
 @implements IDisposable
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
+@inject ICoachingAccessChecker CoachingAccessChecker
 @inject IStringLocalizer<GestionDuTempsResource> Localizer
 
 <PageTitle>@Localizer["KanbanTitle"]</PageTitle>
@@ -37,7 +40,10 @@ else
 {
     <div class="gdt-cycle-bandeau">
         <span>@string.Format(Localizer["CycleBandeau"].Value, _cycle.NumeroCycle, _cycle.DemarreLe.ToLocalTime().ToString("dd/MM/yyyy"))</span>
-        <button @onclick="ClotureCycleAsync" disabled="@_clotureEnCours">@Localizer["ClotureCycleBouton"]</button>
+        @if (!_readOnly)
+        {
+            <button @onclick="ClotureCycleAsync" disabled="@_clotureEnCours">@Localizer["ClotureCycleBouton"]</button>
+        }
     </div>
     <p class="hint">@Localizer["ClotureCycleHint"]</p>
 
@@ -73,12 +79,15 @@ else
                                     <span class="gdt-tag-depassement">@Localizer["Depassement"]</span>
                                 }
                             </div>
-                            <div class="gdt-kanban-actions">
-                                @foreach (var cible in Colonnes.Where(c => c.Statut != colonne.Statut))
-                                {
-                                    <button @onclick="() => DeplacerAsync(carte.ActiviteId, cible.Statut)">@Localizer[cible.LabelKey]</button>
-                                }
-                            </div>
+                            @if (!_readOnly)
+                            {
+                                <div class="gdt-kanban-actions">
+                                    @foreach (var cible in Colonnes.Where(c => c.Statut != colonne.Statut))
+                                    {
+                                        <button @onclick="() => DeplacerAsync(carte.ActiviteId, cible.Statut)">@Localizer[cible.LabelKey]</button>
+                                    }
+                                </div>
+                            }
                         </div>
                     }
                 </div>
@@ -89,6 +98,9 @@ else
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public string? Suivi { get; set; }
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
 
     private sealed record Colonne(string Statut, string LabelKey);
 
@@ -116,12 +128,22 @@ else
             userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
         }
 
-        _userId = userId;
-        _hasAccess = await AccessService.HasAccessAsync(userId);
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, userId);
+            _userId = autorise ?? userId;
+            _hasAccess = autorise is not null;
+        }
+        else
+        {
+            _userId = userId;
+            _hasAccess = await AccessService.HasAccessAsync(userId);
+        }
+
         if (!_hasAccess)
             return;
 
-        _cycle = await GdtService.GetOrCreateCycleActifAsync(userId);
+        _cycle = await GdtService.GetOrCreateCycleActifAsync(_userId);
         await RefreshCartesAsync();
 
         // Rafraîchit l'affichage du minuteur chaque seconde pour la carte "En cours" — le temps réel lui-même

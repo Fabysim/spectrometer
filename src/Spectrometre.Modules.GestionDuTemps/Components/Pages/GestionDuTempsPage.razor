@@ -1,4 +1,5 @@
 @page "/gestion-du-temps"
+@page "/gestion-du-temps/{Suivi}"
 @attribute [Authorize]
 @rendermode InteractiveServer
 @using System.Globalization
@@ -6,6 +7,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.GestionDuTemps.Entities
 @using Spectrometre.Modules.GestionDuTemps.Resources
@@ -13,6 +15,7 @@
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
+@inject ICoachingAccessChecker CoachingAccessChecker
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject CoreDbContext CoreDb
 @inject IStringLocalizer<GestionDuTempsResource> Localizer
@@ -20,12 +23,15 @@
 <PageTitle>@Localizer["GestionDuTemps"]</PageTitle>
 
 <h1>@Localizer["GestionDuTemps"]</h1>
-<p class="hint">
-    @Localizer["Page1_IntroDebut"] <a href="/gestion-du-temps/kanban">@Localizer["NavKanban"]</a> ·
-    <a href="/gestion-du-temps/profil">@Localizer["NavProfilPsychosocial"]</a> ·
-    <a href="/gestion-du-temps/reflexion">@Localizer["NavReflexionConsciente"]</a> ·
-    <a href="/gestion-du-temps/synthese">@Localizer["NavSynthese"]</a>.
-</p>
+@if (!_readOnly)
+{
+    <p class="hint">
+        @Localizer["Page1_IntroDebut"] <a href="/gestion-du-temps/kanban">@Localizer["NavKanban"]</a> ·
+        <a href="/gestion-du-temps/profil">@Localizer["NavProfilPsychosocial"]</a> ·
+        <a href="/gestion-du-temps/reflexion">@Localizer["NavReflexionConsciente"]</a> ·
+        <a href="/gestion-du-temps/synthese">@Localizer["NavSynthese"]</a>.
+    </p>
+}
 
 @if (_userId is null)
 {
@@ -37,19 +43,22 @@ else if (!_hasAccess)
 }
 else
 {
-    <div class="entreprise-header">
-        <label>
-            @Localizer["Filtrer"]
-            <select value="@_filtreValue" @onchange="OnFiltreChangedAsync">
-                <option value="tout">@Localizer["TousMesRituels"]</option>
-                <option value="personnel">@Localizer["PersonnelsUniquement"]</option>
-                @foreach (var company in _companies)
-                {
-                    <option value="@company.Id">@company.Name</option>
-                }
-            </select>
-        </label>
-    </div>
+    @if (!_readOnly)
+    {
+        <div class="entreprise-header">
+            <label>
+                @Localizer["Filtrer"]
+                <select value="@_filtreValue" @onchange="OnFiltreChangedAsync">
+                    <option value="tout">@Localizer["TousMesRituels"]</option>
+                    <option value="personnel">@Localizer["PersonnelsUniquement"]</option>
+                    @foreach (var company in _companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+            </label>
+        </div>
+    }
 
     <section class="gdt-types">
         <h3>@Localizer["MesCategoriesDeTemps"]</h3>
@@ -70,57 +79,66 @@ else
                     {
                         <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
                     }
-                    <button @onclick="() => CommencerEditionType(type)">@Localizer["Modifier"]</button>
+                    @if (!_readOnly)
+                    {
+                        <button @onclick="() => CommencerEditionType(type)">@Localizer["Modifier"]</button>
+                    }
                 </div>
             }
 
-            <div class="gdt-form">
-                <h4>@(_typeEnEdition is null ? Localizer["NouvelleCategorie"] : string.Format(Localizer["ModifierCategorie"].Value, _typeEnEdition.Libelle))</h4>
-                <div class="champ">
-                    <label>@Localizer["Cle"]</label>
-                    <input @bind="_typeCle" @bind:event="oninput" placeholder="@Localizer["ClePlaceholder"]" />
+            @if (!_readOnly)
+            {
+                <div class="gdt-form">
+                    <h4>@(_typeEnEdition is null ? Localizer["NouvelleCategorie"] : string.Format(Localizer["ModifierCategorie"].Value, _typeEnEdition.Libelle))</h4>
+                    <div class="champ">
+                        <label>@Localizer["Cle"]</label>
+                        <input @bind="_typeCle" @bind:event="oninput" placeholder="@Localizer["ClePlaceholder"]" />
+                    </div>
+                    <div class="champ">
+                        <label>@Localizer["Libelle"]</label>
+                        <input @bind="_typeLibelle" @bind:event="oninput" placeholder="@Localizer["LibellePlaceholder"]" />
+                    </div>
+                    <div class="champ">
+                        <label>@Localizer["HeureDeDebut"]</label>
+                        <input type="time" @bind="_typeHeureDebut" />
+                    </div>
+                    <div class="champ">
+                        <label>@Localizer["HeureDeFin"]</label>
+                        <input type="time" @bind="_typeHeureFin" />
+                    </div>
+                    <div class="champ">
+                        <label>@Localizer["JoursDeRecurrence"]</label>
+                        <input @bind="_typeRecurrence" @bind:event="oninput" placeholder="@Localizer["JoursDeRecurrencePlaceholder"]" />
+                    </div>
+                    <div class="champ">
+                        <label>@Localizer["EntrepriseOptionnel"]</label>
+                        <select @bind="_typeCompanyIdText">
+                            <option value="">@Localizer["Personnel"]</option>
+                            @foreach (var company in _companies)
+                            {
+                                <option value="@company.Id">@company.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <button @onclick="EnregistrerTypeAsync" disabled="@(string.IsNullOrWhiteSpace(_typeCle) || string.IsNullOrWhiteSpace(_typeLibelle))">@Localizer["Enregistrer"]</button>
+                    @if (_typeEnEdition is not null)
+                    {
+                        <button @onclick="AnnulerEditionType">@Localizer["Annuler"]</button>
+                    }
                 </div>
-                <div class="champ">
-                    <label>@Localizer["Libelle"]</label>
-                    <input @bind="_typeLibelle" @bind:event="oninput" placeholder="@Localizer["LibellePlaceholder"]" />
-                </div>
-                <div class="champ">
-                    <label>@Localizer["HeureDeDebut"]</label>
-                    <input type="time" @bind="_typeHeureDebut" />
-                </div>
-                <div class="champ">
-                    <label>@Localizer["HeureDeFin"]</label>
-                    <input type="time" @bind="_typeHeureFin" />
-                </div>
-                <div class="champ">
-                    <label>@Localizer["JoursDeRecurrence"]</label>
-                    <input @bind="_typeRecurrence" @bind:event="oninput" placeholder="@Localizer["JoursDeRecurrencePlaceholder"]" />
-                </div>
-                <div class="champ">
-                    <label>@Localizer["EntrepriseOptionnel"]</label>
-                    <select @bind="_typeCompanyIdText">
-                        <option value="">@Localizer["Personnel"]</option>
-                        @foreach (var company in _companies)
-                        {
-                            <option value="@company.Id">@company.Name</option>
-                        }
-                    </select>
-                </div>
-                <button @onclick="EnregistrerTypeAsync" disabled="@(string.IsNullOrWhiteSpace(_typeCle) || string.IsNullOrWhiteSpace(_typeLibelle))">@Localizer["Enregistrer"]</button>
-                @if (_typeEnEdition is not null)
-                {
-                    <button @onclick="AnnulerEditionType">@Localizer["Annuler"]</button>
-                }
-            </div>
+            }
         }
     </section>
 
     <section class="gdt-activites">
         <h3>@Localizer["MesRappels"]</h3>
-        <p class="hint">
-            @Localizer["Page1_KanbanHintDebut"]
-            <a href="/gestion-du-temps/kanban">@Localizer["VueKanban"]</a> @Localizer["Page1_KanbanHintFin"]
-        </p>
+        @if (!_readOnly)
+        {
+            <p class="hint">
+                @Localizer["Page1_KanbanHintDebut"]
+                <a href="/gestion-du-temps/kanban">@Localizer["VueKanban"]</a> @Localizer["Page1_KanbanHintFin"]
+            </p>
+        }
         @if (_activites is null)
         {
             <p>@Localizer["Chargement"]</p>
@@ -142,12 +160,15 @@ else
                     {
                         <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
                     }
-                    <button @onclick="() => SupprimerActiviteAsync(activite.Id)">@Localizer["Supprimer"]</button>
+                    @if (!_readOnly)
+                    {
+                        <button @onclick="() => SupprimerActiviteAsync(activite.Id)">@Localizer["Supprimer"]</button>
+                    }
                 </div>
             }
         }
 
-        @if (_types is { Count: > 0 })
+        @if (!_readOnly && _types is { Count: > 0 })
         {
             <div class="gdt-form">
                 <h4>@Localizer["NouveauRappel"]</h4>
@@ -200,6 +221,10 @@ else
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
+    /// <summary>Segment de route optionnel — présent quand un coach consulte le Gestion du temps d'une personne suivie (voir ICoachingAccessChecker) : lecture seule, plus aucun formulaire de mutation.</summary>
+    [Parameter] public string? Suivi { get; set; }
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+
     private string? _userId;
     private bool _hasAccess;
     private List<Company> _companies = [];
@@ -235,12 +260,23 @@ else
             userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
         }
 
-        _userId = userId;
-        _hasAccess = await AccessService.HasAccessAsync(userId);
-        if (!_hasAccess)
-            return;
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, userId);
+            _userId = autorise ?? userId;
+            _hasAccess = autorise is not null;
+            if (!_hasAccess)
+                return;
+        }
+        else
+        {
+            _userId = userId;
+            _hasAccess = await AccessService.HasAccessAsync(userId);
+            if (!_hasAccess)
+                return;
 
-        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+            _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        }
 
         await RefreshTypesAsync();
         await RefreshActivitesAsync();

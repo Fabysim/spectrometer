@@ -65,6 +65,13 @@ builder.Services.AddProfilCoachModule(builder.Configuration);
 // être enregistré après les deux. Pas de manifeste/activation propre, voir sa ServiceCollectionExtensions.
 builder.Services.AddCoachingModule(builder.Configuration);
 
+// Inversion de dépendance : les pages GestionDuTemps consomment ICoachingAccessChecker (défini dans Core)
+// sans connaître Coaching. C'est ICI, dans Host — le seul projet qui référence à la fois GestionDuTemps et
+// Coaching — qu'on branche l'implémentation réelle par-dessus le NoOpCoachingAccessChecker enregistré par
+// AddSpectrometreCore (la dernière inscription gagne à la résolution). Même recette que
+// ICandidatureExistenceChecker/IProfileChangeRecorder ci-dessous.
+builder.Services.AddScoped<Spectrometre.Core.Modules.ICoachingAccessChecker, Spectrometre.Modules.Coaching.Services.CoachingAccessChecker>();
+
 // Inversion de dépendance : Compatibilite consomme ICandidatureExistenceChecker (défini dans Core) sans
 // connaître son implémentation. C'est ICI, dans Host — le seul projet qui référence à la fois Compatibilite
 // et PostesRecrutement — qu'on branche l'implémentation réelle, jamais depuis Compatibilite lui-même

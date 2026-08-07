@@ -1,16 +1,19 @@
 @page "/gestion-du-temps/profil"
+@page "/gestion-du-temps/profil/{Suivi}"
 @attribute [Authorize]
 @rendermode InteractiveServer
 @using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Modules
 @using Spectrometre.Modules.GestionDuTemps.Entities
 @using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
+@inject ICoachingAccessChecker CoachingAccessChecker
 @inject IStringLocalizer<GestionDuTempsResource> Localizer
 
 <PageTitle>@Localizer["ProfilPsychosocialTitle"]</PageTitle>
@@ -35,7 +38,7 @@ else if (_modele is null)
 }
 else
 {
-    <div class="gdt-form-large">
+    <fieldset class="gdt-form-large" disabled="@_readOnly">
         <h3>@Localizer["Section_Sommeil"]</h3>
         <div class="champ"><label>@Localizer["HeureDeCoucher"]</label><input type="time" @bind="_modele.SommeilCoucher" /></div>
         <div class="champ"><label>@Localizer["HeureDeLever"]</label><input type="time" @bind="_modele.SommeilLever" /></div>
@@ -162,16 +165,22 @@ else
             <div class="champ"><label>@Localizer["CategorieSocial"]</label><input @bind="_modele.DirectionSocial" @bind:event="oninput" /></div>
         </div>
 
-        <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">@Localizer["EnregistrerLeProfil"]</button>
-        @if (_messageConfirmation is not null)
+        @if (!_readOnly)
         {
-            <span class="gdt-confirmation">@_messageConfirmation</span>
+            <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">@Localizer["EnregistrerLeProfil"]</button>
+            @if (_messageConfirmation is not null)
+            {
+                <span class="gdt-confirmation">@_messageConfirmation</span>
+            }
         }
-    </div>
+    </fieldset>
 }
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public string? Suivi { get; set; }
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
 
     private string? _userId;
     private bool _hasAccess;
@@ -242,12 +251,22 @@ else
             userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
         }
 
-        _userId = userId;
-        _hasAccess = await AccessService.HasAccessAsync(userId);
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, userId);
+            _userId = autorise ?? userId;
+            _hasAccess = autorise is not null;
+        }
+        else
+        {
+            _userId = userId;
+            _hasAccess = await AccessService.HasAccessAsync(userId);
+        }
+
         if (!_hasAccess)
             return;
 
-        var profil = await GdtService.GetProfilPsychosocialAsync(userId);
+        var profil = await GdtService.GetProfilPsychosocialAsync(_userId);
         _modele = profil is null ? new Modele() : DepuisEntite(profil);
     }
 
