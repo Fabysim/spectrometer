@@ -5,11 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
+using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Analytics;
+using Spectrometre.Modules.Coaching;
+using Spectrometre.Modules.Coaching.Data;
+using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Compatibilite.Data;
 using Spectrometre.Modules.Entretien;
@@ -17,6 +21,8 @@ using Spectrometre.Modules.Entretien.Data;
 using Spectrometre.Modules.GestionDuTemps;
 using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.GestionDuTemps.Services;
+using Spectrometre.Modules.ProfilCoach;
+using Spectrometre.Modules.ProfilCoach.Data;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Data;
 using Spectrometre.Modules.PostesRecrutement.Services;
@@ -79,6 +85,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddScoped<ITenantSchemaProvisioner, TenantSchemaProvisioner>();
         services.AddSingleton<IModuleRegistry, ModuleRegistry>();
         services.AddScoped<IRecruitmentIndexService, RecruitmentIndexService>();
+        services.AddScoped<IInvitationService, InvitationService>();
 
         services.AddScoped<ITenantContext, TenantContext>();
         services.AddProfilCandidatModule(config);
@@ -89,6 +96,12 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddSuiviEvolutifModule(config);
         services.AddAnalyticsModule();
         services.AddGestionDuTempsModule(config);
+        services.AddProfilCoachModule(config);
+        services.AddCoachingModule(config);
+
+        // Même câblage que Spectrometre.Host.Program pour ICoachingAccessChecker : implémentation réelle
+        // par-dessus le no-op (absent ici, on l'enregistre directement, comme pour IProfileChangeRecorder).
+        services.AddScoped<ICoachingAccessChecker, CoachingAccessChecker>();
 
         // Jamais d'appel réseau réel à Replicate en test — substitue l'implémentation réelle enregistrée
         // par AddGestionDuTempsModule par un double configurable (voir FakeAiSynthesisService).
@@ -115,6 +128,8 @@ public sealed class ServiceFixture : IAsyncLifetime
             moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions.Manifest);
+            // Coaching n'a pas de manifeste propre (voir sa ServiceCollectionExtensions).
 
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
             await coreDb.Database.MigrateAsync();
@@ -146,6 +161,12 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         await using var gestionDuTempsDb = await Services.GetRequiredService<IDbContextFactory<GestionDuTempsDbContext>>().CreateDbContextAsync();
         await gestionDuTempsDb.Database.MigrateAsync();
+
+        await using var profilCoachDb = await Services.GetRequiredService<IDbContextFactory<ProfilCoachDbContext>>().CreateDbContextAsync();
+        await profilCoachDb.Database.MigrateAsync();
+
+        await using var coachingDb = await Services.GetRequiredService<IDbContextFactory<CoachingDbContext>>().CreateDbContextAsync();
+        await coachingDb.Database.MigrateAsync();
     }
 
     /// <summary>
