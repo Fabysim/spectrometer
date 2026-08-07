@@ -10,6 +10,7 @@
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
+@inject ICoachSubjectResolver CoachSubjectResolver
 @inject CoreDbContext CoreDb
 @inject IStringLocalizer<SharedResource> Localizer
 
@@ -65,6 +66,20 @@ else
             <p><a href="/candidat/modules">@Localizer["AjouterUnModule"]</a></p>
         </section>
     }
+
+    @if (_coachModuleNames.Count > 0)
+    {
+        <section>
+            <h2>@Localizer["Home_ProfilCoach"]</h2>
+            <ul>
+                @foreach (var name in _coachModuleNames)
+                {
+                    <li>@name</li>
+                }
+            </ul>
+            <p><a href="/coach/profil">@Localizer["Home_ProfilCoach"]</a> · <a href="/coach/suivis">@Localizer["Home_MesPersonnesSuivies"]</a></p>
+        </section>
+    }
 }
 
 @code {
@@ -74,6 +89,7 @@ else
     private Company? _company;
     private readonly List<string> _companyModuleNames = [];
     private readonly List<string> _candidateModuleNames = [];
+    private readonly List<string> _coachModuleNames = [];
 
     /// <summary>
     /// Tableau de bord entièrement dynamique — mêmes vérifications que le menu principal (voir
@@ -118,6 +134,19 @@ else
         {
             if (await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, CoreDb))
                 _candidateModuleNames.Add(DisplayNameFor(manifest));
+        }
+
+        // Un utilisateur peut cumuler plusieurs profils (voir CoachOnboardingService) — même schéma que la
+        // résolution candidat ci-dessus : GetOrCreateCoachProfileIdAsync crée un CoachProfile "coquille vide"
+        // pour tout visiteur authentifié du tableau de bord, même sans inscription/invitation Coach (déjà le
+        // comportement existant côté candidat, reproduit ici à l'identique plutôt que corrigé isolément).
+        // La section ne s'affiche que si un module Coach est effectivement actif (IsActiveForCoachAsync),
+        // ce qui reste false pour cette coquille vide tant qu'aucun onboarding réel n'a eu lieu.
+        var coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
+        foreach (var manifest in ModuleRegistry.AllModules)
+        {
+            if (await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, manifest.Code, CoreDb))
+                _coachModuleNames.Add(DisplayNameFor(manifest));
         }
     }
 

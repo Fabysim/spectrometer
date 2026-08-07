@@ -60,10 +60,11 @@
   <data name="Independant" xml:space="preserve"><value>Freelancer</value></data>
   <data name="BientotDisponible" xml:space="preserve"><value>Coming soon</value></data>
   <data name="Candidat" xml:space="preserve"><value>Candidate</value></data>
+  <data name="Coach" xml:space="preserve"><value>Coach</value></data>
   <data name="NomDeLEntreprise" xml:space="preserve"><value>Company name</value></data>
   <data name="Inscription_CreerMonCompte" xml:space="preserve"><value>Create my account</value></data>
   <data name="Inscription_DejaUnCompte" xml:space="preserve"><value>Already have an account? Log in</value></data>
-  <data name="Inscription_ChoisirProfil" xml:space="preserve"><value>Please choose a profile (Company or Candidate).</value></data>
+  <data name="Inscription_ChoisirProfil" xml:space="preserve"><value>Please choose a profile (Company, Candidate, or Coach).</value></data>
   <data name="Inscription_NomEntrepriseRequis" xml:space="preserve"><value>The company name is required.</value></data>
 
   <data name="Inscription_NomRequis" xml:space="preserve"><value>The last name is required.</value></data>
@@ -101,6 +102,9 @@
   <data name="Home_AucunModuleActif" xml:space="preserve"><value>No active module at the moment.</value></data>
   <data name="Home_AucuneEntreprise" xml:space="preserve"><value>You don't manage any company at the moment.</value></data>
   <data name="Home_ProfilCandidat" xml:space="preserve"><value>Candidate profile</value></data>
+  <data name="Home_ProfilCoach" xml:space="preserve"><value>Coach profile</value></data>
+  <data name="Home_MesPersonnesSuivies" xml:space="preserve"><value>My clients</value></data>
+  <data name="Nav_MonCoach" xml:space="preserve"><value>My coach</value></data>
 
   <data name="Accueil" xml:space="preserve"><value>Home</value></data>
   <data name="Module_ProfilEntreprise" xml:space="preserve"><value>Company profile</value></data>

@@ -74,6 +74,7 @@ builder.Services.AddScoped<IProfileChangeRecorder, ProfileChangeRecorder>();
 
 builder.Services.AddScoped<CompanyOnboardingService>();
 builder.Services.AddScoped<CandidateOnboardingService>();
+builder.Services.AddScoped<CoachOnboardingService>();
 
 builder.Services.AddAuthentication(options =>
 {

@@ -10,6 +10,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject CompanyOnboardingService CompanyOnboarding
 @inject CandidateOnboardingService CandidateOnboarding
+@inject CoachOnboardingService CoachOnboarding
 @inject CoreDbContext CoreDb
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> Localizer
@@ -57,6 +58,9 @@
             </label>
             <label>
                 <InputRadio Value="@("Candidat")" /> @Localizer["Candidat"]
+            </label>
+            <label>
+                <InputRadio Value="@("Coach")" /> @Localizer["Coach"]
             </label>
         </div>
     </InputRadioGroup>
@@ -196,9 +200,9 @@
     {
         _message = null;
 
-        // "Indépendant" n'a jamais de InputRadio bié — seules "Entreprise"/"Candidat" sont atteignables,
-        // donc ce test suffit à couvrir aussi bien une valeur absente qu'une valeur inattendue.
-        if (_model.Profil != "Entreprise" && _model.Profil != "Candidat")
+        // "Indépendant" n'a jamais de InputRadio lié — seules "Entreprise"/"Candidat"/"Coach" sont
+        // atteignables, donc ce test suffit à couvrir aussi bien une valeur absente qu'une valeur inattendue.
+        if (_model.Profil != "Entreprise" && _model.Profil != "Candidat" && _model.Profil != "Coach")
         {
             _message = Localizer["Inscription_ChoisirProfil"];
             return;
@@ -232,6 +236,8 @@
 
         if (_model.Profil == "Entreprise")
             await CompanyOnboarding.CreateCompanyAsync(_model.NomEntreprise!.Trim(), user.Id, CoreDb);
+        else if (_model.Profil == "Coach")
+            await CoachOnboarding.CreateCoachAsync(user.Id, CoreDb);
         else
             await CandidateOnboarding.CreateCandidateAsync(user.Id, CoreDb);
 

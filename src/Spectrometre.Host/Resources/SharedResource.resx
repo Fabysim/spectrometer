@@ -59,10 +59,11 @@
   <data name="Independant" xml:space="preserve"><value>Indépendant</value></data>
   <data name="BientotDisponible" xml:space="preserve"><value>Bientôt disponible</value></data>
   <data name="Candidat" xml:space="preserve"><value>Candidat</value></data>
+  <data name="Coach" xml:space="preserve"><value>Coach</value></data>
   <data name="NomDeLEntreprise" xml:space="preserve"><value>Nom de l'entreprise</value></data>
   <data name="Inscription_CreerMonCompte" xml:space="preserve"><value>Créer mon compte</value></data>
   <data name="Inscription_DejaUnCompte" xml:space="preserve"><value>Déjà un compte ? Se connecter</value></data>
-  <data name="Inscription_ChoisirProfil" xml:space="preserve"><value>Veuillez choisir un profil (Entreprise ou Candidat).</value></data>
+  <data name="Inscription_ChoisirProfil" xml:space="preserve"><value>Veuillez choisir un profil (Entreprise, Candidat ou Coach).</value></data>
   <data name="Inscription_NomEntrepriseRequis" xml:space="preserve"><value>Le nom de l'entreprise est requis.</value></data>
 
   <!-- Messages de validation du formulaire d'inscription, résolus manuellement via IStringLocalizer
@@ -103,6 +104,9 @@
   <data name="Home_AucunModuleActif" xml:space="preserve"><value>Aucun module actif pour le moment.</value></data>
   <data name="Home_AucuneEntreprise" xml:space="preserve"><value>Vous ne gérez aucune entreprise pour le moment.</value></data>
   <data name="Home_ProfilCandidat" xml:space="preserve"><value>Profil candidat</value></data>
+  <data name="Home_ProfilCoach" xml:space="preserve"><value>Profil coach</value></data>
+  <data name="Home_MesPersonnesSuivies" xml:space="preserve"><value>Mes personnes suivies</value></data>
+  <data name="Nav_MonCoach" xml:space="preserve"><value>Mon coach</value></data>
 
   <data name="Accueil" xml:space="preserve"><value>Accueil</value></data>
   <data name="Module_ProfilEntreprise" xml:space="preserve"><value>Profil entreprise</value></data>

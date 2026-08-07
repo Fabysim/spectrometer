@@ -14,6 +14,7 @@
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
+@inject ICoachSubjectResolver CoachSubjectResolver
 @inject IDbContextFactory<CoreDbContext> CoreDbFactory
 @inject IStringLocalizer<SharedResource> Localizer
 @inject NavigationManager Navigation
@@ -63,6 +64,19 @@
             <a href="/gestion-du-temps/reflexion">@Localizer["Module_ReflexionConsciente"]</a>
             <a href="/gestion-du-temps/synthese">@Localizer["Module_Synthese"]</a>
         }
+
+        @if (_coachActiveModules.Contains("ProfilCoach"))
+        {
+            <a href="/coach/profil">@Localizer["Home_ProfilCoach"]</a>
+            <a href="/coach/suivis">@Localizer["Home_MesPersonnesSuivies"]</a>
+        }
+
+        @* "Mon coach" dépend de l'accès à Gestion du temps (lecture des données de la personne suivie),
+           pas d'un module dédié — voir la remarque du module Coaching. *@
+        @if (_showGestionDuTemps)
+        {
+            <a href="/mon-coach">@Localizer["Nav_MonCoach"]</a>
+        }
     }
     <AuthorizeView>
         <Authorized>
@@ -90,6 +104,7 @@
     private bool _hasCompany;
     private readonly HashSet<string> _companyActiveModules = [];
     private readonly HashSet<string> _candidateActiveModules = [];
+    private readonly HashSet<string> _coachActiveModules = [];
     private bool _showGestionDuTemps;
 
     /// <summary>
@@ -150,6 +165,13 @@
         // couvre à la fois l'activation candidat ET celle de toute entreprise gérée par l'utilisateur.
         // Ce service utilise déjà sa propre IDbContextFactory en interne, indépendante de coreDb ci-dessus.
         _showGestionDuTemps = await GestionDuTempsAccessService.HasAccessAsync(userId);
+
+        var coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
+        foreach (var manifest in ModuleRegistry.AllModules)
+        {
+            if (await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, manifest.Code, coreDb))
+                _coachActiveModules.Add(manifest.Code);
+        }
     }
 
     private bool CurrentCultureIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr";
