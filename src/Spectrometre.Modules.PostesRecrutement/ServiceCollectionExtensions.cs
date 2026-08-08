@@ -36,6 +36,8 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<IPosteService, PosteService>();
+        services.AddScoped<IAnalysePosteIaService, ReplicateAnalysePosteIaService>();
+        services.AddScoped<IAnalysePdfService, AnalysePdfService>();
 
         return services;
     }

@@ -46,61 +46,59 @@ else
                 }
             </p>
         </div>
-        @if (_companies.Count > 1)
-        {
-            <div class="postes-company-select">
-                <label for="postes-active">@Localizer["EntrepriseActive"]</label>
-                <select id="postes-active" value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
-                    @foreach (var company in _companies)
-                    {
-                        <option value="@company.Id">@company.Name</option>
-                    }
-                </select>
-            </div>
-        }
+        <div class="postes-header-actions">
+            @if (_companies.Count > 1)
+            {
+                <div class="postes-company-select">
+                    <label for="postes-active">@Localizer["EntrepriseActive"]</label>
+                    <select id="postes-active" value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+                        @foreach (var company in _companies)
+                        {
+                            <option value="@company.Id">@company.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+            <button type="button" class="postes-btn-primary" @onclick="OuvrirModalNouveauPoste">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                @Localizer["NouveauPoste"]
+            </button>
+        </div>
     </header>
-
-    <section class="postes-card postes-form-card">
-        <div class="postes-card-icon tone-primary" aria-hidden="true">
-            <i class="bi bi-briefcase"></i>
-        </div>
-        <h2 class="postes-section-title">@Localizer["NouveauPoste"]</h2>
-        <div class="postes-form">
-            <div class="postes-field">
-                <label for="poste-titre">@Localizer["Titre"]</label>
-                <input id="poste-titre" class="postes-input" @bind="_nouveauTitre" @bind:event="oninput" placeholder="@Localizer["Titre"]" />
-            </div>
-            <div class="postes-field">
-                <label for="poste-dept">@Localizer["Departement"]</label>
-                <input id="poste-dept" class="postes-input" @bind="_nouveauDepartement" @bind:event="oninput" placeholder="@Localizer["Departement"]" />
-            </div>
-            <div class="postes-field">
-                <label for="poste-desc">@Localizer["Description"]</label>
-                <textarea id="poste-desc" class="postes-input postes-textarea" @bind="_nouvelleDescription" @bind:event="oninput" rows="3" placeholder="@Localizer["Description"]"></textarea>
-            </div>
-            <div class="postes-form-actions">
-                <button type="button" class="postes-btn-primary" @onclick="CreerPosteAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauTitre)">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                    @Localizer["CreerLePoste"]
-                </button>
-            </div>
-        </div>
-    </section>
 
     @if (_postes is not null)
     {
         <section class="postes-liste">
-            <h2 class="postes-liste-title">@Localizer["PostesDeLEntreprise"]</h2>
+            <div class="postes-liste-header">
+                <h2 class="postes-liste-title">@Localizer["PostesDeLEntreprise"]</h2>
+                @if (_postes.Count > 0)
+                {
+                    <div class="postes-search">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                        <input id="postes-recherche"
+                               type="search"
+                               class="postes-input postes-search-input"
+                               value="@_recherche"
+                               @oninput="OnRechercheChanged"
+                               placeholder="@Localizer["RechercherUnPoste"]"
+                               aria-label="@Localizer["RechercherUnPoste"]" />
+                    </div>
+                }
+            </div>
             @if (_postes.Count == 0)
             {
                 <p class="postes-hint">@Localizer["AucunPosteCree"]</p>
             }
+            else if (!PostesFiltres.Any())
+            {
+                <p class="postes-hint">@Localizer["AucunPostePourCetteRecherche"]</p>
+            }
             else
             {
                 <div class="postes-grid">
-                    @foreach (var poste in _postes)
+                    @foreach (var poste in PostesFiltres)
                     {
-                        <article class="postes-card poste-carte @(_posteIdOuvert == poste.Id ? "is-expanded" : "") @(poste.Statut == PosteStatut.Ferme ? "is-closed" : "")">
+                        <article class="postes-card poste-carte @(poste.Statut == PosteStatut.Ferme ? "is-closed" : "")">
                             <div class="poste-entete">
                                 <div class="poste-entete-main">
                                     <h3 class="poste-titre">@poste.Titre</h3>
@@ -109,13 +107,31 @@ else
                                     </span>
                                 </div>
                                 <div class="poste-actions">
-                                    <button type="button" class="postes-btn-secondary" @onclick="() => ToggleStatutAsync(poste)">
-                                        @(poste.Statut == PosteStatut.Ouvert ? Localizer["Fermer"] : Localizer["Rouvrir"])
-                                    </button>
-                                    <button type="button" class="postes-btn-ghost" @onclick="() => ToggleCandidaturesAsync(poste.Id)">
-                                        <i class="bi @(_posteIdOuvert == poste.Id ? "bi-chevron-up" : "bi-people")" aria-hidden="true"></i>
-                                        @(_posteIdOuvert == poste.Id ? Localizer["MasquerLesCandidatures"] : Localizer["VoirLesCandidatures"])
-                                    </button>
+                                    <div class="poste-actions-group" role="group" aria-label="@Localizer["Actions"]">
+                                        <button type="button" class="postes-btn-secondary" @onclick="() => ToggleStatutAsync(poste)">
+                                            @(poste.Statut == PosteStatut.Ouvert ? Localizer["Fermer"] : Localizer["Rouvrir"])
+                                        </button>
+                                        <a href="@($"/entreprise/postes/{poste.Id}/candidats")" class="postes-btn-ghost">
+                                            <i class="bi bi-people" aria-hidden="true"></i>
+                                            @Localizer["VoirLesCandidatures"]
+                                        </a>
+                                    </div>
+                                    <div class="poste-actions-group poste-actions-icon" role="group">
+                                        <button type="button"
+                                                class="postes-btn-icon postes-btn-secondary"
+                                                @onclick="() => OuvrirModalModifierPoste(poste)"
+                                                title="@Localizer["Modifier"]"
+                                                aria-label="@Localizer["Modifier"]">
+                                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="postes-btn-icon postes-btn-danger"
+                                                @onclick="() => DemanderSuppression(poste)"
+                                                title="@Localizer["Supprimer"]"
+                                                aria-label="@Localizer["Supprimer"]">
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             @if (!string.IsNullOrWhiteSpace(poste.Departement))
@@ -125,80 +141,147 @@ else
                                     @poste.Departement
                                 </p>
                             }
+                            @if (poste.DateCloture is DateTimeOffset dateCloture)
+                            {
+                                <p class="poste-departement">
+                                    <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                                    @Localizer["DateCloture"]
+                                    @dateCloture.ToLocalTime().ToString("g", CultureInfo.CurrentUICulture)
+                                </p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(poste.Salaire))
+                            {
+                                <p class="poste-departement">
+                                    <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                                    @poste.Salaire
+                                </p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(poste.Avantages))
+                            {
+                                <p class="poste-description">
+                                    <strong>@Localizer["Avantages"]</strong>
+                                    @poste.Avantages
+                                </p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(poste.TachesDescription))
+                            {
+                                <p class="poste-description">
+                                    <strong>@Localizer["DescriptionDesTaches"]</strong>
+                                    @poste.TachesDescription
+                                </p>
+                            }
                             @if (!string.IsNullOrWhiteSpace(poste.Description))
                             {
                                 <p class="poste-description">@poste.Description</p>
-                            }
-
-                            @if (_posteIdOuvert == poste.Id)
-                            {
-                                <div class="candidatures">
-                                    <h4 class="candidatures-title">@Localizer["VoirLesCandidatures"]</h4>
-                                    @if (_candidatures is null)
-                                    {
-                                        <p class="postes-hint">@Localizer["ChargementDesCandidatures"]</p>
-                                    }
-                                    else if (_candidatures.Count == 0)
-                                    {
-                                        <p class="postes-hint">@Localizer["AucuneCandidaturePourPoste"]</p>
-                                    }
-                                    else
-                                    {
-                                        <div class="candidatures-table-wrap">
-                                            <table class="candidatures-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>@Localizer["CandidatProfil"]</th>
-                                                        <th>@Localizer["Statut"]</th>
-                                                        <th>@Localizer["Compatibilite"]</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach (var candidature in _candidatures)
-                                                    {
-                                                        <tr>
-                                                            <td>
-                                                                <span class="candidat-id">#@candidature.CandidateProfileId</span>
-                                                            </td>
-                                                            <td>
-                                                                <select class="postes-select" value="@candidature.Statut" @onchange="e => ChangerStatutCandidatureAsync(candidature.Id, e.Value)">
-                                                                    @foreach (var statut in Enum.GetValues<CandidatureStatut>())
-                                                                    {
-                                                                        <option value="@statut">@CandidatureStatutLabels.Label(statut, _english)</option>
-                                                                    }
-                                                                </select>
-                                                            </td>
-                                                            <td>
-                                                                @if (candidature.ScoreCompatibilite is int score)
-                                                                {
-                                                                    <span class="score-badge">@score%</span>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="score-empty">—</span>
-                                                                }
-                                                            </td>
-                                                            <td class="candidature-links">
-                                                                @if (candidature.ScoreCompatibilite is not null)
-                                                                {
-                                                                    <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">@Localizer["Detail"]</a>
-                                                                    <a href="@($"/entretien/{candidature.CandidateProfileId}")">@Localizer["PreparerLEntretien"]</a>
-                                                                }
-                                                            </td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    }
-                                </div>
                             }
                         </article>
                     }
                 </div>
             }
         </section>
+    }
+
+    @if (_showModalPoste)
+    {
+        <div class="postes-modal-overlay" @onclick="FermerModalPoste">
+            <div class="postes-modal" role="dialog" aria-modal="true" aria-labelledby="poste-modal-title" @onclick:stopPropagation="true">
+                <div class="postes-modal-header">
+                    <div class="postes-modal-header-main">
+                        <div class="postes-card-icon tone-primary" aria-hidden="true">
+                            <i class="bi @(_posteIdEnEdition is null ? "bi-briefcase" : "bi-pencil")"></i>
+                        </div>
+                        <h2 id="poste-modal-title" class="postes-section-title">
+                            @(_posteIdEnEdition is null ? Localizer["NouveauPoste"] : Localizer["ModifierPoste"])
+                        </h2>
+                    </div>
+                    <button type="button" class="postes-modal-close" @onclick="FermerModalPoste" aria-label="@Localizer["Fermer"]">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="postes-form">
+                    <div class="postes-field">
+                        <label for="poste-titre">@Localizer["Titre"]</label>
+                        <input id="poste-titre" class="postes-input" @bind="_formTitre" @bind:event="oninput" placeholder="@Localizer["Titre"]" />
+                    </div>
+                    <div class="postes-field">
+                        <label for="poste-dept">@Localizer["Departement"]</label>
+                        <input id="poste-dept" class="postes-input" @bind="_formDepartement" @bind:event="oninput" placeholder="@Localizer["Departement"]" />
+                    </div>
+                    <div class="postes-field">
+                        <label for="poste-desc">@Localizer["Description"]</label>
+                        <textarea id="poste-desc" class="postes-input postes-textarea" @bind="_formDescription" @bind:event="oninput" rows="3" placeholder="@Localizer["Description"]"></textarea>
+                    </div>
+                    <div class="postes-field">
+                        <label for="poste-taches">@Localizer["DescriptionDesTaches"]</label>
+                        <textarea id="poste-taches" class="postes-input postes-textarea" @bind="_formTaches" @bind:event="oninput" rows="3" placeholder="@Localizer["DescriptionDesTaches"]"></textarea>
+                    </div>
+                    <div class="postes-field">
+                        <label for="poste-salaire">@Localizer["Salaire"]</label>
+                        <input id="poste-salaire" type="text" class="postes-input" @bind="_formSalaire" @bind:event="oninput" placeholder="@Localizer["Salaire"]" />
+                    </div>
+                    <div class="postes-field">
+                        <label for="poste-avantages">@Localizer["Avantages"]</label>
+                        <textarea id="poste-avantages" class="postes-input postes-textarea" @bind="_formAvantages" @bind:event="oninput" rows="2" placeholder="@Localizer["Avantages"]"></textarea>
+                    </div>
+                    <div class="postes-field">
+                        <label for="poste-date-cloture">@Localizer["DateCloture"]</label>
+                        <input id="poste-date-cloture" type="date" class="postes-input" @bind="_formDateCloture" />
+                    </div>
+                    <div class="postes-field">
+                        <label for="poste-heure-cloture">@Localizer["HeureCloture"]</label>
+                        <input id="poste-heure-cloture" type="time" class="postes-input" @bind="_formHeureCloture" />
+                    </div>
+                    <div class="postes-form-actions">
+                        <button type="button" class="postes-btn-secondary" @onclick="FermerModalPoste">
+                            @Localizer["Annuler"]
+                        </button>
+                        <button type="button" class="postes-btn-primary" @onclick="EnregistrerPosteAsync" disabled="@string.IsNullOrWhiteSpace(_formTitre)">
+                            @if (_posteIdEnEdition is null)
+                            {
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                @Localizer["CreerLePoste"]
+                            }
+                            else
+                            {
+                                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                @Localizer["Enregistrer"]
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_posteASupprimer is PosteView posteASupprimer)
+    {
+        <div class="postes-modal-overlay" @onclick="AnnulerSuppression">
+            <div class="postes-modal postes-modal-confirm" role="dialog" aria-modal="true" aria-labelledby="poste-delete-title" @onclick:stopPropagation="true">
+                <div class="postes-modal-header">
+                    <div class="postes-modal-header-main">
+                        <div class="postes-card-icon tone-danger" aria-hidden="true">
+                            <i class="bi bi-trash"></i>
+                        </div>
+                        <h2 id="poste-delete-title" class="postes-section-title">@Localizer["Supprimer"]</h2>
+                    </div>
+                    <button type="button" class="postes-modal-close" @onclick="AnnulerSuppression" aria-label="@Localizer["Fermer"]">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <p class="postes-confirm-message">
+                    @string.Format(Localizer["ConfirmerSuppressionPoste"].Value, posteASupprimer.Titre)
+                </p>
+                <div class="postes-form-actions">
+                    <button type="button" class="postes-btn-secondary" @onclick="AnnulerSuppression">
+                        @Localizer["Annuler"]
+                    </button>
+                    <button type="button" class="postes-btn-danger" @onclick="ConfirmerSuppressionAsync">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                        @Localizer["Supprimer"]
+                    </button>
+                </div>
+            </div>
+        </div>
     }
 }
 </div>
@@ -209,13 +292,36 @@ else
     private List<Company>? _companies;
     private int _selectedCompanyId;
     private List<PosteView>? _postes;
-    private int? _posteIdOuvert;
-    private List<CandidatureView>? _candidatures;
+    private string _recherche = "";
 
-    private string _nouveauTitre = "";
-    private string? _nouveauDepartement;
-    private string? _nouvelleDescription;
+    private string _formTitre = "";
+    private string? _formDepartement;
+    private string? _formDescription;
+    private string? _formTaches;
+    private string? _formSalaire;
+    private string? _formAvantages;
+    private DateOnly? _formDateCloture;
+    private TimeOnly? _formHeureCloture;
+    private bool _showModalPoste;
+    private int? _posteIdEnEdition;
+    private PosteView? _posteASupprimer;
     private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+    private IEnumerable<PosteView> PostesFiltres
+    {
+        get
+        {
+            if (_postes is null)
+                return [];
+
+            var q = _recherche.Trim();
+            if (q.Length == 0)
+                return _postes;
+
+            return _postes.Where(p =>
+                p.Titre.Contains(q, StringComparison.OrdinalIgnoreCase));
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -234,10 +340,14 @@ else
     private async Task ActivateCompanyAsync(Company company)
     {
         _selectedCompanyId = company.Id;
-        _posteIdOuvert = null;
-        _candidatures = null;
+        _recherche = "";
         TenantContext.SetActiveCompany(company.Id, company.SchemaName);
         _postes = (await PosteService.GetPostesAsync()).ToList();
+    }
+
+    private void OnRechercheChanged(ChangeEventArgs e)
+    {
+        _recherche = e.Value?.ToString() ?? "";
     }
 
     private async Task OnCompanyChangedAsync(ChangeEventArgs e)
@@ -249,14 +359,97 @@ else
         }
     }
 
-    private async Task CreerPosteAsync()
+    private void OuvrirModalNouveauPoste()
     {
-        if (string.IsNullOrWhiteSpace(_nouveauTitre)) return;
+        ResetFormulairePoste();
+        _posteIdEnEdition = null;
+        _showModalPoste = true;
+    }
 
-        await PosteService.CreatePosteAsync(_nouveauTitre, _nouvelleDescription, _nouveauDepartement);
-        _nouveauTitre = "";
-        _nouveauDepartement = null;
-        _nouvelleDescription = null;
+    private void OuvrirModalModifierPoste(PosteView poste)
+    {
+        _posteIdEnEdition = poste.Id;
+        _formTitre = poste.Titre;
+        _formDepartement = poste.Departement;
+        _formDescription = poste.Description;
+        _formTaches = poste.TachesDescription;
+        _formSalaire = poste.Salaire;
+        _formAvantages = poste.Avantages;
+        if (poste.DateCloture is DateTimeOffset dateCloture)
+        {
+            var local = dateCloture.ToLocalTime();
+            _formDateCloture = DateOnly.FromDateTime(local.DateTime);
+            _formHeureCloture = TimeOnly.FromDateTime(local.DateTime);
+        }
+        else
+        {
+            _formDateCloture = null;
+            _formHeureCloture = null;
+        }
+
+        _showModalPoste = true;
+    }
+
+    private void FermerModalPoste()
+    {
+        _showModalPoste = false;
+        _posteIdEnEdition = null;
+        ResetFormulairePoste();
+    }
+
+    private void ResetFormulairePoste()
+    {
+        _formTitre = "";
+        _formDepartement = null;
+        _formDescription = null;
+        _formTaches = null;
+        _formSalaire = null;
+        _formAvantages = null;
+        _formDateCloture = null;
+        _formHeureCloture = null;
+    }
+
+    private DateTimeOffset? LireDateClotureFormulaire()
+    {
+        if (_formDateCloture is not DateOnly date)
+            return null;
+
+        var time = _formHeureCloture ?? TimeOnly.MinValue;
+        var combined = date.ToDateTime(time);
+        return new DateTimeOffset(DateTime.SpecifyKind(combined, DateTimeKind.Utc));
+    }
+
+    private async Task EnregistrerPosteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_formTitre)) return;
+
+        var dateCloture = LireDateClotureFormulaire();
+
+        if (_posteIdEnEdition is int posteId)
+        {
+            await PosteService.UpdatePosteAsync(
+                posteId,
+                _formTitre,
+                _formDescription,
+                _formDepartement,
+                _formTaches,
+                _formSalaire,
+                _formAvantages,
+                dateCloture);
+        }
+        else
+        {
+            await PosteService.CreatePosteAsync(
+                _formTitre,
+                _formDescription,
+                _formDepartement,
+                _formTaches,
+                _formSalaire,
+                _formAvantages,
+                dateCloture);
+        }
+
+        FermerModalPoste();
         _postes = (await PosteService.GetPostesAsync()).ToList();
     }
 
@@ -267,27 +460,17 @@ else
         _postes = (await PosteService.GetPostesAsync()).ToList();
     }
 
-    private async Task ToggleCandidaturesAsync(int posteId)
-    {
-        if (_posteIdOuvert == posteId)
-        {
-            _posteIdOuvert = null;
-            _candidatures = null;
-            return;
-        }
+    private void DemanderSuppression(PosteView poste) => _posteASupprimer = poste;
 
-        _posteIdOuvert = posteId;
-        _candidatures = null;
-        _candidatures = (await PosteService.GetCandidaturesAsync(posteId)).ToList();
-    }
+    private void AnnulerSuppression() => _posteASupprimer = null;
 
-    private async Task ChangerStatutCandidatureAsync(int candidatureId, object? value)
+    private async Task ConfirmerSuppressionAsync()
     {
-        if (value is not null && Enum.TryParse<CandidatureStatut>(value.ToString(), out var statut))
-        {
-            await PosteService.SetCandidatureStatutAsync(candidatureId, statut);
-            if (_posteIdOuvert is int posteId)
-                _candidatures = (await PosteService.GetCandidaturesAsync(posteId)).ToList();
-        }
+        if (_posteASupprimer is null) return;
+
+        var id = _posteASupprimer.Id;
+        _posteASupprimer = null;
+        await PosteService.DeletePosteAsync(id);
+        _postes = (await PosteService.GetPostesAsync()).ToList();
     }
 }

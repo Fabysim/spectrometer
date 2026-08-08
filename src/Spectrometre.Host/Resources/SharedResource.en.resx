@@ -388,6 +388,9 @@
   <data name="InvitationManagerIntro" xml:space="preserve">
     <value>You have been invited to join a company on Spectromètre as an employee.</value>
   </data>
+  <data name="InvitationCandidaturePosteIntro" xml:space="preserve">
+    <value>You have been invited to apply for a job on Spectromètre.</value>
+  </data>
   <data name="GestionManagers_Titre" xml:space="preserve">
     <value>Company employees</value>
   </data>

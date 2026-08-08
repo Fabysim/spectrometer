@@ -15,4 +15,13 @@ public enum InvitationType
 
     /// <summary>Invitation d'un employé sur une entreprise EXISTANTE — <see cref="Invitation.ContextId"/> porte la <c>CompanyId</c> concernée (voir sa remarque).</summary>
     CompanyEmploye = 1,
+
+    /// <summary>
+    /// Invitation d'un candidat à postuler sur un poste — <see cref="Invitation.ContextId"/> porte le
+    /// <c>PosteId</c> concerné (même pattern que <see cref="CompanyEmploye"/> avec <c>CompanyId</c>).
+    /// À l'acceptation, un <c>CandidateProfile</c> est résolu/créé pour l'utilisateur et une
+    /// <c>Candidature</c> est créée via <c>IPosteService.PostulerAsync</c> (jamais de compte créé
+    /// au nom d'un tiers).
+    /// </summary>
+    CandidaturePoste = 2,
 }

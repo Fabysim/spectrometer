@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Spectrometre.Modules.PostesRecrutement.Data;
@@ -11,9 +12,11 @@ using Spectrometre.Modules.PostesRecrutement.Data;
 namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
 {
     [DbContext(typeof(PostesRecrutementDbContext))]
-    partial class PostesRecrutementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808101852_AddEvaluationCritereCandidature")]
+    partial class AddEvaluationCritereCandidature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,43 +25,6 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Spectrometre.Modules.PostesRecrutement.Entities.AnalyseIaPoste", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AnalyseTexte")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("CandidatureId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("GenereeLe")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("GenereeParIa")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("HashSnapshot")
-                        .HasColumnType("text");
-
-                    b.Property<int>("PosteId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CandidatureId");
-
-                    b.HasIndex("PosteId", "CandidatureId")
-                        .IsUnique();
-
-                    b.ToTable("AnalysesIaPoste", "public");
-                });
 
             modelBuilder.Entity("Spectrometre.Modules.PostesRecrutement.Entities.Candidature", b =>
                 {
@@ -73,9 +39,6 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("EstPreselectionne")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("PosteId")
                         .HasColumnType("integer");
@@ -158,49 +121,6 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
                     b.ToTable("EvaluationsCriteresCandidature", "public");
                 });
 
-            modelBuilder.Entity("Spectrometre.Modules.PostesRecrutement.Entities.GuideDeuxiemeEntrevue", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AutoriteResponsabilite")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Echeances")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MissionLivrables")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Objectifs")
-                        .HasColumnType("text");
-
-                    b.Property<int>("PosteId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SituationQualitative")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SituationQuantitative")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Suivi")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PosteId")
-                        .IsUnique();
-
-                    b.ToTable("GuidesDeuxiemeEntrevue", "public");
-                });
-
             modelBuilder.Entity("Spectrometre.Modules.PostesRecrutement.Entities.Poste", b =>
                 {
                     b.Property<int>("Id")
@@ -209,13 +129,7 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Avantages")
-                        .HasColumnType("text");
-
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DateCloture")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Departement")
@@ -224,14 +138,8 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<string>("Salaire")
-                        .HasColumnType("text");
-
                     b.Property<int>("Statut")
                         .HasColumnType("integer");
-
-                    b.Property<string>("TachesDescription")
-                        .HasColumnType("text");
 
                     b.Property<string>("Titre")
                         .IsRequired()
@@ -240,15 +148,6 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Postes", "public");
-                });
-
-            modelBuilder.Entity("Spectrometre.Modules.PostesRecrutement.Entities.AnalyseIaPoste", b =>
-                {
-                    b.HasOne("Spectrometre.Modules.PostesRecrutement.Entities.Candidature", null)
-                        .WithMany()
-                        .HasForeignKey("CandidatureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Spectrometre.Modules.PostesRecrutement.Entities.EvaluationCritereCandidature", b =>
@@ -262,15 +161,6 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
                     b.HasOne("Spectrometre.Modules.PostesRecrutement.Entities.CritereEvaluation", null)
                         .WithMany()
                         .HasForeignKey("CritereId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Spectrometre.Modules.PostesRecrutement.Entities.GuideDeuxiemeEntrevue", b =>
-                {
-                    b.HasOne("Spectrometre.Modules.PostesRecrutement.Entities.Poste", null)
-                        .WithMany()
-                        .HasForeignKey("PosteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

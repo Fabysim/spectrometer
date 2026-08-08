@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Spectrometre.Modules.PostesRecrutement.Data;
@@ -11,9 +12,11 @@ using Spectrometre.Modules.PostesRecrutement.Data;
 namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
 {
     [DbContext(typeof(PostesRecrutementDbContext))]
-    partial class PostesRecrutementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808102649_AddAnalyseIaPoste")]
+    partial class AddAnalyseIaPoste
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -209,13 +212,7 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Avantages")
-                        .HasColumnType("text");
-
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DateCloture")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Departement")
@@ -224,14 +221,8 @@ namespace Spectrometre.Modules.PostesRecrutement.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<string>("Salaire")
-                        .HasColumnType("text");
-
                     b.Property<int>("Statut")
                         .HasColumnType("integer");
-
-                    b.Property<string>("TachesDescription")
-                        .HasColumnType("text");
 
                     b.Property<string>("Titre")
                         .IsRequired()

@@ -60,16 +60,27 @@ public static class TenantSchemaSynchronizer
     }
 
     /// <summary>
-    /// Vérifie l'existence d'UNE table attendue (la première du modèle EF de ce DbContext) dans le schéma
-    /// cible, via <c>information_schema.tables</c> — générique, sans connaître les noms de table de chaque
-    /// module à l'avance. Suffisant en pratique : <see cref="ITenantSchemaProvisioner.ApplyModuleSchemaAsync"/>
-    /// provisionne toujours TOUTES les tables d'un module en une seule opération, donc la présence de la
-    /// première implique celle des autres.
+    /// Vérifie si le schéma cible contient DÉJÀ au moins une table du modèle EF de ce module, via
+    /// <c>information_schema.tables</c> — générique, sans connaître les noms de table à l'avance.
     /// </summary>
+    /// <remarks>
+    /// On teste <b>n'importe quelle</b> table du modèle (pas seulement la première) : l'ordre des
+    /// <c>IEntityType</c> n'est pas stable (ajout d'une entité peut faire remonter une table neuve en tête).
+    /// Si on ne regardait que la première et qu'elle est absente d'un tenant déjà provisionné (ex. nouvelle
+    /// table <c>AnalysesIaPoste</c> alors que <c>Candidatures</c> existe), SyncAll retenterait un
+    /// <see cref="ITenantSchemaProvisioner.ApplyModuleSchemaAsync"/> complet et échouerait sur
+    /// « relation already exists ». Limite connue : les tables <em>ajoutées</em> après le premier
+    /// provisionnement ne sont pas créées ici (CreateScript n'est pas différentiel) — hors scope SyncAll,
+    /// réservé au comblement d'un module entièrement manquant.
+    /// </remarks>
     private static async Task<bool> HasSchemaAsync(DbContext db, string targetSchema, CancellationToken cancellationToken)
     {
-        var firstTable = db.Model.GetEntityTypes().Select(t => t.GetTableName()).FirstOrDefault(t => t is not null);
-        if (firstTable is null)
+        var tableNames = db.Model.GetEntityTypes()
+            .Select(t => t.GetTableName())
+            .Where(t => t is not null)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        if (tableNames.Count == 0)
             return true; // Aucune table dans ce modèle : rien à provisionner, considéré à jour.
 
         var connection = db.Database.GetDbConnection();
@@ -78,21 +89,27 @@ public static class TenantSchemaSynchronizer
             await connection.OpenAsync(cancellationToken);
         try
         {
-            await using var command = connection.CreateCommand();
-            command.CommandText = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = @schema AND table_name = @table)";
+            foreach (var tableName in tableNames)
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = @schema AND table_name = @table)";
 
-            var schemaParam = command.CreateParameter();
-            schemaParam.ParameterName = "schema";
-            schemaParam.Value = targetSchema;
-            command.Parameters.Add(schemaParam);
+                var schemaParam = command.CreateParameter();
+                schemaParam.ParameterName = "schema";
+                schemaParam.Value = targetSchema;
+                command.Parameters.Add(schemaParam);
 
-            var tableParam = command.CreateParameter();
-            tableParam.ParameterName = "table";
-            tableParam.Value = firstTable;
-            command.Parameters.Add(tableParam);
+                var tableParam = command.CreateParameter();
+                tableParam.ParameterName = "table";
+                tableParam.Value = tableName;
+                command.Parameters.Add(tableParam);
 
-            var result = await command.ExecuteScalarAsync(cancellationToken);
-            return result is bool exists && exists;
+                var result = await command.ExecuteScalarAsync(cancellationToken);
+                if (result is bool exists && exists)
+                    return true;
+            }
+
+            return false;
         }
         finally
         {

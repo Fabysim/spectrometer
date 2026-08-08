@@ -1,0 +1,228 @@
+/* /entreprise/postes/{id}/selection – cohérent avec postes-* */
+
+.postes-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 1.25rem;
+}
+
+.postes-state,
+.postes-hint {
+    color: #64748b;
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.postes-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.postes-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.postes-breadcrumb a {
+    color: var(--bs-primary, #345f6d);
+    text-decoration: none;
+}
+
+.postes-breadcrumb a:hover {
+    color: var(--gscv-orange, hsl(18, 80%, 50%));
+    text-decoration: underline;
+}
+
+.postes-breadcrumb-sep {
+    opacity: 0.55;
+}
+
+.postes-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.postes-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.postes-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.35rem 1.4rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.postes-empty {
+    width: 100%;
+}
+
+.postes-selection-card {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.postes-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    background: rgba(52, 95, 109, 0.08);
+    color: var(--bs-primary, #345f6d);
+}
+
+.postes-btn-ghost:hover {
+    background: rgba(52, 95, 109, 0.14);
+    color: var(--bs-primary, #345f6d);
+}
+
+.postes-selection-table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    flex: 1 1 auto;
+}
+
+.postes-selection-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.postes-selection-table th,
+.postes-selection-table td {
+    text-align: left;
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.postes-selection-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.postes-selection-table tr:last-child td {
+    border-bottom: none;
+}
+
+.postes-selection-table tbody tr:hover {
+    background: rgba(52, 95, 109, 0.03);
+}
+
+.postes-selection-table tbody tr.is-preselected {
+    background: rgba(21, 128, 61, 0.05);
+}
+
+.candidat-id {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.postes-badge-preselect {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.5rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(21, 128, 61, 0.12);
+    color: #15803d;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.score-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(52, 95, 109, 0.1);
+    color: var(--bs-primary, #345f6d);
+    font-weight: 700;
+    font-size: 0.8125rem;
+}
+
+.score-empty {
+    color: #94a3b8;
+}
+
+.postes-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    user-select: none;
+}
+
+.postes-check input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--bs-primary, #345f6d);
+    cursor: pointer;
+}
+
+.candidature-links a {
+    color: var(--bs-primary, #345f6d);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.8125rem;
+}
+
+.candidature-links a:hover {
+    color: var(--gscv-orange, hsl(18, 80%, 50%));
+    text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+    .postes-page {
+        padding: 1rem;
+    }
+
+    .postes-title {
+        font-size: 1.4rem;
+    }
+}

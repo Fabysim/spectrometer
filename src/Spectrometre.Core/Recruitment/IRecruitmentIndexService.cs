@@ -34,6 +34,9 @@ public interface IRecruitmentIndexService
 {
     Task UpsertPosteAsync(int companyId, string companyName, int posteId, string titre, string? description, string? departement, string statut, CancellationToken cancellationToken = default);
 
+    /// <summary>Retire le poste et ses candidatures indexées pour cette entreprise (après suppression source).</summary>
+    Task RemovePosteAsync(int companyId, int posteId, CancellationToken cancellationToken = default);
+
     /// <summary><paramref name="axisScores"/> et <paramref name="pointsVigilanceTags"/> restent <c>null</c>/vides tant que Compatibilite n'est pas actif ou pas encore calculé pour cette candidature — voir <see cref="CandidatureIndexEntry"/>.</summary>
     Task UpsertCandidatureAsync(
         int companyId, int posteId, string posteTitre, int candidateProfileId, string statut,

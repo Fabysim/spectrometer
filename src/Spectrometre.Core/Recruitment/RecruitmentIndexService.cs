@@ -34,6 +34,24 @@ public sealed class RecruitmentIndexService(CoreDbContext db) : IRecruitmentInde
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RemovePosteAsync(int companyId, int posteId, CancellationToken cancellationToken = default)
+    {
+        var candidatures = await db.CandidatureIndexEntries
+            .Where(c => c.CompanyId == companyId && c.PosteId == posteId)
+            .ToListAsync(cancellationToken);
+        if (candidatures.Count > 0)
+            db.CandidatureIndexEntries.RemoveRange(candidatures);
+
+        var postes = await db.PosteIndexEntries
+            .Where(p => p.CompanyId == companyId && p.PosteId == posteId)
+            .ToListAsync(cancellationToken);
+        if (postes.Count > 0)
+            db.PosteIndexEntries.RemoveRange(postes);
+
+        if (candidatures.Count > 0 || postes.Count > 0)
+            await db.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task UpsertCandidatureAsync(
         int companyId, int posteId, string posteTitre, int candidateProfileId, string statut,
         int? scoreCompatibilite, IReadOnlyList<string> tagsCles,

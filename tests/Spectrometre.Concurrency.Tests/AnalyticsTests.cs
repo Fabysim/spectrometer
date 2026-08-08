@@ -22,7 +22,7 @@ public sealed class AnalyticsTests(ServiceFixture fixture)
 {
     /// <summary>
     /// Fait avancer une candidature jusqu'au calcul de score : rejoue le même chemin que
-    /// <c>PostesEntreprisePage</c> (lister les candidatures d'un poste déclenche le (re)calcul et la
+    /// <c>PosteCandidaturesPage</c> (lister les candidatures d'un poste déclenche le (re)calcul et la
     /// synchronisation vers l'index partagé — voir <c>PosteService.GetCandidaturesAsync</c>).
     /// </summary>
     private static Task<IReadOnlyList<CandidatureView>> MaterialiserScoresAsync(IPosteService posteService, int posteId) =>

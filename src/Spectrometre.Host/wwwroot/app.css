@@ -36,3 +36,34 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* Infobulle menu latéral replié (élément appendé sur body — CSS global) */
+.sidebar-nav-tooltip {
+    position: fixed;
+    z-index: 3000;
+    max-width: min(18rem, calc(100vw - 6rem));
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.28);
+    opacity: 0;
+    transform: translateX(-2px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.sidebar-nav-tooltip.is-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.sidebar-nav-tooltip[hidden] {
+    display: none !important;
+}

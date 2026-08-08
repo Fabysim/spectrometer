@@ -1,0 +1,253 @@
+@page "/entreprise/postes/{PosteId:int}/profil"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.PostesRecrutement.Entities
+@using Spectrometre.Modules.PostesRecrutement.Resources
+@using Spectrometre.Modules.PostesRecrutement.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IPosteService PosteService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<PostesRecrutementResource> Localizer
+
+<PageTitle>@(_poste?.Titre ?? Localizer["ProfilDuPoste"].Value)</PageTitle>
+
+<div class="postes-page">
+@if (_loading)
+{
+    <p class="postes-state">@Localizer["Chargement"]</p>
+}
+else if (_companies.Count == 0)
+{
+    <section class="postes-card postes-empty">
+        <p class="postes-hint">@Localizer["AucuneEntrepriseAssociee"]</p>
+    </section>
+}
+else if (_poste is null)
+{
+    <section class="postes-card postes-empty">
+        <p class="postes-hint">@Localizer["PosteIntrouvable"]</p>
+        <a href="/entreprise/postes" class="postes-btn-ghost">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["RetourAuxPostes"]
+        </a>
+    </section>
+}
+else
+{
+    <header class="postes-header">
+        <div>
+            <nav class="postes-breadcrumb" aria-label="breadcrumb">
+                <a href="/entreprise/postes">@Localizer["RetourAuxPostes"]</a>
+                <span class="postes-breadcrumb-sep" aria-hidden="true">/</span>
+                <a href="@($"/entreprise/postes/{PosteId}/candidats")">@_poste.Titre</a>
+                <span class="postes-breadcrumb-sep" aria-hidden="true">/</span>
+                <span>@Localizer["ProfilDuPoste"]</span>
+            </nav>
+            <h1 class="postes-title">@Localizer["ProfilDuPoste"]</h1>
+            <p class="postes-subtitle">@_poste.Titre — @Localizer["ProfilDuPosteHint"]</p>
+        </div>
+        <a href="@($"/entreprise/postes/{PosteId}/candidats")" class="postes-btn-ghost">
+            <i class="bi bi-people" aria-hidden="true"></i>
+            @Localizer["VoirLesCandidatures"]
+        </a>
+    </header>
+
+    <section class="postes-card postes-form-card">
+        <div class="postes-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-list-check"></i>
+        </div>
+        <h2 class="postes-section-title">@(_editId is null ? Localizer["AjouterUnCritere"] : Localizer["ModifierUnCritere"])</h2>
+        <div class="postes-form postes-profil-form">
+            <div class="postes-field">
+                <label for="critere-categorie">@Localizer["Categorie"]</label>
+                <input id="critere-categorie" class="postes-input" @bind="_categorie" @bind:event="oninput" maxlength="200" />
+            </div>
+            <div class="postes-field">
+                <label for="critere-libelle">@Localizer["Libelle"]</label>
+                <input id="critere-libelle" class="postes-input" @bind="_libelle" @bind:event="oninput" maxlength="500" />
+            </div>
+            <div class="postes-field">
+                <label for="critere-niveau">@Localizer["NiveauRequis"]</label>
+                <select id="critere-niveau" class="postes-select" value="@_niveauRequis" @onchange="OnNiveauChanged">
+                    @foreach (var niveau in Enum.GetValues<NiveauEvaluation>())
+                    {
+                        <option value="@((int)niveau)">@NiveauEvaluationLabels.Label(niveau, _english)</option>
+                    }
+                </select>
+            </div>
+            <div class="postes-field">
+                <label for="critere-ordre">@Localizer["OrdreAffichage"]</label>
+                <input id="critere-ordre" type="number" class="postes-input" @bind="_ordreAffichage" />
+            </div>
+            <div class="postes-form-actions">
+                @if (_editId is not null)
+                {
+                    <button type="button" class="postes-btn-secondary" @onclick="AnnulerEdition">@Localizer["Annuler"]</button>
+                }
+                <button type="button" class="postes-btn-primary" disabled="@(!PeutEnregistrer)" @onclick="EnregistrerAsync">
+                    @(_editId is null ? Localizer["Ajouter"] : Localizer["Enregistrer"])
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="postes-card postes-criteres-card">
+        <h2 class="postes-section-title">@Localizer["CriteresDuPoste"]</h2>
+        @if (_criteres.Count == 0)
+        {
+            <p class="postes-hint">@Localizer["AucunCritere"]</p>
+        }
+        else
+        {
+            @foreach (var groupe in _criteres.GroupBy(c => c.Categorie))
+            {
+                <div class="postes-critere-groupe">
+                    <h3 class="postes-critere-categorie">@groupe.Key</h3>
+                    <ul class="postes-critere-liste">
+                        @foreach (var critere in groupe)
+                        {
+                            <li class="postes-critere-item">
+                                <div class="postes-critere-body">
+                                    <span class="postes-critere-libelle">@critere.Libelle</span>
+                                    <span class="postes-critere-niveau">@NiveauEvaluationLabels.Label(critere.NiveauRequis, _english)</span>
+                                </div>
+                                <div class="postes-critere-actions">
+                                    <button type="button" class="postes-btn-ghost postes-btn-compact" @onclick="() => Editer(critere)">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                        @Localizer["Modifier"]
+                                    </button>
+                                    <button type="button" class="postes-btn-danger postes-btn-compact" @onclick="() => SupprimerAsync(critere.Id)">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                        @Localizer["Supprimer"]
+                                    </button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        }
+    </section>
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public int PosteId { get; set; }
+
+    private bool _loading = true;
+    private List<Company> _companies = [];
+    private PosteView? _poste;
+    private List<CritereEvaluationView> _criteres = [];
+    private int? _editId;
+    private string _categorie = "";
+    private string _libelle = "";
+    private int _niveauRequis = (int)NiveauEvaluation.Moyen;
+    private int _ordreAffichage;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+    private bool PeutEnregistrer =>
+        !string.IsNullOrWhiteSpace(_categorie) && !string.IsNullOrWhiteSpace(_libelle);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        if (_companies.Count == 0)
+        {
+            _loading = false;
+            return;
+        }
+
+        await ResolvePosteEtCriteresAsync();
+        AnnulerEdition();
+        _loading = false;
+    }
+
+    private async Task ResolvePosteEtCriteresAsync()
+    {
+        var ordered = _companies
+            .OrderByDescending(c => TenantContext.ActiveCompanyId == c.Id)
+            .ToList();
+
+        foreach (var company in ordered)
+        {
+            TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+            var postes = await PosteService.GetPostesAsync();
+            var poste = postes.FirstOrDefault(p => p.Id == PosteId);
+            if (poste is null)
+                continue;
+
+            _poste = poste;
+            _criteres = (await PosteService.GetCriteresAsync(PosteId)).ToList();
+            return;
+        }
+
+        _poste = null;
+        _criteres = [];
+    }
+
+    private void OnNiveauChanged(ChangeEventArgs e)
+    {
+        if (e.Value is not null && int.TryParse(e.Value.ToString(), out var niveau))
+            _niveauRequis = Math.Clamp(niveau, 0, 4);
+    }
+
+    private async Task EnregistrerAsync()
+    {
+        if (!PeutEnregistrer)
+            return;
+
+        await PosteService.UpsertCritereAsync(
+            PosteId,
+            _editId,
+            _categorie,
+            _libelle,
+            _niveauRequis,
+            _ordreAffichage);
+
+        _criteres = (await PosteService.GetCriteresAsync(PosteId)).ToList();
+        AnnulerEdition();
+    }
+
+    private void Editer(CritereEvaluationView critere)
+    {
+        _editId = critere.Id;
+        _categorie = critere.Categorie;
+        _libelle = critere.Libelle;
+        _niveauRequis = (int)critere.NiveauRequis;
+        _ordreAffichage = critere.OrdreAffichage;
+    }
+
+    private void AnnulerEdition()
+    {
+        _editId = null;
+        _categorie = "";
+        _libelle = "";
+        _niveauRequis = (int)NiveauEvaluation.Moyen;
+        _ordreAffichage = _criteres.Count == 0 ? 0 : _criteres.Max(c => c.OrdreAffichage) + 1;
+    }
+
+    private async Task SupprimerAsync(int critereId)
+    {
+        await PosteService.DeleteCritereAsync(critereId);
+        _criteres = (await PosteService.GetCriteresAsync(PosteId)).ToList();
+        if (_editId == critereId)
+            AnnulerEdition();
+    }
+}

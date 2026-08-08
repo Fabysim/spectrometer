@@ -286,6 +286,86 @@ app.MapGet("/candidat/cv/pdf", async (
     return Results.File(pdfBytes, "application/pdf", "cv.pdf");
 }).RequireAuthorization();
 
+// Export PDF de l'analyse IA poste/candidature — même pattern que /candidat/cv/pdf (endpoint minimal
+// car un composant Blazor ne streame pas un binaire). Accès : l'utilisateur doit être lié à
+// l'entreprise propriétaire du poste (UserCompanyLink via GetCompaniesForUserAsync) ; la candidature
+// est résolue dans le schéma tenant correspondant — jamais d'accès cross-entreprise.
+app.MapGet("/entreprise/postes/{posteId:int}/candidats/{candidatureId:int}/analyse-ia/pdf", async (
+    int posteId,
+    int candidatureId,
+    HttpContext httpContext,
+    CoreDbContext coreDb,
+    ITenantContext tenantContext,
+    ICompanyProvisioningService companyProvisioning,
+    IPosteService posteService,
+    ICandidateProfileService candidateProfileService,
+    IAnalysePdfService analysePdfService) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var companies = await companyProvisioning.GetCompaniesForUserAsync(userId, coreDb);
+    var english = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+    foreach (var company in companies)
+    {
+        tenantContext.SetActiveCompany(company.Id, company.SchemaName);
+
+        var candidature = await posteService.GetCandidatureAsync(candidatureId);
+        if (candidature is null || candidature.PosteId != posteId)
+            continue;
+
+        var analyse = await posteService.GetAnalyseIaAsync(candidatureId);
+        if (analyse is null)
+            return Results.NotFound();
+
+        var postes = await posteService.GetPostesAsync();
+        var poste = postes.FirstOrDefault(p => p.Id == posteId);
+        if (poste is null)
+            return Results.NotFound();
+
+        string? nomCandidat = null;
+        try
+        {
+            var cv = await candidateProfileService.GetCvAsync(candidature.CandidateProfileId);
+            var coord = cv.Coordonnees;
+            if (coord is not null)
+            {
+                var parts = new[] { coord.Prenoms, coord.Nom }
+                    .Where(s => !string.IsNullOrWhiteSpace(s));
+                var joined = string.Join(' ', parts);
+                if (!string.IsNullOrWhiteSpace(joined))
+                    nomCandidat = joined;
+            }
+        }
+        catch
+        {
+            // Nom optionnel — l'export reste valide avec l'id profil seul.
+        }
+
+        var pdfBytes = analysePdfService.GenerateAnalysePdf(new AnalysePdfModel(
+            TitrePoste: poste.Titre,
+            CandidateProfileId: candidature.CandidateProfileId,
+            NomCandidat: nomCandidat,
+            ScoreCompatibilite: candidature.ScoreCompatibilite,
+            AnalyseTexte: analyse.AnalyseTexte,
+            GenereeLe: analyse.GenereeLe,
+            GenereeParIa: analyse.GenereeParIa,
+            English: english));
+
+        var safeTitre = string.Concat(poste.Titre.Where(ch => !Path.GetInvalidFileNameChars().Contains(ch)));
+        if (string.IsNullOrWhiteSpace(safeTitre))
+            safeTitre = "poste";
+        var fileName = $"analyse-ia-{safeTitre}-{candidatureId}.pdf";
+
+        return Results.File(pdfBytes, "application/pdf", fileName);
+    }
+
+    // Pas de fuite d'existence hors des entreprises de l'utilisateur.
+    return Results.NotFound();
+}).RequireAuthorization();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()

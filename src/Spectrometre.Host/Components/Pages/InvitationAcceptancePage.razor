@@ -10,16 +10,17 @@
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.Coaching.Services
+@using Spectrometre.Modules.PostesRecrutement.Services
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IInvitationService InvitationService
 @inject CoachOnboardingService CoachOnboarding
 @inject ICoachingService CoachingService
 @inject ICompanyProvisioningService CompanyProvisioningService
+@inject IPosteService PosteService
 @inject CoreDbContext CoreDb
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> Localizer
-
 <PageTitle>@Localizer["InvitationTitle"]</PageTitle>
 
 @* Rendu statique (pas d'InteractiveServer), comme /inscription et /login : la confirmation d'invitation
@@ -143,7 +144,12 @@
                         {
                             <div class="alert alert-success">@Localizer["InvitationConfirmee"]</div>
                             <a href="@DestinationApresAcceptation()" class="login-btn login-btn-primary">
-                                @(_invitation!.Type == InvitationType.CompanyEmploye ? Localizer["Accueil"] : Localizer["InvitationVoirMesPersonnesSuivies"])
+                                @(_invitation!.Type switch
+                                {
+                                    InvitationType.CompanyEmploye => Localizer["Accueil"],
+                                    InvitationType.CandidaturePoste => Localizer["Accueil"],
+                                    _ => Localizer["InvitationVoirMesPersonnesSuivies"],
+                                })
                             </a>
                         }
                         else
@@ -153,7 +159,7 @@
                                 <i class="bi bi-person-check" aria-hidden="true"></i>
                                 <strong>@_invitation.EmailInvite</strong>
                             </p>
-                            <EditForm Model="_confirmModel" OnValidSubmit="ConfirmerAsync" FormName="invitation-confirmation" method="post">
+                            <EditForm Model="(_confirmModel ??= new())" OnValidSubmit="ConfirmerAsync" FormName="invitation-confirmation" method="post">
                                 <button type="submit" class="login-btn login-btn-primary">
                                     @Localizer["InvitationConfirmer"]
                                 </button>
@@ -175,7 +181,7 @@
     private InscriptionModel _model { get; set; } = new();
 
     [SupplyParameterFromForm(FormName = "invitation-confirmation")]
-    private ConfirmModel _confirmModel { get; set; } = new();
+    private ConfirmModel? _confirmModel { get; set; }
 
     private EditContext _editContext = null!;
     private ValidationMessageStore _messageStore = null!;
@@ -276,7 +282,7 @@
         _confirme = true;
     }
 
-    /// <summary>Étendu au cycle multi-entreprise/employés — voir la remarque sur <see cref="Invitation.Type"/>.</summary>
+    /// <summary>Étendu au cycle multi-entreprise/employés et candidatures poste — voir la remarque sur <see cref="Invitation.Type"/>.</summary>
     private async Task FinaliserSelonTypeAsync(string accepteurUserId)
     {
         switch (_invitation!.Type)
@@ -288,18 +294,23 @@
             case InvitationType.CompanyEmploye:
                 await CompanyProvisioningService.FinaliserEmployeDepuisInvitationAsync(_invitation, accepteurUserId, CoreDb);
                 break;
+            case InvitationType.CandidaturePoste:
+                await PosteService.FinaliserCandidatureDepuisInvitationAsync(_invitation, accepteurUserId);
+                break;
         }
     }
 
     private string DestinationApresAcceptation() => _invitation!.Type switch
     {
         InvitationType.CompanyEmploye => "/dashboard",
+        InvitationType.CandidaturePoste => "/candidat/postes",
         _ => "/coach/suivis",
     };
 
     private string IntroKey => _invitation?.Type switch
     {
         InvitationType.CompanyEmploye => "InvitationManagerIntro",
+        InvitationType.CandidaturePoste => "InvitationCandidaturePosteIntro",
         _ => "InvitationCoachingIntro",
     };
 }

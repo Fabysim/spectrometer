@@ -155,6 +155,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         // Jamais d'appel réseau réel à Replicate en test — substitue l'implémentation réelle enregistrée
         // par AddGestionDuTempsModule par un double configurable (voir FakeAiSynthesisService).
         services.Replace(ServiceDescriptor.Scoped<IAiSynthesisService, FakeAiSynthesisService>());
+        services.Replace(ServiceDescriptor.Scoped<Spectrometre.Modules.PostesRecrutement.Services.IAnalysePosteIaService, FakeAnalysePosteIaService>());
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
         // PostesRecrutement mais enregistrée ici (pas depuis Compatibilite).

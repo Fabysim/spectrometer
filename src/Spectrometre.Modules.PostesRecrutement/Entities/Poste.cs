@@ -19,8 +19,8 @@ public static class PosteStatutLabels
 
 /// <summary>
 /// Un poste à pourvoir, rattaché à l'entreprise active (schéma tenant — voir <c>ITenantScopedDbContext</c>,
-/// même principe que Profil Entreprise). Périmètre volontairement minimal pour ce cycle : pas encore de
-/// lien avec les compétences/exigences structurées de Profil Entreprise, ni de grille d'exigences dédiée.
+/// même principe que Profil Entreprise). La grille d'exigences manuelle vit dans
+/// <see cref="CritereEvaluation"/> (catégorie / libellé / niveau requis).
 /// </summary>
 public sealed class Poste
 {
@@ -30,6 +30,18 @@ public sealed class Poste
 
     /// <summary>Texte libre pour ce cycle — un référentiel de départements viendra avec un module RH plus complet.</summary>
     public string? Departement { get; set; }
+
+    /// <summary>Description des tâches (équivalent mvp <c>TasksDescription</c>).</summary>
+    public string? TachesDescription { get; set; }
+
+    /// <summary>Salaire en texte libre (équivalent mvp — pas un montant numérique).</summary>
+    public string? Salaire { get; set; }
+
+    /// <summary>Avantages sociaux (équivalent mvp <c>Benefits</c>).</summary>
+    public string? Avantages { get; set; }
+
+    /// <summary>Date/heure de clôture en UTC (équivalent mvp <c>ClosingDate</c>).</summary>
+    public DateTimeOffset? DateCloture { get; set; }
 
     public PosteStatut Statut { get; set; } = PosteStatut.Ouvert;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

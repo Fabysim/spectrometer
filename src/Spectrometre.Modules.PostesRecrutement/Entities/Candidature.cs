@@ -35,6 +35,13 @@ public sealed class Candidature
     public int PosteId { get; set; }
     public int CandidateProfileId { get; set; }
     public CandidatureStatut Statut { get; set; } = CandidatureStatut.Recue;
+
+    /// <summary>Équivalent de <c>PositionCandidate.IsSelected</c> du MVP — shortlist avant décision finale.</summary>
+    public bool EstPreselectionne { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    /// <summary>Niveaux finaux ajustés par l'entreprise (une ligne par critère du poste).</summary>
+    public ICollection<EvaluationCritereCandidature> EvaluationsFinales { get; set; } = [];
 }
