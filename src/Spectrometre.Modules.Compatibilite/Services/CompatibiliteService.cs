@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Compatibility;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
@@ -17,7 +18,7 @@ public sealed class CompatibiliteService(
     ICompanyProfileService companyProfileService,
     ICompanyProvisioningService companyProvisioningService,
     ICandidatureExistenceChecker candidatureExistenceChecker,
-    CoreDbContext coreDb) : ICompatibiliteService
+    CoreDbContext coreDb) : ICompatibiliteService, ICompatibiliteScoreService
 {
     private const int SeuilVigilance = 50;
 
@@ -31,69 +32,62 @@ public sealed class CompatibiliteService(
     public async Task<CompatibiliteResultView> CalculerCompatibiliteAsync(int candidateProfileId, int companyProfileId, CancellationToken cancellationToken = default)
     {
         await using var db = await CreateDbAsync(cancellationToken);
-
-        var candidateCriteria = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
-        var companyCriteria = await companyProfileService.GetCompatibilityCriteriaAsync(companyProfileId, cancellationToken);
-
-        var candidateTechnique = candidateCriteria?.TechniqueTags ?? [];
-        var candidateComportementale = candidateCriteria?.ComportementaleTags ?? [];
-        var candidateCulturelle = candidateCriteria?.CulturelleTags ?? [];
-        var candidateMotivationnelle = candidateCriteria?.MotivationnelleTags ?? [];
-        var candidateVigilance = candidateCriteria?.PointsVigilanceTags ?? [];
-
-        var companyTechnique = companyCriteria?.TechniqueTags ?? [];
-        var companyComportementale = companyCriteria?.ComportementaleTags ?? [];
-        var companyCulturelle = companyCriteria?.CulturelleTags ?? [];
-        var companyMotivationnelle = companyCriteria?.MotivationnelleTags ?? [];
-        var companyVigilance = companyCriteria?.PointsVigilanceTags ?? [];
-
-        var scores = new Dictionary<CompatibilityAxis, int>
-        {
-            [CompatibilityAxis.Technique] = StructuredCriteriaScorer.TagOverlapScore(candidateTechnique, companyTechnique),
-            [CompatibilityAxis.Comportementale] = StructuredCriteriaScorer.TagOverlapScore(candidateComportementale, companyComportementale),
-            [CompatibilityAxis.Culturelle] = StructuredCriteriaScorer.TagOverlapScore(candidateCulturelle, companyCulturelle),
-            [CompatibilityAxis.Organisationnelle] = StructuredCriteriaScorer.ScaleScore(candidateCriteria?.RythmeTravail, companyCriteria?.RythmeTravail),
-            [CompatibilityAxis.Motivationnelle] = StructuredCriteriaScorer.TagOverlapScore(candidateMotivationnelle, companyMotivationnelle),
-        };
-
-        var weights = await db.CompatibilityWeightSettings.AsNoTracking().ToListAsync(cancellationToken);
-        var totalWeight = weights.Sum(w => w.WeightPercent);
-        var scoreGlobal = totalWeight == 0
-            ? 0
-            : (int)Math.Round(weights.Sum(w => scores[w.Axis] * w.WeightPercent) / totalWeight);
-
-        var vigilancePoints = new List<string>();
-        foreach (var (axis, score) in scores)
-        {
-            if (score < SeuilVigilance)
-                vigilancePoints.Add($"Axe {CompatibilityAxisLabels.Label(axis)} : score faible ({score}%), à approfondir en entretien.");
-        }
-
-        // Un tag de vigilance signalé à la fois par l'entreprise et par le candidat est un vrai risque
-        // partagé (ex. « Rythme intense ») — plus fiable que l'ancienne détection par mots-clés sur texte libre.
-        foreach (var tag in StructuredCriteriaScorer.SharedVigilanceTags(candidateVigilance, companyVigilance))
-            vigilancePoints.Add($"Point de vigilance partagé : {tag} (signalé par l'entreprise et par le candidat).");
+        var computed = await ComputeScoresAsync(candidateProfileId, companyProfileId, db, cancellationToken);
 
         var result = new CompatibilityResult
         {
             CandidateProfileId = candidateProfileId,
             CompanyProfileId = companyProfileId,
-            ScoreTechnique = scores[CompatibilityAxis.Technique],
-            ScoreComportementale = scores[CompatibilityAxis.Comportementale],
-            ScoreCulturelle = scores[CompatibilityAxis.Culturelle],
-            ScoreOrganisationnelle = scores[CompatibilityAxis.Organisationnelle],
-            ScoreMotivationnelle = scores[CompatibilityAxis.Motivationnelle],
-            ScoreGlobal = scoreGlobal,
+            ScoreTechnique = computed.Scores[CompatibilityAxis.Technique],
+            ScoreComportementale = computed.Scores[CompatibilityAxis.Comportementale],
+            ScoreCulturelle = computed.Scores[CompatibilityAxis.Culturelle],
+            ScoreOrganisationnelle = computed.Scores[CompatibilityAxis.Organisationnelle],
+            ScoreMotivationnelle = computed.Scores[CompatibilityAxis.Motivationnelle],
+            ScoreGlobal = computed.ScoreGlobal,
             CalculatedAt = DateTimeOffset.UtcNow,
         };
-        foreach (var point in vigilancePoints.Distinct())
+        foreach (var point in computed.VigilancePoints)
             result.VigilancePoints.Add(new CompatibilityVigilancePoint { Text = point });
 
         db.CompatibilityResults.Add(result);
         await db.SaveChangesAsync(cancellationToken);
 
-        var sharedVigilanceTags = StructuredCriteriaScorer.SharedVigilanceTags(candidateVigilance, companyVigilance);
-        return ToView(result, scores, sharedVigilanceTags, candidateCriteria?.RythmeTravail, companyCriteria?.RythmeTravail);
+        return ToView(result, computed.Scores, computed.SharedVigilanceTags, computed.RythmeCandidat, computed.RythmeEntreprise);
+    }
+
+    /// <inheritdoc cref="ICompatibiliteScoreService.CalculerScoresAsync" />
+    public async Task<CompatibiliteScoresSnapshot?> CalculerScoresAsync(
+        int candidateProfileId,
+        int companyProfileId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await CalculerCompatibiliteAsync(candidateProfileId, companyProfileId, cancellationToken);
+        return new CompatibiliteScoresSnapshot(
+            result.ScoreGlobal,
+            result.ScoresParAxe.FirstOrDefault(s => s.Axis == CompatibilityAxis.Technique)?.Score,
+            result.ScoresParAxe.FirstOrDefault(s => s.Axis == CompatibilityAxis.Comportementale)?.Score,
+            result.ScoresParAxe.FirstOrDefault(s => s.Axis == CompatibilityAxis.Culturelle)?.Score,
+            result.ScoresParAxe.FirstOrDefault(s => s.Axis == CompatibilityAxis.Organisationnelle)?.Score,
+            result.ScoresParAxe.FirstOrDefault(s => s.Axis == CompatibilityAxis.Motivationnelle)?.Score,
+            result.PointsVigilanceTagsPartages);
+    }
+
+    public async Task<int?> GetScoreGlobalAffichageAsync(int candidateProfileId, int companyProfileId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await CreateDbAsync(cancellationToken);
+
+        // Lecture minimale : pas d'Include VigilancePoints, pas de rechargement des critères.
+        var existing = await db.CompatibilityResults.AsNoTracking()
+            .Where(r => r.CandidateProfileId == candidateProfileId && r.CompanyProfileId == companyProfileId)
+            .OrderByDescending(r => r.CalculatedAt)
+            .Select(r => (int?)r.ScoreGlobal)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (existing is not null)
+            return existing;
+
+        // Estimation sans persistance — une visite de liste ne doit pas empiler des CompatibilityResults.
+        var computed = await ComputeScoresAsync(candidateProfileId, companyProfileId, db, cancellationToken);
+        return computed.ScoreGlobal;
     }
 
     public async Task<CompatibiliteResultView?> GetDernierResultatAsync(int candidateProfileId, int companyProfileId, CancellationToken cancellationToken = default)
@@ -174,6 +168,64 @@ public sealed class CompatibiliteService(
         return null;
     }
 
+    private async Task<ComputedCompatibilityScores> ComputeScoresAsync(
+        int candidateProfileId,
+        int companyProfileId,
+        CompatibiliteDbContext db,
+        CancellationToken cancellationToken)
+    {
+        var candidateCriteria = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
+        var companyCriteria = await companyProfileService.GetCompatibilityCriteriaAsync(companyProfileId, cancellationToken);
+
+        var candidateTechnique = candidateCriteria?.TechniqueTags ?? [];
+        var candidateComportementale = candidateCriteria?.ComportementaleTags ?? [];
+        var candidateCulturelle = candidateCriteria?.CulturelleTags ?? [];
+        var candidateMotivationnelle = candidateCriteria?.MotivationnelleTags ?? [];
+        var candidateVigilance = candidateCriteria?.PointsVigilanceTags ?? [];
+
+        var companyTechnique = companyCriteria?.TechniqueTags ?? [];
+        var companyComportementale = companyCriteria?.ComportementaleTags ?? [];
+        var companyCulturelle = companyCriteria?.CulturelleTags ?? [];
+        var companyMotivationnelle = companyCriteria?.MotivationnelleTags ?? [];
+        var companyVigilance = companyCriteria?.PointsVigilanceTags ?? [];
+
+        var scores = new Dictionary<CompatibilityAxis, int>
+        {
+            [CompatibilityAxis.Technique] = StructuredCriteriaScorer.TagOverlapScore(candidateTechnique, companyTechnique),
+            [CompatibilityAxis.Comportementale] = StructuredCriteriaScorer.TagOverlapScore(candidateComportementale, companyComportementale),
+            [CompatibilityAxis.Culturelle] = StructuredCriteriaScorer.TagOverlapScore(candidateCulturelle, companyCulturelle),
+            [CompatibilityAxis.Organisationnelle] = StructuredCriteriaScorer.ScaleScore(candidateCriteria?.RythmeTravail, companyCriteria?.RythmeTravail),
+            [CompatibilityAxis.Motivationnelle] = StructuredCriteriaScorer.TagOverlapScore(candidateMotivationnelle, companyMotivationnelle),
+        };
+
+        var weights = await db.CompatibilityWeightSettings.AsNoTracking().ToListAsync(cancellationToken);
+        var totalWeight = weights.Sum(w => w.WeightPercent);
+        var scoreGlobal = totalWeight == 0
+            ? 0
+            : (int)Math.Round(weights.Sum(w => scores[w.Axis] * w.WeightPercent) / totalWeight);
+
+        var vigilancePoints = new List<string>();
+        foreach (var (axis, score) in scores)
+        {
+            if (score < SeuilVigilance)
+                vigilancePoints.Add($"Axe {CompatibilityAxisLabels.Label(axis)} : score faible ({score}%), à approfondir en entretien.");
+        }
+
+        // Un tag de vigilance signalé à la fois par l'entreprise et par le candidat est un vrai risque
+        // partagé (ex. « Rythme intense ») — plus fiable que l'ancienne détection par mots-clés sur texte libre.
+        var sharedVigilanceTags = StructuredCriteriaScorer.SharedVigilanceTags(candidateVigilance, companyVigilance);
+        foreach (var tag in sharedVigilanceTags)
+            vigilancePoints.Add($"Point de vigilance partagé : {tag} (signalé par l'entreprise et par le candidat).");
+
+        return new ComputedCompatibilityScores(
+            scores,
+            scoreGlobal,
+            vigilancePoints.Distinct().ToList(),
+            sharedVigilanceTags,
+            candidateCriteria?.RythmeTravail,
+            companyCriteria?.RythmeTravail);
+    }
+
     private static CompatibiliteResultView ToView(
         CompatibilityResult result,
         Dictionary<CompatibilityAxis, int> scores,
@@ -188,4 +240,12 @@ public sealed class CompatibiliteService(
             sharedVigilanceTags,
             rythmeCandidat,
             rythmeEntreprise);
+
+    private sealed record ComputedCompatibilityScores(
+        Dictionary<CompatibilityAxis, int> Scores,
+        int ScoreGlobal,
+        IReadOnlyList<string> VigilancePoints,
+        IReadOnlyList<string> SharedVigilanceTags,
+        int? RythmeCandidat,
+        int? RythmeEntreprise);
 }

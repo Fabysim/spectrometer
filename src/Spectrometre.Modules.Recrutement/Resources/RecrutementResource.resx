@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Chargement" xml:space="preserve">
+    <value>Chargement…</value>
+  </data>
+  <data name="AucuneEntrepriseAssociee" xml:space="preserve">
+    <value>Aucune entreprise associée à votre compte pour le moment.</value>
+  </data>
+  <data name="VoirLesCandidatures" xml:space="preserve">
+    <value>Voir les candidatures</value>
+  </data>
+  <data name="RetourAuxPostes" xml:space="preserve">
+    <value>Retour aux postes</value>
+  </data>
+  <data name="PosteIntrouvable" xml:space="preserve">
+    <value>Poste introuvable.</value>
+  </data>
+  <data name="DetailCandidature" xml:space="preserve">
+    <value>Détail de la candidature</value>
+  </data>
+  <data name="CandidatureIntrouvable" xml:space="preserve">
+    <value>Candidature introuvable.</value>
+  </data>
+  <data name="RetourAuxCandidatures" xml:space="preserve">
+    <value>Retour aux candidatures</value>
+  </data>
+  <data name="DetailCompatibilite" xml:space="preserve">
+    <value>Détail compatibilité</value>
+  </data>
+  <data name="DetailCompatibiliteHint" xml:space="preserve">
+    <value>Consulter le score et l'analyse de compatibilité avec le profil entreprise.</value>
+  </data>
+  <data name="PreparerLEntretienHint" xml:space="preserve">
+    <value>Ouvrir la grille d'entretien préparée pour ce candidat.</value>
+  </data>
+  <data name="CandidatProfil" xml:space="preserve">
+    <value>Candidat (profil)</value>
+  </data>
+  <data name="Statut" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="Compatibilite" xml:space="preserve">
+    <value>Compatibilité</value>
+  </data>
+  <data name="PreparerLEntretien" xml:space="preserve">
+    <value>Préparer l'entretien</value>
+  </data>
+  <data name="ProfilDuPoste" xml:space="preserve">
+    <value>Profil du poste</value>
+  </data>
+  <data name="Categorie" xml:space="preserve">
+    <value>Catégorie</value>
+  </data>
+  <data name="NiveauRequis" xml:space="preserve">
+    <value>Niveau requis</value>
+  </data>
+  <data name="Enregistrer" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="EvaluationDesCriteres" xml:space="preserve">
+    <value>Évaluation des critères</value>
+  </data>
+  <data name="AucunCriterePourEvaluation" xml:space="preserve">
+    <value>Aucun critère défini pour ce poste. Ajoutez-en via le profil du poste.</value>
+  </data>
+  <data name="Critere" xml:space="preserve">
+    <value>Critère</value>
+  </data>
+  <data name="NiveauDeclare" xml:space="preserve">
+    <value>Niveau déclaré</value>
+  </data>
+  <data name="NiveauDeclareIndisponible" xml:space="preserve">
+    <value>Non disponible dans ce module (pas d'auto-évaluation candidat).</value>
+  </data>
+  <data name="NiveauFinal" xml:space="preserve">
+    <value>Niveau final</value>
+  </data>
+  <data name="NonEvalue" xml:space="preserve">
+    <value>Non évalué</value>
+  </data>
+  <data name="Ecart" xml:space="preserve">
+    <value>Écart</value>
+  </data>
+  <data name="GuideDeuxiemeEntrevue" xml:space="preserve">
+    <value>Guide 2ème entrevue</value>
+  </data>
+  <data name="GuideDeuxiemeEntrevueHint" xml:space="preserve">
+    <value>Guide rattaché au poste — le même contenu sert pour tous les candidats.</value>
+  </data>
+  <data name="MissionLivrables" xml:space="preserve">
+    <value>Mission / livrables</value>
+  </data>
+  <data name="SituationQuantitative" xml:space="preserve">
+    <value>Situation quantitative</value>
+  </data>
+  <data name="SituationQualitative" xml:space="preserve">
+    <value>Situation qualitative</value>
+  </data>
+  <data name="Objectifs" xml:space="preserve">
+    <value>Objectifs</value>
+  </data>
+  <data name="Suivi" xml:space="preserve">
+    <value>Suivi</value>
+  </data>
+  <data name="Echeances" xml:space="preserve">
+    <value>Échéances</value>
+  </data>
+  <data name="AutoriteResponsabilite" xml:space="preserve">
+    <value>Autorité / responsabilité</value>
+  </data>
+  <data name="TexteLibrePlaceholder" xml:space="preserve">
+    <value>Texte libre…</value>
+  </data>
+  <data name="GuideEnregistre" xml:space="preserve">
+    <value>Guide enregistré.</value>
+  </data>
+  <data name="GuideErreurEnregistrement" xml:space="preserve">
+    <value>Impossible d'enregistrer le guide.</value>
+  </data>
+  <data name="AnalyseIa" xml:space="preserve">
+    <value>Analyse IA</value>
+  </data>
+  <data name="AnalyseIaHint" xml:space="preserve">
+    <value>Rapport de compatibilité poste / candidature généré à la demande (cache tant que les données n'ont pas changé).</value>
+  </data>
+  <data name="GenererAnalyseIa" xml:space="preserve">
+    <value>Générer l'analyse</value>
+  </data>
+  <data name="RegenererAnalyseIa" xml:space="preserve">
+    <value>Régénérer l'analyse</value>
+  </data>
+  <data name="AnalyseIaEnCours" xml:space="preserve">
+    <value>Génération en cours…</value>
+  </data>
+  <data name="AucuneAnalyseIa" xml:space="preserve">
+    <value>Aucune analyse générée pour cette candidature.</value>
+  </data>
+  <data name="AnalyseGenereeParIa" xml:space="preserve">
+    <value>Généré par IA</value>
+  </data>
+  <data name="AnalyseGenereeLocalement" xml:space="preserve">
+    <value>Généré localement</value>
+  </data>
+  <data name="AnalyseGenereeLe" xml:space="preserve">
+    <value>Généré le</value>
+  </data>
+  <data name="ExporterAnalysePdf" xml:space="preserve">
+    <value>Exporter en PDF</value>
+  </data>
+  <data name="EcartEnDessous" xml:space="preserve">
+    <value>En dessous</value>
+  </data>
+  <data name="EcartAuDessus" xml:space="preserve">
+    <value>Au-dessus</value>
+  </data>
+  <data name="EcartConforme" xml:space="preserve">
+    <value>Conforme</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Détail</value>
+  </data>
+  <data name="ModuleRecrutementRequis" xml:space="preserve">
+    <value>Nécessite le module Recrutement</value>
+  </data>
+  <data name="ModuleRecrutementRequisHint" xml:space="preserve">
+    <value>La préparation d'entretien et l'analyse IA nécessitent le module Recrutement. Activez-le pour retrouver ces fonctionnalités — vos postes et candidatures restent inchangés.</value>
+  </data>
+  <data name="ActiverLeModule" xml:space="preserve">
+    <value>Activer le module</value>
+  </data>
+</root>

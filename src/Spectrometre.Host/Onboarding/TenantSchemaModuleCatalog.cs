@@ -3,12 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Compatibilite.Data;
 using Spectrometre.Modules.Entretien.Data;
-using Spectrometre.Modules.PostesRecrutement.Data;
+using Spectrometre.Modules.Recrutement.Data;
 using Spectrometre.Modules.ProfilEntreprise.Data;
 using Spectrometre.Modules.SuiviEvolutif.Data;
 using ProfilEntrepriseModule = Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions;
 using CompatibiliteModule = Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions;
-using PostesRecrutementModule = Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions;
+using PostesRecrutementModule = Spectrometre.Modules.Recrutement.ServiceCollectionExtensions;
 using EntretienModule = Spectrometre.Modules.Entretien.ServiceCollectionExtensions;
 using SuiviEvolutifModule = Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions;
 
@@ -27,7 +27,7 @@ public static class TenantSchemaModuleCatalog
     [
         new(ProfilEntrepriseModule.Manifest.Code, async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<ProfilEntrepriseDbContext>>().CreateDbContextAsync(ct)),
         new(CompatibiliteModule.Manifest.Code, async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<CompatibiliteDbContext>>().CreateDbContextAsync(ct)),
-        new(PostesRecrutementModule.Manifest.Code, async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>().CreateDbContextAsync(ct)),
+        new(PostesRecrutementModule.Manifest.Code, async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<RecrutementDbContext>>().CreateDbContextAsync(ct)),
         new(EntretienModule.Manifest.Code, async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync(ct)),
         // Le côté CANDIDAT de SuiviEvolutif est un schéma fixe (comme ProfilCandidat), migré globalement
         // dans Program.cs — seul le côté ENTREPRISE (tenant-scopé) figure dans ce catalogue.

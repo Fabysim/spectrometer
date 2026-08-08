@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Recruitment;
-using Spectrometre.Modules.PostesRecrutement.Data;
+using Spectrometre.Modules.ProfilEntreprise.Data;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -25,13 +25,13 @@ internal static class RecruitmentIndexBackfill
     {
         var coreDb = services.GetRequiredService<CoreDbContext>();
         var recruitmentIndex = services.GetRequiredService<IRecruitmentIndexService>();
-        var postesDbFactory = services.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>();
+        var postesDbFactory = services.GetRequiredService<IDbContextFactory<ProfilEntrepriseDbContext>>();
 
         var companies = await coreDb.Companies.AsNoTracking().ToListAsync();
 
         foreach (var company in companies)
         {
-            PostesRecrutementDbContext db;
+            ProfilEntrepriseDbContext db;
             try
             {
                 db = await postesDbFactory.CreateDbContextAsync();

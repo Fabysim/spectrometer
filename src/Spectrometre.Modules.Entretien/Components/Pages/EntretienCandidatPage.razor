@@ -1,0 +1,127 @@
+@page "/candidat/entretien/{CompanyId:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Core.Recruitment
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.Entretien.Resources
+@using Spectrometre.Modules.Entretien.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IEntretienService EntretienService
+@inject ICandidateSubjectResolver CandidateSubjectResolver
+@inject ICandidatureExistenceChecker CandidatureExistenceChecker
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<EntretienResource> Localizer
+
+<PageTitle>@(_titrePage ?? Localizer["PreparerMonEntretien"].Value)</PageTitle>
+
+<div class="entretien-page">
+@if (!_resolu)
+{
+    <p class="entretien-state">@Localizer["GenerationEnCours"]</p>
+}
+else if (_grille is null || !_grille.Groupes.Any(g => g.QuestionsPourEntreprise.Count > 0))
+{
+    @* Message volontairement générique — même principe que /entretien/{id} côté entreprise :
+       jamais confirmer/infirmer l'existence d'une ressource (entreprise inconnue, pas de candidature,
+       pas de résultat de compatibilité, ou aucun axe sous le seuil). *@
+    <section class="entretien-card entretien-empty">
+        <p class="entretien-hint">@Localizer["AucuneQuestionDisponible"]</p>
+    </section>
+}
+else
+{
+    <header class="entretien-header">
+        <div>
+            <h1 class="entretien-title">@_titrePage</h1>
+            <p class="entretien-subtitle">@string.Format(Localizer["ScoreGlobalCandidatAvecQuestions"].Value, _grille.ScoreGlobal)</p>
+        </div>
+        <div class="entretien-score-badge" aria-hidden="true">
+            <span class="entretien-score-value">@_grille.ScoreGlobal%</span>
+        </div>
+    </header>
+
+    <section class="entretien-questions">
+        <div class="entretien-questions-head">
+            <div class="entretien-questions-icon" aria-hidden="true"><i class="bi bi-building"></i></div>
+            <div>
+                <h2 class="entretien-questions-title">@Localizer["QuestionsAPoserAEntreprise"]</h2>
+                <p class="entretien-hint">@Localizer["QuestionsAPoserAEntrepriseHint"]</p>
+            </div>
+        </div>
+        @foreach (var groupe in _grille.Groupes)
+        {
+            @if (groupe.QuestionsPourEntreprise.Count > 0)
+            {
+                <article class="entretien-card groupe-questions">
+                    <div class="groupe-entete">
+                        <strong>@groupe.Titre</strong>
+                    </div>
+                    <ul>
+                        @foreach (var question in groupe.QuestionsPourEntreprise)
+                        {
+                            <li>@question</li>
+                        }
+                    </ul>
+                </article>
+            }
+        }
+    </section>
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+    [Parameter] public int CompanyId { get; set; }
+
+    private bool _resolu;
+    private GrilleEntretienView? _grille;
+    private string? _titrePage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = AuthenticationStateTask is not null
+            ? (await AuthenticationStateTask).User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            : null;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            _resolu = true;
+            return;
+        }
+
+        var company = await CoreDb.Companies.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == CompanyId);
+        if (company is null)
+        {
+            _resolu = true;
+            return;
+        }
+
+        _titrePage = string.Format(Localizer["PreparerMonEntretienChez"].Value, company.Name);
+
+        // Contexte entreprise EXPLICITE (route) — requis pour le cas 1 de
+        // GetResultatAutorisePourUtilisateurAsync (candidat consulte son propre résultat).
+        TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+
+        var candidateProfileId = await CandidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
+
+        // Garde complémentaire : le cas 1 de Compatibilite ne vérifie pas la candidature réelle
+        // (il calcule dès qu'une entreprise est active). Sans ce filtre, un candidat pourrait
+        // activer n'importe quelle entreprise via l'URL. Même message générique si absent.
+        if (!await CandidatureExistenceChecker.ExisteCandidatureReelleAsync(candidateProfileId, company.Id))
+        {
+            _resolu = true;
+            return;
+        }
+
+        _grille = await EntretienService.GenererGrilleAsync(candidateProfileId, userId);
+        _resolu = true;
+    }
+}

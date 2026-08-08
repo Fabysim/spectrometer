@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -26,7 +26,7 @@
     <ProjectReference Include="..\Spectrometre.Modules.Coaching\Spectrometre.Modules.Coaching.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.ProfilEntreprise\Spectrometre.Modules.ProfilEntreprise.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.Compatibilite\Spectrometre.Modules.Compatibilite.csproj" />
-    <ProjectReference Include="..\Spectrometre.Modules.PostesRecrutement\Spectrometre.Modules.PostesRecrutement.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.Recrutement\Spectrometre.Modules.Recrutement.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.Vivier\Spectrometre.Modules.Vivier.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.Entretien\Spectrometre.Modules.Entretien.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.SuiviEvolutif\Spectrometre.Modules.SuiviEvolutif.csproj" />

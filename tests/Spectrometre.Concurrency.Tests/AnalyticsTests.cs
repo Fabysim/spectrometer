@@ -3,10 +3,11 @@ using Spectrometre.Core.Compatibility;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Analytics.Services;
 using Spectrometre.Modules.Compatibilite.Entities;
-using Spectrometre.Modules.PostesRecrutement.Entities;
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement.Entities;
+using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Spectrometre.Modules.ProfilEntreprise.Services;
+using Spectrometre.Modules.ProfilEntreprise.Entities;
 using Xunit;
 
 namespace Spectrometre.Concurrency.Tests;

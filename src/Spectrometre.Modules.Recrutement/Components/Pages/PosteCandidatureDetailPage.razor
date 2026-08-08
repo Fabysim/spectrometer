@@ -1,0 +1,422 @@
+@page "/entreprise/postes/{PosteId:int}/candidats/{CandidatureId:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.ProfilEntreprise.Entities
+@using Spectrometre.Modules.ProfilEntreprise.Services
+@using Spectrometre.Modules.Recrutement.Entities
+@using Spectrometre.Modules.Recrutement.Resources
+@using Spectrometre.Modules.Recrutement.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IPosteService PosteService
+@inject IRecrutementEntretienService RecrutementEntretienService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject IModuleRegistry ModuleRegistry
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<RecrutementResource> Localizer
+
+<PageTitle>@Localizer["DetailCandidature"]</PageTitle>
+
+<div class="postes-page">
+@if (_loading)
+{
+    <p class="postes-state">@Localizer["Chargement"]</p>
+}
+else if (_companies.Count == 0)
+{
+    <section class="postes-card postes-empty">
+        <p class="postes-hint">@Localizer["AucuneEntrepriseAssociee"]</p>
+    </section>
+}
+else if (_poste is null || _candidature is null)
+{
+    <section class="postes-card postes-empty">
+        <p class="postes-hint">@Localizer["CandidatureIntrouvable"]</p>
+        <a href="@($"/entreprise/postes/{PosteId}/candidats")" class="postes-btn-ghost">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["RetourAuxCandidatures"]
+        </a>
+    </section>
+}
+else
+{
+    <header class="postes-header">
+        <div>
+            <nav class="postes-breadcrumb" aria-label="breadcrumb">
+                <a href="/entreprise/postes">@Localizer["RetourAuxPostes"]</a>
+                <span class="postes-breadcrumb-sep" aria-hidden="true">/</span>
+                <a href="@($"/entreprise/postes/{PosteId}/candidats")">@_poste.Titre</a>
+                <span class="postes-breadcrumb-sep" aria-hidden="true">/</span>
+                <span>#@_candidature.CandidateProfileId</span>
+            </nav>
+            <h1 class="postes-title">@Localizer["DetailCandidature"]</h1>
+            <p class="postes-subtitle">@_poste.Titre</p>
+        </div>
+    </header>
+
+    <section class="postes-card postes-detail-card">
+        <div class="postes-detail-grid">
+            <div class="postes-field">
+                <label>@Localizer["CandidatProfil"]</label>
+                <div class="candidat-id postes-detail-value">#@_candidature.CandidateProfileId</div>
+            </div>
+            <div class="postes-field">
+                <label for="candidature-statut">@Localizer["Statut"]</label>
+                <select id="candidature-statut" class="postes-select postes-select-wide" value="@_candidature.Statut" @onchange="OnStatutChangedAsync">
+                    @foreach (var statut in Enum.GetValues<CandidatureStatut>())
+                    {
+                        <option value="@statut">@CandidatureStatutLabels.Label(statut, _english)</option>
+                    }
+                </select>
+            </div>
+            <div class="postes-field">
+                <label>@Localizer["Compatibilite"]</label>
+                <div class="postes-detail-value">
+                    @if (_candidature.ScoreCompatibilite is int score)
+                    {
+                        <span class="score-badge">@score%</span>
+                    }
+                    else
+                    {
+                        <span class="score-empty">—</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="postes-detail-actions">
+        <a href="@($"/compatibilite/resultat/{_candidature.CandidateProfileId}")" class="postes-action-card">
+            <div class="postes-action-card__icon tone-compat" aria-hidden="true">
+                <i class="bi bi-diagram-3"></i>
+            </div>
+            <div class="postes-action-card__body">
+                <h2 class="postes-action-card__title">@Localizer["DetailCompatibilite"]</h2>
+                <p class="postes-action-card__hint">@Localizer["DetailCompatibiliteHint"]</p>
+            </div>
+            <i class="bi bi-chevron-right postes-action-card__chevron" aria-hidden="true"></i>
+        </a>
+        @if (_recrutementActif)
+        {
+            <a href="@($"/entretien/{_candidature.CandidateProfileId}")" class="postes-action-card">
+                <div class="postes-action-card__icon tone-entretien" aria-hidden="true">
+                    <i class="bi bi-chat-left-text"></i>
+                </div>
+                <div class="postes-action-card__body">
+                    <h2 class="postes-action-card__title">@Localizer["PreparerLEntretien"]</h2>
+                    <p class="postes-action-card__hint">@Localizer["PreparerLEntretienHint"]</p>
+                </div>
+                <i class="bi bi-chevron-right postes-action-card__chevron" aria-hidden="true"></i>
+            </a>
+        }
+        else
+        {
+            <div class="postes-action-card postes-action-card--locked" aria-disabled="true">
+                <div class="postes-action-card__icon tone-locked" aria-hidden="true">
+                    <i class="bi bi-lock-fill"></i>
+                </div>
+                <div class="postes-action-card__body">
+                    <h2 class="postes-action-card__title">@Localizer["PreparerLEntretien"]</h2>
+                    <p class="postes-action-card__hint">@Localizer["ModuleRecrutementRequisHint"]</p>
+                    <a href="/entreprise/modules" class="postes-action-card__cta">@Localizer["ActiverLeModule"]</a>
+                </div>
+            </div>
+        }
+    </section>
+
+    <section class="postes-card postes-eval-card">
+        <h2 class="postes-section-title">@Localizer["EvaluationDesCriteres"]</h2>
+        @* Colonne « Niveau déclaré » volontairement en « — » : le module modulaire n'a pas (encore)
+           de formulaire de candidature publique où le candidat auto-évalue chaque critère (MVP).
+           On conserve la structure à 3 niveaux pour une extension future. *@
+        @if (_evaluations.Count == 0)
+        {
+            <p class="postes-hint">@Localizer["AucunCriterePourEvaluation"]</p>
+            <a href="@($"/entreprise/postes/{PosteId}/profil")" class="postes-btn-ghost">
+                <i class="bi bi-list-check" aria-hidden="true"></i>
+                @Localizer["ProfilDuPoste"]
+            </a>
+        }
+        else
+        {
+            <div class="postes-eval-table-wrap">
+                <table class="postes-eval-table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["Categorie"]</th>
+                            <th>@Localizer["Critere"]</th>
+                            <th>@Localizer["NiveauRequis"]</th>
+                            <th>@Localizer["NiveauDeclare"]</th>
+                            <th>@Localizer["NiveauFinal"]</th>
+                            <th>@Localizer["Ecart"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in _evaluations)
+                        {
+                            <tr>
+                                <td>@row.Categorie</td>
+                                <td class="postes-eval-libelle">@row.Libelle</td>
+                                <td>
+                                    <span class="postes-eval-badge">@NiveauEvaluationLabels.Label(row.NiveauRequis, _english)</span>
+                                </td>
+                                <td class="score-empty" title="@Localizer["NiveauDeclareIndisponible"].Value">—</td>
+                                <td>
+                                    <select class="postes-select"
+                                            value="@(row.NiveauFinal is NiveauEvaluation nf ? (int)nf : "")"
+                                            @onchange="e => OnNiveauFinalChangedAsync(row.CritereId, e)">
+                                        <option value="">@Localizer["NonEvalue"]</option>
+                                        @foreach (var niveau in Enum.GetValues<NiveauEvaluation>())
+                                        {
+                                            <option value="@((int)niveau)">@NiveauEvaluationLabels.Label(niveau, _english)</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td>@EcartMarkup(row)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    @if (_recrutementActif)
+    {
+    <section class="postes-card postes-analyse-card">
+        <div class="postes-analyse-header">
+            <h2 class="postes-section-title">@Localizer["AnalyseIa"]</h2>
+            <div class="postes-analyse-actions">
+                @if (_analyseIa is not null)
+                {
+                    <a class="postes-btn-ghost"
+                       href="@($"/entreprise/postes/{PosteId}/candidats/{CandidatureId}/analyse-ia/pdf")"
+                       data-enhance-nav="false">
+                        <i class="bi bi-filetype-pdf" aria-hidden="true"></i>
+                        @Localizer["ExporterAnalysePdf"]
+                    </a>
+                }
+                <button type="button"
+                        class="postes-btn-primary"
+                        disabled="@_analyseEnCours"
+                        @onclick="OnGenererAnalyseIaAsync">
+                    @if (_analyseEnCours)
+                    {
+                        <span>@Localizer["AnalyseIaEnCours"]</span>
+                    }
+                    else if (_analyseIa is null)
+                    {
+                        <i class="bi bi-stars" aria-hidden="true"></i>
+                        <span>@Localizer["GenererAnalyseIa"]</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                        <span>@Localizer["RegenererAnalyseIa"]</span>
+                    }
+                </button>
+            </div>
+        </div>
+        <p class="postes-hint">@Localizer["AnalyseIaHint"]</p>
+
+        @if (_analyseIa is not null)
+        {
+            <div class="postes-analyse-meta">
+                @if (_analyseIa.GenereeParIa)
+                {
+                    <span class="postes-analyse-badge postes-analyse-badge--ia">@Localizer["AnalyseGenereeParIa"]</span>
+                }
+                else
+                {
+                    <span class="postes-analyse-badge postes-analyse-badge--local">@Localizer["AnalyseGenereeLocalement"]</span>
+                }
+                <span class="postes-analyse-date">
+                    @Localizer["AnalyseGenereeLe"] @_analyseIa.GenereeLe.ToLocalTime().ToString("g", CultureInfo.CurrentUICulture)
+                </span>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_analyseIa.AvertissementIa) && !_analyseIa.GenereeParIa)
+            {
+                <p class="postes-analyse-avertissement">@_analyseIa.AvertissementIa</p>
+            }
+            <div class="postes-analyse-texte">@((MarkupString)FormatAnalyseMarkdown(_analyseIa.AnalyseTexte))</div>
+        }
+        else if (!_analyseEnCours)
+        {
+            <p class="postes-hint">@Localizer["AucuneAnalyseIa"]</p>
+        }
+    </section>
+    }
+    else
+    {
+    <section class="postes-card postes-analyse-card postes-analyse-card--locked">
+        <div class="postes-analyse-header">
+            <h2 class="postes-section-title">
+                <i class="bi bi-lock-fill" aria-hidden="true"></i>
+                @Localizer["AnalyseIa"]
+            </h2>
+        </div>
+        <p class="postes-hint">@Localizer["ModuleRecrutementRequisHint"]</p>
+        <a href="/entreprise/modules" class="postes-btn-ghost">
+            <i class="bi bi-puzzle" aria-hidden="true"></i>
+            @Localizer["ActiverLeModule"]
+        </a>
+    </section>
+    }
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public int PosteId { get; set; }
+    [Parameter] public int CandidatureId { get; set; }
+
+    private bool _loading = true;
+    private List<Company> _companies = [];
+    private PosteView? _poste;
+    private CandidatureView? _candidature;
+    private List<EvaluationCritereView> _evaluations = [];
+    private AnalyseIaView? _analyseIa;
+    private bool _analyseEnCours;
+    private bool _recrutementActif;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        if (_companies.Count == 0)
+        {
+            _loading = false;
+            return;
+        }
+
+        await ResolveAsync();
+        _loading = false;
+    }
+
+    private async Task ResolveAsync()
+    {
+        var ordered = _companies
+            .OrderByDescending(c => TenantContext.ActiveCompanyId == c.Id)
+            .ToList();
+
+        foreach (var company in ordered)
+        {
+            TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+            var postes = await PosteService.GetPostesAsync();
+            var poste = postes.FirstOrDefault(p => p.Id == PosteId);
+            if (poste is null)
+                continue;
+
+            var candidature = await PosteService.GetCandidatureAsync(CandidatureId);
+            if (candidature is null || candidature.PosteId != PosteId)
+                continue;
+
+            _poste = poste;
+            _candidature = candidature;
+            _evaluations = (await PosteService.GetEvaluationCriteresAsync(CandidatureId)).ToList();
+            _recrutementActif = await ModuleRegistry.IsActiveAsync(company.Id, "Recrutement", CoreDb);
+            _analyseIa = _recrutementActif
+                ? await RecrutementEntretienService.GetAnalyseIaAsync(CandidatureId)
+                : null;
+            return;
+        }
+
+        _poste = null;
+        _candidature = null;
+        _evaluations = [];
+        _analyseIa = null;
+        _recrutementActif = false;
+    }
+
+    private async Task OnGenererAnalyseIaAsync()
+    {
+        if (_candidature is null || _analyseEnCours || !_recrutementActif)
+            return;
+
+        _analyseEnCours = true;
+        try
+        {
+            _analyseIa = await RecrutementEntretienService.GenererAnalyseIaAsync(
+                _candidature.Id,
+                forcerRegeneration: _analyseIa is not null);
+        }
+        finally
+        {
+            _analyseEnCours = false;
+        }
+    }
+
+    /// <summary>Échappe le HTML puis convertit les sauts de ligne et un sous-ensemble markdown léger.</summary>
+    private static string FormatAnalyseMarkdown(string texte)
+    {
+        var encoded = System.Net.WebUtility.HtmlEncode(texte ?? "");
+        // Gras **…** puis italique *…* (après échappement, les * restent littéraux).
+        encoded = System.Text.RegularExpressions.Regex.Replace(
+            encoded, @"\*\*(.+?)\*\*", "<strong>$1</strong>",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+        encoded = System.Text.RegularExpressions.Regex.Replace(
+            encoded, @"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", "<em>$1</em>",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+        encoded = encoded.Replace("\r\n", "\n").Replace("\n", "<br />");
+        return encoded;
+    }
+
+    private async Task OnStatutChangedAsync(ChangeEventArgs e)
+    {
+        if (_candidature is null)
+            return;
+
+        if (e.Value is not null && Enum.TryParse<CandidatureStatut>(e.Value.ToString(), out var statut))
+        {
+            await PosteService.SetCandidatureStatutAsync(_candidature.Id, statut);
+            _candidature = await PosteService.GetCandidatureAsync(CandidatureId);
+        }
+    }
+
+    private async Task OnNiveauFinalChangedAsync(int critereId, ChangeEventArgs e)
+    {
+        if (_candidature is null)
+            return;
+
+        var raw = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(raw) || !int.TryParse(raw, out var niveau))
+        {
+            _evaluations = (await PosteService.GetEvaluationCriteresAsync(CandidatureId)).ToList();
+            return;
+        }
+
+        await PosteService.SetNiveauFinalAsync(_candidature.Id, critereId, niveau);
+        _evaluations = (await PosteService.GetEvaluationCriteresAsync(CandidatureId)).ToList();
+    }
+
+    private MarkupString EcartMarkup(EvaluationCritereView row)
+    {
+        if (row.NiveauFinal is not NiveauEvaluation final)
+            return new MarkupString("<span class=\"score-empty\">—</span>");
+
+        var cmp = ((int)final).CompareTo((int)row.NiveauRequis);
+        var (css, symbol, key) = cmp switch
+        {
+            < 0 => ("postes-ecart postes-ecart--below", "▼", "EcartEnDessous"),
+            > 0 => ("postes-ecart postes-ecart--above", "▲", "EcartAuDessus"),
+            _ => ("postes-ecart postes-ecart--ok", "●", "EcartConforme"),
+        };
+        var label = System.Net.WebUtility.HtmlEncode(Localizer[key].Value);
+        return new MarkupString($"<span class=\"{css}\" title=\"{label}\">{symbol} {label}</span>");
+    }
+}

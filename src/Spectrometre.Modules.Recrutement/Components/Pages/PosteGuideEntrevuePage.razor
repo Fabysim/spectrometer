@@ -1,0 +1,251 @@
+@page "/entreprise/postes/{PosteId:int}/guide-entrevue"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.ProfilEntreprise.Entities
+@using Spectrometre.Modules.ProfilEntreprise.Services
+@using Spectrometre.Modules.Recrutement.Entities
+@using Spectrometre.Modules.Recrutement.Resources
+@using Spectrometre.Modules.Recrutement.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IPosteService PosteService
+@inject IRecrutementEntretienService RecrutementEntretienService
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ITenantContext TenantContext
+@inject IModuleRegistry ModuleRegistry
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<RecrutementResource> Localizer
+
+<PageTitle>@(_poste?.Titre ?? Localizer["GuideDeuxiemeEntrevue"].Value)</PageTitle>
+
+<div class="postes-page">
+@if (_loading)
+{
+    <p class="postes-state">@Localizer["Chargement"]</p>
+}
+else if (_companies.Count == 0)
+{
+    <section class="postes-card postes-empty">
+        <p class="postes-hint">@Localizer["AucuneEntrepriseAssociee"]</p>
+    </section>
+}
+else if (_recrutementVerrouille)
+{
+    <section class="postes-card postes-empty">
+        <p class="postes-hint">
+            <i class="bi bi-lock-fill" aria-hidden="true"></i>
+            @Localizer["ModuleRecrutementRequisHint"]
+        </p>
+        <div class="postes-header-actions" style="justify-content:flex-start;margin-top:1rem;gap:0.75rem;">
+            <a href="/entreprise/modules" class="postes-btn-primary">
+                <i class="bi bi-puzzle" aria-hidden="true"></i>
+                @Localizer["ActiverLeModule"]
+            </a>
+            <a href="@($"/entreprise/postes/{PosteId}/candidats")" class="postes-btn-ghost">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                @Localizer["VoirLesCandidatures"]
+            </a>
+        </div>
+    </section>
+}
+else if (_poste is null || _guide is null)
+{
+    <section class="postes-card postes-empty">
+        <p class="postes-hint">@Localizer["PosteIntrouvable"]</p>
+        <a href="/entreprise/postes" class="postes-btn-ghost">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["RetourAuxPostes"]
+        </a>
+    </section>
+}
+else
+{
+    <header class="postes-header">
+        <div>
+            <nav class="postes-breadcrumb" aria-label="breadcrumb">
+                <a href="/entreprise/postes">@Localizer["RetourAuxPostes"]</a>
+                <span class="postes-breadcrumb-sep" aria-hidden="true">/</span>
+                <a href="@($"/entreprise/postes/{PosteId}/candidats")">@_poste.Titre</a>
+                <span class="postes-breadcrumb-sep" aria-hidden="true">/</span>
+                <span>@Localizer["GuideDeuxiemeEntrevue"]</span>
+            </nav>
+            <h1 class="postes-title">@Localizer["GuideDeuxiemeEntrevue"]</h1>
+            <p class="postes-subtitle">@_poste.Titre — @Localizer["GuideDeuxiemeEntrevueHint"]</p>
+        </div>
+        <div class="postes-header-actions">
+            <a href="@($"/entreprise/postes/{PosteId}/candidats")" class="postes-btn-ghost">
+                <i class="bi bi-people" aria-hidden="true"></i>
+                @Localizer["VoirLesCandidatures"]
+            </a>
+            <button type="button" class="postes-btn-primary" disabled="@_saving" @onclick="EnregistrerAsync">
+                @if (_saving)
+                {
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                }
+                else
+                {
+                    <i class="bi bi-save" aria-hidden="true"></i>
+                }
+                @Localizer["Enregistrer"]
+            </button>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(_saveMessage))
+    {
+        <p class="@(_saveOk ? "postes-save-ok" : "postes-save-error")" role="status">@_saveMessage</p>
+    }
+
+    <section class="postes-card postes-form-card">
+        <div class="postes-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-clipboard2-check"></i>
+        </div>
+        <h2 class="postes-section-title">@Localizer["GuideDeuxiemeEntrevue"]</h2>
+        <div class="postes-guide-form">
+            <div class="postes-field">
+                <label for="guide-mission">@Localizer["MissionLivrables"]</label>
+                <textarea id="guide-mission" class="postes-input postes-textarea" rows="4"
+                          @bind="_guide.MissionLivrables" @bind:event="oninput"
+                          placeholder="@Localizer["TexteLibrePlaceholder"]"></textarea>
+            </div>
+            <div class="postes-field">
+                <label for="guide-quant">@Localizer["SituationQuantitative"]</label>
+                <textarea id="guide-quant" class="postes-input postes-textarea" rows="4"
+                          @bind="_guide.SituationQuantitative" @bind:event="oninput"
+                          placeholder="@Localizer["TexteLibrePlaceholder"]"></textarea>
+            </div>
+            <div class="postes-field">
+                <label for="guide-qual">@Localizer["SituationQualitative"]</label>
+                <textarea id="guide-qual" class="postes-input postes-textarea" rows="4"
+                          @bind="_guide.SituationQualitative" @bind:event="oninput"
+                          placeholder="@Localizer["TexteLibrePlaceholder"]"></textarea>
+            </div>
+            <div class="postes-field">
+                <label for="guide-objectifs">@Localizer["Objectifs"]</label>
+                <textarea id="guide-objectifs" class="postes-input postes-textarea" rows="4"
+                          @bind="_guide.Objectifs" @bind:event="oninput"
+                          placeholder="@Localizer["TexteLibrePlaceholder"]"></textarea>
+            </div>
+            <div class="postes-field">
+                <label for="guide-suivi">@Localizer["Suivi"]</label>
+                <textarea id="guide-suivi" class="postes-input postes-textarea" rows="4"
+                          @bind="_guide.Suivi" @bind:event="oninput"
+                          placeholder="@Localizer["TexteLibrePlaceholder"]"></textarea>
+            </div>
+            <div class="postes-field">
+                <label for="guide-echeances">@Localizer["Echeances"]</label>
+                <textarea id="guide-echeances" class="postes-input postes-textarea" rows="3"
+                          @bind="_guide.Echeances" @bind:event="oninput"
+                          placeholder="@Localizer["TexteLibrePlaceholder"]"></textarea>
+            </div>
+            <div class="postes-field">
+                <label for="guide-autorite">@Localizer["AutoriteResponsabilite"]</label>
+                <textarea id="guide-autorite" class="postes-input postes-textarea" rows="4"
+                          @bind="_guide.AutoriteResponsabilite" @bind:event="oninput"
+                          placeholder="@Localizer["TexteLibrePlaceholder"]"></textarea>
+            </div>
+        </div>
+    </section>
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public int PosteId { get; set; }
+
+    private bool _loading = true;
+    private bool _saving;
+    private bool _saveOk;
+    private string? _saveMessage;
+    private bool _recrutementVerrouille;
+    private List<Company> _companies = [];
+    private PosteView? _poste;
+    private GuideDeuxiemeEntrevue? _guide;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+        if (_companies.Count == 0)
+        {
+            _loading = false;
+            return;
+        }
+
+        await ResolveAsync();
+        _loading = false;
+    }
+
+    private async Task ResolveAsync()
+    {
+        var ordered = _companies
+            .OrderByDescending(c => TenantContext.ActiveCompanyId == c.Id)
+            .ToList();
+
+        foreach (var company in ordered)
+        {
+            TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+            var postes = await PosteService.GetPostesAsync();
+            var poste = postes.FirstOrDefault(p => p.Id == PosteId);
+            if (poste is null)
+                continue;
+
+            _poste = poste;
+
+            if (!await ModuleRegistry.IsActiveAsync(company.Id, "Recrutement", CoreDb))
+            {
+                _recrutementVerrouille = true;
+                _guide = null;
+                return;
+            }
+
+            var guide = await RecrutementEntretienService.GetGuideDeuxiemeEntrevueAsync(PosteId);
+            if (guide is null)
+                continue;
+
+            _guide = guide;
+            return;
+        }
+
+        _poste = null;
+        _guide = null;
+        _recrutementVerrouille = false;
+    }
+
+    private async Task EnregistrerAsync()
+    {
+        if (_guide is null || _saving || _recrutementVerrouille)
+            return;
+
+        _saving = true;
+        _saveMessage = null;
+        try
+        {
+            await RecrutementEntretienService.SaveGuideDeuxiemeEntrevueAsync(PosteId, _guide);
+            _guide = await RecrutementEntretienService.GetGuideDeuxiemeEntrevueAsync(PosteId);
+            _saveOk = true;
+            _saveMessage = Localizer["GuideEnregistre"].Value;
+        }
+        catch
+        {
+            _saveOk = false;
+            _saveMessage = Localizer["GuideErreurEnregistrement"].Value;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

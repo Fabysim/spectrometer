@@ -54,6 +54,7 @@
   <data name="RetourAuVivier" xml:space="preserve"><value>Back to Talent Pool</value></data>
   <data name="ProfilIntrouvableHint" xml:space="preserve"><value>Profile not found, or this candidate hasn't applied to a job at your company — the Talent Pool only gives access to candidates who have already applied.</value></data>
   <data name="CriteresDeclaresHint" xml:space="preserve"><value>Criteria declared by the candidate for the compatibility engine (grid H).</value></data>
+  <data name="ProfilCompatibiliteNonComplete" xml:space="preserve"><value>This candidate has not completed their compatibility profile yet — the CV below may still contain useful information.</value></data>
   <data name="PreparerLEntretien" xml:space="preserve"><value>Prepare the interview</value></data>
   <data name="CompatibiliteTechnique" xml:space="preserve"><value>Technical compatibility</value></data>
   <data name="CompatibiliteComportementale" xml:space="preserve"><value>Behavioral compatibility</value></data>

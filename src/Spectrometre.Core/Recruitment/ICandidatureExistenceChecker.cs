@@ -4,7 +4,7 @@ namespace Spectrometre.Core.Recruitment;
 /// Abstraction d'inversion de dépendance : <c>Spectrometre.Modules.Compatibilite</c> a besoin de savoir
 /// si une candidature réelle existe entre un candidat et une entreprise (pour restreindre l'accès aux
 /// résultats de compatibilité — voir <c>ResultatCompatibilite.razor</c>), mais ne doit JAMAIS référencer
-/// <c>Spectrometre.Modules.PostesRecrutement</c> : le manifeste déclare la dépendance dans l'autre sens
+/// <c>Spectrometre.Modules.Recrutement</c> : le manifeste déclare la dépendance dans l'autre sens
 /// (Vivier dépend de Compatibilite + PostesRecrutement), et un module ne doit jamais dépendre de ce qui
 /// dépend de lui. Cette interface vit dans le noyau, consommée par Compatibilite via injection de
 /// dépendance ; l'implémentation réelle est fournie par PostesRecrutement et câblée depuis

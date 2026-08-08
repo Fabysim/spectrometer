@@ -32,6 +32,13 @@ public interface ICompatibiliteService
     Task<CompatibiliteResultView?> GetDernierResultatAsync(int candidateProfileId, int companyProfileId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Score global pour un affichage liste (ex. postes ouverts candidat) : lit le dernier
+    /// <c>ScoreGlobal</c> stocké, sinon estime sans écrire de ligne <c>CompatibilityResults</c>.
+    /// Ne doit pas remplacer <see cref="CalculerCompatibiliteAsync"/> quand un résultat persisté est requis.
+    /// </summary>
+    Task<int?> GetScoreGlobalAffichageAsync(int candidateProfileId, int companyProfileId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Point d'entrée à utiliser par toute page/API exposant un résultat de compatibilité à un utilisateur
     /// authentifié par simple identifiant de candidat dans l'URL (ex. <c>/compatibilite/resultat/{id}</c>) :
     /// applique la règle d'accès (le candidat lui-même, ou un gestionnaire d'une entreprise pour laquelle

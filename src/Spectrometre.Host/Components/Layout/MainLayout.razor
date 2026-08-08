@@ -75,21 +75,18 @@
                                 <span class="nav-icon"><i class="bi bi-people-fill" aria-hidden="true"></i></span>
                                 <span>@Localizer["GestionManagers_Titre"]</span>
                             </a>
+                            @* Socle postes/candidatures : brique ProfilEntreprise, jamais gated par Recrutement. *@
+                            <a href="/entreprise/postes" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/postes")">
+                                <span class="nav-icon"><i class="bi bi-briefcase" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_PostesEntreprise"]</span>
+                            </a>
 
                             @* Un groupe distinct par module réellement actif, dans l'ordre canonique et stable
                                d'enregistrement des manifestes (ModuleRegistry.AllModules, voir OnInitializedAsync) —
                                jamais un ordre recalculé/aléatoire à chaque rendu. *@
                             @foreach (var manifest in ModuleRegistry.AllModules)
                             {
-                                if (manifest.Code == "PostesRecrutement" && _companyActiveModules.Contains("PostesRecrutement"))
-                                {
-                                    <div class="nav-module-label">@ModuleLabel(manifest)</div>
-                                    <a href="/entreprise/postes" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/postes")">
-                                        <span class="nav-icon"><i class="bi bi-briefcase" aria-hidden="true"></i></span>
-                                        <span>@Localizer["Module_PostesEntreprise"]</span>
-                                    </a>
-                                }
-                                else if (manifest.Code == "Vivier" && _companyActiveModules.Contains("Vivier"))
+                                if (manifest.Code == "Vivier" && _companyActiveModules.Contains("Vivier"))
                                 {
                                     <div class="nav-module-label">@ModuleLabel(manifest)</div>
                                     <a href="/vivier" class="nav-item-auth nav-sub-item @ActiveClass("/vivier")">

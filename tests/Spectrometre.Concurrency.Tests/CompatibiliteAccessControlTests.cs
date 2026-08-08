@@ -1,10 +1,11 @@
+using Spectrometre.Modules.ProfilEntreprise.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Compatibilite.Services;
-using Spectrometre.Modules.PostesRecrutement.Data;
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement.Data;
+using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat.Data;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Xunit;

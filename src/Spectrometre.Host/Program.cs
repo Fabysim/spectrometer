@@ -19,13 +19,14 @@ using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Entretien;
 using Spectrometre.Modules.GestionDuTemps;
 using Spectrometre.Modules.GestionDuTemps.Data;
-using Spectrometre.Modules.PostesRecrutement;
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement;
+using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Spectrometre.Modules.ProfilCoach;
 using Spectrometre.Modules.ProfilCoach.Data;
 using Spectrometre.Modules.ProfilEntreprise;
+using Spectrometre.Modules.ProfilEntreprise.Services;
 using Spectrometre.Modules.SuiviEvolutif;
 using Spectrometre.Modules.SuiviEvolutif.Services;
 using Spectrometre.Modules.Vivier;
@@ -54,7 +55,7 @@ builder.Services.AddSpectrometreCore(builder.Configuration);
 builder.Services.AddProfilCandidatModule(builder.Configuration);
 builder.Services.AddProfilEntrepriseModule(builder.Configuration);
 builder.Services.AddCompatibiliteModule(builder.Configuration);
-builder.Services.AddPostesRecrutementModule(builder.Configuration);
+builder.Services.AddRecrutementModule(builder.Configuration);
 builder.Services.AddVivierModule();
 builder.Services.AddEntretienModule(builder.Configuration);
 builder.Services.AddSuiviEvolutifModule(builder.Configuration);
@@ -124,7 +125,7 @@ using (var startupScope = app.Services.CreateScope())
     moduleRegistry.Register(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
-    moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Vivier.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
@@ -297,7 +298,9 @@ app.MapGet("/entreprise/postes/{posteId:int}/candidats/{candidatureId:int}/analy
     CoreDbContext coreDb,
     ITenantContext tenantContext,
     ICompanyProvisioningService companyProvisioning,
+    IModuleRegistry moduleRegistry,
     IPosteService posteService,
+    IRecrutementEntretienService recrutementEntretienService,
     ICandidateProfileService candidateProfileService,
     IAnalysePdfService analysePdfService) =>
 {
@@ -310,13 +313,17 @@ app.MapGet("/entreprise/postes/{posteId:int}/candidats/{candidatureId:int}/analy
 
     foreach (var company in companies)
     {
+        // Module Recrutement inactif = même traitement qu'une entreprise non autorisée (404, pas de fuite).
+        if (!await moduleRegistry.IsActiveAsync(company.Id, "Recrutement", coreDb))
+            continue;
+
         tenantContext.SetActiveCompany(company.Id, company.SchemaName);
 
         var candidature = await posteService.GetCandidatureAsync(candidatureId);
         if (candidature is null || candidature.PosteId != posteId)
             continue;
 
-        var analyse = await posteService.GetAnalyseIaAsync(candidatureId);
+        var analyse = await recrutementEntretienService.GetAnalyseIaAsync(candidatureId);
         if (analyse is null)
             return Results.NotFound();
 
@@ -366,6 +373,47 @@ app.MapGet("/entreprise/postes/{posteId:int}/candidats/{candidatureId:int}/analy
     return Results.NotFound();
 }).RequireAuthorization();
 
+// Export .docx d'une offre d'emploi générée par IA — même pattern d'auth/tenant que analyse-ia/pdf.
+// GET direct : le navigateur télécharge le fichier. Pas de cache GUID (contrairement au MVP).
+app.MapGet("/entreprise/postes/{posteId:int}/offre/docx", async (
+    int posteId,
+    HttpContext httpContext,
+    CoreDbContext coreDb,
+    ITenantContext tenantContext,
+    ICompanyProvisioningService companyProvisioning,
+    IJobOfferDraftService jobOfferDraftService) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var companies = await companyProvisioning.GetCompaniesForUserAsync(userId, coreDb);
+
+    foreach (var company in companies)
+    {
+        tenantContext.SetActiveCompany(company.Id, company.SchemaName);
+
+        var (content, fileName, erreur) = await jobOfferDraftService.GenererOffreDocxAsync(posteId);
+        if (content is not null && !string.IsNullOrWhiteSpace(fileName))
+        {
+            return Results.File(
+                content,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                fileName);
+        }
+
+        // Poste absent de ce schéma → essayer l'entreprise suivante (pas de fuite d'existence).
+        if (string.Equals(erreur, JobOfferDraftService.ErreurPosteIntrouvable, StringComparison.Ordinal))
+            continue;
+
+        // Poste trouvé mais génération échouée (IA, etc.).
+        if (!string.IsNullOrWhiteSpace(erreur))
+            return Results.BadRequest(erreur);
+    }
+
+    return Results.NotFound();
+}).RequireAuthorization();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
@@ -375,7 +423,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Vivier.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Entretien.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions).Assembly,

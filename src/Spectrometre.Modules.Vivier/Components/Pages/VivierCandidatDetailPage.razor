@@ -46,6 +46,11 @@ else
         </a>
     </header>
 
+    @if (_detail!.Criteres.EstVide)
+    {
+        <p class="vivier-detail-hint notes" role="status">@Localizer["ProfilCompatibiliteNonComplete"]</p>
+    }
+
     <div class="vivier-detail-grille">
         <section class="vivier-detail-card">
             <div class="vivier-detail-card-icon" aria-hidden="true"><i class="bi bi-gear"></i></div>

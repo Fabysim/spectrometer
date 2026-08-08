@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Spectrometre.Core.Compatibility;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Compatibilite.Data;
@@ -44,7 +45,11 @@ public static class ServiceCollectionExtensions
             options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Compatibilite", "public"));
         });
 
-        services.AddScoped<ICompatibiliteService, CompatibiliteService>();
+        // Une seule instance scoped exposée sous les deux contrats (ICompatibiliteService +
+        // ICompatibiliteScoreService Core pour ProfilEntreprise sans ProjectReference circulaire).
+        services.AddScoped<CompatibiliteService>();
+        services.AddScoped<ICompatibiliteService>(sp => sp.GetRequiredService<CompatibiliteService>());
+        services.AddScoped<ICompatibiliteScoreService>(sp => sp.GetRequiredService<CompatibiliteService>());
 
         return services;
     }

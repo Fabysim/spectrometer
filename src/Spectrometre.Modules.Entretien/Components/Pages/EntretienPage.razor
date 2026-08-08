@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.Entretien.Resources
 @using Spectrometre.Modules.Entretien.Services
@@ -12,6 +13,7 @@
 @inject IEntretienService EntretienService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
+@inject IModuleRegistry ModuleRegistry
 @inject CoreDbContext CoreDb
 @inject IStringLocalizer<EntretienResource> Localizer
 
@@ -21,6 +23,16 @@
 @if (!_resolu)
 {
     <p class="entretien-state">@Localizer["GenerationEnCours"]</p>
+}
+else if (_recrutementVerrouille)
+{
+    <section class="entretien-card entretien-empty">
+        <p class="entretien-hint">
+            <i class="bi bi-lock-fill" aria-hidden="true"></i>
+            @Localizer["ModuleRecrutementRequisHint"]
+        </p>
+        <a href="/entreprise/modules" class="entretien-module-cta">@Localizer["ActiverLeModule"]</a>
+    </section>
 }
 else if (_grille is null)
 {
@@ -54,61 +66,32 @@ else
         </div>
     </header>
 
-    <div class="entretien-colonnes">
-        <section class="entretien-colonne">
-            <div class="entretien-colonne-head">
-                <div class="entretien-colonne-icon tone-candidat" aria-hidden="true"><i class="bi bi-person"></i></div>
-                <div>
-                    <h2 class="entretien-colonne-title">@Localizer["QuestionsPourCandidat"]</h2>
-                    <p class="entretien-hint">@Localizer["QuestionsPourCandidatHint"]</p>
-                </div>
+    <section class="entretien-questions">
+        <div class="entretien-questions-head">
+            <div class="entretien-questions-icon" aria-hidden="true"><i class="bi bi-chat-dots"></i></div>
+            <div>
+                <h2 class="entretien-questions-title">@Localizer["QuestionsPourCandidat"]</h2>
+                <p class="entretien-hint">@Localizer["QuestionsPourCandidatHint"]</p>
             </div>
-            @foreach (var groupe in _grille.Groupes)
+        </div>
+        @foreach (var groupe in _grille.Groupes)
+        {
+            @if (groupe.QuestionsPourCandidat.Count > 0)
             {
-                @if (groupe.QuestionsPourCandidat.Count > 0)
-                {
-                    <article class="entretien-card groupe-questions">
-                        <div class="groupe-entete">
-                            <strong>@groupe.Titre</strong>
-                        </div>
-                        <ul>
-                            @foreach (var question in groupe.QuestionsPourCandidat)
-                            {
-                                <li>@question</li>
-                            }
-                        </ul>
-                    </article>
-                }
+                <article class="entretien-card groupe-questions">
+                    <div class="groupe-entete">
+                        <strong>@groupe.Titre</strong>
+                    </div>
+                    <ul>
+                        @foreach (var question in groupe.QuestionsPourCandidat)
+                        {
+                            <li>@question</li>
+                        }
+                    </ul>
+                </article>
             }
-        </section>
-
-        <section class="entretien-colonne">
-            <div class="entretien-colonne-head">
-                <div class="entretien-colonne-icon tone-entreprise" aria-hidden="true"><i class="bi bi-building"></i></div>
-                <div>
-                    <h2 class="entretien-colonne-title">@Localizer["QuestionsPourEntreprise"]</h2>
-                    <p class="entretien-hint">@Localizer["QuestionsPourEntrepriseHint"]</p>
-                </div>
-            </div>
-            @foreach (var groupe in _grille.Groupes)
-            {
-                @if (groupe.QuestionsPourEntreprise.Count > 0)
-                {
-                    <article class="entretien-card groupe-questions">
-                        <div class="groupe-entete">
-                            <strong>@groupe.Titre</strong>
-                        </div>
-                        <ul>
-                            @foreach (var question in groupe.QuestionsPourEntreprise)
-                            {
-                                <li>@question</li>
-                            }
-                        </ul>
-                    </article>
-                }
-            }
-        </section>
-    </div>
+        }
+    </section>
 }
 </div>
 
@@ -117,6 +100,7 @@ else
     [Parameter] public int CandidateProfileId { get; set; }
 
     private bool _resolu;
+    private bool _recrutementVerrouille;
     private GrilleEntretienView? _grille;
 
     protected override async Task OnInitializedAsync()
@@ -139,6 +123,16 @@ else
             var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
             if (companies.Count > 0)
                 TenantContext.SetActiveCompany(companies[0].Id, companies[0].SchemaName);
+        }
+
+        // Garde défensive Recrutement : sans le module, pas de grille (ni d'appel GenererGrilleAsync).
+        // Pas de paramètre coach sur cette page — uniquement AuthenticationState + tenant ambiant.
+        if (TenantContext.ActiveCompanyId is int companyId
+            && !await ModuleRegistry.IsActiveAsync(companyId, "Recrutement", CoreDb))
+        {
+            _recrutementVerrouille = true;
+            _resolu = true;
+            return;
         }
 
         _grille = await EntretienService.GenererGrilleAsync(CandidateProfileId, userId);

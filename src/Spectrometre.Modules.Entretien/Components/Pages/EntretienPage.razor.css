@@ -1,4 +1,4 @@
-/* /entretien/{id} – préparation entretien, deux colonnes, cartes modernes */
+/* /entretien/{id} – préparation entretien (entreprise) : une seule colonne de questions */
 
 .entretien-page {
     width: 100%;
@@ -7,6 +7,9 @@
     margin: 0;
     padding: 1.25rem 1.5rem 1.5rem;
     min-height: calc(100dvh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
 }
 
 .entretien-state,
@@ -24,6 +27,7 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    flex-shrink: 0;
 }
 
 .entretien-title {
@@ -80,28 +84,33 @@
     max-width: 32rem;
 }
 
-.entretien-colonnes {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    align-items: start;
+.entretien-module-cta {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--bs-primary, #345f6d);
+    text-decoration: underline;
 }
 
-.entretien-colonne {
+.entretien-questions {
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
     min-width: 0;
 }
 
-.entretien-colonne-head {
+.entretien-questions-head {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
     margin-bottom: 0.15rem;
 }
 
-.entretien-colonne-icon {
+.entretien-questions-icon {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 12px;
@@ -111,17 +120,10 @@
     color: white;
     font-size: 1.1rem;
     flex-shrink: 0;
-}
-
-.entretien-colonne-icon.tone-candidat {
     background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-teal, hsl(178, 45%, 42%)) 100%);
 }
 
-.entretien-colonne-icon.tone-entreprise {
-    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
-}
-
-.entretien-colonne-title {
+.entretien-questions-title {
     margin: 0 0 0.2rem;
     font-size: 1.05rem;
     font-weight: 700;
@@ -164,12 +166,6 @@
 
 .groupe-questions li:last-child {
     margin-bottom: 0;
-}
-
-@media (max-width: 900px) {
-    .entretien-colonnes {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 640px) {

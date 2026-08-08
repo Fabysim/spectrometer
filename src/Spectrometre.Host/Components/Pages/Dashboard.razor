@@ -204,7 +204,8 @@
     private static string IconForCode(string code) => code switch
     {
         "ProfilEntreprise" => "bi-building",
-        "PostesRecrutement" => "bi-briefcase",
+        "Postes" => "bi-briefcase",
+        "Recrutement" => "bi-briefcase",
         "Vivier" => "bi-people",
         "SuiviEvolutif" => "bi-clock-history",
         "Analytics" => "bi-graph-up",
@@ -219,7 +220,9 @@
     private static string? HrefForCompanyModule(string code) => code switch
     {
         "ProfilEntreprise" => "/entreprise/profil",
-        "PostesRecrutement" => "/entreprise/postes",
+        // Recrutement n'a plus de landing dédiée : le socle postes est toujours sous ProfilEntreprise ;
+        // entretien/IA sont gated dans les pages postes elles-mêmes.
+        "Recrutement" => null,
         "Vivier" => "/vivier",
         "SuiviEvolutif" => "/entreprise/historique",
         "Analytics" => "/entreprise/analytics",
@@ -276,6 +279,12 @@
                 "ProfilEntreprise",
                 Localizer["Module_ProfilEntreprise"],
                 "/entreprise/profil"));
+
+            // Socle postes : toujours disponible (ProfilEntreprise), jamais gated par Recrutement.
+            _companyLinks.Add(new DashboardLink(
+                "Postes",
+                Localizer["Module_PostesEntreprise"],
+                "/entreprise/postes"));
 
             foreach (var manifest in ModuleRegistry.AllModules)
             {

@@ -1,6 +1,7 @@
+using Spectrometre.Modules.ProfilEntreprise.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Tenancy;
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Spectrometre.Modules.Vivier.Services;
 using Xunit;

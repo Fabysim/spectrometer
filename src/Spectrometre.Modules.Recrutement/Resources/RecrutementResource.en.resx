@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
+  <data name="Chargement" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+  <data name="AucuneEntrepriseAssociee" xml:space="preserve">
+    <value>No company associated with your account at the moment.</value>
+  </data>
+  <data name="VoirLesCandidatures" xml:space="preserve">
+    <value>View applications</value>
+  </data>
+  <data name="RetourAuxPostes" xml:space="preserve">
+    <value>Back to jobs</value>
+  </data>
+  <data name="PosteIntrouvable" xml:space="preserve">
+    <value>Job not found.</value>
+  </data>
+  <data name="DetailCandidature" xml:space="preserve">
+    <value>Application details</value>
+  </data>
+  <data name="CandidatureIntrouvable" xml:space="preserve">
+    <value>Application not found.</value>
+  </data>
+  <data name="RetourAuxCandidatures" xml:space="preserve">
+    <value>Back to applications</value>
+  </data>
+  <data name="DetailCompatibilite" xml:space="preserve">
+    <value>Compatibility details</value>
+  </data>
+  <data name="DetailCompatibiliteHint" xml:space="preserve">
+    <value>View the score and compatibility analysis against the company profile.</value>
+  </data>
+  <data name="PreparerLEntretienHint" xml:space="preserve">
+    <value>Open the interview guide prepared for this candidate.</value>
+  </data>
+  <data name="CandidatProfil" xml:space="preserve">
+    <value>Candidate (profile)</value>
+  </data>
+  <data name="Statut" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Compatibilite" xml:space="preserve">
+    <value>Compatibility</value>
+  </data>
+  <data name="PreparerLEntretien" xml:space="preserve">
+    <value>Prepare the interview</value>
+  </data>
+  <data name="ProfilDuPoste" xml:space="preserve">
+    <value>Job profile</value>
+  </data>
+  <data name="Categorie" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="NiveauRequis" xml:space="preserve">
+    <value>Required level</value>
+  </data>
+  <data name="Enregistrer" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="EvaluationDesCriteres" xml:space="preserve">
+    <value>Criteria evaluation</value>
+  </data>
+  <data name="AucunCriterePourEvaluation" xml:space="preserve">
+    <value>No criteria defined for this job. Add some via the job profile.</value>
+  </data>
+  <data name="Critere" xml:space="preserve">
+    <value>Criterion</value>
+  </data>
+  <data name="NiveauDeclare" xml:space="preserve">
+    <value>Declared level</value>
+  </data>
+  <data name="NiveauDeclareIndisponible" xml:space="preserve">
+    <value>Not available in this module (no candidate self-assessment).</value>
+  </data>
+  <data name="NiveauFinal" xml:space="preserve">
+    <value>Final level</value>
+  </data>
+  <data name="NonEvalue" xml:space="preserve">
+    <value>Not evaluated</value>
+  </data>
+  <data name="Ecart" xml:space="preserve">
+    <value>Gap</value>
+  </data>
+  <data name="GuideDeuxiemeEntrevue" xml:space="preserve">
+    <value>2nd interview guide</value>
+  </data>
+  <data name="GuideDeuxiemeEntrevueHint" xml:space="preserve">
+    <value>Guide attached to the job — the same content is used for all candidates.</value>
+  </data>
+  <data name="MissionLivrables" xml:space="preserve">
+    <value>Mission / deliverables</value>
+  </data>
+  <data name="SituationQuantitative" xml:space="preserve">
+    <value>Quantitative situation</value>
+  </data>
+  <data name="SituationQualitative" xml:space="preserve">
+    <value>Qualitative situation</value>
+  </data>
+  <data name="Objectifs" xml:space="preserve">
+    <value>Objectives</value>
+  </data>
+  <data name="Suivi" xml:space="preserve">
+    <value>Follow-up</value>
+  </data>
+  <data name="Echeances" xml:space="preserve">
+    <value>Deadlines</value>
+  </data>
+  <data name="AutoriteResponsabilite" xml:space="preserve">
+    <value>Authority / responsibility</value>
+  </data>
+  <data name="TexteLibrePlaceholder" xml:space="preserve">
+    <value>Free text…</value>
+  </data>
+  <data name="GuideEnregistre" xml:space="preserve">
+    <value>Guide saved.</value>
+  </data>
+  <data name="GuideErreurEnregistrement" xml:space="preserve">
+    <value>Unable to save the guide.</value>
+  </data>
+  <data name="AnalyseIa" xml:space="preserve">
+    <value>AI analysis</value>
+  </data>
+  <data name="AnalyseIaHint" xml:space="preserve">
+    <value>On-demand job / application compatibility report (cached until the underlying data changes).</value>
+  </data>
+  <data name="GenererAnalyseIa" xml:space="preserve">
+    <value>Generate analysis</value>
+  </data>
+  <data name="RegenererAnalyseIa" xml:space="preserve">
+    <value>Regenerate analysis</value>
+  </data>
+  <data name="AnalyseIaEnCours" xml:space="preserve">
+    <value>Generating…</value>
+  </data>
+  <data name="AucuneAnalyseIa" xml:space="preserve">
+    <value>No analysis generated for this application yet.</value>
+  </data>
+  <data name="AnalyseGenereeParIa" xml:space="preserve">
+    <value>Generated by AI</value>
+  </data>
+  <data name="AnalyseGenereeLocalement" xml:space="preserve">
+    <value>Generated locally</value>
+  </data>
+  <data name="AnalyseGenereeLe" xml:space="preserve">
+    <value>Generated on</value>
+  </data>
+  <data name="ExporterAnalysePdf" xml:space="preserve">
+    <value>Export to PDF</value>
+  </data>
+  <data name="EcartEnDessous" xml:space="preserve">
+    <value>Below</value>
+  </data>
+  <data name="EcartAuDessus" xml:space="preserve">
+    <value>Above</value>
+  </data>
+  <data name="EcartConforme" xml:space="preserve">
+    <value>On target</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="ModuleRecrutementRequis" xml:space="preserve">
+    <value>Requires the Recruitment module</value>
+  </data>
+  <data name="ModuleRecrutementRequisHint" xml:space="preserve">
+    <value>Interview preparation and AI analysis require the Recruitment module. Activate it to restore these features — your jobs and applications stay unchanged.</value>
+  </data>
+  <data name="ActiverLeModule" xml:space="preserve">
+    <value>Activate the module</value>
+  </data>
+</root>

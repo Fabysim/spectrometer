@@ -40,8 +40,17 @@
   <data name="GrilleIntrouvable" xml:space="preserve"><value>Interview grid not found.</value></data>
   <data name="ScoreGlobalSansQuestion" xml:space="preserve"><value>Overall score {0}% — no axis below the threshold and no shared point of caution detected: no targeted question to generate for this profile.</value></data>
   <data name="ScoreGlobalAvecQuestions" xml:space="preserve"><value>Overall score {0}% — questions generated from the axes below the threshold and shared points of caution, in both directions.</value></data>
-  <data name="QuestionsPourCandidat" xml:space="preserve"><value>Questions for the candidate</value></data>
-  <data name="QuestionsPourCandidatHint" xml:space="preserve"><value>To be asked by the company, to clarify each gap.</value></data>
+  <data name="QuestionsPourCandidat" xml:space="preserve"><value>Interview questions</value></data>
+  <data name="QuestionsPourCandidatHint" xml:space="preserve"><value>To ask the candidate in order to clarify each gap.</value></data>
   <data name="QuestionsPourEntreprise" xml:space="preserve"><value>Questions for the candidate to ask</value></data>
   <data name="QuestionsPourEntrepriseHint" xml:space="preserve"><value>To clarify this same gap, from the candidate's point of view.</value></data>
+  <data name="PreparerMonEntretien" xml:space="preserve"><value>Prepare my interview</value></data>
+  <data name="PreparerMonEntretienChez" xml:space="preserve"><value>Prepare my interview at {0}</value></data>
+  <data name="QuestionsAPoserAEntreprise" xml:space="preserve"><value>Questions to ask the company</value></data>
+  <data name="QuestionsAPoserAEntrepriseHint" xml:space="preserve"><value>Suggestions to clarify detected gaps before your interview.</value></data>
+  <data name="ScoreGlobalCandidatAvecQuestions" xml:space="preserve"><value>Compatibility score {0}% — suggested questions from axes below the threshold and shared points of caution.</value></data>
+  <data name="AucuneQuestionDisponible" xml:space="preserve"><value>No questions available at the moment.</value></data>
+  <data name="ModuleRecrutementRequis" xml:space="preserve"><value>Requires the Recruitment module</value></data>
+  <data name="ModuleRecrutementRequisHint" xml:space="preserve"><value>Company-side interview preparation requires the Recruitment module. Activate it for this company to access the question grid.</value></data>
+  <data name="ActiverLeModule" xml:space="preserve"><value>Activate the module</value></data>
 </root>

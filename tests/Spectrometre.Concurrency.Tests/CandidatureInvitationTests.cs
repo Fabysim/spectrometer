@@ -1,10 +1,11 @@
+using Spectrometre.Modules.ProfilEntreprise.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Tenancy;
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Xunit;
 

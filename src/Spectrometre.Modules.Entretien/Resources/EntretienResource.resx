@@ -38,8 +38,17 @@
   <data name="GrilleIntrouvable" xml:space="preserve"><value>Grille d'entretien introuvable.</value></data>
   <data name="ScoreGlobalSansQuestion" xml:space="preserve"><value>Score global {0}% — aucun axe sous le seuil et aucun point de vigilance partagé détecté : pas de question ciblée à générer pour ce profil.</value></data>
   <data name="ScoreGlobalAvecQuestions" xml:space="preserve"><value>Score global {0}% — questions générées à partir des axes sous le seuil et des points de vigilance partagés, dans les deux sens.</value></data>
-  <data name="QuestionsPourCandidat" xml:space="preserve"><value>Questions pour le candidat</value></data>
-  <data name="QuestionsPourCandidatHint" xml:space="preserve"><value>À poser par l'entreprise, pour éclaircir chaque écart.</value></data>
+  <data name="QuestionsPourCandidat" xml:space="preserve"><value>Questions d'entretien</value></data>
+  <data name="QuestionsPourCandidatHint" xml:space="preserve"><value>À poser au candidat pour éclaircir chaque écart.</value></data>
   <data name="QuestionsPourEntreprise" xml:space="preserve"><value>Questions à poser par le candidat</value></data>
   <data name="QuestionsPourEntrepriseHint" xml:space="preserve"><value>Pour éclaircir ce même écart, du point de vue du candidat.</value></data>
+  <data name="PreparerMonEntretien" xml:space="preserve"><value>Préparer mon entretien</value></data>
+  <data name="PreparerMonEntretienChez" xml:space="preserve"><value>Préparer mon entretien chez {0}</value></data>
+  <data name="QuestionsAPoserAEntreprise" xml:space="preserve"><value>Questions à poser à l'entreprise</value></data>
+  <data name="QuestionsAPoserAEntrepriseHint" xml:space="preserve"><value>Suggestions pour éclaircir les écarts détectés, avant votre entretien.</value></data>
+  <data name="ScoreGlobalCandidatAvecQuestions" xml:space="preserve"><value>Score de compatibilité {0}% — questions suggérées à partir des axes sous le seuil et des points de vigilance partagés.</value></data>
+  <data name="AucuneQuestionDisponible" xml:space="preserve"><value>Aucune question disponible pour le moment.</value></data>
+  <data name="ModuleRecrutementRequis" xml:space="preserve"><value>Nécessite le module Recrutement</value></data>
+  <data name="ModuleRecrutementRequisHint" xml:space="preserve"><value>La préparation d'entretien côté entreprise nécessite le module Recrutement. Activez-le pour cette entreprise afin d'accéder à la grille de questions.</value></data>
+  <data name="ActiverLeModule" xml:space="preserve"><value>Activer le module</value></data>
 </root>

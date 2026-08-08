@@ -1,7 +1,10 @@
+using Spectrometre.Modules.ProfilEntreprise.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Entretien.Data;
+using Spectrometre.Modules.Recrutement.Data;
+using Spectrometre.Modules.Recrutement.Services;
 using Xunit;
 
 namespace Spectrometre.Concurrency.Tests;
@@ -47,6 +50,105 @@ public sealed class TenantSchemaSynchronizerTests(ServiceFixture fixture)
         // SyncAllAsync aurait tenté de recréer des tables déjà existantes et aurait levé une exception
         // avant même d'atteindre les assertions ci-dessus (schémas traités dans l'ordre de la boucle).
         Assert.True(await HasQuestionTemplatesTableAsync(entrepriseAJour.SchemaName));
+    }
+
+    /// <summary>
+    /// Scénario 42P01 réel : module PostesRecrutement provisionné avant l'ajout d'une table
+    /// (<c>GenerationsCriteresIaPoste</c>) — SyncAll doit recréer UNIQUEMENT la table manquante
+    /// sans toucher aux données des tables déjà présentes.
+    /// </summary>
+    [Fact]
+    public async Task TableAjouteeApresProvisionnement_EstRecreeeSansToucherAuxAutres()
+    {
+        var suffix = Guid.NewGuid();
+        var company = await fixture.CreateCompanyAsync(
+            $"Entreprise Sync Diff {suffix}", $"sync-diff-{suffix}");
+
+        int posteId;
+        string titrePoste;
+        using (var scope = fixture.Services.CreateScope())
+        {
+            scope.ServiceProvider.GetRequiredService<ITenantContext>()
+                .SetActiveCompany(company.Id, company.SchemaName);
+            var postes = scope.ServiceProvider.GetRequiredService<IPosteService>();
+            titrePoste = $"Poste sync-diff {suffix}";
+            posteId = await postes.CreatePosteAsync(titrePoste, "desc", null);
+        }
+
+        Assert.True(await HasTableAsync(company.SchemaName, "GenerationsCriteresIaPoste"));
+        Assert.True(await HasTableAsync(company.SchemaName, "Postes"));
+
+        // Simule un tenant provisionné avant l'ajout de la table (DROP).
+        await DropTableAsync(company.SchemaName, "GenerationsCriteresIaPoste");
+        Assert.False(await HasTableAsync(company.SchemaName, "GenerationsCriteresIaPoste"));
+
+        await TenantSchemaSynchronizer.SyncAllAsync(fixture.Services, ServiceFixture.TenantModules);
+
+        Assert.True(await HasTableAsync(company.SchemaName, "GenerationsCriteresIaPoste"));
+        Assert.True(await HasTableAsync(company.SchemaName, "Postes"));
+
+        // Données intactes dans Postes.
+        using (var scope = fixture.Services.CreateScope())
+        {
+            scope.ServiceProvider.GetRequiredService<ITenantContext>()
+                .SetActiveCompany(company.Id, company.SchemaName);
+            var postes = await scope.ServiceProvider.GetRequiredService<IPosteService>().GetPostesAsync();
+            var poste = Assert.Single(postes, p => p.Id == posteId);
+            Assert.Equal(titrePoste, poste.Titre);
+        }
+
+        // Idempotence : second SyncAll ne lève pas (table déjà là).
+        await TenantSchemaSynchronizer.SyncAllAsync(fixture.Services, ServiceFixture.TenantModules);
+        Assert.True(await HasTableAsync(company.SchemaName, "GenerationsCriteresIaPoste"));
+    }
+
+    private async Task DropTableAsync(string schema, string table)
+    {
+        await using var db = await fixture.Services.GetRequiredService<IDbContextFactory<RecrutementDbContext>>()
+            .CreateDbContextAsync();
+        var connection = db.Database.GetDbConnection();
+        var wasClosed = connection.State != System.Data.ConnectionState.Open;
+        if (wasClosed) await connection.OpenAsync();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            // Identifiants contrôlés (schéma co_* + nom de table du modèle) — pas d'entrée utilisateur.
+            cmd.CommandText = $"DROP TABLE IF EXISTS {schema}.\"{table}\" CASCADE";
+            await cmd.ExecuteNonQueryAsync();
+        }
+        finally
+        {
+            if (wasClosed) await connection.CloseAsync();
+        }
+    }
+
+    private async Task<bool> HasTableAsync(string schema, string table)
+    {
+        await using var db = await fixture.Services.GetRequiredService<IDbContextFactory<RecrutementDbContext>>()
+            .CreateDbContextAsync();
+        var connection = db.Database.GetDbConnection();
+        var wasClosed = connection.State != System.Data.ConnectionState.Open;
+        if (wasClosed) await connection.OpenAsync();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText =
+                "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = @schema AND table_name = @table)";
+            var pSchema = cmd.CreateParameter();
+            pSchema.ParameterName = "schema";
+            pSchema.Value = schema;
+            cmd.Parameters.Add(pSchema);
+            var pTable = cmd.CreateParameter();
+            pTable.ParameterName = "table";
+            pTable.Value = table;
+            cmd.Parameters.Add(pTable);
+            var result = await cmd.ExecuteScalarAsync();
+            return result is bool b && b;
+        }
+        finally
+        {
+            if (wasClosed) await connection.CloseAsync();
+        }
     }
 
     private async Task<bool> HasQuestionTemplatesTableAsync(string schema)

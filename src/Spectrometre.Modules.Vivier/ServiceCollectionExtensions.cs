@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
         DisplayName: "Vivier de candidats",
         DisplayNameEn: "Talent Pool",
         Version: "1.0.0",
-        RequiredModuleCodes: ["Compatibilite", "PostesRecrutement"]);
+        RequiredModuleCodes: ["Compatibilite", "Recrutement"]);
 
     /// <summary>
     /// Aucun DbContext à enregistrer : ce module n'a pas de schéma propre, il lit exclusivement l'index

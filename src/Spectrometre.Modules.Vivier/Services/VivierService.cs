@@ -53,9 +53,8 @@ public sealed class VivierService(
         if (!aPostuleIci)
             return null;
 
-        var criteres = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
-        if (criteres is null)
-            return null;
+        var criteres = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken)
+                       ?? CandidateCompatibilityCriteriaView.Empty;
 
         var cv = await candidateProfileService.GetCvAsync(candidateProfileId, cancellationToken);
         return new VivierCandidateDetailView(criteres, cv);

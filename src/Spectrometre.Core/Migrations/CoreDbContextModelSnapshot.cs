@@ -259,7 +259,7 @@ namespace Spectrometre.Core.Migrations
                         new
                         {
                             Id = 4,
-                            ModuleCode = "PostesRecrutement",
+                            ModuleCode = "Recrutement",
                             PlanCode = "Standard"
                         },
                         new
@@ -307,7 +307,7 @@ namespace Spectrometre.Core.Migrations
                         new
                         {
                             Id = 12,
-                            ModuleCode = "PostesRecrutement",
+                            ModuleCode = "Recrutement",
                             PlanCode = "StandardPlusTemps"
                         },
                         new

@@ -3,7 +3,7 @@ namespace Spectrometre.Core.Recruitment;
 /// <summary>
 /// Index de lecture rapide, dénormalisé, dans le schéma partagé <c>core</c> : un poste ouvert par une
 /// entreprise, consultable sans traverser les schémas tenant un par un. Alimenté par
-/// <c>Spectrometre.Modules.PostesRecrutement.Services.PosteService</c> à chaque création/modification/
+/// <c>Spectrometre.Modules.Recrutement.Services.PosteService</c> à chaque création/modification/
 /// changement de statut d'un poste (voir <see cref="IRecruitmentIndexService"/>).
 /// </summary>
 /// <remarks>

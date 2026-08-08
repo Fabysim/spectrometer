@@ -36,6 +36,9 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<ICompanyProfileService, CompanyProfileService>();
+        services.AddScoped<IPosteService, PosteService>();
+        services.AddScoped<IPosteCritereIaService, PosteCritereIaService>();
+        services.AddScoped<IJobOfferDraftService, JobOfferDraftService>();
 
         return services;
     }

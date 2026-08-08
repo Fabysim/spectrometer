@@ -107,7 +107,7 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     {
         string[] modulesMatchingEmploi =
         [
-            "ProfilCandidat", "ProfilEntreprise", "Compatibilite", "PostesRecrutement",
+            "ProfilCandidat", "ProfilEntreprise", "Compatibilite", "Recrutement",
             "Vivier", "Entretien", "SuiviEvolutif", "Analytics",
         ];
 

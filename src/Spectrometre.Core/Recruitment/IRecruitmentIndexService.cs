@@ -15,7 +15,7 @@ public sealed record CandidatureIndexView(
 
 /// <summary>
 /// Point d'entrée public de l'index partagé de recrutement (schéma <c>core</c>). Vit dans le noyau —
-/// pas dans un module — car il est écrit par <c>Spectrometre.Modules.PostesRecrutement</c> et lu à la
+/// pas dans un module — car il est écrit par <c>Spectrometre.Modules.Recrutement</c> et lu à la
 /// fois par le candidat (<c>/candidat/postes</c>) et par <c>Spectrometre.Modules.Vivier</c> : le noyau
 /// est le seul endroit que tous les modules concernés peuvent référencer sans dépendance croisée entre
 /// modules (interdite par l'architecture).

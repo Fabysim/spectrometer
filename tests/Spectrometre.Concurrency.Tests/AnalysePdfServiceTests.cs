@@ -1,4 +1,4 @@
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement.Services;
 using Xunit;
 
 namespace Spectrometre.Concurrency.Tests;

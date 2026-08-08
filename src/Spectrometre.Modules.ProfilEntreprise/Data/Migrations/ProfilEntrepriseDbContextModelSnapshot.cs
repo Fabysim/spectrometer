@@ -24,6 +24,40 @@ namespace Spectrometre.Modules.ProfilEntreprise.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.Candidature", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CandidateProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("EstPreselectionne")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PosteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Statut")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PosteId", "CandidateProfileId")
+                        .IsUnique();
+
+                    b.ToTable("Candidatures", "public");
+                });
+
             modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.CompanyAnswer", b =>
                 {
                     b.Property<int>("Id")
@@ -617,6 +651,170 @@ namespace Spectrometre.Modules.ProfilEntreprise.Data.Migrations
                             TextEn = "Candidates should pay particular attention to...",
                             Theme = 9
                         });
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.CritereEvaluation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Categorie")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("NiveauRequis")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OrdreAffichage")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PosteId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PosteId", "OrdreAffichage");
+
+                    b.ToTable("CriteresEvaluation", "public");
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.EvaluationCritereCandidature", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CandidatureId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CritereId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NiveauFinal")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CritereId");
+
+                    b.HasIndex("CandidatureId", "CritereId")
+                        .IsUnique();
+
+                    b.ToTable("EvaluationsCriteresCandidature", "public");
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.GenerationCriteresIaPoste", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("GenereeLe")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("GenereeParIa")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("HashContexte")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("PosteId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PosteId")
+                        .IsUnique();
+
+                    b.ToTable("GenerationsCriteresIaPoste", "public");
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.Poste", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Avantages")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DateCloture")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Departement")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Salaire")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Statut")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TachesDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Postes", "public");
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.EvaluationCritereCandidature", b =>
+                {
+                    b.HasOne("Spectrometre.Modules.ProfilEntreprise.Entities.Candidature", null)
+                        .WithMany("EvaluationsFinales")
+                        .HasForeignKey("CandidatureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Spectrometre.Modules.ProfilEntreprise.Entities.CritereEvaluation", null)
+                        .WithMany()
+                        .HasForeignKey("CritereId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.GenerationCriteresIaPoste", b =>
+                {
+                    b.HasOne("Spectrometre.Modules.ProfilEntreprise.Entities.Poste", null)
+                        .WithMany()
+                        .HasForeignKey("PosteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.ProfilEntreprise.Entities.Candidature", b =>
+                {
+                    b.Navigation("EvaluationsFinales");
                 });
 #pragma warning restore 612, 618
         }

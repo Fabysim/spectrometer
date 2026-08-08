@@ -1,7 +1,8 @@
+using Spectrometre.Modules.ProfilEntreprise.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Compatibility;
 using Spectrometre.Core.Tenancy;
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat.Entities;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Spectrometre.Modules.Vivier.Services;
@@ -32,8 +33,8 @@ public sealed class VivierCvAccessControlTests(ServiceFixture fixture)
             Prenoms = "Alex",
             ProfilOuPosteRecherche = "Chef de projet",
         });
-        // Nécessaire pour que GetCandidateDetailAsync renvoie un résultat non-null (voir sa garde sur les
-        // critères) — le CV seul ne suffit pas, même comportement qu'avant l'ajout du CV à cette vue.
+        // Critères de grille optionnels pour GetCandidateDetailAsync (null → Empty) — le CV
+        // reste lisible dès qu'il y a une candidature réelle vers l'entreprise active.
         await candidateService.ToggleTagAsync(candidateProfileId, CriteriaField.Technique, "tag-test-vivier-cv", true);
 
         return candidateProfileId;
@@ -70,6 +71,39 @@ public sealed class VivierCvAccessControlTests(ServiceFixture fixture)
         Assert.NotNull(detail);
         Assert.NotNull(detail!.Cv.Coordonnees);
         Assert.Equal("Martin", detail.Cv.Coordonnees!.Nom);
+    }
+
+    [Fact]
+    public async Task CandidatAyantPostule_SansGrilleCompatibilite_ObtientDetailAvecCriteresVides()
+    {
+        var suffix = Guid.NewGuid();
+        var candidatUserId = $"vivier-cv-candidat-sans-grille-{suffix}";
+        var employeUserId = $"vivier-cv-manager-sans-grille-{suffix}";
+
+        var company = await fixture.CreateCompanyAsync($"Entreprise Vivier grille vide {suffix}", employeUserId);
+
+        int candidateProfileId;
+        using (var scope = NewScope())
+        {
+            var candidateService = scope.ServiceProvider.GetRequiredService<ICandidateProfileService>();
+            candidateProfileId = await candidateService.GetOrCreateProfileIdAsync(candidatUserId);
+            // Profil créé, CV éventuellement vide, AUCUNE ligne CandidateCompatibilityCriteria.
+            Assert.Null(await candidateService.GetCompatibilityCriteriaAsync(candidateProfileId));
+        }
+
+        await PostulerAsync(company, candidateProfileId);
+
+        using var readScope = NewScope();
+        readScope.ServiceProvider.GetRequiredService<ITenantContext>()
+            .SetActiveCompany(company.Id, company.SchemaName);
+        var vivierService = readScope.ServiceProvider.GetRequiredService<IVivierService>();
+
+        var detail = await vivierService.GetCandidateDetailAsync(candidateProfileId);
+
+        Assert.NotNull(detail);
+        Assert.True(detail!.Criteres.EstVide);
+        Assert.Empty(detail.Criteres.TechniqueTags);
+        Assert.Null(detail.Criteres.RythmeTravail);
     }
 
     [Fact]

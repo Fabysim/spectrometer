@@ -1,10 +1,10 @@
 namespace Spectrometre.Concurrency.Tests;
 
 /// <summary>
-/// Substitut de <see cref="Spectrometre.Modules.PostesRecrutement.Services.IAnalysePosteIaService"/> —
+/// Substitut de <see cref="Spectrometre.Modules.Recrutement.Services.IAnalysePosteIaService"/> —
 /// jamais d'appel réseau. Par défaut renvoie une erreur pour forcer le repli local (comme une clé absente).
 /// </summary>
-public sealed class FakeAnalysePosteIaService : Spectrometre.Modules.PostesRecrutement.Services.IAnalysePosteIaService
+public sealed class FakeAnalysePosteIaService : Spectrometre.Modules.Recrutement.Services.IAnalysePosteIaService
 {
     public string? Reponse { get; set; }
     public string? Erreur { get; set; } = "IA non configurée en test.";

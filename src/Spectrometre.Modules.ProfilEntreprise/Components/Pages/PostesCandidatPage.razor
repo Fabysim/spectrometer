@@ -1,0 +1,226 @@
+@page "/candidat/postes"
+@attribute [Authorize]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Core.Compatibility
+@using Spectrometre.Modules.ProfilEntreprise.Resources
+@using Spectrometre.Modules.ProfilEntreprise.Services
+@using Spectrometre.Modules.ProfilCandidat.Services
+@inject IPosteService PosteService
+@inject ICandidateProfileService CandidateProfileService
+@inject ICompatibiliteScoreService CompatibiliteScoreService
+@inject ICompanyProfileService CompanyProfileService
+@inject ITenantContext TenantContext
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<ProfilEntrepriseResource> Localizer
+
+<PageTitle>@Localizer["PostesOuverts"]</PageTitle>
+
+<div class="postes-page">
+    <header class="postes-header">
+        <div>
+            <h1 class="postes-title">@Localizer["PostesOuverts"]</h1>
+            <p class="postes-subtitle">@Localizer["TousLesPostesOuverts"]</p>
+        </div>
+    </header>
+
+@if (_postes is null)
+{
+    <p class="postes-state">@Localizer["Chargement"]</p>
+}
+else if (_postes.Count == 0)
+{
+    <section class="postes-card postes-empty">
+        <div class="postes-empty-icon" aria-hidden="true">
+            <i class="bi bi-briefcase"></i>
+        </div>
+        <p class="postes-hint">@Localizer["AucunPosteOuvert"]</p>
+    </section>
+}
+else
+{
+    <section class="postes-liste">
+        <div class="postes-grid">
+            @foreach (var poste in _postes)
+            {
+                <article class="postes-card poste-carte @(poste.DejaPostule ? "is-applied" : "")">
+                    <div class="poste-entete">
+                        <div class="poste-entete-main">
+                            <h3 class="poste-titre">@poste.Titre</h3>
+                            <div class="poste-meta-entreprise">
+                                <span class="poste-entreprise">
+                                    <i class="bi bi-building" aria-hidden="true"></i>
+                                    @poste.CompanyName
+                                </span>
+                                @if (poste.ScoreCompatibilite is not null)
+                                {
+                                    <span class="poste-score-compat poste-score-compat-@(poste.ScoreCompatibilite >= 70 ? "haut" : poste.ScoreCompatibilite >= 50 ? "moyen" : "bas")">
+                                        <i class="bi bi-graph-up" aria-hidden="true"></i>
+                                        @Localizer["ScoreCompatibilite"] : @poste.ScoreCompatibilite%
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        @if (poste.DejaPostule)
+                        {
+                            <div class="poste-actions-applique">
+                                <span class="deja-postule">
+                                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                                    @Localizer["CandidatureEnvoyee"]
+                                </span>
+                                <a href="@($"/candidat/entretien/{poste.CompanyId}")" class="postes-btn-ghost">
+                                    <i class="bi bi-chat-dots" aria-hidden="true"></i>
+                                    @Localizer["PreparerMonEntretien"]
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <button type="button" class="postes-btn-primary" @onclick="() => PostulerAsync(poste)">
+                                <i class="bi bi-send" aria-hidden="true"></i>
+                                @Localizer["Postuler"]
+                            </button>
+                        }
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(poste.Departement))
+                    {
+                        <p class="poste-departement">
+                            <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                            @poste.Departement
+                        </p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(poste.Description))
+                    {
+                        <p class="poste-description">@poste.Description</p>
+                    }
+                </article>
+            }
+        </div>
+    </section>
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private List<PosteOuvertView>? _postes;
+    private int _candidateProfileId;
+    private readonly Dictionary<int, int> _scoresParEntreprise = new();
+    private bool _enrichissementLance;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _candidateProfileId = await CandidateProfileService.GetOrCreateProfileIdAsync(userId);
+        // Liste d'abord — ne jamais bloquer le premier rendu sur N calculs de compatibilité
+        // (sinon le circuit Blazor time-out et se reconnecte en boucle).
+        _postes = (await PosteService.GetPostesOuvertsAsync(_candidateProfileId)).ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _enrichissementLance || _postes is null || _postes.Count == 0)
+            return;
+
+        _enrichissementLance = true;
+        await EnrichirScoresCompatibiliteAsync();
+    }
+
+    private async Task PostulerAsync(PosteOuvertView poste)
+    {
+        await PosteService.PostulerAsync(poste.CompanyId, poste.PosteId, _candidateProfileId);
+        _postes = (await PosteService.GetPostesOuvertsAsync(_candidateProfileId)).ToList();
+        AppliquerScoresConnus();
+        // Une seule entreprise à (re)évaluer après candidature — pas toute la liste.
+        await EnrichirScoresCompatibiliteAsync(companyIds: [poste.CompanyId]);
+    }
+
+    /// <summary>
+    /// Calcule (ou réutilise) le score candidat/entreprise pour les CompanyId demandés.
+    /// Signal informatif uniquement — n'influence jamais la disponibilité du bouton Postuler.
+    /// </summary>
+    private async Task EnrichirScoresCompatibiliteAsync(IEnumerable<int>? companyIds = null)
+    {
+        if (_postes is null || _postes.Count == 0)
+            return;
+
+        var previousCompanyId = TenantContext.ActiveCompanyId;
+        var previousSchema = TenantContext.SchemaName;
+
+        var ids = (companyIds ?? _postes.Select(p => p.CompanyId))
+            .Distinct()
+            .Where(id => !_scoresParEntreprise.ContainsKey(id))
+            .ToList();
+        if (ids.Count == 0)
+        {
+            AppliquerScoresConnus();
+            return;
+        }
+
+        // Une seule requête pour tous les schémas — évite N Aller-retours Companies.
+        var schemas = await CoreDb.Companies.AsNoTracking()
+            .Where(c => ids.Contains(c.Id))
+            .Select(c => new { c.Id, c.SchemaName })
+            .ToDictionaryAsync(c => c.Id, c => c.SchemaName);
+
+        var enrichis = 0;
+        foreach (var companyId in ids)
+        {
+            if (!schemas.TryGetValue(companyId, out var schemaName) || string.IsNullOrEmpty(schemaName))
+                continue;
+
+            try
+            {
+                TenantContext.SetActiveCompany(companyId, schemaName);
+                var companyProfileId = await CompanyProfileService.GetOrCreateProfileIdAsync();
+                // Lecture légère / estimation sans écriture — pas de CalculerCompatibiliteAsync ici.
+                var score = await CompatibiliteScoreService.GetScoreGlobalAffichageAsync(_candidateProfileId, companyProfileId);
+                if (score is int s)
+                    _scoresParEntreprise[companyId] = s;
+            }
+            catch
+            {
+                // Schéma incomplet / module absent : omettre le badge, sans bloquer la liste.
+            }
+
+            enrichis++;
+            // Rafraîchir l'UI par lots pour que les badges apparaissent sans attendre la fin.
+            if (enrichis % 8 == 0)
+            {
+                AppliquerScoresConnus();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        if (previousCompanyId is int id)
+            TenantContext.SetActiveCompany(id, previousSchema);
+
+        AppliquerScoresConnus();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void AppliquerScoresConnus()
+    {
+        if (_postes is null)
+            return;
+
+        _postes = _postes
+            .Select(poste => poste with
+            {
+                ScoreCompatibilite = _scoresParEntreprise.TryGetValue(poste.CompanyId, out var score) ? score : null
+            })
+            .ToList();
+    }
+}

@@ -1,4 +1,4 @@
-/* /vivier/candidat/{id} – aligné VivierPage / Postes */
+/* /vivier/candidat/{id} – aligné VivierPage / Postes (plein espace utile) */
 
 .vivier-detail-page {
     width: 100%;
@@ -7,6 +7,9 @@
     margin: 0;
     padding: 1.25rem 1.5rem 1.5rem;
     min-height: calc(100dvh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
 }
 
 .vivier-detail-state,
@@ -24,6 +27,7 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    flex-shrink: 0;
 }
 
 .vivier-detail-back {
@@ -77,6 +81,16 @@
     box-shadow: 0 6px 16px rgba(234, 119, 61, 0.35);
 }
 
+.vivier-detail-hint.notes {
+    margin: 0 0 1.15rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-style: normal;
+    color: #64748b;
+}
+
 .vivier-detail-card {
     background: #ffffff;
     border-radius: 16px;
@@ -97,6 +111,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.15rem;
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    align-content: start;
 }
 
 .vivier-detail-card-icon {

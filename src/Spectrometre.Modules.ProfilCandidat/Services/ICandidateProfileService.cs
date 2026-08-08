@@ -44,7 +44,31 @@ public sealed record CandidateCompatibilityCriteriaView(
     string? CulturelleNotes,
     string? OrganisationnelleNotes,
     string? MotivationnelleNotes,
-    string? PointsVigilanceNotes);
+    string? PointsVigilanceNotes)
+{
+    /// <summary>
+    /// Grille absente / jamais remplie — tags vides, rythme et notes null.
+    /// Utile côté Vivier quand le candidat a postulé mais n'a pas encore déclaré ses critères.
+    /// </summary>
+    public static CandidateCompatibilityCriteriaView Empty { get; } = new(
+        [], [], [], null, [], [],
+        null, null, null, null, null, null);
+
+    /// <summary>True si aucun tag, aucun rythme et aucune note n'est renseigné.</summary>
+    public bool EstVide =>
+        TechniqueTags.Count == 0
+        && ComportementaleTags.Count == 0
+        && CulturelleTags.Count == 0
+        && MotivationnelleTags.Count == 0
+        && PointsVigilanceTags.Count == 0
+        && RythmeTravail is null
+        && string.IsNullOrWhiteSpace(TechniqueNotes)
+        && string.IsNullOrWhiteSpace(ComportementaleNotes)
+        && string.IsNullOrWhiteSpace(CulturelleNotes)
+        && string.IsNullOrWhiteSpace(OrganisationnelleNotes)
+        && string.IsNullOrWhiteSpace(MotivationnelleNotes)
+        && string.IsNullOrWhiteSpace(PointsVigilanceNotes);
+}
 
 /// <summary>
 /// Point d'entrée public du module Profil Candidat. Le module Compatibilité passe exclusivement par

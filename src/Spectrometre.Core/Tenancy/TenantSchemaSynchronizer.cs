@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Data;
@@ -18,18 +19,15 @@ public sealed record TenantSchemaModule(string ModuleCode, Func<IServiceProvider
 
 /// <summary>
 /// Comble rétroactivement, pour chaque entreprise existante, le schéma de chaque module tenant-scopé
-/// marqué actif pour elle mais pas encore provisionné — remplace les scripts one-off réappliquant
-/// manuellement le DDL à chaque nouveau module (dette identifiée sur <c>PosteIndexEntries</c> puis
-/// <c>Entretien</c>). Idempotent : un schéma déjà provisionné est détecté et laissé intact.
+/// marqué actif pour elle mais pas encore (ou pas entièrement) provisionné — remplace les scripts one-off
+/// réappliquant manuellement le DDL à chaque nouveau module. Idempotent : un schéma déjà complet est
+/// détecté table par table et laissé intact ; les tables ajoutées au modèle EF après le premier
+/// provisionnement sont créées de façon différentielle (sans retoucher les tables déjà présentes).
 /// </summary>
 /// <remarks>
-/// Coût au démarrage : O(entreprises × modules tenant-scopés), une requête <c>information_schema</c> par
-/// paire — négligeable avec le nombre d'entreprises en jeu pendant les tests/le développement. Avec
-/// beaucoup de tenants en production, ce coût grossirait linéairement à CHAQUE démarrage du Host (pas
-/// seulement quand un module est réellement ajouté) : une optimisation possible serait de ne lancer cette
-/// vérification que lors d'un déploiement contenant un changement de schéma (ex. un indicateur de version
-/// de schéma comparé), ou de la déplacer dans un outil d'administration exécuté à la demande plutôt qu'à
-/// chaque démarrage. Hors scope pour ce cycle (peu de tenants en test) — signalé ici pour la suite.
+/// Coût au démarrage : O(entreprises × modules × tables), requêtes <c>information_schema</c> — négligeable
+/// avec peu de tenants en développement. En production à grande échelle, une optimisation possible serait
+/// de ne lancer cette vérification que lors d'un déploiement contenant un changement de schéma.
 /// </remarks>
 public static class TenantSchemaSynchronizer
 {
@@ -51,48 +49,59 @@ public static class TenantSchemaSynchronizer
                     continue;
 
                 await using var db = await module.CreateDbContextAsync(services, cancellationToken);
-                if (await HasSchemaAsync(db, company.SchemaName, cancellationToken))
+                var modelTables = GetModelTableNames(db);
+                if (modelTables.Count == 0)
                     continue;
 
-                await schemaProvisioner.ApplyModuleSchemaAsync(db, "public", company.SchemaName, cancellationToken);
+                var missing = await GetMissingTablesAsync(db, company.SchemaName, modelTables, cancellationToken);
+                if (missing.Count == 0)
+                    continue;
+
+                if (missing.Count == modelTables.Count)
+                {
+                    // Module jamais provisionné : script CREATE complet (comportement historique).
+                    await schemaProvisioner.ApplyModuleSchemaAsync(db, "public", company.SchemaName, cancellationToken);
+                }
+                else
+                {
+                    // Provisionnement partiel : seules les tables absentes (ex. GenerationsCriteresIaPoste
+                    // ajoutée après coup) — les tables déjà là et leurs données restent intactes.
+                    await schemaProvisioner.ApplyMissingTablesAsync(
+                        db, "public", company.SchemaName, missing, cancellationToken);
+                }
             }
         }
     }
 
-    /// <summary>
-    /// Vérifie si le schéma cible contient DÉJÀ au moins une table du modèle EF de ce module, via
-    /// <c>information_schema.tables</c> — générique, sans connaître les noms de table à l'avance.
-    /// </summary>
-    /// <remarks>
-    /// On teste <b>n'importe quelle</b> table du modèle (pas seulement la première) : l'ordre des
-    /// <c>IEntityType</c> n'est pas stable (ajout d'une entité peut faire remonter une table neuve en tête).
-    /// Si on ne regardait que la première et qu'elle est absente d'un tenant déjà provisionné (ex. nouvelle
-    /// table <c>AnalysesIaPoste</c> alors que <c>Candidatures</c> existe), SyncAll retenterait un
-    /// <see cref="ITenantSchemaProvisioner.ApplyModuleSchemaAsync"/> complet et échouerait sur
-    /// « relation already exists ». Limite connue : les tables <em>ajoutées</em> après le premier
-    /// provisionnement ne sont pas créées ici (CreateScript n'est pas différentiel) — hors scope SyncAll,
-    /// réservé au comblement d'un module entièrement manquant.
-    /// </remarks>
-    private static async Task<bool> HasSchemaAsync(DbContext db, string targetSchema, CancellationToken cancellationToken)
-    {
-        var tableNames = db.Model.GetEntityTypes()
+    public static IReadOnlyList<string> GetModelTableNames(DbContext db) =>
+        db.Model.GetEntityTypes()
             .Select(t => t.GetTableName())
             .Where(t => t is not null)
             .Distinct(StringComparer.Ordinal)
+            .Cast<string>()
             .ToList();
-        if (tableNames.Count == 0)
-            return true; // Aucune table dans ce modèle : rien à provisionner, considéré à jour.
 
+    /// <summary>
+    /// Tables du modèle EF absentes du schéma cible (<c>information_schema.tables</c>).
+    /// </summary>
+    public static async Task<IReadOnlyList<string>> GetMissingTablesAsync(
+        DbContext db,
+        string targetSchema,
+        IReadOnlyList<string> modelTableNames,
+        CancellationToken cancellationToken)
+    {
+        var missing = new List<string>();
         var connection = db.Database.GetDbConnection();
         var wasClosed = connection.State != ConnectionState.Open;
         if (wasClosed)
             await connection.OpenAsync(cancellationToken);
         try
         {
-            foreach (var tableName in tableNames)
+            foreach (var tableName in modelTableNames)
             {
                 await using var command = connection.CreateCommand();
-                command.CommandText = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = @schema AND table_name = @table)";
+                command.CommandText =
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = @schema AND table_name = @table)";
 
                 var schemaParam = command.CreateParameter();
                 schemaParam.ParameterName = "schema";
@@ -105,11 +114,12 @@ public static class TenantSchemaSynchronizer
                 command.Parameters.Add(tableParam);
 
                 var result = await command.ExecuteScalarAsync(cancellationToken);
-                if (result is bool exists && exists)
-                    return true;
+                var exists = result is bool b && b;
+                if (!exists)
+                    missing.Add(tableName);
             }
 
-            return false;
+            return missing;
         }
         finally
         {

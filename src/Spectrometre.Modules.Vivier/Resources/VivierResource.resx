@@ -52,6 +52,7 @@
   <data name="RetourAuVivier" xml:space="preserve"><value>Retour au Vivier</value></data>
   <data name="ProfilIntrouvableHint" xml:space="preserve"><value>Profil introuvable ou ce candidat n'a pas postulé à un poste de votre entreprise — le Vivier ne donne accès qu'aux candidats ayant déjà postulé.</value></data>
   <data name="CriteresDeclaresHint" xml:space="preserve"><value>Critères déclarés par le candidat pour le moteur de compatibilité (grille H).</value></data>
+  <data name="ProfilCompatibiliteNonComplete" xml:space="preserve"><value>Ce candidat n'a pas encore complété son profil de compatibilité — le CV ci-dessous peut néanmoins contenir des informations utiles.</value></data>
   <data name="PreparerLEntretien" xml:space="preserve"><value>Préparer l'entretien</value></data>
   <data name="CompatibiliteTechnique" xml:space="preserve"><value>Compatibilité technique</value></data>
   <data name="CompatibiliteComportementale" xml:space="preserve"><value>Compatibilité comportementale</value></data>

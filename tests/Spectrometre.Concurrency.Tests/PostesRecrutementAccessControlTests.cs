@@ -1,7 +1,9 @@
+using Spectrometre.Modules.ProfilEntreprise.Services;
+using Spectrometre.Modules.ProfilEntreprise.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Tenancy;
-using Spectrometre.Modules.PostesRecrutement.Entities;
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement.Entities;
+using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Xunit;
 
@@ -39,6 +41,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
             var tenantContext = setupScope.ServiceProvider.GetRequiredService<ITenantContext>();
             tenantContext.SetActiveCompany(company.Id, company.SchemaName);
             var posteService = setupScope.ServiceProvider.GetRequiredService<IPosteService>();
+            var posteServiceEntretien = setupScope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
             posteId = await posteService.CreatePosteAsync($"Poste access {suffix}", null, null);
             await posteService.PostulerAsync(company.Id, posteId, candidateProfileId);
@@ -51,6 +54,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         scope.ServiceProvider.GetRequiredService<ITenantContext>()
             .SetActiveCompany(company.Id, company.SchemaName);
         var service = scope.ServiceProvider.GetRequiredService<IPosteService>();
+            var serviceEntretien = scope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
         var candidatures = await service.GetCandidaturesAsync(posteId);
         var candidature = Assert.Single(candidatures);
@@ -85,6 +89,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
             var tenantContext = setupScope.ServiceProvider.GetRequiredService<ITenantContext>();
             tenantContext.SetActiveCompany(companyA.Id, companyA.SchemaName);
             var posteService = setupScope.ServiceProvider.GetRequiredService<IPosteService>();
+            var posteServiceEntretien = setupScope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
             posteIdA = await posteService.CreatePosteAsync($"Poste A {suffix}", null, null);
             await posteService.PostulerAsync(companyA.Id, posteIdA, candidateProfileId);
@@ -97,6 +102,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         scopeB.ServiceProvider.GetRequiredService<ITenantContext>()
             .SetActiveCompany(companyB.Id, companyB.SchemaName);
         var serviceB = scopeB.ServiceProvider.GetRequiredService<IPosteService>();
+            var serviceBEntretien = scopeB.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
         var candidaturesB = await serviceB.GetCandidaturesAsync(posteIdA);
         Assert.Empty(candidaturesB);
@@ -104,7 +110,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         var detailB = await serviceB.GetCandidatureAsync(candidatureIdA);
         Assert.Null(detailB);
 
-        Assert.Null(await serviceB.GetAnalyseIaAsync(candidatureIdA));
+        Assert.Null(await serviceBEntretien.GetAnalyseIaAsync(candidatureIdA));
     }
 
     [Fact]
@@ -133,6 +139,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
             setupScope.ServiceProvider.GetRequiredService<ITenantContext>()
                 .SetActiveCompany(companyA.Id, companyA.SchemaName);
             var serviceA = setupScope.ServiceProvider.GetRequiredService<IPosteService>();
+            var serviceAEntretien = setupScope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
             posteIdA = await serviceA.CreatePosteAsync($"Poste iso {suffix}", "Desc A", "IT");
             await serviceA.PostulerAsync(companyA.Id, posteIdA, candidateProfileId);
@@ -143,14 +150,14 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
 
             await serviceA.SetNiveauFinalAsync(candidatureIdA, critereIdA, (int)NiveauEvaluation.Moyen);
             await serviceA.SetPreselectionAsync(candidatureIdA, true);
-            await serviceA.SaveGuideDeuxiemeEntrevueAsync(posteIdA, new GuideDeuxiemeEntrevue
+            await serviceAEntretien.SaveGuideDeuxiemeEntrevueAsync(posteIdA, new GuideDeuxiemeEntrevue
             {
                 PosteId = posteIdA,
                 MissionLivrables = "Mission secrète A",
                 Objectifs = "Objectifs A",
             });
 
-            analyseTexteA = (await serviceA.GenererAnalyseIaAsync(candidatureIdA)).AnalyseTexte;
+            analyseTexteA = (await serviceAEntretien.GenererAnalyseIaAsync(candidatureIdA)).AnalyseTexte;
             Assert.False(string.IsNullOrWhiteSpace(analyseTexteA));
         }
 
@@ -160,6 +167,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
             scopeB.ServiceProvider.GetRequiredService<ITenantContext>()
                 .SetActiveCompany(companyB.Id, companyB.SchemaName);
             var serviceB = scopeB.ServiceProvider.GetRequiredService<IPosteService>();
+            var serviceBEntretien = scopeB.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
             // Critères
             Assert.Empty(await serviceB.GetCriteresAsync(posteIdA));
@@ -176,20 +184,20 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
             await serviceB.SetPreselectionAsync(candidatureIdA, false);
 
             // Guide 2ème entrevue
-            Assert.Null(await serviceB.GetGuideDeuxiemeEntrevueAsync(posteIdA));
-            await serviceB.SaveGuideDeuxiemeEntrevueAsync(posteIdA, new GuideDeuxiemeEntrevue
+            Assert.Null(await serviceBEntretien.GetGuideDeuxiemeEntrevueAsync(posteIdA));
+            await serviceBEntretien.SaveGuideDeuxiemeEntrevueAsync(posteIdA, new GuideDeuxiemeEntrevue
             {
                 PosteId = posteIdA,
                 MissionLivrables = "Piraté par B",
             });
 
             // Analyse IA
-            Assert.Null(await serviceB.GetAnalyseIaAsync(candidatureIdA));
-            var analyseB = await serviceB.GenererAnalyseIaAsync(candidatureIdA, forcerRegeneration: true);
+            Assert.Null(await serviceBEntretien.GetAnalyseIaAsync(candidatureIdA));
+            var analyseB = await serviceBEntretien.GenererAnalyseIaAsync(candidatureIdA, forcerRegeneration: true);
             Assert.False(analyseB.GenereeParIa);
             // Repli « candidature introuvable » — jamais de persistance dans le schéma A.
             Assert.Contains("introuvable", analyseB.AnalyseTexte, StringComparison.OrdinalIgnoreCase);
-            Assert.Null(await serviceB.GetAnalyseIaAsync(candidatureIdA));
+            Assert.Null(await serviceBEntretien.GetAnalyseIaAsync(candidatureIdA));
         }
 
         // --- Vérification : données de A intactes ---
@@ -197,6 +205,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         scopeA.ServiceProvider.GetRequiredService<ITenantContext>()
             .SetActiveCompany(companyA.Id, companyA.SchemaName);
         var verify = scopeA.ServiceProvider.GetRequiredService<IPosteService>();
+            var verifyEntretien = scopeA.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
         var criteres = await verify.GetCriteresAsync(posteIdA);
         var critere = Assert.Single(criteres);
@@ -213,12 +222,12 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         Assert.NotNull(candidature);
         Assert.True(candidature!.EstPreselectionne);
 
-        var guide = await verify.GetGuideDeuxiemeEntrevueAsync(posteIdA);
+        var guide = await verifyEntretien.GetGuideDeuxiemeEntrevueAsync(posteIdA);
         Assert.NotNull(guide);
         Assert.Equal("Mission secrète A", guide!.MissionLivrables);
         Assert.Equal("Objectifs A", guide.Objectifs);
 
-        var analyse = await verify.GetAnalyseIaAsync(candidatureIdA);
+        var analyse = await verifyEntretien.GetAnalyseIaAsync(candidatureIdA);
         Assert.NotNull(analyse);
         Assert.Equal(analyseTexteA, analyse!.AnalyseTexte);
     }
@@ -240,6 +249,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         scope.ServiceProvider.GetRequiredService<ITenantContext>()
             .SetActiveCompany(company.Id, company.SchemaName);
         var service = scope.ServiceProvider.GetRequiredService<IPosteService>();
+            var serviceEntretien = scope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
         var posteId = await service.CreatePosteAsync($"Poste full {suffix}", null, null);
         await service.PostulerAsync(company.Id, posteId, candidateProfileId);
@@ -263,18 +273,18 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         await service.SetPreselectionAsync(candidatureId, false);
         Assert.False((await service.GetCandidatureAsync(candidatureId))!.EstPreselectionne);
 
-        var guideVide = await service.GetGuideDeuxiemeEntrevueAsync(posteId);
+        var guideVide = await serviceEntretien.GetGuideDeuxiemeEntrevueAsync(posteId);
         Assert.NotNull(guideVide);
         Assert.Equal(0, guideVide!.Id);
         Assert.Equal(posteId, guideVide.PosteId);
 
-        await service.SaveGuideDeuxiemeEntrevueAsync(posteId, new GuideDeuxiemeEntrevue
+        await serviceEntretien.SaveGuideDeuxiemeEntrevueAsync(posteId, new GuideDeuxiemeEntrevue
         {
             PosteId = posteId,
             Suivi = "Suivi Q2",
             Echeances = "30 jours",
         });
-        var guide = await service.GetGuideDeuxiemeEntrevueAsync(posteId);
+        var guide = await serviceEntretien.GetGuideDeuxiemeEntrevueAsync(posteId);
         Assert.NotNull(guide);
         Assert.True(guide!.Id > 0);
         Assert.Equal("Suivi Q2", guide.Suivi);
@@ -304,6 +314,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
             setupScope.ServiceProvider.GetRequiredService<ITenantContext>()
                 .SetActiveCompany(company.Id, company.SchemaName);
             var posteService = setupScope.ServiceProvider.GetRequiredService<IPosteService>();
+            var posteServiceEntretien = setupScope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
             posteId = await posteService.CreatePosteAsync($"Poste analyse {suffix}", "Desc", null);
             await posteService.PostulerAsync(company.Id, posteId, candidateProfileId);
@@ -314,16 +325,17 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         scope.ServiceProvider.GetRequiredService<ITenantContext>()
             .SetActiveCompany(company.Id, company.SchemaName);
         var service = scope.ServiceProvider.GetRequiredService<IPosteService>();
+            var serviceEntretien = scope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
         var pdfService = scope.ServiceProvider.GetRequiredService<IAnalysePdfService>();
 
-        Assert.Null(await service.GetAnalyseIaAsync(candidatureId));
+        Assert.Null(await serviceEntretien.GetAnalyseIaAsync(candidatureId));
 
-        var analyse = await service.GenererAnalyseIaAsync(candidatureId, forcerRegeneration: false);
+        var analyse = await serviceEntretien.GenererAnalyseIaAsync(candidatureId, forcerRegeneration: false);
         Assert.False(string.IsNullOrWhiteSpace(analyse.AnalyseTexte));
         // FakeAnalysePosteIaService force le repli local en test.
         Assert.False(analyse.GenereeParIa);
 
-        var cached = await service.GetAnalyseIaAsync(candidatureId);
+        var cached = await serviceEntretien.GetAnalyseIaAsync(candidatureId);
         Assert.NotNull(cached);
         Assert.Equal(analyse.AnalyseTexte, cached!.AnalyseTexte);
 
@@ -366,6 +378,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
 
             var tenantContext = setupScope.ServiceProvider.GetRequiredService<ITenantContext>();
             var posteService = setupScope.ServiceProvider.GetRequiredService<IPosteService>();
+            var posteServiceEntretien = setupScope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
             // Deux postes chez A pour décaler les ids numériques vs B (ids locaux par schéma).
             tenantContext.SetActiveCompany(companyA.Id, companyA.SchemaName);
@@ -385,6 +398,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
             scopeB.ServiceProvider.GetRequiredService<ITenantContext>()
                 .SetActiveCompany(companyB.Id, companyB.SchemaName);
             var serviceB = scopeB.ServiceProvider.GetRequiredService<IPosteService>();
+            var serviceBEntretien = scopeB.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
             await serviceB.DeletePosteAsync(posteIdA);
             Assert.Contains(await serviceB.GetPostesAsync(), p => p.Id == posteIdB);
         }
@@ -394,6 +408,7 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
             scopeA.ServiceProvider.GetRequiredService<ITenantContext>()
                 .SetActiveCompany(companyA.Id, companyA.SchemaName);
             var serviceA = scopeA.ServiceProvider.GetRequiredService<IPosteService>();
+            var serviceAEntretien = scopeA.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
 
             Assert.Contains(await serviceA.GetPostesAsync(), p => p.Id == posteIdA);
             Assert.NotNull(await serviceA.GetCandidatureAsync(candidatureIdA));
@@ -411,5 +426,76 @@ public sealed class PostesRecrutementAccessControlTests(ServiceFixture fixture)
         Assert.Contains(
             await scopeBCheck.ServiceProvider.GetRequiredService<IPosteService>().GetPostesAsync(),
             p => p.Id == posteIdB);
+    }
+
+    [Fact]
+    public async Task UneAutreEntrepriseNePeutPasGenererOffreDocxDuPoste()
+    {
+        var suffix = Guid.NewGuid();
+        var ownerA = $"postes-offre-owner-a-{suffix}";
+        var ownerB = $"postes-offre-owner-b-{suffix}";
+
+        var companyA = await fixture.CreateCompanyAsync($"Entreprise Offre A {suffix}", ownerA);
+        var companyB = await fixture.CreateCompanyAsync($"Entreprise Offre B {suffix}", ownerB);
+
+        int posteIdA;
+        using (var setupScope = NewScope())
+        {
+            var tenantContext = setupScope.ServiceProvider.GetRequiredService<ITenantContext>();
+            var posteService = setupScope.ServiceProvider.GetRequiredService<IPosteService>();
+            var posteServiceEntretien = setupScope.ServiceProvider.GetRequiredService<IRecrutementEntretienService>();
+
+            tenantContext.SetActiveCompany(companyA.Id, companyA.SchemaName);
+            // Padding pour décaler les ids locaux vs B.
+            _ = await posteService.CreatePosteAsync($"Poste offre A padding {suffix}", null, null);
+            posteIdA = await posteService.CreatePosteAsync(
+                $"Poste offre A {suffix}",
+                "Description",
+                null,
+                tachesDescription: "Tâches",
+                salaire: "50k",
+                avantages: "Télétravail");
+            await posteService.UpsertCritereAsync(
+                posteIdA, null, "Technique", "C#", (int)NiveauEvaluation.Fort, 0);
+
+            tenantContext.SetActiveCompany(companyB.Id, companyB.SchemaName);
+            _ = await posteService.CreatePosteAsync($"Poste offre B {suffix}", null, null);
+        }
+
+        // B ne peut pas cibler le poste de A (même id numérique éventuel → schéma différent / introuvable).
+        using (var scopeB = NewScope())
+        {
+            scopeB.ServiceProvider.GetRequiredService<ITenantContext>()
+                .SetActiveCompany(companyB.Id, companyB.SchemaName);
+            var offreB = scopeB.ServiceProvider.GetRequiredService<IJobOfferDraftService>();
+            var (contentB, fileNameB, erreurB) = await offreB.GenererOffreDocxAsync(posteIdA);
+            Assert.Null(contentB);
+            Assert.Null(fileNameB);
+            Assert.Equal(JobOfferDraftService.ErreurPosteIntrouvable, erreurB);
+        }
+
+        // A génère un .docx valide (Fake Replicate configurée pour renvoyer un texte).
+        using var scopeA = NewScope();
+        scopeA.ServiceProvider.GetRequiredService<ITenantContext>()
+            .SetActiveCompany(companyA.Id, companyA.SchemaName);
+        var fakeIa = (FakeReplicateService)scopeA.ServiceProvider
+            .GetRequiredService<Spectrometre.Core.Ai.IReplicateService>();
+        fakeIa.Erreur = null;
+        fakeIa.Reponse = """
+            DÉVELOPPEUR
+
+            PRÉSENTATION
+            Poste attractif.
+
+            MISSIONS
+            - Développer en C#
+            """;
+        var offreA = scopeA.ServiceProvider.GetRequiredService<IJobOfferDraftService>();
+        var (contentA, fileNameA, erreurA) = await offreA.GenererOffreDocxAsync(posteIdA);
+        Assert.Null(erreurA);
+        Assert.NotNull(contentA);
+        Assert.False(string.IsNullOrWhiteSpace(fileNameA));
+        Assert.EndsWith(".docx", fileNameA!, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("PK"u8.ToArray(), contentA!.AsSpan(0, 2).ToArray());
     }
 }

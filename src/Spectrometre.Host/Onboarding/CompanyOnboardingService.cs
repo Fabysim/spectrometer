@@ -6,7 +6,7 @@ using Spectrometre.Core.Tenancy;
 using ProfilCandidatModule = Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions;
 using ProfilEntrepriseModule = Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions;
 using CompatibiliteModule = Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions;
-using PostesRecrutementModule = Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions;
+using PostesRecrutementModule = Spectrometre.Modules.Recrutement.ServiceCollectionExtensions;
 using VivierModule = Spectrometre.Modules.Vivier.ServiceCollectionExtensions;
 using EntretienModule = Spectrometre.Modules.Entretien.ServiceCollectionExtensions;
 using AnalyticsModule = Spectrometre.Modules.Analytics.ServiceCollectionExtensions;

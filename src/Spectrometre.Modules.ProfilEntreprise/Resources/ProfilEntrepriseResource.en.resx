@@ -32,34 +32,413 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
   <!-- Traduction automatique pour ce cycle — à affiner par une relecture humaine plus tard. -->
-
-  <data name="ProfilEntreprise" xml:space="preserve"><value>Company profile</value></data>
-  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
-  <data name="AucuneEntrepriseAssociee" xml:space="preserve"><value>No company associated with your account at the moment.</value></data>
-  <data name="EntrepriseActive" xml:space="preserve"><value>Active company:</value></data>
-  <data name="GrilleCompatibiliteTab" xml:space="preserve"><value>K. Compatibility grid</value></data>
-  <data name="SyntheseEntreprise" xml:space="preserve"><value>COMPANY SYNTHESIS</value></data>
-  <data name="SyntheseEntrepriseHint" xml:space="preserve"><value>The synthesis (section J) is filled in directly by the company under the "J. Synthesis" tab.</value></data>
-  <data name="GrilleK_Entete" xml:space="preserve"><value>K. Supplementary grid of criteria for the compatibility engine</value></data>
-  <data name="GrilleK_Hint" xml:space="preserve"><value>Turns the profile's qualitative information into criteria directly comparable with the candidate's profile.</value></data>
-  <data name="CompatibiliteTechnique" xml:space="preserve"><value>Technical compatibility</value></data>
-  <data name="QuestionTechnique" xml:space="preserve"><value>Select the skills required from day one on the job.</value></data>
-  <data name="NotesLibresTechnique" xml:space="preserve"><value>Free notes (optional — used at interview time, not part of the calculation)</value></data>
-  <data name="CompatibiliteComportementale" xml:space="preserve"><value>Behavioral compatibility</value></data>
-  <data name="QuestionComportementale" xml:space="preserve"><value>Select the professional behaviors expected day-to-day.</value></data>
-  <data name="NotesLibres" xml:space="preserve"><value>Free notes (optional)</value></data>
-  <data name="CompatibiliteCulturelle" xml:space="preserve"><value>Cultural compatibility</value></data>
-  <data name="QuestionCulturelle" xml:space="preserve"><value>Select the values actually practiced within the company.</value></data>
-  <data name="CompatibiliteOrganisationnelle" xml:space="preserve"><value>Organizational compatibility — work pace</value></data>
-  <data name="QuestionRythme" xml:space="preserve"><value>What work pace does the position actually require?</value></data>
-  <data name="ChoisirOption" xml:space="preserve"><value>— Choose —</value></data>
-  <data name="CompatibiliteMotivationnelle" xml:space="preserve"><value>Motivational compatibility</value></data>
-  <data name="QuestionMotivationnelle" xml:space="preserve"><value>Select what generally motivates employees at this company.</value></data>
-  <data name="PointsDeVigilance" xml:space="preserve"><value>Points of caution</value></data>
-  <data name="QuestionPointsVigilance" xml:space="preserve"><value>Select the situations likely to cause fatigue, stress or early departures.</value></data>
-  <data name="GrilleComplete" xml:space="preserve"><value>Compatibility grid complete.</value></data>
-  <data name="GrilleIncomplete" xml:space="preserve"><value>Compatibility grid incomplete.</value></data>
-  <data name="CreerUneEntreprise" xml:space="preserve"><value>Create a company</value></data>
+  <data name="ProfilEntreprise" xml:space="preserve">
+    <value>Company profile</value>
+  </data>
+  <data name="Chargement" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+  <data name="AucuneEntrepriseAssociee" xml:space="preserve">
+    <value>No company associated with your account at the moment.</value>
+  </data>
+  <data name="EntrepriseActive" xml:space="preserve">
+    <value>Active company:</value>
+  </data>
+  <data name="GrilleCompatibiliteTab" xml:space="preserve">
+    <value>K. Compatibility grid</value>
+  </data>
+  <data name="SyntheseEntreprise" xml:space="preserve">
+    <value>COMPANY SYNTHESIS</value>
+  </data>
+  <data name="SyntheseEntrepriseHint" xml:space="preserve">
+    <value>The synthesis (section J) is filled in directly by the company under the "J. Synthesis" tab.</value>
+  </data>
+  <data name="GrilleK_Entete" xml:space="preserve">
+    <value>K. Supplementary grid of criteria for the compatibility engine</value>
+  </data>
+  <data name="GrilleK_Hint" xml:space="preserve">
+    <value>Turns the profile's qualitative information into criteria directly comparable with the candidate's profile.</value>
+  </data>
+  <data name="CompatibiliteTechnique" xml:space="preserve">
+    <value>Technical compatibility</value>
+  </data>
+  <data name="QuestionTechnique" xml:space="preserve">
+    <value>Select the skills required from day one on the job.</value>
+  </data>
+  <data name="NotesLibresTechnique" xml:space="preserve">
+    <value>Free notes (optional — used at interview time, not part of the calculation)</value>
+  </data>
+  <data name="CompatibiliteComportementale" xml:space="preserve">
+    <value>Behavioral compatibility</value>
+  </data>
+  <data name="QuestionComportementale" xml:space="preserve">
+    <value>Select the professional behaviors expected day-to-day.</value>
+  </data>
+  <data name="NotesLibres" xml:space="preserve">
+    <value>Free notes (optional)</value>
+  </data>
+  <data name="CompatibiliteCulturelle" xml:space="preserve">
+    <value>Cultural compatibility</value>
+  </data>
+  <data name="QuestionCulturelle" xml:space="preserve">
+    <value>Select the values actually practiced within the company.</value>
+  </data>
+  <data name="CompatibiliteOrganisationnelle" xml:space="preserve">
+    <value>Organizational compatibility — work pace</value>
+  </data>
+  <data name="QuestionRythme" xml:space="preserve">
+    <value>What work pace does the position actually require?</value>
+  </data>
+  <data name="ChoisirOption" xml:space="preserve">
+    <value>— Choose —</value>
+  </data>
+  <data name="CompatibiliteMotivationnelle" xml:space="preserve">
+    <value>Motivational compatibility</value>
+  </data>
+  <data name="QuestionMotivationnelle" xml:space="preserve">
+    <value>Select what generally motivates employees at this company.</value>
+  </data>
+  <data name="PointsDeVigilance" xml:space="preserve">
+    <value>Points of caution</value>
+  </data>
+  <data name="QuestionPointsVigilance" xml:space="preserve">
+    <value>Select the situations likely to cause fatigue, stress or early departures.</value>
+  </data>
+  <data name="GrilleComplete" xml:space="preserve">
+    <value>Compatibility grid complete.</value>
+  </data>
+  <data name="GrilleIncomplete" xml:space="preserve">
+    <value>Compatibility grid incomplete.</value>
+  </data>
+  <data name="CreerUneEntreprise" xml:space="preserve">
+    <value>Create a company</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Ajouter" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="AjouterACePoste" xml:space="preserve">
+    <value>Add to this job</value>
+  </data>
+  <data name="AjouterLaSelection" xml:space="preserve">
+    <value>Add selection</value>
+  </data>
+  <data name="AjouterUnCritere" xml:space="preserve">
+    <value>Add a criterion</value>
+  </data>
+  <data name="Annuler" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AucunCandidatPourCetteRecherche" xml:space="preserve">
+    <value>No candidates match this search.</value>
+  </data>
+  <data name="AucunCandidatVivierEligible" xml:space="preserve">
+    <value>No talent-pool candidates are eligible for this job yet.</value>
+  </data>
+  <data name="AucunCritere" xml:space="preserve">
+    <value>No criteria defined for this job.</value>
+  </data>
+  <data name="AucuneCandidaturePourPoste" xml:space="preserve">
+    <value>No applications received for this job.</value>
+  </data>
+  <data name="AucuneInvitationEnCours" xml:space="preserve">
+    <value>No pending invitations for this job.</value>
+  </data>
+  <data name="AucunPosteCree" xml:space="preserve">
+    <value>No job created yet.</value>
+  </data>
+  <data name="AucunPosteOuvert" xml:space="preserve">
+    <value>No open jobs at the moment.</value>
+  </data>
+  <data name="AucunPostePourCetteRecherche" xml:space="preserve">
+    <value>No jobs match this search.</value>
+  </data>
+  <data name="Avantages" xml:space="preserve">
+    <value>Benefits</value>
+  </data>
+  <data name="AvertissementScoreCompatibiliteEntreprise" xml:space="preserve">
+    <value>The compatibility score reflects overall fit with your company, not this specific job — verify relevance before adding.</value>
+  </data>
+  <data name="CandidatAjouteDepuisVivier" xml:space="preserve">
+    <value>Candidate added to this job.</value>
+  </data>
+  <data name="CandidatProfil" xml:space="preserve">
+    <value>Candidate (profile)</value>
+  </data>
+  <data name="CandidatureEnvoyee" xml:space="preserve">
+    <value>Application sent</value>
+  </data>
+  <data name="CandidaturesDuPoste" xml:space="preserve">
+    <value>Job applications</value>
+  </data>
+  <data name="Categorie" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ChargementDesCandidatures" xml:space="preserve">
+    <value>Loading applications…</value>
+  </data>
+  <data name="Compatibilite" xml:space="preserve">
+    <value>Compatibility</value>
+  </data>
+  <data name="ConfirmerSuppressionPoste" xml:space="preserve">
+    <value>Delete the job “{0}”? Related applications and criteria will also be deleted.</value>
+  </data>
+  <data name="CreerLePoste" xml:space="preserve">
+    <value>Create job</value>
+  </data>
+  <data name="CriteresDuPoste" xml:space="preserve">
+    <value>Job criteria</value>
+  </data>
+  <data name="CriteresIaAjoutes" xml:space="preserve">
+    <value>{0} criterion(a) added by AI.</value>
+  </data>
+  <data name="CriteresIaAucunChangement" xml:space="preserve">
+    <value>No change — the job has not been modified since the last generation.</value>
+  </data>
+  <data name="DateCandidature" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="DateCloture" xml:space="preserve">
+    <value>Closing date</value>
+  </data>
+  <data name="Departement" xml:space="preserve">
+    <value>Department</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="DescriptionDesTaches" xml:space="preserve">
+    <value>Tasks description</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="DeuxiemeEntrevue" xml:space="preserve">
+    <value>Second interview</value>
+  </data>
+  <data name="EcartAuDessus" xml:space="preserve">
+    <value>Above</value>
+  </data>
+  <data name="EcartConforme" xml:space="preserve">
+    <value>On target</value>
+  </data>
+  <data name="EcartEnDessous" xml:space="preserve">
+    <value>Below</value>
+  </data>
+  <data name="EmailCandidat" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Enregistrer" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="EnvoyerLInvitation" xml:space="preserve">
+    <value>Send invitation</value>
+  </data>
+  <data name="ErreurInvitation" xml:space="preserve">
+    <value>Unable to send the invitation.</value>
+  </data>
+  <data name="ErreurRattachementVivier" xml:space="preserve">
+    <value>Unable to add this candidate to the job.</value>
+  </data>
+  <data name="Fermer" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="GenererCriteresIa" xml:space="preserve">
+    <value>Generate criteria with AI</value>
+  </data>
+  <data name="GenererCriteresIaDescription" xml:space="preserve">
+    <value>AI analyses the job title, description and tasks, then proposes criteria in addition to those already defined. Existing criteria are never overwritten.</value>
+  </data>
+  <data name="GenererCriteresIaEchec" xml:space="preserve">
+    <value>AI criteria generation failed. Check the job description or define the profile manually.</value>
+  </data>
+  <data name="GenererCriteresIaEnCours" xml:space="preserve">
+    <value>Generating…</value>
+  </data>
+  <data name="GenererCriteresIaHint" xml:space="preserve">
+    <value>Automatic criteria suggestions based on the job description.</value>
+  </data>
+  <data name="GenererManuellement" xml:space="preserve">
+    <value>Generate manually</value>
+  </data>
+  <data name="GuideDesEntrevues" xml:space="preserve">
+    <value>Interview guides</value>
+  </data>
+  <data name="GuideDeuxiemeEntrevue" xml:space="preserve">
+    <value>2nd interview guide</value>
+  </data>
+  <data name="HeureCloture" xml:space="preserve">
+    <value>Closing time</value>
+  </data>
+  <data name="IgnorerEtDefinirManuellement" xml:space="preserve">
+    <value>Skip and define manually</value>
+  </data>
+  <data name="InvitationEnvoyee" xml:space="preserve">
+    <value>Invitation sent.</value>
+  </data>
+  <data name="InvitationsEnCours" xml:space="preserve">
+    <value>Pending invitations</value>
+  </data>
+  <data name="Libelle" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="LienDInvitationGenere" xml:space="preserve">
+    <value>Invitation link generated — share it with the candidate:</value>
+  </data>
+  <data name="MasquerLesCandidatures" xml:space="preserve">
+    <value>Hide applications</value>
+  </data>
+  <data name="Modifier" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="ModifierPoste" xml:space="preserve">
+    <value>Edit job</value>
+  </data>
+  <data name="ModifierUnCritere" xml:space="preserve">
+    <value>Edit criterion</value>
+  </data>
+  <data name="NiveauMoyenEvaluation" xml:space="preserve">
+    <value>Average evaluation level</value>
+  </data>
+  <data name="NiveauRequis" xml:space="preserve">
+    <value>Required level</value>
+  </data>
+  <data name="NomCandidat" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="NouveauCandidat" xml:space="preserve">
+    <value>New candidate</value>
+  </data>
+  <data name="NouveauPoste" xml:space="preserve">
+    <value>New job</value>
+  </data>
+  <data name="OffreDefinirProfilDabord" xml:space="preserve">
+    <value>Define the job profile first (at least one criterion) before drafting the offer.</value>
+  </data>
+  <data name="OrdreAffichage" xml:space="preserve">
+    <value>Display order</value>
+  </data>
+  <data name="PosteDOrigine" xml:space="preserve">
+    <value>Original job</value>
+  </data>
+  <data name="PosteIntrouvable" xml:space="preserve">
+    <value>Job not found.</value>
+  </data>
+  <data name="PostesDeLEntreprise" xml:space="preserve">
+    <value>Company jobs</value>
+  </data>
+  <data name="PostesOuverts" xml:space="preserve">
+    <value>Open jobs</value>
+  </data>
+  <data name="Postuler" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="PremiereEntrevue" xml:space="preserve">
+    <value>First interview</value>
+  </data>
+  <data name="PremiereGrilleEvaluation" xml:space="preserve">
+    <value>1st evaluation grid</value>
+  </data>
+  <data name="PreparerMonEntretien" xml:space="preserve">
+    <value>Prepare my interview</value>
+  </data>
+  <data name="Preselectionne" xml:space="preserve">
+    <value>Shortlisted</value>
+  </data>
+  <data name="ProfilDuPoste" xml:space="preserve">
+    <value>Job profile</value>
+  </data>
+  <data name="ProfilDuPosteHint" xml:space="preserve">
+    <value>Manually define the skill criteria required for this job.</value>
+  </data>
+  <data name="ProposerDepuisLeVivier" xml:space="preserve">
+    <value>Suggest from talent pool</value>
+  </data>
+  <data name="RechercherUnCandidat" xml:space="preserve">
+    <value>Search candidates…</value>
+  </data>
+  <data name="RechercherUnPoste" xml:space="preserve">
+    <value>Search jobs…</value>
+  </data>
+  <data name="Recrutement" xml:space="preserve">
+    <value>Jobs &amp; recruitment</value>
+  </data>
+  <data name="RedigerUneOffre" xml:space="preserve">
+    <value>Draft a job offer</value>
+  </data>
+  <data name="Resultats" xml:space="preserve">
+    <value>Results</value>
+  </data>
+  <data name="RetourAuxPostes" xml:space="preserve">
+    <value>Back to jobs</value>
+  </data>
+  <data name="RevoquerInvitation" xml:space="preserve">
+    <value>Revoke</value>
+  </data>
+  <data name="Rouvrir" xml:space="preserve">
+    <value>Reopen</value>
+  </data>
+  <data name="Salaire" xml:space="preserve">
+    <value>Salary</value>
+  </data>
+  <data name="ScoreCompatibilite" xml:space="preserve">
+    <value>Compatibility score</value>
+  </data>
+  <data name="ScoreNonCalcule" xml:space="preserve">
+    <value>Not calculated</value>
+  </data>
+  <data name="SelectionDesCandidats" xml:space="preserve">
+    <value>Selection</value>
+  </data>
+  <data name="SelectionDesCandidatsHint" xml:space="preserve">
+    <value>Compare applications side by side and shortlist before the final decision.</value>
+  </data>
+  <data name="Statut" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="SuggestionDejaAjoutee" xml:space="preserve">
+    <value>Already added</value>
+  </data>
+  <data name="Suggestions" xml:space="preserve">
+    <value>Suggestions</value>
+  </data>
+  <data name="SuggestionsAjoutees" xml:space="preserve">
+    <value>{0} suggestion(s) added.</value>
+  </data>
+  <data name="SuggestionsCategories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="SuggestionsCategoriesHint" xml:space="preserve">
+    <value>Select one or more — all items in the category will be included by default.</value>
+  </data>
+  <data name="SuggestionsHint" xml:space="preserve">
+    <value>Generic skills baseline — first select one or more categories, then refine the items (Medium level by default, adjustable afterwards).</value>
+  </data>
+  <data name="SuggestionsItemsInclus" xml:space="preserve">
+    <value>Included items — all items from selected categories</value>
+  </data>
+  <data name="Supprimer" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Titre" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="TousLesPostesOuverts" xml:space="preserve">
+    <value>All open jobs, across all employers.</value>
+  </data>
+  <data name="VoirLeDetail" xml:space="preserve">
+    <value>View details</value>
+  </data>
+  <data name="VoirLesCandidatures" xml:space="preserve">
+    <value>View applications</value>
+  </data>
+  <data name="ModuleRecrutementRequis" xml:space="preserve">
+    <value>Requires the Recruitment module</value>
+  </data>
+  <data name="ModuleRecrutementRequisHint" xml:space="preserve">
+    <value>Interviews (1st and 2nd) require the Recruitment module. Activate it for this company.</value>
+  </data>
 </root>

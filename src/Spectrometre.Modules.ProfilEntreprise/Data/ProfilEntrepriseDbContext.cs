@@ -23,6 +23,12 @@ public sealed class ProfilEntrepriseDbContext(DbContextOptions<ProfilEntrepriseD
     public DbSet<CompanyAnswer> CompanyAnswers => Set<CompanyAnswer>();
     public DbSet<CompanyCompatibilityCriteria> CompanyCompatibilityCriteria => Set<CompanyCompatibilityCriteria>();
 
+    public DbSet<Poste> Postes => Set<Poste>();
+    public DbSet<Candidature> Candidatures => Set<Candidature>();
+    public DbSet<CritereEvaluation> CriteresEvaluation => Set<CritereEvaluation>();
+    public DbSet<EvaluationCritereCandidature> EvaluationsCriteresCandidature => Set<EvaluationCritereCandidature>();
+    public DbSet<GenerationCriteresIaPoste> GenerationsCriteresIaPoste => Set<GenerationCriteresIaPoste>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -49,6 +55,41 @@ public sealed class ProfilEntrepriseDbContext(DbContextOptions<ProfilEntrepriseD
             // (uint fantôme + IsRowVersion, auto-détecté par le provider Npgsql et mappé sur la colonne
             // système "xmin"), utilisé par CompanyProfileService pour détecter puis résoudre les écritures concurrentes.
             e.Property<uint>("Version").IsRowVersion();
+        });
+
+        builder.Entity<Candidature>(e =>
+        {
+            e.HasIndex(c => new { c.PosteId, c.CandidateProfileId }).IsUnique();
+            e.HasMany(c => c.EvaluationsFinales)
+                .WithOne()
+                .HasForeignKey(ev => ev.CandidatureId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<CritereEvaluation>(e =>
+        {
+            e.HasIndex(c => new { c.PosteId, c.OrdreAffichage });
+            e.Property(c => c.Categorie).HasMaxLength(200);
+            e.Property(c => c.Libelle).HasMaxLength(500);
+        });
+
+        builder.Entity<EvaluationCritereCandidature>(e =>
+        {
+            e.HasIndex(ev => new { ev.CandidatureId, ev.CritereId }).IsUnique();
+            e.HasOne<CritereEvaluation>()
+                .WithMany()
+                .HasForeignKey(ev => ev.CritereId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<GenerationCriteresIaPoste>(e =>
+        {
+            e.HasIndex(g => g.PosteId).IsUnique();
+            e.Property(g => g.HashContexte).HasMaxLength(128);
+            e.HasOne<Poste>()
+                .WithMany()
+                .HasForeignKey(g => g.PosteId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         SeedQuestionnaire(builder);

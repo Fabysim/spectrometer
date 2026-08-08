@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Spectrometre.Core.Ai;
 using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
@@ -26,13 +27,14 @@ using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.GestionDuTemps.Services;
 using Spectrometre.Modules.ProfilCoach;
 using Spectrometre.Modules.ProfilCoach.Data;
-using Spectrometre.Modules.PostesRecrutement;
-using Spectrometre.Modules.PostesRecrutement.Data;
-using Spectrometre.Modules.PostesRecrutement.Services;
+using Spectrometre.Modules.Recrutement;
+using Spectrometre.Modules.Recrutement.Data;
+using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
 using Spectrometre.Modules.ProfilCandidat.Data;
 using Spectrometre.Modules.ProfilEntreprise;
 using Spectrometre.Modules.ProfilEntreprise.Data;
+using Spectrometre.Modules.ProfilEntreprise.Services;
 using Spectrometre.Modules.SuiviEvolutif;
 using Spectrometre.Modules.SuiviEvolutif.Data;
 using Spectrometre.Modules.SuiviEvolutif.Services;
@@ -138,7 +140,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddProfilCandidatModule(config);
         services.AddProfilEntrepriseModule(config);
         services.AddCompatibiliteModule(config);
-        services.AddPostesRecrutementModule(config);
+        services.AddRecrutementModule(config);
         services.AddEntretienModule(config);
         services.AddSuiviEvolutifModule(config);
         services.AddAnalyticsModule();
@@ -153,12 +155,14 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddScoped<ICoachingAccessChecker, CoachingAccessChecker>();
 
         // Jamais d'appel réseau réel à Replicate en test — substitue l'implémentation réelle enregistrée
-        // par AddGestionDuTempsModule par un double configurable (voir FakeAiSynthesisService).
+        // par AddGestionDuTempsModule / AddSpectrometreCore par des doubles configurables.
+        services.AddScoped<IReplicateService, FakeReplicateService>();
         services.Replace(ServiceDescriptor.Scoped<IAiSynthesisService, FakeAiSynthesisService>());
-        services.Replace(ServiceDescriptor.Scoped<Spectrometre.Modules.PostesRecrutement.Services.IAnalysePosteIaService, FakeAnalysePosteIaService>());
+        services.Replace(ServiceDescriptor.Scoped<Spectrometre.Modules.Recrutement.Services.IAnalysePosteIaService, FakeAnalysePosteIaService>());
+        services.Replace(ServiceDescriptor.Scoped<Spectrometre.Modules.ProfilEntreprise.Services.IPosteCritereIaService, FakePosteCritereIaService>());
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
-        // PostesRecrutement mais enregistrée ici (pas depuis Compatibilite).
+        // ProfilEntreprise (ex-PostesRecrutement) mais enregistrée ici (pas depuis Compatibilite).
         services.AddScoped<ICandidatureExistenceChecker, CandidatureExistenceChecker>();
 
         // Idem pour ProfilCandidat/ProfilEntreprise → SuiviEvolutif : implémentation réelle par-dessus le
@@ -173,7 +177,7 @@ public sealed class ServiceFixture : IAsyncLifetime
             moduleRegistry.Register(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
-            moduleRegistry.Register(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
@@ -198,7 +202,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         await using var compatibiliteDb = await Services.GetRequiredService<IDbContextFactory<CompatibiliteDbContext>>().CreateDbContextAsync();
         await compatibiliteDb.Database.MigrateAsync();
 
-        await using var postesDb = await Services.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>().CreateDbContextAsync();
+        await using var postesDb = await Services.GetRequiredService<IDbContextFactory<RecrutementDbContext>>().CreateDbContextAsync();
         await postesDb.Database.MigrateAsync();
 
         await using var entretienDb = await Services.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync();
@@ -234,8 +238,8 @@ public sealed class ServiceFixture : IAsyncLifetime
             async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<ProfilEntrepriseDbContext>>().CreateDbContextAsync(ct)),
         new(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest.Code,
             async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<CompatibiliteDbContext>>().CreateDbContextAsync(ct)),
-        new(Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest.Code,
-            async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<PostesRecrutementDbContext>>().CreateDbContextAsync(ct)),
+        new(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest.Code,
+            async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<RecrutementDbContext>>().CreateDbContextAsync(ct)),
         new(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest.Code,
             async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync(ct)),
         new(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest.Code,
@@ -290,7 +294,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         // n'a jamais servi à rien à l'exécution et faisait apparaître à tort ce module personnel dans son menu.
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest.Code, coreDb);
-        await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.PostesRecrutement.ServiceCollectionExtensions.Manifest.Code, coreDb);
+        await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest.Code, coreDb);
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest.Code, coreDb);
         // Analytics n'a pas de schéma propre (voir TenantModules ci-dessus, volontairement absent) — rien à
