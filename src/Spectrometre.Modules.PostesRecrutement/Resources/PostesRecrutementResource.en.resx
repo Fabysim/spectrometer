@@ -152,4 +152,13 @@
   <data name="Resultats" xml:space="preserve"><value>Results</value></data>
   <data name="Actions" xml:space="preserve"><value>Actions</value></data>
   <data name="ConfirmerSuppressionPoste" xml:space="preserve"><value>Delete the job “{0}”? Related applications and criteria will also be deleted.</value></data>
+  <data name="ProposerDepuisLeVivier" xml:space="preserve"><value>Suggest from talent pool</value></data>
+  <data name="AvertissementScoreCompatibiliteEntreprise" xml:space="preserve"><value>The compatibility score reflects overall fit with your company, not this specific job — verify relevance before adding.</value></data>
+  <data name="AjouterACePoste" xml:space="preserve"><value>Add to this job</value></data>
+  <data name="AucunCandidatVivierEligible" xml:space="preserve"><value>No talent-pool candidates are eligible for this job yet.</value></data>
+  <data name="CandidatAjouteDepuisVivier" xml:space="preserve"><value>Candidate added to this job.</value></data>
+  <data name="ErreurRattachementVivier" xml:space="preserve"><value>Unable to add this candidate to the job.</value></data>
+  <data name="PosteDOrigine" xml:space="preserve"><value>Original job</value></data>
+  <data name="ScoreCompatibilite" xml:space="preserve"><value>Score</value></data>
+  <data name="ScoreNonCalcule" xml:space="preserve"><value>Not calculated</value></data>
 </root>

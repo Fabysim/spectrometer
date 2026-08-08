@@ -938,4 +938,34 @@ Réponds en français, texte libre en paragraphes courts (pas de JSON). Sois fac
         var candidateProfileId = await candidateProfileService.GetOrCreateProfileIdAsync(accepteurUserId, cancellationToken);
         await PostulerAsync(companyCible.Id, posteId, candidateProfileId, cancellationToken);
     }
+
+    public async Task<int> RattacherCandidatDepuisVivierAsync(int posteId, int candidateProfileId, CancellationToken cancellationToken = default)
+    {
+        var company = await GetActiveCompanyAsync(cancellationToken);
+
+        await using var db = await CreateAmbientDbAsync(cancellationToken);
+        var poste = await db.Postes.AsNoTracking().FirstOrDefaultAsync(p => p.Id == posteId, cancellationToken)
+            ?? throw new InvalidOperationException("Poste introuvable dans l'entreprise active.");
+
+        var existante = await db.Candidatures
+            .FirstOrDefaultAsync(c => c.PosteId == posteId && c.CandidateProfileId == candidateProfileId, cancellationToken);
+        if (existante is not null)
+            return existante.Id;
+
+        // Garde structurelle : uniquement un candidat DÉJÀ connu de CETTE entreprise via l'index
+        // (jamais un accès "candidat au hasard", jamais une vérif déléguée au module Vivier).
+        var candidaturesEntreprise = await recruitmentIndex.GetCandidaturesPourEntrepriseAsync(company.Id, cancellationToken);
+        if (!candidaturesEntreprise.Any(c => c.CandidateProfileId == candidateProfileId))
+            throw new InvalidOperationException(
+                "Ce candidat n'a aucune candidature dans l'entreprise active — rattachement depuis le vivier impossible.");
+
+        var candidature = new Candidature { PosteId = posteId, CandidateProfileId = candidateProfileId };
+        db.Candidatures.Add(candidature);
+        await db.SaveChangesAsync(cancellationToken);
+
+        // Tenant ambiant = entreprise active : le calcul de compatibilité (si module actif) est sûr ici,
+        // contrairement à PostulerAsync qui traverse un autre schéma.
+        await UpsertCandidatureIndexAsync(candidature, poste.Titre, company.Id, precomputed: null, cancellationToken);
+        return candidature.Id;
+    }
 }

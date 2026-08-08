@@ -24,6 +24,8 @@
     <ProjectReference Include="..\Spectrometre.Modules.ProfilEntreprise\Spectrometre.Modules.ProfilEntreprise.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.ProfilCandidat\Spectrometre.Modules.ProfilCandidat.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.Compatibilite\Spectrometre.Modules.Compatibilite.csproj" />
+    <!-- Lecture éligibles vivier (IVivierService) pour rattacher un candidat déjà connu — pas l'inverse. -->
+    <ProjectReference Include="..\Spectrometre.Modules.Vivier\Spectrometre.Modules.Vivier.csproj" />
   </ItemGroup>
 
 </Project>

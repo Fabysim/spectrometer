@@ -155,6 +155,15 @@ public interface IPosteService
     /// </summary>
     Task FinaliserCandidatureDepuisInvitationAsync(Invitation invitation, string accepteurUserId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Rattache au poste un candidat DÉJÀ présent dans le vivier de l'entreprise active (au moins une
+    /// candidature indexée ailleurs dans cette entreprise via <c>IRecruitmentIndexService</c>).
+    /// Idempotent si la candidature (poste, candidat) existe déjà. Lève
+    /// <see cref="InvalidOperationException"/> si le poste est introuvable dans le tenant actif, ou si
+    /// le candidat n'a aucune candidature connue pour cette entreprise.
+    /// </summary>
+    Task<int> RattacherCandidatDepuisVivierAsync(int posteId, int candidateProfileId, CancellationToken cancellationToken = default);
+
     // --- Côté candidat (traverse tous les tenants) ---
     Task<IReadOnlyList<PosteOuvertView>> GetPostesOuvertsAsync(int candidateProfileId, CancellationToken cancellationToken = default);
     Task PostulerAsync(int companyId, int posteId, int candidateProfileId, CancellationToken cancellationToken = default);

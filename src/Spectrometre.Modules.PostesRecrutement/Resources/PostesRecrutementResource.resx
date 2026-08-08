@@ -150,4 +150,13 @@
   <data name="Resultats" xml:space="preserve"><value>Résultats</value></data>
   <data name="Actions" xml:space="preserve"><value>Actions</value></data>
   <data name="ConfirmerSuppressionPoste" xml:space="preserve"><value>Supprimer le poste « {0} » ? Les candidatures et critères associés seront également supprimés.</value></data>
+  <data name="ProposerDepuisLeVivier" xml:space="preserve"><value>Proposer depuis le vivier</value></data>
+  <data name="AvertissementScoreCompatibiliteEntreprise" xml:space="preserve"><value>Le score de compatibilité reflète l'adéquation globale avec votre entreprise, pas spécifiquement ce poste — vérifiez la pertinence avant d'ajouter.</value></data>
+  <data name="AjouterACePoste" xml:space="preserve"><value>Ajouter à ce poste</value></data>
+  <data name="AucunCandidatVivierEligible" xml:space="preserve"><value>Aucun candidat du vivier n'est encore éligible pour ce poste.</value></data>
+  <data name="CandidatAjouteDepuisVivier" xml:space="preserve"><value>Candidat ajouté à ce poste.</value></data>
+  <data name="ErreurRattachementVivier" xml:space="preserve"><value>Impossible d'ajouter ce candidat au poste.</value></data>
+  <data name="PosteDOrigine" xml:space="preserve"><value>Poste d'origine</value></data>
+  <data name="ScoreCompatibilite" xml:space="preserve"><value>Score</value></data>
+  <data name="ScoreNonCalcule" xml:space="preserve"><value>Non calculé</value></data>
 </root>

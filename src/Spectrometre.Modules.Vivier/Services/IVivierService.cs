@@ -35,6 +35,14 @@ public interface IVivierService
     Task<IReadOnlyList<CandidatureVivierView>> GetCandidaturesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Candidats du vivier de l'entreprise active qui n'ont pas encore de candidature sur
+    /// <paramref name="posteId"/>. Dédoublonnés par <c>CandidateProfileId</c> (garde la ligne au
+    /// <c>UpdatedAt</c> le plus récent). Même source exclusive que <see cref="GetCandidaturesAsync"/> :
+    /// <c>IRecruitmentIndexService</c>, jamais un listing via <c>ICandidateProfileService</c>.
+    /// </summary>
+    Task<IReadOnlyList<CandidatureVivierView>> GetCandidatsEligiblesPourPosteAsync(int posteId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Détail des critères déclarés par un candidat (grille H), UNIQUEMENT s'il a une candidature vers
     /// l'entreprise active — <c>null</c> sinon (candidat inexistant, jamais postulé ici, ou entreprise
     /// différente), y compris en cas d'accès direct par URL avec un identifiant arbitraire.

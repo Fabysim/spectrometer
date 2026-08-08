@@ -6,16 +6,21 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Identity
+@using Spectrometre.Core.Compatibility
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Directory
 @using Spectrometre.Core.Identity
+@using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.PostesRecrutement.Entities
 @using Spectrometre.Modules.PostesRecrutement.Resources
 @using Spectrometre.Modules.PostesRecrutement.Services
 @using Spectrometre.Modules.ProfilCandidat.Services
+@using Spectrometre.Modules.Vivier.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IPosteService PosteService
+@inject IVivierService VivierService
+@inject IModuleRegistry ModuleRegistry
 @inject ICandidateProfileService CandidateProfileService
 @inject ICandidateDirectoryService CandidateDirectory
 @inject UserManager<ApplicationUser> UserManager
@@ -152,6 +157,96 @@ else
                 </ul>
             }
         </section>
+
+        @if (_vivierActif)
+        {
+            <details class="postes-card postes-vivier-propose">
+                <summary class="postes-vivier-summary">
+                    <span class="postes-vivier-summary-main">
+                        <i class="bi bi-people" aria-hidden="true"></i>
+                        @Localizer["ProposerDepuisLeVivier"]
+                    </span>
+                    @if (_eligiblesVivier is { Count: > 0 })
+                    {
+                        <span class="postes-vivier-count">@_eligiblesVivier.Count</span>
+                    }
+                </summary>
+
+                <p class="postes-vivier-warning" role="note">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                    @Localizer["AvertissementScoreCompatibiliteEntreprise"]
+                </p>
+
+                @if (!string.IsNullOrEmpty(_vivierError))
+                {
+                    <div class="postes-alert postes-alert-error" role="alert">@_vivierError</div>
+                }
+                @if (!string.IsNullOrEmpty(_vivierMessage))
+                {
+                    <div class="postes-alert postes-alert-success" role="status">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @_vivierMessage
+                    </div>
+                }
+
+                @if (_eligiblesVivier is null)
+                {
+                    <p class="postes-hint">@Localizer["Chargement"]</p>
+                }
+                else if (_eligiblesVivier.Count == 0)
+                {
+                    <p class="postes-hint">@Localizer["AucunCandidatVivierEligible"]</p>
+                }
+                else
+                {
+                    <ul class="postes-vivier-list">
+                        @foreach (var eligible in _eligiblesVivier)
+                        {
+                            var info = InfosCandidat(eligible.CandidateProfileId);
+                            <li class="postes-vivier-list-item">
+                                <div class="postes-vivier-list-main">
+                                    <div class="postes-vivier-identity">
+                                        <span class="candidat-nom">@info.NomAffiche</span>
+                                        <span class="candidat-email">@info.EmailAffiche</span>
+                                    </div>
+                                    <p class="postes-vivier-origine">
+                                        <i class="bi bi-briefcase" aria-hidden="true"></i>
+                                        <span>@Localizer["PosteDOrigine"]</span>
+                                        <strong>@eligible.PosteTitre</strong>
+                                    </p>
+                                    <div class="postes-vivier-meta">
+                                        @if (eligible.ScoreCompatibilite is int score)
+                                        {
+                                            <span class="score-badge" title="@Localizer["ScoreCompatibilite"]">@score%</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="score-empty">@Localizer["ScoreNonCalcule"]</span>
+                                        }
+                                        @if (eligible.TagsCles.Count > 0)
+                                        {
+                                            <div class="postes-tags">
+                                                @foreach (var tag in eligible.TagsCles)
+                                                {
+                                                    <span class="postes-tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <button type="button"
+                                        class="postes-btn-primary"
+                                        disabled="@(_rattachementEnCours == eligible.CandidateProfileId)"
+                                        @onclick="() => AjouterDepuisVivierAsync(eligible.CandidateProfileId)">
+                                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                    @Localizer["AjouterACePoste"]
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                }
+            </details>
+        }
     </div>
 
     <section class="postes-card postes-candidatures-card">
@@ -298,6 +393,11 @@ else
     private string? _inviteMessage;
     private string? _lienInvitation;
     private List<InvitationView> _invitationsEnCours = [];
+    private bool _vivierActif;
+    private List<CandidatureVivierView>? _eligiblesVivier;
+    private int? _rattachementEnCours;
+    private string? _vivierError;
+    private string? _vivierMessage;
     private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     private sealed record CandidatInfo(string NomAffiche, string EmailAffiche, string? Prenom, string? Nom, string? Email);
@@ -371,8 +471,20 @@ else
 
             _poste = poste;
             _candidatures = (await PosteService.GetCandidaturesAsync(PosteId)).ToList();
-            await ChargerInfosCandidatsAsync(_candidatures);
+            await ChargerInfosCandidatsAsync(_candidatures.Select(c => c.CandidateProfileId));
             _invitationsEnCours = (await PosteService.GetInvitationsCandidatEnCoursAsync(PosteId)).ToList();
+
+            // Même réflexe que GestionDuTempsAccessService : IsActiveAsync module par module, jamais GetActiveModuleCodesAsync.
+            _vivierActif = await ModuleRegistry.IsActiveAsync(company.Id, "Vivier", CoreDb);
+            if (_vivierActif)
+                await ChargerEligiblesVivierAsync();
+            else
+            {
+                _eligiblesVivier = null;
+                _vivierError = null;
+                _vivierMessage = null;
+            }
+
             return;
         }
 
@@ -380,6 +492,14 @@ else
         _candidatures = null;
         _infosCandidats.Clear();
         _invitationsEnCours = [];
+        _vivierActif = false;
+        _eligiblesVivier = null;
+    }
+
+    private async Task ChargerEligiblesVivierAsync()
+    {
+        _eligiblesVivier = (await VivierService.GetCandidatsEligiblesPourPosteAsync(PosteId)).ToList();
+        await ChargerInfosCandidatsAsync(_eligiblesVivier.Select(e => e.CandidateProfileId), clear: false);
     }
 
     /// <summary>
@@ -387,21 +507,27 @@ else
     /// (FirstName / LastName / Email) via <see cref="ICandidateDirectoryService"/> — PosteCandidatureDetailPage
     /// n'affiche encore que l'Id ; même source CV que VivierCandidatDetailPage.
     /// </summary>
-    private async Task ChargerInfosCandidatsAsync(IReadOnlyList<CandidatureView> candidatures)
+    private async Task ChargerInfosCandidatsAsync(IEnumerable<int> candidateProfileIds, bool clear = true)
     {
-        _infosCandidats.Clear();
+        if (clear)
+            _infosCandidats.Clear();
+
+        var ids = candidateProfileIds.Distinct().Where(id => !_infosCandidats.ContainsKey(id)).ToList();
+        if (ids.Count == 0)
+            return;
+
         var directory = (await CandidateDirectory.GetAllAsync())
             .ToDictionary(e => e.CandidateProfileId);
 
-        foreach (var candidature in candidatures)
+        foreach (var candidateProfileId in ids)
         {
-            var cv = await CandidateProfileService.GetCvAsync(candidature.CandidateProfileId);
+            var cv = await CandidateProfileService.GetCvAsync(candidateProfileId);
             var coord = cv.Coordonnees;
             var prenom = coord?.Prenoms;
             var nom = coord?.Nom;
             var email = coord?.Email;
 
-            if (directory.TryGetValue(candidature.CandidateProfileId, out var entry))
+            if (directory.TryGetValue(candidateProfileId, out var entry))
             {
                 var user = await UserManager.FindByIdAsync(entry.UserId);
                 if (user is not null)
@@ -417,14 +543,39 @@ else
 
             var nomAffiche = string.Join(" ", new[] { prenom, nom }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
             if (nomAffiche.Length == 0)
-                nomAffiche = $"#{candidature.CandidateProfileId}";
+                nomAffiche = $"#{candidateProfileId}";
 
-            _infosCandidats[candidature.CandidateProfileId] = new CandidatInfo(
+            _infosCandidats[candidateProfileId] = new CandidatInfo(
                 nomAffiche,
                 string.IsNullOrWhiteSpace(email) ? "—" : email!,
                 prenom,
                 nom,
                 email);
+        }
+    }
+
+    private async Task AjouterDepuisVivierAsync(int candidateProfileId)
+    {
+        _vivierError = null;
+        _vivierMessage = null;
+        _rattachementEnCours = candidateProfileId;
+        try
+        {
+            await PosteService.RattacherCandidatDepuisVivierAsync(PosteId, candidateProfileId);
+            _candidatures = (await PosteService.GetCandidaturesAsync(PosteId)).ToList();
+            await ChargerInfosCandidatsAsync(_candidatures.Select(c => c.CandidateProfileId));
+            await ChargerEligiblesVivierAsync();
+            _vivierMessage = Localizer["CandidatAjouteDepuisVivier"];
+        }
+        catch (Exception ex)
+        {
+            _vivierError = string.IsNullOrWhiteSpace(ex.Message)
+                ? Localizer["ErreurRattachementVivier"].Value
+                : ex.Message;
+        }
+        finally
+        {
+            _rattachementEnCours = null;
         }
     }
 
@@ -473,7 +624,7 @@ else
         {
             await PosteService.SetCandidatureStatutAsync(candidatureId, statut);
             _candidatures = (await PosteService.GetCandidaturesAsync(PosteId)).ToList();
-            await ChargerInfosCandidatsAsync(_candidatures);
+            await ChargerInfosCandidatsAsync(_candidatures.Select(c => c.CandidateProfileId));
         }
     }
 }

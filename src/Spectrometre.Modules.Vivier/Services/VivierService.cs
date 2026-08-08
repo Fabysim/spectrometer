@@ -21,6 +21,27 @@ public sealed class VivierService(
             .ToList();
     }
 
+    public async Task<IReadOnlyList<CandidatureVivierView>> GetCandidatsEligiblesPourPosteAsync(int posteId, CancellationToken cancellationToken = default)
+    {
+        var entries = await recruitmentIndex.GetCandidaturesPourEntrepriseAsync(ActiveCompanyId, cancellationToken);
+
+        var dejaSurCePoste = entries
+            .Where(e => e.PosteId == posteId)
+            .Select(e => e.CandidateProfileId)
+            .ToHashSet();
+
+        // Un même candidat peut figurer plusieurs fois (postes distincts) : une ligne d'affichage,
+        // celle au UpdatedAt le plus récent — le score reste celui de l'entreprise (pas par poste).
+        return entries
+            .Where(e => !dejaSurCePoste.Contains(e.CandidateProfileId))
+            .GroupBy(e => e.CandidateProfileId)
+            .Select(g => g.OrderByDescending(e => e.UpdatedAt).First())
+            .OrderByDescending(e => e.UpdatedAt)
+            .Select(e => new CandidatureVivierView(
+                e.PosteId, e.PosteTitre, e.CandidateProfileId, e.Statut, e.ScoreCompatibilite, e.TagsCles, e.UpdatedAt))
+            .ToList();
+    }
+
     public async Task<VivierCandidateDetailView?> GetCandidateDetailAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
         // Garde de confidentialité : on ne lit le détail du profil QUE si ce candidat a réellement postulé
