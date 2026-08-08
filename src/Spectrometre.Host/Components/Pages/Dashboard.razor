@@ -31,14 +31,14 @@
                     @Localizer["CreerUnCompte"]
                 </a>
             }
-            else if (_company is null)
+            else if (_company is null && !_estCandidatOuCoach)
             {
                 <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
                     @Localizer["CreerUneEntreprise"]
                 </a>
             }
-            else
+            else if (_company is not null)
             {
                 <a href="/entreprise/modules" class="btn-primary-modern-dashboard">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
@@ -67,6 +67,8 @@
     else
     {
         <div class="content-grid-dashboard">
+            @if (_company is not null || !_estCandidatOuCoach)
+            {
             <section class="card-modern-dashboard">
                 <div class="card-header-modern-dashboard">
                     <h2 class="card-title-modern-dashboard">
@@ -89,7 +91,7 @@
                     }
                 </div>
 
-                @if (_company is null)
+                @if (_company is null && !_estCandidatOuCoach)
                 {
                     <p class="dashboard-hint">@Localizer["Home_AucuneEntreprise"]</p>
                     <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
@@ -97,12 +99,12 @@
                         @Localizer["CreerUneEntreprise"]
                     </a>
                 }
-                else if (_companyLinks.Count == 0)
+                else if (_company is not null && _companyLinks.Count == 0)
                 {
                     <p class="dashboard-hint">@Localizer["Home_AucunModuleActif"]</p>
                     <a href="/entreprise/modules" class="btn-secondary-modern-dashboard">@Localizer["AjouterUnModule"]</a>
                 }
-                else
+                else if (_company is not null)
                 {
                     <div class="quick-actions-dashboard">
                         @for (var i = 0; i < _companyLinks.Count; i++)
@@ -118,6 +120,7 @@
                     </div>
                 }
             </section>
+            }
 
             @if (_candidateLinks.Count > 0)
             {
@@ -186,6 +189,7 @@
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
     private bool _isAuthenticated;
+    private bool _estCandidatOuCoach;
     private Company? _company;
     private readonly List<DashboardLink> _companyLinks = [];
     private readonly List<DashboardLink> _candidateLinks = [];
@@ -290,7 +294,14 @@
             }
         }
 
+        // Signal d'inscription Candidat/Coach (jamais GetActiveModuleCodesAsync) : une coquille vide
+        // créée par GetOrCreate* n'active pas ces modules — seul un onboarding réel le fait.
         var candidateProfileId = await CandidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
+        var coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
+        _estCandidatOuCoach =
+            await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, "ProfilCandidat", CoreDb)
+            || await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, "ProfilCoach", CoreDb);
+
         foreach (var manifest in ModuleRegistry.AllModules)
         {
             if (!await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, CoreDb))
@@ -309,7 +320,6 @@
         // comportement existant côté candidat, reproduit ici à l'identique plutôt que corrigé isolément).
         // La section ne s'affiche que si un module Coach est effectivement actif (IsActiveForCoachAsync),
         // ce qui reste false pour cette coquille vide tant qu'aucun onboarding réel n'a eu lieu.
-        var coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
         foreach (var manifest in ModuleRegistry.AllModules)
         {
             if (!await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, manifest.Code, CoreDb))

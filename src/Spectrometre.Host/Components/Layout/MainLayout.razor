@@ -122,7 +122,7 @@
                         </div>
                     </div>
                 }
-                else
+                else if (!_estCandidatOuCoach)
                 {
                     <a href="/entreprise/creer" class="nav-item-auth @ActiveClass("/entreprise/creer")">
                         <span class="nav-icon"><i class="bi bi-building-add" aria-hidden="true"></i></span>
@@ -329,6 +329,7 @@
 
     private bool _isAuthenticated;
     private bool _hasCompany;
+    private bool _estCandidatOuCoach;
     private readonly HashSet<string> _companyActiveModules = [];
     private readonly HashSet<string> _candidateActiveModules = [];
     private readonly HashSet<string> _coachActiveModules = [];
@@ -411,6 +412,12 @@
             if (await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, manifest.Code, coreDb))
                 _coachActiveModules.Add(manifest.Code);
         }
+
+        // Signal d'inscription Candidat/Coach (IsActive* uniquement) — une coquille vide GetOrCreate*
+        // n'active pas ProfilCandidat/ProfilCoach ; le lien « Créer une entreprise » reste visible alors.
+        _estCandidatOuCoach =
+            await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, "ProfilCandidat", coreDb)
+            || await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, "ProfilCoach", coreDb);
     }
 
     private bool CurrentCultureIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr";
