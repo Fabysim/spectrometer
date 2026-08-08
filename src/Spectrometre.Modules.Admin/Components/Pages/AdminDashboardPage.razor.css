@@ -1,0 +1,186 @@
+/* Admin dashboard – aligné Données / Postes / Dashboard */
+
+.admin-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+}
+
+.admin-state,
+.admin-hint {
+    color: #64748b;
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.admin-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.admin-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.admin-counters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-counter {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    text-decoration: none !important;
+    color: inherit;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-counter:hover {
+    border-color: rgba(52, 95, 109, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    color: inherit;
+}
+
+.admin-counter-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
+}
+
+.admin-counter-icon.tone-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+}
+
+.admin-counter-icon.tone-teal {
+    background: linear-gradient(135deg, var(--gscv-teal, hsl(178, 45%, 40%)) 0%, hsl(178, 45%, 50%) 100%);
+}
+
+.admin-counter-icon.tone-orange {
+    background: linear-gradient(135deg, var(--gscv-orange, hsl(18, 80%, 54%)) 0%, hsl(18, 80%, 62%) 100%);
+}
+
+.admin-counter-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.1;
+}
+
+.admin-counter-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.admin-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.35rem 1.4rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.admin-card-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.admin-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-section-title i {
+    color: var(--bs-primary, #345f6d);
+}
+
+.admin-modules-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-modules-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.admin-modules-name {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.9rem;
+}
+
+.admin-modules-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(52, 95, 109, 0.1);
+    color: var(--bs-primary, #345f6d);
+    font-weight: 700;
+    font-size: 0.8125rem;
+}
+
+@media (max-width: 768px) {
+    .admin-page {
+        padding: 1rem;
+    }
+
+    .admin-title {
+        font-size: 1.4rem;
+    }
+
+    .admin-counters {
+        grid-template-columns: 1fr;
+    }
+}

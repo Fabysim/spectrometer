@@ -1,22 +1,30 @@
 @page "/logout"
+@layout Spectrometre.Host.Components.Layout.PublicLayout
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Identity
 @using Spectrometre.Host.Resources
 @inject SignInManager<ApplicationUser> SignInManager
-@inject NavigationManager Navigation
+@inject IHttpContextAccessor HttpContextAccessor
 @inject IStringLocalizer<SharedResource> Localizer
 
-@* Rendu statique, comme /login : SignOutAsync écrit l'annulation du cookie d'authentification, qui doit
-   se faire avant que la réponse ne commence à être diffusée — incompatible avec un rendu interactif. *@
+@* Rendu statique, comme /login : SignOutAsync écrit l'annulation du cookie avant que la réponse
+   ne commence à être diffusée. Redirection HTTP (pas NavigationManager.NavigateTo) — pendant le SSR
+   statique, NavigateTo lève NavigationException (mécanisme interne Blazor, bruyant en debug). *@
 <PageTitle>@Localizer["Logout_EnCours"]</PageTitle>
 
-<h1>@Localizer["Logout_EnCours"]</h1>
+<div class="login-page-nav-overlay" aria-hidden="true"></div>
+<div class="logout-page-wrapper">
+    <div class="logout-card">
+        <div class="logout-spinner" aria-hidden="true"></div>
+        <h1 class="logout-title">@Localizer["Logout_EnCours"]</h1>
+    </div>
+</div>
 
 @code {
     protected override async Task OnInitializedAsync()
     {
         await SignInManager.SignOutAsync();
-        Navigation.NavigateTo("/login", forceLoad: true);
+        HttpContextAccessor.HttpContext?.Response.Redirect("/login");
     }
 }

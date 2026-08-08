@@ -9,6 +9,14 @@ public sealed class Company
     public int Id { get; set; }
     public required string Name { get; set; }
 
+    /// <summary>Numéro de TVA (optionnel) — aligné sur le modèle MVP <c>Company.VTA</c>.</summary>
+    public string? VTA { get; set; }
+
+    public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? PostalCode { get; set; }
+    public string? Country { get; set; }
+
     /// <summary>Nom du schéma Postgres qui porte les données métier de cette entreprise (ex. <c>co_atelier_nordik</c>).</summary>
     public required string SchemaName { get; set; }
 

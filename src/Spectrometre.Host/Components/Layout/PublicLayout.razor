@@ -1,0 +1,11 @@
+@* Layout statique pour les pages publiques (vitrine).
+   Pas d'AuthorizeView = pas de double rendu = pas de flash scroll-reveal. *@
+@inherits LayoutComponentBase
+
+<div style="display: flex; flex-direction: column; min-height: 100vh;">
+    <Header />
+    <main style="flex: 1; width: 100%; max-width: 100%;">
+        @Body
+    </main>
+    <Footer />
+</div>

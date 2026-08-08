@@ -19,82 +19,150 @@
 
 <PageTitle>@Localizer["MonCoachTitle"]</PageTitle>
 
-<h1>@Localizer["MonCoach"]</h1>
-
+<div class="mon-coach-page">
 @if (_userId is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="mc-state">@Localizer["Chargement"]</p>
 }
 else if (!_hasAccess)
 {
-    <p class="hint">@Localizer["ModuleNonActive"]</p>
+    <section class="mc-card mc-empty">
+        <p class="mc-hint">@Localizer["ModuleNonActive"]</p>
+    </section>
 }
 else
 {
-    <section>
-        <h2>@Localizer["MesLiens"]</h2>
+    <header class="mc-header">
+        <div>
+            <h1 class="mc-title">@Localizer["MonCoach"]</h1>
+            <p class="mc-subtitle">@Localizer["MesLiens"]</p>
+        </div>
+    </header>
+
+    <section class="mc-section">
+        <h2 class="mc-section-title">@Localizer["MesLiens"]</h2>
         @if (_liens.Count == 0)
         {
-            <p class="hint">@Localizer["AucunLien"]</p>
+            <p class="mc-hint">@Localizer["AucunLien"]</p>
         }
         else
         {
-            <ul>
+            <div class="mc-grid">
                 @foreach (var (lien, nomAffiche) in _liens)
                 {
-                    <li>
-                        <strong>@nomAffiche</strong> — @StatutLabel(lien.Statut)
-                        @if (lien.Statut is LienCoachingStatut.EnAttente or LienCoachingStatut.Actif)
-                        {
-                            <button @onclick="() => RevoquerAsync(lien.Id)">@Localizer["Revoquer"]</button>
-                        }
-                    </li>
+                    <article class="mc-card lien-carte">
+                        <div class="lien-entete">
+                            <div class="lien-entete-main">
+                                <h3 class="lien-nom">@nomAffiche</h3>
+                                <span class="statut @StatutClasse(lien.Statut)">@StatutLabel(lien.Statut)</span>
+                            </div>
+                            @if (lien.Statut is LienCoachingStatut.EnAttente or LienCoachingStatut.Actif)
+                            {
+                                <button type="button" class="mc-btn-secondary" @onclick="() => RevoquerAsync(lien.Id)">
+                                    <i class="bi bi-x-circle" aria-hidden="true"></i>
+                                    @Localizer["Revoquer"]
+                                </button>
+                            }
+                        </div>
+                    </article>
                 }
-            </ul>
+            </div>
         }
     </section>
 
-    <section>
-        <h2>@Localizer["AnnuaireDesCoachs"]</h2>
-        <input @bind="_recherche" @bind:event="oninput" @bind:after="RefreshAnnuaireAsync" placeholder="@Localizer["RechercherUnCoach"]" />
+    <section class="mc-section">
+        <h2 class="mc-section-title">@Localizer["AnnuaireDesCoachs"]</h2>
+        <div class="mc-search">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input class="mc-input"
+                   @bind="_recherche"
+                   @bind:event="oninput"
+                   @bind:after="RefreshAnnuaireAsync"
+                   placeholder="@Localizer["RechercherUnCoach"]" />
+        </div>
         @if (_annuaire.Count == 0)
         {
-            <p class="hint">@Localizer["AucunCoachTrouve"]</p>
+            <p class="mc-hint">@Localizer["AucunCoachTrouve"]</p>
         }
         else
         {
-            <ul>
+            <div class="mc-grid">
                 @foreach (var entry in _annuaire)
                 {
-                    <li>
-                        <strong>@entry.NomAffiche</strong>
-                        @if (!string.IsNullOrWhiteSpace(entry.Specialites)) { <span> — @entry.Specialites</span> }
-                        @if (!string.IsNullOrWhiteSpace(entry.BioCourte)) { <p class="hint">@entry.BioCourte</p> }
-                        <button @onclick="() => DemanderAsync(entry.CoachProfileId)">@Localizer["EnvoyerUneDemande"]</button>
-                    </li>
+                    <article class="mc-card coach-carte">
+                        <div class="coach-entete">
+                            <div class="coach-avatar" aria-hidden="true">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <div class="coach-entete-main">
+                                <h3 class="coach-nom">@entry.NomAffiche</h3>
+                                @if (!string.IsNullOrWhiteSpace(entry.Specialites))
+                                {
+                                    <p class="coach-specialites">
+                                        <i class="bi bi-tags" aria-hidden="true"></i>
+                                        @entry.Specialites
+                                    </p>
+                                }
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(entry.BioCourte))
+                        {
+                            <p class="coach-bio">@entry.BioCourte</p>
+                        }
+                        <div class="coach-pied">
+                            <button type="button" class="mc-btn-primary" @onclick="() => DemanderAsync(entry.CoachProfileId)">
+                                <i class="bi bi-send" aria-hidden="true"></i>
+                                @Localizer["EnvoyerUneDemande"]
+                            </button>
+                        </div>
+                    </article>
                 }
-            </ul>
+            </div>
         }
         @if (_messageAnnuaire is not null)
         {
-            <p class="hint">@_messageAnnuaire</p>
+            <div class="mc-alert mc-alert-success" role="status">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                @_messageAnnuaire
+            </div>
         }
     </section>
 
-    <section>
-        <h2>@Localizer["InviterUnAutreCoach"]</h2>
-        <p class="hint">@Localizer["InviterUnAutreCoachHint"]</p>
-        <input @bind="_emailInvitation" placeholder="@Localizer["EmailDuCoach"]" />
-        <button @onclick="InviterAsync" disabled="@_invitationEnCours">@Localizer["EnvoyerLInvitation"]</button>
+    <section class="mc-card mc-invite-card">
+        <div class="mc-card-icon" aria-hidden="true">
+            <i class="bi bi-envelope-plus"></i>
+        </div>
+        <h2 class="mc-card-title">@Localizer["InviterUnAutreCoach"]</h2>
+        <p class="mc-hint">@Localizer["InviterUnAutreCoachHint"]</p>
+        <div class="mc-invite-form">
+            <div class="mc-field">
+                <label for="mc-email">@Localizer["EmailDuCoach"]</label>
+                <input id="mc-email"
+                       class="mc-input"
+                       type="email"
+                       @bind="_emailInvitation"
+                       placeholder="@Localizer["EmailDuCoach"]" />
+            </div>
+            <button type="button" class="mc-btn-primary" @onclick="InviterAsync" disabled="@_invitationEnCours">
+                <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                @Localizer["EnvoyerLInvitation"]
+            </button>
+        </div>
         @if (_lienInvitation is not null)
         {
-            <p class="gdt-confirmation">
-                @Localizer["LienDInvitationGenere"]<br />
-                <code>@_lienInvitation</code>
-            </p>
+            <div class="mc-alert mc-alert-success mc-invite-result" role="status">
+                <div>
+                    <p class="mc-invite-label">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["LienDInvitationGenere"]
+                    </p>
+                    <code class="mc-invite-link">@_lienInvitation</code>
+                </div>
+            </div>
         }
     </section>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
@@ -119,7 +187,9 @@ else
         }
 
         _userId = userId;
-        _hasAccess = await GestionDuTempsAccessService.HasAccessAsync(userId);
+        // Restreint au sujet Candidat — une entreprise n'a pas de coach, même avec Gestion du temps actif
+        // pour ses employés (voir la remarque sur IGestionDuTempsAccessService.HasCandidateAccessAsync).
+        _hasAccess = await GestionDuTempsAccessService.HasCandidateAccessAsync(userId);
         if (!_hasAccess)
             return;
 
@@ -184,5 +254,14 @@ else
         LienCoachingStatut.Refuse => Localizer["StatutRefuse"],
         LienCoachingStatut.Revoque => Localizer["StatutRevoque"],
         _ => statut.ToString(),
+    };
+
+    private static string StatutClasse(LienCoachingStatut statut) => statut switch
+    {
+        LienCoachingStatut.EnAttente => "en-attente",
+        LienCoachingStatut.Actif => "actif",
+        LienCoachingStatut.Refuse => "refuse",
+        LienCoachingStatut.Revoque => "revoque",
+        _ => "revoque",
     };
 }

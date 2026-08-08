@@ -1,0 +1,73 @@
+@page "/admin/plans"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminPlansTitre"]</PageTitle>
+
+<h1>@Localizer["AdminPlansTitre"]</h1>
+
+@if (_plans is null)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else
+{
+    @foreach (var plan in _plans)
+    {
+        <section style="margin-bottom: 1.5rem;">
+            <h2>@plan.PlanCode</h2>
+            <ul>
+                @foreach (var moduleCode in plan.ModulesInclus)
+                {
+                    <li>
+                        @moduleCode
+                        <button @onclick="() => RetirerAsync(plan.PlanCode, moduleCode)">@Localizer["AdminPlansRetirer"]</button>
+                    </li>
+                }
+            </ul>
+            <input @bind="_nouveauModuleParPlan[plan.PlanCode]" placeholder="@Localizer["AdminPlansCodeModule"]" />
+            <button @onclick="() => AjouterAsync(plan.PlanCode)">@Localizer["AdminPlansAjouter"]</button>
+        </section>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private IReadOnlyList<AdminPlanView>? _plans;
+    private readonly Dictionary<string, string> _nouveauModuleParPlan = [];
+
+    protected override async Task OnInitializedAsync() => await RefreshAsync();
+
+    private async Task<ClaimsPrincipal> CallerAsync() =>
+        AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+
+    private async Task RefreshAsync()
+    {
+        var caller = await CallerAsync();
+        _plans = await AdminService.GetPlansAsync(caller);
+        foreach (var plan in _plans)
+            _nouveauModuleParPlan.TryAdd(plan.PlanCode, "");
+    }
+
+    private async Task AjouterAsync(string planCode)
+    {
+        if (!_nouveauModuleParPlan.TryGetValue(planCode, out var moduleCode) || string.IsNullOrWhiteSpace(moduleCode))
+            return;
+
+        var caller = await CallerAsync();
+        await AdminService.AjouterModuleAuPlanAsync(caller, planCode, moduleCode.Trim());
+        _nouveauModuleParPlan[planCode] = "";
+        await RefreshAsync();
+    }
+
+    private async Task RetirerAsync(string planCode, string moduleCode)
+    {
+        var caller = await CallerAsync();
+        await AdminService.RetirerModuleDuPlanAsync(caller, planCode, moduleCode);
+        await RefreshAsync();
+    }
+}

@@ -1,0 +1,31 @@
+/* Styles pour éléments DOM créés/modifiés par gdt-org.js (hors isolation CSS Blazor) */
+.org-page .org-cal-dc--drag {
+    background: rgba(52, 95, 109, 0.05);
+}
+
+.org-page .org-ab--drag {
+    opacity: 0.35;
+    cursor: grabbing;
+}
+
+.org-page .org-drop-ind {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #345f6d;
+    z-index: 10;
+    pointer-events: none;
+    border-radius: 2px;
+}
+
+.org-page .org-drop-ind::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #345f6d;
+}

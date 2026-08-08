@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Modules
 @using Spectrometre.Modules.GestionDuTemps.Entities
@@ -14,58 +15,192 @@
 @inject IGestionDuTempsAccessService AccessService
 @inject ICoachingAccessChecker CoachingAccessChecker
 @inject IStringLocalizer<GestionDuTempsResource> Localizer
+@inject NavigationManager NavigationManager
 
 <PageTitle>@Localizer["ReflexionTitle"]</PageTitle>
 
-<h1>@Localizer["NavReflexionConsciente"]</h1>
-<p class="hint">
-    @Localizer["ReflexionHint"] <a href="@Href("/gestion-du-temps")">@Localizer["NavRetourAuxRituels"]</a>.
-</p>
+<div class="gdt-page">
+    <h1 class="gdt-title">@Localizer["NavReflexionConsciente"]</h1>
+    <p class="hint">
+        @Localizer["ReflexionHint"] <a href="@Href("/gestion-du-temps")">@Localizer["NavRetourAuxRituels"]</a>.
+    </p>
 
-@if (_userId is null)
-{
-    <p>@Localizer["Chargement"]</p>
-}
-else if (!_hasAccess)
-{
-    <p class="hint">@Localizer["ModuleNonActive"]</p>
-}
-else if (_modele is null)
-{
-    <p>@Localizer["Chargement"]</p>
-}
-else
-{
-    <fieldset class="gdt-form" disabled="@_readOnly">
-        <div class="champ">
-            <label>@Localizer["QuelleEstVotreSituation"]</label>
-            <textarea rows="4" @bind="_modele.SituationActuelle" @bind:event="oninput"></textarea>
+    @if (_userId is null)
+    {
+        <p>@Localizer["Chargement"]</p>
+    }
+    else if (!_hasAccess)
+    {
+        <p class="hint">@Localizer["ModuleNonActive"]</p>
+    }
+    else if (_loading)
+    {
+        <p>@Localizer["Chargement"]</p>
+    }
+    else
+    {
+        <div class="rc-page">
+            <div class="rc-panel">
+                <div class="rc-section">
+                    <h2 class="rc-section__title">@Localizer["GdtRc_CurrentFeelings"]</h2>
+                    <div class="rc-chips">
+                        @foreach (var ressenti in AllRessentis)
+                        {
+                            var isCustom = _customRessentis.Contains(ressenti);
+                            var selected = _selectedRessentis.Contains(ressenti);
+                            <button type="button"
+                                    class="rc-chip @(selected ? "rc-chip--on" : "") @(isCustom ? "rc-chip--custom" : "")"
+                                    disabled="@_readOnly"
+                                    @onclick="() => ToggleRessenti(ressenti)">
+                                @RessentiLabel(ressenti)
+                                @if (isCustom && !_readOnly)
+                                {
+                                    <span class="rc-chip-remove"
+                                          role="button"
+                                          aria-label="@Localizer["GdtRc_Remove"]"
+                                          @onclick="() => RemoveCustomRessenti(ressenti)"
+                                          @onclick:stopPropagation="true">×</span>
+                                }
+                            </button>
+                        }
+                        @if (!_readOnly && !_showAddRessenti)
+                        {
+                            <button type="button" class="rc-add-btn" @onclick="() => _showAddRessenti = true">@Localizer["GdtRc_Add"]</button>
+                        }
+                    </div>
+                    @if (!_readOnly && _showAddRessenti)
+                    {
+                        <div class="rc-add-inline">
+                            <input class="rc-add-input"
+                                   placeholder="@Localizer["GdtRc_Placeholder_NewFeeling"]"
+                                   @bind="_newRessenti"
+                                   @bind:event="oninput"
+                                   @onkeydown="OnRessentiKeyDown" />
+                            <button type="button" class="rc-add-confirm" @onclick="ConfirmAddRessenti">@Localizer["GdtRc_Confirm"]</button>
+                            <button type="button" class="rc-add-btn" @onclick="CancelAddRessenti">@Localizer["Annuler"]</button>
+                        </div>
+                    }
+                </div>
+
+                <div class="rc-section">
+                    <label class="rc-label" for="rc-situation">@Localizer["GdtRc_CurrentSituation"]</label>
+                    <textarea id="rc-situation"
+                              class="rc-textarea"
+                              rows="2"
+                              placeholder="@Localizer["GdtRc_Placeholder_Situation"]"
+                              disabled="@_readOnly"
+                              @bind="_situationActuelle"
+                              @bind:event="oninput"
+                              @onblur="OnSituationBlur"></textarea>
+                </div>
+
+                <div class="rc-section">
+                    <span class="rc-label">@Localizer["GdtRc_SourceIdentified"]</span>
+                    <div class="rc-radio-group">
+                        <button type="button"
+                                class="rc-radio-btn @(!_sourceIdentifiee ? "rc-radio-btn--on" : "")"
+                                disabled="@_readOnly"
+                                @onclick="() => SetSourceIdentifiee(false)">
+                            @Localizer["GdtRc_SourceUnknown"]
+                        </button>
+                        <button type="button"
+                                class="rc-radio-btn @(_sourceIdentifiee ? "rc-radio-btn--on" : "")"
+                                disabled="@_readOnly"
+                                @onclick="() => SetSourceIdentifiee(true)">
+                            @Localizer["GdtRc_SourceIdentifiedGoStep4"]
+                        </button>
+                    </div>
+                </div>
+
+                @if (!_sourceIdentifiee)
+                {
+                    <div class="rc-section">
+                        <h2 class="rc-section__title">@Localizer["GdtRc_PossibleSources"]</h2>
+                        <div class="rc-source-grid">
+                            @foreach (var source in PredefinedSources)
+                            {
+                                var selected = _selectedSources.Contains(source.Key);
+                                <button type="button"
+                                        class="rc-source-card @(selected ? "rc-source-card--on" : "")"
+                                        disabled="@_readOnly"
+                                        @onclick="() => ToggleSource(source.Key)">
+                                    <span class="rc-source-icon" aria-hidden="true">@((MarkupString)source.IconSvg)</span>
+                                    <span class="rc-source-label">@SourceLabel(source.Key)</span>
+                                </button>
+                            }
+                        </div>
+
+                        @foreach (var custom in _customSources.OrderBy(x => x).ToList())
+                        {
+                            var selected = _selectedSources.Contains(custom);
+                            <button type="button"
+                                    class="rc-source-card rc-source-card--custom @(selected ? "rc-source-card--on" : "")"
+                                    style="margin-top:0.75rem;width:100%"
+                                    disabled="@_readOnly"
+                                    @onclick="() => ToggleSource(custom)">
+                                <span class="rc-source-icon" aria-hidden="true">
+                                    <svg width="28" height="28" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5l2.47 5.01 5.53.8-4 3.9.94 5.5L10 14.77l-4.94 2.94.94-5.5-4-3.9 5.53-.8L10 1.5z"/></svg>
+                                </span>
+                                <span class="rc-source-label">@custom</span>
+                                @if (!_readOnly)
+                                {
+                                    <span class="rc-chip-remove"
+                                          role="button"
+                                          aria-label="@Localizer["GdtRc_Remove"]"
+                                          @onclick="() => RemoveCustomSource(custom)"
+                                          @onclick:stopPropagation="true">×</span>
+                                }
+                            </button>
+                        }
+
+                        @if (!_readOnly && !_showAddSource)
+                        {
+                            <button type="button" class="rc-add-btn" style="margin-top:0.75rem" @onclick="() => _showAddSource = true">@Localizer["GdtRc_Add"]</button>
+                        }
+                        @if (!_readOnly && _showAddSource)
+                        {
+                            <div class="rc-add-inline">
+                                <input class="rc-add-input"
+                                       placeholder="@Localizer["GdtRc_Placeholder_CustomSource"]"
+                                       @bind="_newSource"
+                                       @bind:event="oninput"
+                                       @onkeydown="OnSourceKeyDown" />
+                                <button type="button" class="rc-add-confirm" @onclick="ConfirmAddSource">@Localizer["GdtRc_Confirm"]</button>
+                                <button type="button" class="rc-add-btn" @onclick="CancelAddSource">@Localizer["Annuler"]</button>
+                            </div>
+                        }
+
+                        <div style="margin-top:1.25rem">
+                            <label class="rc-label" for="rc-echeance">@Localizer["GdtRc_ResolutionDate"]</label>
+                            <input id="rc-echeance"
+                                   type="date"
+                                   class="rc-date-input"
+                                   disabled="@_readOnly"
+                                   value="@DateEcheanceValue"
+                                   @onchange="OnDateEcheanceChanged" />
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_saveMessage))
+                {
+                    <div class="rc-alert @(_saveOk ? "rc-alert--success" : "rc-alert--error")" role="alert">
+                        @_saveMessage
+                    </div>
+                }
+
+                <div class="rc-footer">
+                    <button type="button" class="btn-prev-section" @onclick="GoToProfil">
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i> @Localizer["NavProfilPsychosocial"]
+                    </button>
+                    <button type="button" class="btn-next-section" disabled="@_persisting" @onclick="GoToOrganisationAsync">
+                        @Localizer["NavOrganisation"] <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="champ-case">
-            <label><input type="checkbox" @bind="_modele.SourceIdentifiee" /> @Localizer["JaiIdentifieLaSource"]</label>
-        </div>
-        <div class="champ">
-            <label>@Localizer["DateDeRetourSurReflexion"]</label>
-            <input type="date" @bind="_modele.DateEcheance" />
-        </div>
-        <div class="champ">
-            <label>@Localizer["Ressentis"]</label>
-            <input @bind="_modele.Ressentis" @bind:event="oninput" placeholder="@Localizer["RessentisPlaceholder"]" />
-        </div>
-        <div class="champ">
-            <label>@Localizer["SourcesPossibles"]</label>
-            <input @bind="_modele.Sources" @bind:event="oninput" placeholder="@Localizer["SourcesPlaceholder"]" />
-        </div>
-        @if (!_readOnly)
-        {
-            <button @onclick="EnregistrerAsync" disabled="@_enregistrementEnCours">@Localizer["EnregistrerLaReflexion"]</button>
-            @if (_messageConfirmation is not null)
-            {
-                <span class="gdt-confirmation">@_messageConfirmation</span>
-            }
-        }
-    </fieldset>
-}
+    }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
@@ -73,24 +208,78 @@ else
     [Parameter] public string? Suivi { get; set; }
     private bool _readOnly => !string.IsNullOrEmpty(Suivi);
 
-    /// <summary>Ajoute le segment Suivi aux liens croisés vers les autres écrans du module, pour qu'un coach en mode lecture seule reste sur les données de la personne suivie en naviguant.</summary>
     private string Href(string basePath) => _readOnly ? $"{basePath}/{Suivi}" : basePath;
 
     private string? _userId;
     private bool _hasAccess;
-    private bool _enregistrementEnCours;
-    private string? _messageConfirmation;
+    private bool _loading = true;
+    private bool _persisting;
+    private string? _saveMessage;
+    private bool _saveOk;
 
-    private sealed class Modele
+    private string _situationActuelle = "";
+    private bool _sourceIdentifiee;
+    private DateOnly? _dateEcheance;
+
+    private bool _showAddRessenti;
+    private bool _showAddSource;
+    private string _newRessenti = "";
+    private string _newSource = "";
+
+    private readonly HashSet<string> _selectedRessentis = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _customRessentis = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _selectedSources = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _customSources = new(StringComparer.Ordinal);
+
+    private static readonly string[] PredefinedRessentis =
+    [
+        "Angoisse · contrainte",
+        "Satisfaction",
+        "Injustice",
+        "Insatisfaction",
+        "Utilité",
+        "Efficacité",
+        "Inutilité",
+        "Harcèlement"
+    ];
+
+    private static readonly (string Key, string IconSvg)[] PredefinedSources =
+    [
+        ("Temporelle", """<svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 1.5" stroke-linecap="round"/></svg>"""),
+        ("Organisationnelle", """<svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="5" height="5" rx="1"/><rect x="11" y="4" width="5" height="5" rx="1"/><rect x="4" y="11" width="5" height="5" rx="1"/><rect x="11" y="11" width="5" height="5" rx="1"/></svg>"""),
+        ("Humaine", """<svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="7" r="3"/><path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>"""),
+        ("Financière", """<svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M10 7v4"/></svg>"""),
+        ("Matérielle", """<svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8l6-4 6 4v8H4V8z"/><rect x="8" y="12" width="4" height="4"/></svg>"""),
+        ("Autre", """<svg width="28" height="28" viewBox="0 0 20 20" fill="currentColor"><circle cx="5" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="15" cy="10" r="1.5"/></svg>""")
+    ];
+
+    private IEnumerable<string> AllRessentis => PredefinedRessentis.Concat(_customRessentis.OrderBy(x => x));
+
+    private string DateEcheanceValue => _dateEcheance?.ToString("yyyy-MM-dd") ?? "";
+
+    private string RessentiLabel(string canonical) => canonical switch
     {
-        public string? SituationActuelle { get; set; }
-        public bool SourceIdentifiee { get; set; }
-        public DateOnly? DateEcheance { get; set; }
-        public string? Ressentis { get; set; }
-        public string? Sources { get; set; }
-    }
+        "Angoisse · contrainte" => Localizer["GdtRc_Ressenti_AngoisseContrainte"],
+        "Satisfaction" => Localizer["GdtRc_Ressenti_Satisfaction"],
+        "Injustice" => Localizer["GdtRc_Ressenti_Injustice"],
+        "Insatisfaction" => Localizer["GdtRc_Ressenti_Insatisfaction"],
+        "Utilité" => Localizer["GdtRc_Ressenti_Utilite"],
+        "Efficacité" => Localizer["GdtRc_Ressenti_Efficacite"],
+        "Inutilité" => Localizer["GdtRc_Ressenti_Inutilite"],
+        "Harcèlement" => Localizer["GdtRc_Ressenti_Harcelement"],
+        _ => canonical
+    };
 
-    private Modele? _modele;
+    private string SourceLabel(string key) => key switch
+    {
+        "Temporelle" => Localizer["GdtRc_Source_Temporelle"],
+        "Organisationnelle" => Localizer["GdtRc_Source_Organisationnelle"],
+        "Humaine" => Localizer["GdtRc_Source_Humaine"],
+        "Financière" => Localizer["GdtRc_Source_Financiere"],
+        "Matérielle" => Localizer["GdtRc_Source_Materielle"],
+        "Autre" => Localizer["GdtRc_Source_Autre"],
+        _ => key
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -114,45 +303,204 @@ else
         }
 
         if (!_hasAccess)
+        {
+            _loading = false;
             return;
+        }
 
-        var reflexion = await GdtService.GetReflexionConscienteAsync(_userId);
-        _modele = reflexion is null
-            ? new Modele()
-            : new Modele
-            {
-                SituationActuelle = reflexion.SituationActuelle,
-                SourceIdentifiee = reflexion.SourceIdentifiee ?? false,
-                DateEcheance = reflexion.DateEcheance,
-                Ressentis = string.Join(", ", reflexion.Ressentis),
-                Sources = string.Join(", ", reflexion.Sources),
-            };
-    }
-
-    private static List<string> Tags(string? valeur) =>
-        (valeur ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-
-    private async Task EnregistrerAsync()
-    {
-        _enregistrementEnCours = true;
-        _messageConfirmation = null;
         try
         {
-            var m = _modele!;
-            await GdtService.SaveReflexionConscienteAsync(_userId!, new ReflexionConsciente
-            {
-                UserId = _userId!,
-                SituationActuelle = m.SituationActuelle,
-                SourceIdentifiee = m.SourceIdentifiee,
-                DateEcheance = m.DateEcheance,
-                Ressentis = Tags(m.Ressentis),
-                Sources = Tags(m.Sources),
-            });
-            _messageConfirmation = Localizer["ReflexionEnregistree"];
+            var reflexion = await GdtService.GetReflexionConscienteAsync(_userId);
+            if (reflexion is not null)
+                ApplyReflexion(reflexion);
+        }
+        catch (Exception ex)
+        {
+            _saveMessage = ex.Message;
+            _saveOk = false;
         }
         finally
         {
-            _enregistrementEnCours = false;
+            _loading = false;
         }
+    }
+
+    private void ApplyReflexion(ReflexionConsciente reflexion)
+    {
+        _situationActuelle = reflexion.SituationActuelle ?? "";
+        _sourceIdentifiee = reflexion.SourceIdentifiee == true;
+        _dateEcheance = reflexion.DateEcheance;
+
+        _selectedRessentis.Clear();
+        _customRessentis.Clear();
+        foreach (var r in reflexion.Ressentis)
+        {
+            _selectedRessentis.Add(r);
+            if (!PredefinedRessentis.Contains(r))
+                _customRessentis.Add(r);
+        }
+
+        _selectedSources.Clear();
+        _customSources.Clear();
+        var predefinedKeys = PredefinedSources.Select(s => s.Key).ToHashSet(StringComparer.Ordinal);
+        foreach (var s in reflexion.Sources)
+        {
+            _selectedSources.Add(s);
+            if (!predefinedKeys.Contains(s))
+                _customSources.Add(s);
+        }
+    }
+
+    private async Task ToggleRessenti(string ressenti)
+    {
+        if (_readOnly) return;
+        if (!_selectedRessentis.Add(ressenti))
+            _selectedRessentis.Remove(ressenti);
+        await PersistAsync();
+    }
+
+    private async Task RemoveCustomRessenti(string ressenti)
+    {
+        if (_readOnly) return;
+        _customRessentis.Remove(ressenti);
+        _selectedRessentis.Remove(ressenti);
+        await PersistAsync();
+    }
+
+    private async Task ConfirmAddRessenti()
+    {
+        var value = _newRessenti.Trim();
+        if (string.IsNullOrEmpty(value))
+            return;
+
+        _customRessentis.Add(value);
+        _selectedRessentis.Add(value);
+        _newRessenti = "";
+        _showAddRessenti = false;
+        await PersistAsync();
+    }
+
+    private void CancelAddRessenti()
+    {
+        _newRessenti = "";
+        _showAddRessenti = false;
+    }
+
+    private async Task OnRessentiKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await ConfirmAddRessenti();
+    }
+
+    private async Task SetSourceIdentifiee(bool identified)
+    {
+        if (_readOnly) return;
+        _sourceIdentifiee = identified;
+        if (identified)
+        {
+            _selectedSources.Clear();
+            _dateEcheance = null;
+        }
+
+        await PersistAsync();
+    }
+
+    private async Task ToggleSource(string source)
+    {
+        if (_readOnly) return;
+        if (!_selectedSources.Add(source))
+            _selectedSources.Remove(source);
+        await PersistAsync();
+    }
+
+    private async Task RemoveCustomSource(string source)
+    {
+        if (_readOnly) return;
+        _customSources.Remove(source);
+        _selectedSources.Remove(source);
+        await PersistAsync();
+    }
+
+    private async Task ConfirmAddSource()
+    {
+        var value = _newSource.Trim();
+        if (string.IsNullOrEmpty(value))
+            return;
+
+        _customSources.Add(value);
+        _selectedSources.Add(value);
+        _newSource = "";
+        _showAddSource = false;
+        await PersistAsync();
+    }
+
+    private void CancelAddSource()
+    {
+        _newSource = "";
+        _showAddSource = false;
+    }
+
+    private async Task OnSourceKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await ConfirmAddSource();
+    }
+
+    private async Task OnDateEcheanceChanged(ChangeEventArgs e)
+    {
+        if (_readOnly) return;
+        var raw = e.Value?.ToString();
+        _dateEcheance = string.IsNullOrWhiteSpace(raw) || !DateOnly.TryParse(raw, out var d) ? null : d;
+        await PersistAsync();
+    }
+
+    private Task OnSituationBlur() => _readOnly ? Task.CompletedTask : PersistAsync();
+
+    private async Task PersistAsync(bool showSuccess = false)
+    {
+        if (_readOnly || _persisting || _userId is null)
+            return;
+
+        _persisting = true;
+        _saveMessage = null;
+        try
+        {
+            await GdtService.SaveReflexionConscienteAsync(_userId, new ReflexionConsciente
+            {
+                UserId = _userId,
+                SituationActuelle = string.IsNullOrWhiteSpace(_situationActuelle) ? null : _situationActuelle.Trim(),
+                SourceIdentifiee = _sourceIdentifiee,
+                DateEcheance = _sourceIdentifiee ? null : _dateEcheance,
+                Ressentis = _selectedRessentis.OrderBy(x => x).ToList(),
+                Sources = _sourceIdentifiee ? [] : _selectedSources.OrderBy(x => x).ToList(),
+            });
+
+            _saveOk = true;
+            if (showSuccess)
+                _saveMessage = Localizer["ReflexionEnregistree"];
+        }
+        catch (Exception ex)
+        {
+            _saveMessage = ex.Message;
+            _saveOk = false;
+        }
+        finally
+        {
+            _persisting = false;
+        }
+    }
+
+    private void GoToProfil() => NavigationManager.NavigateTo(Href("/gestion-du-temps/profil"));
+
+    private async Task GoToOrganisationAsync()
+    {
+        if (!_readOnly)
+        {
+            await PersistAsync();
+            if (!_saveOk && !string.IsNullOrEmpty(_saveMessage))
+                return;
+        }
+
+        NavigationManager.NavigateTo(Href("/gestion-du-temps/organisation"));
     }
 }

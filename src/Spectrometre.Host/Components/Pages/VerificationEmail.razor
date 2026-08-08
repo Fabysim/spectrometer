@@ -1,0 +1,42 @@
+@page "/verification-email"
+@layout Spectrometre.Host.Components.Layout.PublicLayout
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Host.Resources
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["VerificationEmail_Titre"]</PageTitle>
+
+<div class="login-page-nav-overlay" aria-hidden="true"></div>
+<div class="login-page-wrapper">
+    <div class="container-fluid px-3 px-md-4 px-lg-5 px-xl-4 py-5 login-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-xl-6">
+                <div class="login-card verification-card">
+                    <header class="login-header">
+                        <h1 class="login-title">@Localizer["VerificationEmail_Titre"]</h1>
+                        <p class="login-subtitle mb-0">
+                            @if (!string.IsNullOrEmpty(Email))
+                            {
+                                <strong>@Email</strong>
+                            }
+                        </p>
+                    </header>
+
+                    <div class="p-4 p-lg-5">
+                        <p class="verification-lead">
+                            @string.Format(Localizer["VerificationEmail_Message"].Value, Email)
+                        </p>
+                        <a href="/login" class="login-btn login-btn-primary">@Localizer["SeConnecter"]</a>
+                        <div class="login-links">
+                            <a href="/" class="login-link">@Localizer["Accueil"]</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] private string? Email { get; set; }
+}

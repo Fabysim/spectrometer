@@ -1,43 +1,190 @@
-.resultat-compatibilite {
+/* /compatibilite/resultat/{id} – score dashboard aligné Analytics */
+
+.compat-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+}
+
+.compat-state,
+.compat-hint {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.compat-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.compat-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.compat-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.compat-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem 1.35rem 1.4rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.compat-empty {
+    max-width: 32rem;
+}
+
+.compat-layout {
     display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: 2rem;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    gap: 1.25rem;
     align-items: start;
 }
 
-.score-global {
-    text-align: center;
-}
-
-.score-label {
-    font-weight: bold;
-    color: #1a3d7c;
-}
-
-.axe-row {
-    display: grid;
-    grid-template-columns: 160px 1fr 50px;
+.compat-score-card {
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
 }
 
-.barre {
-    background: #e6e6e6;
+.compat-score-ring {
+    line-height: 0;
+}
+
+.compat-score-label {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-primary, #345f6d);
+}
+
+.compat-bloc-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 1.1rem;
+    color: #0f172a;
+}
+
+.barre-ligne {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 9.5rem) 1fr 2.75rem;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.75rem;
+}
+
+.barre-ligne:last-of-type {
+    margin-bottom: 0;
+}
+
+.barre-libelle {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #475569;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.barre-piste {
+    background: #f1f5f9;
     border-radius: 999px;
-    height: 10px;
+    height: 0.55rem;
     overflow: hidden;
 }
 
-.barre-remplie {
-    background: #1a3d7c;
+.barre-remplissage {
+    background: linear-gradient(90deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
     height: 100%;
+    border-radius: 999px;
+    min-width: 0;
+    transition: width 0.35s ease;
 }
 
-.points-vigilance {
-    margin-top: 1.5rem;
-    background: #fdecea;
-    border: 1px solid #f5c2bd;
-    border-radius: 8px;
-    padding: 1rem;
+.barre-valeur {
+    text-align: right;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.compat-vigilance {
+    margin-top: 1.35rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.compat-vigilance-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: hsl(18, 80%, 38%);
+}
+
+.compat-vigilance-liste {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.compat-vigilance-liste li {
+    background: rgba(234, 119, 61, 0.1);
+    color: hsl(18, 80%, 35%);
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+@media (max-width: 800px) {
+    .compat-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .compat-page {
+        padding: 1rem;
+    }
+
+    .compat-title {
+        font-size: 1.4rem;
+    }
+
+    .barre-ligne {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .barre-valeur {
+        text-align: left;
+    }
 }

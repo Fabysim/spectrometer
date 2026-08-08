@@ -19,82 +19,101 @@
 
 <PageTitle>@Localizer["AnalyticsDecideurs"]</PageTitle>
 
-<h1>@Localizer["AnalyticsDecideurs"]</h1>
-<p class="hint">@Localizer["Intro"]</p>
-
+<div class="analytics-page">
 @if (_companies is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="analytics-state">@Localizer["Chargement"]</p>
 }
 else if (_companies.Count == 0)
 {
-    <p>@Localizer["AucuneEntrepriseAssociee"]</p>
+    <section class="analytics-card analytics-empty">
+        <p class="analytics-hint">@Localizer["AucuneEntrepriseAssociee"]</p>
+    </section>
 }
 else
 {
-    <div class="entreprise-header">
+    <header class="analytics-header">
+        <div>
+            <h1 class="analytics-title">@Localizer["AnalyticsDecideurs"]</h1>
+            <p class="analytics-subtitle">
+                @if (_companies.Count == 1)
+                {
+                    @_companies[0].Name
+                }
+                else
+                {
+                    @Localizer["EntrepriseActive"]
+                }
+            </p>
+        </div>
         @if (_companies.Count > 1)
         {
-            <label>
-                @Localizer["EntrepriseActive"]
-                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+            <div class="analytics-company-select">
+                <label for="analytics-active">@Localizer["EntrepriseActive"]</label>
+                <select id="analytics-active" value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
                     @foreach (var company in _companies)
                     {
                         <option value="@company.Id">@company.Name</option>
                     }
                 </select>
-            </label>
+            </div>
         }
-        else
-        {
-            <strong>@_companies[0].Name</strong>
-        }
-    </div>
+    </header>
+
+    <p class="analytics-intro">@Localizer["Intro"]</p>
 
     @if (_dashboard is null)
     {
-        <p>@Localizer["ChargementTableauDeBord"]</p>
+        <p class="analytics-state">@Localizer["ChargementTableauDeBord"]</p>
     }
     else if (_dashboard.TotalCandidatures == 0)
     {
-        <div class="analytics-etat-vide">
-            <p>
+        <section class="analytics-card analytics-empty">
+            <div class="analytics-empty-icon" aria-hidden="true">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <p class="analytics-empty-lead">
                 @Localizer["AucuneCandidature"]
                 @(_dashboard.PostesOuverts + _dashboard.PostesFermes > 0
                     ? string.Format(Localizer["PostesOuvertsFermes"].Value, _dashboard.PostesOuverts, _dashboard.PostesFermes)
                     : Localizer["AucunPosteCree"].Value)
             </p>
-            <p class="hint">@Localizer["ChiffresApparaitront"]</p>
-        </div>
+            <p class="analytics-hint">@Localizer["ChiffresApparaitront"]</p>
+        </section>
     }
     else
     {
-        <section class="analytics-cartes">
-            <div class="analytics-carte">
+        <section class="analytics-kpis" aria-label="@Localizer["AnalyticsDecideurs"]">
+            <article class="analytics-card analytics-kpi">
+                <div class="analytics-kpi-icon tone-primary" aria-hidden="true"><i class="bi bi-briefcase"></i></div>
                 <span class="valeur">@_dashboard.PostesOuverts</span>
                 <span class="libelle">@Localizer["PostesOuverts"]</span>
-            </div>
-            <div class="analytics-carte">
+            </article>
+            <article class="analytics-card analytics-kpi">
+                <div class="analytics-kpi-icon tone-muted" aria-hidden="true"><i class="bi bi-briefcase-fill"></i></div>
                 <span class="valeur">@_dashboard.PostesFermes</span>
                 <span class="libelle">@Localizer["PostesFermes"]</span>
-            </div>
-            <div class="analytics-carte">
+            </article>
+            <article class="analytics-card analytics-kpi">
+                <div class="analytics-kpi-icon tone-teal" aria-hidden="true"><i class="bi bi-people"></i></div>
                 <span class="valeur">@_dashboard.TotalCandidatures</span>
                 <span class="libelle">@Localizer["CandidaturesRecues"]</span>
-            </div>
-            <div class="analytics-carte">
+            </article>
+            <article class="analytics-card analytics-kpi">
+                <div class="analytics-kpi-icon tone-orange" aria-hidden="true"><i class="bi bi-percent"></i></div>
                 <span class="valeur">@(_dashboard.ScoreMoyenGlobal is int s ? $"{s}%" : "—")</span>
                 <span class="libelle">@Localizer["ScoreCompatibiliteMoyen"]</span>
-            </div>
-            <div class="analytics-carte">
+            </article>
+            <article class="analytics-card analytics-kpi">
+                <div class="analytics-kpi-icon tone-blue" aria-hidden="true"><i class="bi bi-ui-checks-grid"></i></div>
                 <span class="valeur">@(_dashboard.TauxCompletionGrilleH is double t ? $"{t:F0}%" : "—")</span>
                 <span class="libelle">@string.Format(Localizer["GrillesHCompletes"].Value, _dashboard.CandidatsAvecGrilleComplete, _dashboard.CandidatsUniques)</span>
-            </div>
+            </article>
         </section>
 
         <div class="analytics-layout">
-            <section class="analytics-bloc">
-                <h3>@Localizer["FunnelCandidatures"]</h3>
+            <section class="analytics-card analytics-bloc">
+                <h2 class="analytics-bloc-title">@Localizer["FunnelCandidatures"]</h2>
                 @foreach (var etape in _dashboard.Funnel)
                 {
                     <div class="barre-ligne">
@@ -107,32 +126,35 @@ else
                 }
             </section>
 
-            <section class="analytics-bloc">
-                <h3>@Localizer["ScoreMoyenParAxe"]</h3>
+            <section class="analytics-card analytics-bloc">
+                <h2 class="analytics-bloc-title">@Localizer["ScoreMoyenParAxe"]</h2>
                 @foreach (var axe in _dashboard.MoyennesParAxe)
                 {
                     <div class="barre-ligne">
                         <span class="barre-libelle">@axe.Axe</span>
                         <div class="barre-piste">
-                            <div class="barre-remplissage" style="width:@(axe.Moyenne ?? 0)%"></div>
+                            <div class="barre-remplissage tone-axe" style="width:@(axe.Moyenne ?? 0)%"></div>
                         </div>
                         <span class="barre-valeur">@(axe.Moyenne is double m ? $"{m:F1}%" : "—")</span>
                     </div>
                 }
             </section>
 
-            <section class="analytics-bloc">
-                <h3>@Localizer["PointsVigilanceFrequents"]</h3>
+            <section class="analytics-card analytics-bloc">
+                <h2 class="analytics-bloc-title">@Localizer["PointsVigilanceFrequents"]</h2>
                 @if (_dashboard.TopPointsDeVigilance.Count == 0)
                 {
-                    <p class="hint">@Localizer["AucunPointVigilance"]</p>
+                    <p class="analytics-hint">@Localizer["AucunPointVigilance"]</p>
                 }
                 else
                 {
                     <ul class="vigilance-liste">
                         @foreach (var tag in _dashboard.TopPointsDeVigilance)
                         {
-                            <li><span class="tag">@CompatibilityVocabulary.DisplayTag(tag.Tag, _english)</span> <span class="compte">× @tag.Nombre</span></li>
+                            <li>
+                                <span class="tag">@CompatibilityVocabulary.DisplayTag(tag.Tag, _english)</span>
+                                <span class="compte">× @tag.Nombre</span>
+                            </li>
                         }
                     </ul>
                 }
@@ -140,6 +162,7 @@ else
         </div>
     }
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

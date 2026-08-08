@@ -1,0 +1,262 @@
+/* /coach/suivis – aligné Données / Postes / Vivier */
+
+.suivis-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+}
+
+.suivis-state,
+.suivis-hint {
+    color: #64748b;
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.suivis-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.suivis-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.suivis-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.suivis-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem 1.35rem 1.4rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.suivis-empty {
+    max-width: 32rem;
+}
+
+.suivis-section {
+    margin-bottom: 2rem;
+}
+
+.suivis-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    color: var(--foreground, #0f172a);
+}
+
+.suivis-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.demande-entete,
+.actif-entete {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.85rem;
+}
+
+.demande-entete {
+    align-items: center;
+}
+
+.demande-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.demande-entete-main,
+.actif-entete-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.demande-nom,
+.actif-nom {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+}
+
+.statut {
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.statut.en-attente {
+    background: rgba(234, 179, 8, 0.15);
+    color: #854d0e;
+}
+
+.statut.actif {
+    background: rgba(20, 184, 166, 0.12);
+    color: hsl(178, 45%, 28%);
+}
+
+.demande-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.suivis-btn-primary,
+.suivis-btn-secondary,
+.suivis-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.suivis-btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(234, 119, 61, 0.28);
+}
+
+.suivis-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.05);
+    box-shadow: 0 6px 16px rgba(234, 119, 61, 0.35);
+}
+
+.suivis-btn-primary:disabled,
+.suivis-btn-secondary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.suivis-btn-secondary {
+    background: #fff;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.suivis-btn-secondary:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.suivis-btn-ghost {
+    background: rgba(52, 95, 109, 0.08);
+    color: var(--bs-primary, #345f6d);
+    border-color: transparent;
+}
+
+.suivis-btn-ghost:hover {
+    background: rgba(52, 95, 109, 0.14);
+    color: var(--bs-primary, #345f6d);
+}
+
+.anamnese-bloc {
+    margin-top: 1.15rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.anamnese-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+    color: #0f172a;
+}
+
+.anamnese-title i {
+    color: var(--gscv-orange, hsl(18, 80%, 54%));
+}
+
+.anamnese-contenu {
+    color: #475569;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin: 0 0 0.5rem;
+    white-space: pre-wrap;
+}
+
+.anamnese-meta {
+    margin-bottom: 0.85rem;
+    font-size: 0.8125rem;
+}
+
+.anamnese-bloc .suivis-btn-secondary {
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 640px) {
+    .suivis-page {
+        padding: 1rem;
+    }
+
+    .suivis-title {
+        font-size: 1.4rem;
+    }
+
+    .demande-actions {
+        flex-direction: column;
+    }
+
+    .suivis-btn-primary,
+    .suivis-btn-secondary {
+        width: 100%;
+    }
+
+    .actif-entete {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .suivis-btn-ghost {
+        width: 100%;
+    }
+}

@@ -23,77 +23,119 @@
 
 <PageTitle>@Localizer["MesPersonnesSuiviesTitle"]</PageTitle>
 
-<h1>@Localizer["MesPersonnesSuivies"]</h1>
-
+<div class="suivis-page">
 @if (_userId is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="suivis-state">@Localizer["Chargement"]</p>
 }
 else if (!_hasAccess)
 {
-    <p class="hint">@Localizer["ModuleCoachNonActif"]</p>
+    <section class="suivis-card suivis-empty">
+        <p class="suivis-hint">@Localizer["ModuleCoachNonActif"]</p>
+    </section>
 }
 else
 {
-    <section>
-        <h2>@Localizer["DemandesEnAttente"]</h2>
+    <header class="suivis-header">
+        <div>
+            <h1 class="suivis-title">@Localizer["MesPersonnesSuivies"]</h1>
+            <p class="suivis-subtitle">
+                @_enAttente.Count @Localizer["DemandesEnAttente"] · @_actifs.Count @Localizer["LiensActifs"]
+            </p>
+        </div>
+    </header>
+
+    <section class="suivis-section">
+        <h2 class="suivis-section-title">@Localizer["DemandesEnAttente"]</h2>
         @if (_enAttente.Count == 0)
         {
-            <p class="hint">@Localizer["AucuneDemandeEnAttente"]</p>
+            <p class="suivis-hint">@Localizer["AucuneDemandeEnAttente"]</p>
         }
         else
         {
-            <ul>
+            <div class="suivis-grid">
                 @foreach (var (lien, nom) in _enAttente)
                 {
-                    <li>
-                        <strong>@nom</strong>
-                        <button @onclick="() => AccepterAsync(lien.Id)">@Localizer["Accepter"]</button>
-                        <button @onclick="() => RefuserAsync(lien.Id)">@Localizer["Refuser"]</button>
-                    </li>
+                    <article class="suivis-card demande-carte">
+                        <div class="demande-entete">
+                            <div class="demande-avatar" aria-hidden="true">
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <div class="demande-entete-main">
+                                <h3 class="demande-nom">@nom</h3>
+                                <span class="statut en-attente">@Localizer["StatutEnAttente"]</span>
+                            </div>
+                        </div>
+                        <div class="demande-actions">
+                            <button type="button" class="suivis-btn-primary" @onclick="() => AccepterAsync(lien.Id)">
+                                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                @Localizer["Accepter"]
+                            </button>
+                            <button type="button" class="suivis-btn-secondary" @onclick="() => RefuserAsync(lien.Id)">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                @Localizer["Refuser"]
+                            </button>
+                        </div>
+                    </article>
                 }
-            </ul>
+            </div>
         }
     </section>
 
-    <section>
-        <h2>@Localizer["LiensActifs"]</h2>
+    <section class="suivis-section">
+        <h2 class="suivis-section-title">@Localizer["LiensActifs"]</h2>
         @if (_actifs.Count == 0)
         {
-            <p class="hint">@Localizer["AucunLienActif"]</p>
+            <p class="suivis-hint">@Localizer["AucunLienActif"]</p>
         }
         else
         {
-            <ul>
+            <div class="suivis-grid">
                 @foreach (var (lien, nom, anamnese) in _actifs)
                 {
-                    <li>
-                        <strong>@nom</strong>
-                        <a href="/gestion-du-temps/@lien.SuiviUserId">@Localizer["VoirLeSuivi"]</a>
+                    <article class="suivis-card actif-carte">
+                        <div class="actif-entete">
+                            <div class="actif-entete-main">
+                                <h3 class="actif-nom">@nom</h3>
+                                <span class="statut actif">@Localizer["StatutActif"]</span>
+                            </div>
+                            <a class="suivis-btn-ghost" href="/gestion-du-temps/@lien.SuiviUserId">
+                                <i class="bi bi-clock-history" aria-hidden="true"></i>
+                                @Localizer["VoirLeSuivi"]
+                            </a>
+                        </div>
 
-                        <div class="gdt-form">
-                            <h4>@Localizer["Anamnese"]</h4>
+                        <div class="anamnese-bloc">
+                            <h4 class="anamnese-title">
+                                <i class="bi bi-journal-text" aria-hidden="true"></i>
+                                @Localizer["Anamnese"]
+                            </h4>
                             @if (anamnese is not null)
                             {
-                                <p>@anamnese.Contenu</p>
-                                <p class="hint">
+                                <p class="anamnese-contenu">@anamnese.Contenu</p>
+                                <p class="suivis-hint anamnese-meta">
                                     @(anamnese.GenereeParIa ? Localizer["AnamneseGenereeParIa"] : Localizer["AnamneseRepli"])
                                 </p>
                             }
                             else
                             {
-                                <p class="hint">@Localizer["AucuneAnamnese"]</p>
+                                <p class="suivis-hint">@Localizer["AucuneAnamnese"]</p>
                             }
-                            <button @onclick="() => GenererAnamneseAsync(lien.Id)" disabled="@_anamneseEnCours.Contains(lien.Id)">
+                            <button type="button"
+                                    class="suivis-btn-secondary"
+                                    @onclick="() => GenererAnamneseAsync(lien.Id)"
+                                    disabled="@_anamneseEnCours.Contains(lien.Id)">
+                                <i class="bi @(_anamneseEnCours.Contains(lien.Id) ? "bi-hourglass-split" : "bi-stars")" aria-hidden="true"></i>
                                 @(anamnese is null ? Localizer["GenererLAnamnese"] : Localizer["RegenererLAnamnese"])
                             </button>
                         </div>
-                    </li>
+                    </article>
                 }
-            </ul>
+            </div>
         }
     </section>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -5,11 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
+using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
+using Spectrometre.Modules.Admin;
 using Spectrometre.Modules.Analytics;
 using Spectrometre.Modules.Coaching;
 using Spectrometre.Modules.Coaching.Data;
@@ -33,6 +36,7 @@ using Spectrometre.Modules.ProfilEntreprise.Data;
 using Spectrometre.Modules.SuiviEvolutif;
 using Spectrometre.Modules.SuiviEvolutif.Data;
 using Spectrometre.Modules.SuiviEvolutif.Services;
+using Spectrometre.Modules.Vivier;
 using Xunit;
 
 namespace Spectrometre.Concurrency.Tests;
@@ -46,9 +50,12 @@ namespace Spectrometre.Concurrency.Tests;
 /// n'héberge jamais de vraie entreprise (voir ITenantSchemaNameGenerator), c'est donc un bac à sable sûr.
 /// </summary>
 /// <remarks>
-/// N'appelle PAS <c>AddSpectrometreCore</c> (qui enregistre aussi ASP.NET Core Identity — SignInManager,
-/// UserManager — inutile ici et qui suppose un hôte ASP.NET Core complet) : seul le sous-ensemble
-/// réellement utilisé par les tests est reproduit (CoreDbContext, registre de modules, provisioning).
+/// N'appelle PAS <c>AddSpectrometreCore</c> dans son ensemble (qui suppose un hôte ASP.NET Core complet
+/// pour certaines options) : seul le sous-ensemble réellement utilisé par les tests est reproduit
+/// (CoreDbContext, registre de modules, provisioning). Identity (UserManager/RoleManager/SignInManager) a
+/// été ajouté ci-dessous — a minima, sans <c>RequireConfirmedAccount</c> — spécifiquement pour le cycle
+/// Admin : <c>AdminService.PromouvoirAsync</c>/<c>RetrograderAsync</c> manipulent réellement des comptes et
+/// des rôles Identity, aucun double ne peut se substituer à ça sans re-tester une abstraction fictive.
 /// </remarks>
 public sealed class ServiceFixture : IAsyncLifetime
 {
@@ -57,6 +64,34 @@ public sealed class ServiceFixture : IAsyncLifetime
         ?? "Host=localhost;Port=5432;Database=spectrometre_v2;Username=postgres;Password=Pil@tes2025";
 
     public ServiceProvider Services { get; private set; } = null!;
+
+    /// <summary>
+    /// Entreprises créées pendant la suite, nettoyées une seule fois en fin d'exécution (voir DisposeAsync)
+    /// plutôt que test par test : chaque entreprise provisionne un VRAI schéma Postgres dédié dans la base de
+    /// développement partagée (voir ConnectionString), jamais nettoyé sinon — RecruitmentIndexBackfill au
+    /// démarrage du Host le redécouvrirait alors indéfiniment à chaque exécution de la suite et échouerait
+    /// dessus si son schéma PostesRecrutement n'existe pas (comportement caught/attendu, mais bruit qui
+    /// grossit sans fin). ConcurrentBag plutôt que List : xUnit peut exécuter les méthodes d'une même classe
+    /// de test en parallèle par défaut.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentBag<Company> _companiesToCleanup = [];
+
+    /// <summary>
+    /// À appeler pour toute entreprise créée SANS passer par <see cref="CreateCompanyAsync"/> (qui s'en charge
+    /// déjà lui-même) — ex. <c>ICompanyProvisioningService.CreateCompanyAsync</c> appelé directement dans
+    /// ModuleActivationTests pour simuler une entreprise antérieure à la création d'abonnement.
+    /// </summary>
+    public void TrackCompanyForCleanup(Company company) => _companiesToCleanup.Add(company);
+
+    /// <summary>
+    /// Comptes Identity créés pendant la suite (ex. promotion/rétrogradation PlatformAdmin dans AdminTests) —
+    /// même raisonnement que <see cref="_companiesToCleanup"/> : sans ça, chaque exécution de la suite
+    /// laisserait des lignes <c>AspNetUsers</c>/<c>AspNetUserRoles</c> orphelines dans la base de
+    /// développement partagée, faussant à terme les compteurs globaux de la zone Admin.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentBag<string> _usersToCleanup = [];
+
+    public void TrackUserForCleanup(string userId) => _usersToCleanup.Add(userId);
 
     public async Task InitializeAsync()
     {
@@ -80,6 +115,18 @@ public sealed class ServiceFixture : IAsyncLifetime
         // cassée pour les outils de conception EF Core).
         services.AddDbContextFactory<CoreDbContext>(configureCoreDbContext);
         services.AddScoped<CoreDbContext>(sp => sp.GetRequiredService<IDbContextFactory<CoreDbContext>>().CreateDbContext());
+
+        // Voir la remarque sur ServiceFixture : sous-ensemble d'AddSpectrometreCore réellement nécessaire
+        // (UserManager/RoleManager pour AdminService), sans RequireConfirmedAccount (les tests ne se
+        // connectent jamais par mot de passe, seulement par manipulation directe de comptes/rôles). Pas de
+        // AddDefaultTokenProviders() : ça exigerait aussi AddDataProtection() (fourni gratuitement par un
+        // hôte ASP.NET Core complet, absent ici) — inutile puisqu'aucun test n'appelle de méthode générant
+        // un jeton (confirmation email, réinitialisation de mot de passe).
+        services.AddIdentityCore<ApplicationUser>()
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<CoreDbContext>()
+            .AddSignInManager();
+
         services.AddSingleton<ITenantSchemaNameGenerator, TenantSchemaNameGenerator>();
         services.AddScoped<ICompanyProvisioningService, CompanyProvisioningService>();
         services.AddScoped<ITenantSchemaProvisioner, TenantSchemaProvisioner>();
@@ -98,6 +145,8 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddGestionDuTempsModule(config);
         services.AddProfilCoachModule(config);
         services.AddCoachingModule(config);
+        services.AddAdminModule(config);
+        services.AddVivierModule();
 
         // Même câblage que Spectrometre.Host.Program pour ICoachingAccessChecker : implémentation réelle
         // par-dessus le no-op (absent ici, on l'enregistre directement, comme pour IProfileChangeRecorder).
@@ -129,6 +178,7 @@ public sealed class ServiceFixture : IAsyncLifetime
             moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.Vivier.ServiceCollectionExtensions.Manifest);
             // Coaching n'a pas de manifeste propre (voir sa ServiceCollectionExtensions).
 
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
@@ -167,6 +217,9 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         await using var coachingDb = await Services.GetRequiredService<IDbContextFactory<CoachingDbContext>>().CreateDbContextAsync();
         await coachingDb.Database.MigrateAsync();
+
+        await using var adminDb = await Services.GetRequiredService<IDbContextFactory<Spectrometre.Modules.Admin.Data.AdminDbContext>>().CreateDbContextAsync();
+        await adminDb.Database.MigrateAsync();
     }
 
     /// <summary>
@@ -243,10 +296,56 @@ public sealed class ServiceFixture : IAsyncLifetime
         // provisionner, seulement l'activation.
         await moduleRegistry.ActivateForCompanyAsync(company.Id, Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest.Code, coreDb);
 
+        TrackCompanyForCleanup(company);
         return company;
     }
 
-    public async Task DisposeAsync() => await Services.DisposeAsync();
+    public async Task DisposeAsync()
+    {
+        await using (var coreDb = await Services.GetRequiredService<IDbContextFactory<CoreDbContext>>().CreateDbContextAsync())
+        {
+            foreach (var company in _companiesToCleanup)
+                await CleanupCompanyAsync(coreDb, company);
+        }
+
+        using (var scope = Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            foreach (var userId in _usersToCleanup)
+            {
+                var user = await userManager.FindByIdAsync(userId);
+                if (user is not null)
+                    await userManager.DeleteAsync(user); // Cascade sur AspNetUserRoles (modèle Identity par défaut).
+            }
+        }
+
+        await Services.DisposeAsync();
+    }
+
+    private static async Task CleanupCompanyAsync(CoreDbContext coreDb, Company company)
+    {
+        var activations = await coreDb.ModuleActivations
+            .Where(a => a.SubjectType == ModuleActivationSubjectType.Company && a.SubjectId == company.Id)
+            .ToListAsync();
+        coreDb.ModuleActivations.RemoveRange(activations);
+
+        var subscriptions = await coreDb.TenantSubscriptions.Where(s => s.CompanyId == company.Id).ToListAsync();
+        coreDb.TenantSubscriptions.RemoveRange(subscriptions);
+
+        await coreDb.SaveChangesAsync();
+
+        // Cascade sur UserCompanyLinks (voir OnModelCreating de CoreDbContext).
+        coreDb.Companies.Remove(company);
+        await coreDb.SaveChangesAsync();
+
+        // Concaténation plutôt qu'une chaîne interpolée (voir EF1002) : schéma déjà validé par
+        // ICompanyProvisioningService.QuoteValidatedSchema à sa création, revalidé ici par défense en
+        // profondeur puisque DROP SCHEMA ne peut pas être paramétré comme une valeur (identifiant, pas
+        // littéral).
+        if (!System.Text.RegularExpressions.Regex.IsMatch(company.SchemaName, "^[a-z][a-z0-9_]{0,62}$"))
+            throw new InvalidOperationException("Schéma invalide.");
+        await coreDb.Database.ExecuteSqlRawAsync("DROP SCHEMA IF EXISTS \"" + company.SchemaName + "\" CASCADE;");
+    }
 }
 
 [CollectionDefinition("Base de données partagée")]

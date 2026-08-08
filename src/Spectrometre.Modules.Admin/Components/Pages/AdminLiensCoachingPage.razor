@@ -1,0 +1,70 @@
+@page "/admin/liens-coaching"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminLiensCoachingTitle"]</PageTitle>
+
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["AdminNavLiensCoaching"]</h1>
+            <p class="admin-subtitle">@Localizer["AdminLiensCoachingTitle"]</p>
+        </div>
+    </header>
+
+    @if (_liens is null)
+    {
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else if (_liens.Count == 0)
+    {
+        <section class="admin-card">
+            <p class="admin-hint">@Localizer["AucunLienCoaching"]</p>
+        </section>
+    }
+    else
+    {
+        <section class="admin-card admin-table-card">
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["ColSuivi"]</th>
+                            <th>@Localizer["ColCoach"]</th>
+                            <th>@Localizer["ColStatut"]</th>
+                            <th>@Localizer["ColDateCreation"]</th>
+                            <th>@Localizer["ColDateAcceptation"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var l in _liens)
+                        {
+                            <tr>
+                                <td>@l.SuiviEmail</td>
+                                <td>@l.CoachEmail</td>
+                                <td>@l.Statut</td>
+                                <td>@l.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                <td>@(l.AccepteLe?.ToString("yyyy-MM-dd") ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private IReadOnlyList<AdminCoachingLinkSummary>? _liens;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var caller = AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+        _liens = await AdminService.GetLiensCoachingAsync(caller);
+    }
+}

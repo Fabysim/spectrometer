@@ -1,0 +1,55 @@
+@page "/admin/historique"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminHistoriqueTitre"]</PageTitle>
+
+<h1>@Localizer["AdminHistoriqueTitre"]</h1>
+
+@if (_entries is null)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_entries.Count == 0)
+{
+    <p class="hint">@Localizer["AdminHistoriqueAucuneEntree"]</p>
+}
+else
+{
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>@Localizer["ColEmail"]</th>
+                <th>@Localizer["AdminHistoriqueAction"]</th>
+                <th>@Localizer["AdminHistoriqueCible"]</th>
+                <th>@Localizer["ColDateCreation"]</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in _entries)
+            {
+                <tr>
+                    <td>@entry.AdminEmail</td>
+                    <td>@entry.Action</td>
+                    <td>@entry.Cible</td>
+                    <td>@entry.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private IReadOnlyList<AdminAuditEntryView>? _entries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var caller = AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+        _entries = await AdminService.GetHistoriqueAsync(caller);
+    }
+}

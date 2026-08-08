@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Nécessaire pour Microsoft.AspNetCore.DataProtection (AddDataProtection(), voir Program.cs) — ce
+         projet reste un simple exécutable console, pas un hôte web, mais a besoin de cet assembly partagé. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Uniquement Core : réutilise directement AddSpectrometreCore (CoreDbContext + Identity), exactement
+         comme Spectrometre.Host — jamais un module métier, cet outil n'a besoin que de créer un compte et
+         lui assigner un rôle. -->
+    <ProjectReference Include="..\..\src\Spectrometre.Core\Spectrometre.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

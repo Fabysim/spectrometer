@@ -1,0 +1,74 @@
+@page "/admin/sujets/{SubjectType}/{SubjectId:int}/modules"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Spectrometre.Core.Modules
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminModulesTitre"]</PageTitle>
+
+<h1>@Localizer["AdminModulesTitre"] — @SubjectType #@SubjectId</h1>
+
+@if (_tous is null)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else
+{
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>@Localizer["ColModulesActifs"]</th>
+                <th>@Localizer["AdminModulesStatut"]</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var moduleCode in _tous)
+            {
+                var actif = _actifs.Contains(moduleCode);
+                <tr>
+                    <td>@moduleCode</td>
+                    <td>@(actif ? Localizer["Oui"] : Localizer["Non"])</td>
+                    <td>
+                        <button @onclick="() => BasculerAsync(moduleCode, !actif)">
+                            @(actif ? Localizer["AdminModulesDesactiver"] : Localizer["AdminModulesActiver"])
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+    [Parameter] public string SubjectType { get; set; } = "";
+    [Parameter] public int SubjectId { get; set; }
+
+    private IReadOnlyList<string>? _tous;
+    private IReadOnlyList<string> _actifs = [];
+
+    private ModuleActivationSubjectType Type => Enum.Parse<ModuleActivationSubjectType>(SubjectType, ignoreCase: true);
+
+    protected override async Task OnInitializedAsync() => await RefreshAsync();
+
+    private async Task<ClaimsPrincipal> CallerAsync() =>
+        AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+
+    private async Task RefreshAsync()
+    {
+        var caller = await CallerAsync();
+        var (tous, actifs) = await AdminService.GetModulesPourSujetAsync(caller, Type, SubjectId);
+        _tous = tous;
+        _actifs = actifs;
+    }
+
+    private async Task BasculerAsync(string moduleCode, bool actif)
+    {
+        var caller = await CallerAsync();
+        await AdminService.DefinirActivationModuleAsync(caller, Type, SubjectId, moduleCode, actif);
+        await RefreshAsync();
+    }
+}

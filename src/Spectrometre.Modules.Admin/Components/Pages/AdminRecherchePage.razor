@@ -1,0 +1,151 @@
+@page "/admin/recherche"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminRechercheTitle"]</PageTitle>
+
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["AdminNavRecherche"]</h1>
+            <p class="admin-subtitle">@Localizer["AdminRechercheTitle"]</p>
+        </div>
+    </header>
+
+    <section class="admin-card admin-form-card">
+        <div class="admin-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-search"></i>
+        </div>
+        <h2 class="admin-section-title">@Localizer["ChampEmail"]</h2>
+        <EditForm Model="this" OnValidSubmit="RechercherAsync" class="admin-form">
+            <div class="admin-field">
+                <label for="admin-search-email">@Localizer["ChampEmail"]</label>
+                <InputText id="admin-search-email" class="admin-input" @bind-Value="_email" />
+            </div>
+            <div class="admin-form-actions">
+                <button type="submit" class="admin-btn-primary" disabled="@_recherEnCours">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    @Localizer["BoutonRechercher"]
+                </button>
+            </div>
+        </EditForm>
+    </section>
+
+    @if (_dejaCherche)
+    {
+        @if (_resultat is null)
+        {
+            <section class="admin-card">
+                <p class="admin-hint">@Localizer["AucunResultatRecherche"]</p>
+            </section>
+        }
+        else
+        {
+            <section class="admin-card admin-search-result">
+                <div class="admin-card-header">
+                    <h2 class="admin-section-title">
+                        <i class="bi bi-person-circle" aria-hidden="true"></i>
+                        @_resultat.Email
+                    </h2>
+                </div>
+                <p class="admin-user-id">@_resultat.UserId</p>
+                <ul class="admin-result-list">
+                    <li>
+                        <span>@Localizer["ResultatEstAdmin"]</span>
+                        <strong>@(_resultat.EstAdmin ? Localizer["Oui"] : Localizer["Non"])</strong>
+                    </li>
+                    <li>
+                        <span>@Localizer["ResultatEstCandidat"]</span>
+                        <strong>@(_resultat.EstCandidat ? Localizer["Oui"] : Localizer["Non"])</strong>
+                    </li>
+                    <li>
+                        <span>@Localizer["ResultatEstCoach"]</span>
+                        <strong>@(_resultat.EstCoach ? Localizer["Oui"] : Localizer["Non"])</strong>
+                    </li>
+                    <li>
+                        <span>@Localizer["ResultatEntreprisesPossedees"]</span>
+                        <strong>
+                            @(_resultat.EntreprisesPossedees.Count == 0
+                                ? Localizer["ResultatAucuneEntreprise"]
+                                : string.Join(", ", _resultat.EntreprisesPossedees))
+                        </strong>
+                    </li>
+                </ul>
+
+                <div class="admin-form-actions">
+                    @if (_resultat.EstAdmin)
+                    {
+                        <button type="button" class="admin-btn-secondary" @onclick="RetrograderAsync">
+                            <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+                            @Localizer["BoutonRetrograder"]
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="admin-btn-primary" @onclick="PromouvoirAsync">
+                            <i class="bi bi-arrow-up-circle" aria-hidden="true"></i>
+                            @Localizer["BoutonPromouvoir"]
+                        </button>
+                    }
+                </div>
+            </section>
+        }
+    }
+
+    @if (_message is not null)
+    {
+        <p class="admin-alert">@_message</p>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string _email = "";
+    private bool _recherEnCours;
+    private bool _dejaCherche;
+    private AdminSearchResult? _resultat;
+    private string? _message;
+
+    private async Task<ClaimsPrincipal> CallerAsync() =>
+        AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+
+    private async Task RechercherAsync()
+    {
+        _recherEnCours = true;
+        _message = null;
+        try
+        {
+            var caller = await CallerAsync();
+            _resultat = await AdminService.RechercherParEmailAsync(caller, _email.Trim());
+            _dejaCherche = true;
+        }
+        finally
+        {
+            _recherEnCours = false;
+        }
+    }
+
+    private async Task PromouvoirAsync()
+    {
+        if (_resultat is null) return;
+        var caller = await CallerAsync();
+        var outcome = await AdminService.PromouvoirAsync(caller, _resultat.UserId);
+        _message = Localizer[$"Outcome_{outcome}"];
+        if (outcome == AdminActionOutcome.Succes)
+            await RechercherAsync();
+    }
+
+    private async Task RetrograderAsync()
+    {
+        if (_resultat is null) return;
+        var caller = await CallerAsync();
+        var outcome = await AdminService.RetrograderAsync(caller, _resultat.UserId);
+        _message = Localizer[$"Outcome_{outcome}"];
+        if (outcome == AdminActionOutcome.Succes)
+            await RechercherAsync();
+    }
+}

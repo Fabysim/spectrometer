@@ -34,7 +34,20 @@ public sealed class CompanyProfileService(IDbContextFactory<ProfilEntrepriseDbCo
 
         var profile = new CompanyProfile();
         db.CompanyProfiles.Add(profile);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
+        {
+            // Même course que CandidateProfileService/CoachProfileService.GetOrCreateProfileIdAsync (voir
+            // leur remarque) — désormais détectable ici aussi grâce à la contrainte d'unicité "un seul
+            // profil par schéma tenant" (colonne Singleton, voir ProfilEntrepriseDbContext) introduite ce
+            // cycle : avant elle, cette course ne levait rien et pouvait créer plusieurs lignes en silence.
+            await using var freshDb = await CreateDbAsync(cancellationToken);
+            return (await freshDb.CompanyProfiles.FirstAsync(cancellationToken)).Id;
+        }
+
         return profile.Id;
     }
 

@@ -1,0 +1,74 @@
+@page "/admin/invitations"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminInvitationsTitle"]</PageTitle>
+
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["AdminNavInvitations"]</h1>
+            <p class="admin-subtitle">@Localizer["AdminInvitationsTitle"]</p>
+        </div>
+    </header>
+
+    @if (_invitations is null)
+    {
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else if (_invitations.Count == 0)
+    {
+        <section class="admin-card">
+            <p class="admin-hint">@Localizer["AucuneInvitation"]</p>
+        </section>
+    }
+    else
+    {
+        <section class="admin-card admin-table-card">
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["ColEmetteur"]</th>
+                            <th>@Localizer["ColEmailInvite"]</th>
+                            <th>@Localizer["ColType"]</th>
+                            <th>@Localizer["ColStatut"]</th>
+                            <th>@Localizer["ColDateCreation"]</th>
+                            <th>@Localizer["ColExpiration"]</th>
+                            <th>@Localizer["ColAcceptee"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var i in _invitations)
+                        {
+                            <tr>
+                                <td>@i.EmetteurEmail</td>
+                                <td>@i.EmailInvite</td>
+                                <td>@i.Type</td>
+                                <td>@i.Statut</td>
+                                <td>@i.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                <td>@i.ExpireLe.ToString("yyyy-MM-dd")</td>
+                                <td>@(i.AccepteeLe?.ToString("yyyy-MM-dd") ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private IReadOnlyList<AdminInvitationSummary>? _invitations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var caller = AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+        _invitations = await AdminService.GetInvitationsAsync(caller);
+    }
+}

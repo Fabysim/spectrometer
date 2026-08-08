@@ -1,0 +1,13 @@
+﻿/* Home.razor.css
+ *
+ * Styles vitrine principaux : wwwroot/css/home-vitrine.css (chargé dans App.razor).
+ * Conservé en global car :root / html / body, .navbar-vitrine (Header) et
+ * html:not([data-scroll-ready]) doivent s’appliquer hors du scope de cette page.
+ *
+ * Ajouter ici uniquement des overrides scoped spécifiques à Home.razor.
+ */
+
+/* Ancre de scope : assure que le fichier CSS scoped est émis pour cette page. */
+.hero-vitrine {
+    /* hérite de home-vitrine.css */
+}

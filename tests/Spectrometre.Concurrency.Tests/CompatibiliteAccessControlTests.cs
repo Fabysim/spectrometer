@@ -68,9 +68,9 @@ public sealed class CompatibiliteAccessControlTests(ServiceFixture fixture)
     {
         var suffix = Guid.NewGuid();
         var candidatUserId = $"access-test-candidat-{suffix}";
-        var managerUserId = $"access-test-manager-{suffix}";
+        var employeUserId = $"access-test-manager-{suffix}";
 
-        var company = await fixture.CreateCompanyAsync($"Entreprise Access {suffix}", managerUserId);
+        var company = await fixture.CreateCompanyAsync($"Entreprise Access {suffix}", employeUserId);
 
         using var setupScope = NewScope();
         var candidateProfileId = await GetOrCreateCandidateAsync(setupScope, candidatUserId);
@@ -81,7 +81,7 @@ public sealed class CompatibiliteAccessControlTests(ServiceFixture fixture)
 
         // Pas d'entreprise active préconfigurée : la résolution doit se faire en cherchant parmi les
         // entreprises gérées par ce manager, exactement comme un accès direct par URL sans navigation préalable.
-        var result = await compatibiliteService.GetResultatAutorisePourUtilisateurAsync(candidateProfileId, managerUserId);
+        var result = await compatibiliteService.GetResultatAutorisePourUtilisateurAsync(candidateProfileId, employeUserId);
 
         Assert.NotNull(result);
     }
@@ -91,9 +91,9 @@ public sealed class CompatibiliteAccessControlTests(ServiceFixture fixture)
     {
         var suffix = Guid.NewGuid();
         var candidatUserId = $"access-test-candidat-jamais-{suffix}";
-        var managerUserId = $"access-test-manager-{suffix}";
+        var employeUserId = $"access-test-manager-{suffix}";
 
-        var company = await fixture.CreateCompanyAsync($"Entreprise Access {suffix}", managerUserId);
+        var company = await fixture.CreateCompanyAsync($"Entreprise Access {suffix}", employeUserId);
 
         using var setupScope = NewScope();
         // Le candidat existe (a un profil), mais n'a JAMAIS postulé nulle part — exactement le scénario
@@ -103,7 +103,7 @@ public sealed class CompatibiliteAccessControlTests(ServiceFixture fixture)
         using var scope = NewScope();
         var compatibiliteService = scope.ServiceProvider.GetRequiredService<ICompatibiliteService>();
 
-        var result = await compatibiliteService.GetResultatAutorisePourUtilisateurAsync(candidateProfileId, managerUserId);
+        var result = await compatibiliteService.GetResultatAutorisePourUtilisateurAsync(candidateProfileId, employeUserId);
 
         Assert.Null(result);
     }
@@ -113,10 +113,10 @@ public sealed class CompatibiliteAccessControlTests(ServiceFixture fixture)
     {
         var suffix = Guid.NewGuid();
         var candidatUserId = $"access-test-candidat-{suffix}";
-        var managerUserId = $"access-test-manager-{suffix}";
+        var employeUserId = $"access-test-manager-{suffix}";
         var tiersUserId = $"access-test-tiers-{suffix}";
 
-        var company = await fixture.CreateCompanyAsync($"Entreprise Access {suffix}", managerUserId);
+        var company = await fixture.CreateCompanyAsync($"Entreprise Access {suffix}", employeUserId);
 
         using var setupScope = NewScope();
         var candidateProfileId = await GetOrCreateCandidateAsync(setupScope, candidatUserId);

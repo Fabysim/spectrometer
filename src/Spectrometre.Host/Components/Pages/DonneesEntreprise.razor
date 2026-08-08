@@ -1,0 +1,238 @@
+@page "/entreprise/donnees"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Host.Resources
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["DonneesDeLEntreprise"]</PageTitle>
+
+<div class="donnees-entreprise-page">
+@if (_loading)
+{
+    <p class="donnees-state">@Localizer["Chargement"]</p>
+}
+else if (_companies.Count == 0)
+{
+    <section class="donnees-card">
+        <p class="donnees-hint">@Localizer["AjouterModule_AucuneEntrepriseAssociee"]</p>
+        <a href="/entreprise/creer" class="donnees-btn-primary">@Localizer["CreerUneEntreprise"]</a>
+    </section>
+}
+else
+{
+    <header class="donnees-header">
+        <div>
+            <h1 class="donnees-title">@Localizer["DonneesDeLEntreprise"]</h1>
+            <p class="donnees-subtitle">
+                @if (_companies.Count == 1)
+                {
+                    @_companies[0].Name
+                }
+                else
+                {
+                    @Localizer["EntrepriseActive"]
+                }
+            </p>
+        </div>
+        @if (_companies.Count > 1)
+        {
+            <div class="donnees-company-select">
+                <label for="donnees-active">@Localizer["EntrepriseActive"]</label>
+                <select id="donnees-active" value="@_selectedCompanyId" @onchange="OnCompanyChanged">
+                    @foreach (var company in _companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+            </div>
+        }
+    </header>
+
+    <section class="donnees-card">
+        <h2 class="donnees-section-title">@Localizer["DonneesEntreprise_Infos"]</h2>
+        <div class="donnees-form">
+            <div class="donnees-field">
+                <label for="donnees-name">@Localizer["NomDeLEntreprise"]</label>
+                <input id="donnees-name" class="donnees-input" @bind="_editName" placeholder="@Localizer["NomDeLEntreprise"]" />
+            </div>
+            <div class="donnees-field">
+                <label for="donnees-vta">@Localizer["DonneesEntreprise_TVA"] <span class="donnees-optional">@Localizer["Optionnel"]</span></label>
+                <input id="donnees-vta" class="donnees-input" @bind="_editVta" placeholder="@Localizer["DonneesEntreprise_TVAPlaceholder"]" />
+            </div>
+            <div class="donnees-field">
+                <label for="donnees-address">@Localizer["DonneesEntreprise_Adresse"] <span class="donnees-optional">@Localizer["Optionnel"]</span></label>
+                <input id="donnees-address" class="donnees-input" @bind="_editAddress" placeholder="@Localizer["DonneesEntreprise_AdressePlaceholder"]" />
+            </div>
+            <div class="donnees-form-row">
+                <div class="donnees-field">
+                    <label for="donnees-city">@Localizer["DonneesEntreprise_Ville"] <span class="donnees-optional">@Localizer["Optionnel"]</span></label>
+                    <input id="donnees-city" class="donnees-input" @bind="_editCity" placeholder="@Localizer["DonneesEntreprise_Ville"]" />
+                </div>
+                <div class="donnees-field">
+                    <label for="donnees-postal">@Localizer["DonneesEntreprise_CodePostal"] <span class="donnees-optional">@Localizer["Optionnel"]</span></label>
+                    <input id="donnees-postal" class="donnees-input" @bind="_editPostalCode" placeholder="@Localizer["DonneesEntreprise_CodePostal"]" />
+                </div>
+            </div>
+            <div class="donnees-field">
+                <label for="donnees-country">@Localizer["DonneesEntreprise_Pays"] <span class="donnees-optional">@Localizer["Optionnel"]</span></label>
+                <input id="donnees-country" class="donnees-input" @bind="_editCountry" placeholder="@Localizer["DonneesEntreprise_Pays"]" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="donnees-alert donnees-alert-error" role="alert">@_error</div>
+            }
+            @if (!string.IsNullOrEmpty(_message))
+            {
+                <div class="donnees-alert donnees-alert-success" role="status">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    @_message
+                </div>
+            }
+
+            <div class="donnees-actions">
+                <button type="button" class="donnees-btn-secondary" @onclick="ResetEditForm" disabled="@_saving">
+                    @Localizer["Annuler"]
+                </button>
+                <button type="button" class="donnees-btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                    @Localizer["Enregistrer"]
+                </button>
+            </div>
+        </div>
+    </section>
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool _loading = true;
+    private bool _saving;
+    private string? _userId;
+    private List<Company> _companies = [];
+    private int _selectedCompanyId;
+    private string _editName = "";
+    private string _editVta = "";
+    private string _editAddress = "";
+    private string _editCity = "";
+    private string _editPostalCode = "";
+    private string _editCountry = "";
+    private string? _error;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is not null)
+            _userId = (await AuthenticationStateTask).User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(_userId))
+        {
+            _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(_userId, CoreDb)).ToList();
+            if (_companies.Count > 0)
+            {
+                _selectedCompanyId = _companies[0].Id;
+                LoadEditForm(_companies[0]);
+            }
+        }
+
+        _loading = false;
+    }
+
+    private void OnCompanyChanged(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var id))
+            return;
+
+        var company = _companies.FirstOrDefault(c => c.Id == id);
+        if (company is null)
+            return;
+
+        _selectedCompanyId = id;
+        _error = null;
+        _message = null;
+        LoadEditForm(company);
+    }
+
+    private void LoadEditForm(Company company)
+    {
+        _editName = company.Name;
+        _editVta = company.VTA ?? "";
+        _editAddress = company.Address ?? "";
+        _editCity = company.City ?? "";
+        _editPostalCode = company.PostalCode ?? "";
+        _editCountry = company.Country ?? "";
+    }
+
+    private void ResetEditForm()
+    {
+        var company = _companies.FirstOrDefault(c => c.Id == _selectedCompanyId);
+        if (company is null)
+            return;
+
+        _error = null;
+        _message = null;
+        LoadEditForm(company);
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrEmpty(_userId))
+            return;
+
+        _error = null;
+        _message = null;
+
+        if (string.IsNullOrWhiteSpace(_editName))
+        {
+            _error = Localizer["DonneesEntreprise_NomRequis"];
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var ok = await CompanyProvisioningService.UpdateCompanyDetailsAsync(
+                _userId,
+                _selectedCompanyId,
+                _editName,
+                _editVta,
+                _editAddress,
+                _editCity,
+                _editPostalCode,
+                _editCountry,
+                CoreDb);
+
+            if (!ok)
+            {
+                _error = Localizer["DonneesEntreprise_ErreurEnregistrement"];
+                return;
+            }
+
+            var company = _companies.FirstOrDefault(c => c.Id == _selectedCompanyId);
+            if (company is not null)
+            {
+                company.Name = _editName.Trim();
+                company.VTA = string.IsNullOrWhiteSpace(_editVta) ? null : _editVta.Trim();
+                company.Address = string.IsNullOrWhiteSpace(_editAddress) ? null : _editAddress.Trim();
+                company.City = string.IsNullOrWhiteSpace(_editCity) ? null : _editCity.Trim();
+                company.PostalCode = string.IsNullOrWhiteSpace(_editPostalCode) ? null : _editPostalCode.Trim();
+                company.Country = string.IsNullOrWhiteSpace(_editCountry) ? null : _editCountry.Trim();
+                LoadEditForm(company);
+            }
+
+            _message = Localizer["DonneesEntreprise_Enregistre"];
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

@@ -61,4 +61,5 @@
   <data name="QuestionPointsVigilance" xml:space="preserve"><value>Select the situations likely to cause fatigue, stress or early departures.</value></data>
   <data name="GrilleComplete" xml:space="preserve"><value>Compatibility grid complete.</value></data>
   <data name="GrilleIncomplete" xml:space="preserve"><value>Compatibility grid incomplete.</value></data>
+  <data name="CreerUneEntreprise" xml:space="preserve"><value>Create a company</value></data>
 </root>

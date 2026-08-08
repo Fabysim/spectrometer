@@ -11,6 +11,7 @@
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @inject IGestionDuTempsAccessService GestionDuTempsAccessService
+@inject IStringLocalizer<Spectrometre.Modules.Admin.Resources.AdminResource> AdminLocalizer
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
@@ -19,77 +20,303 @@
 @inject IStringLocalizer<SharedResource> Localizer
 @inject NavigationManager Navigation
 
-<div class="lang-switcher">
-    @* <a> ordinaire avec navigation forcée (pas un gestionnaire Blazor) : voir la remarque sur
-       UseRequestLocalization dans Program.cs — un circuit interactif ne re-résout jamais sa culture en
-       cours de route, seul un rechargement complet de page (nouvelle requête HTTP, nouveau circuit) le
-       peut. data-enhance-nav="false" désactive la navigation "enhanced" de Blazor pour CE lien précis
-       (qui ferait sinon un fetch partiel côté client au lieu d'une vraie navigation complète). *@
-    <a href="@CultureLink("fr")" data-enhance-nav="false" class="@(CurrentCultureIsFrench ? "active" : "")">FR</a>
-    <a href="@CultureLink("en")" data-enhance-nav="false" class="@(!CurrentCultureIsFrench ? "active" : "")">EN</a>
+<div class="app-shell">
+    <button type="button" class="sidebar-mobile-btn" onclick="spectrometreToggleMobileSidebar()" aria-label="Menu">
+        <i class="bi bi-list" aria-hidden="true"></i>
+    </button>
+    <div class="sidebar-mobile-overlay" id="sidebarOverlay" onclick="spectrometreToggleMobileSidebar()"></div>
+
+    <aside class="sidebar-auth collapsed" id="appSidebar">
+        <div class="sidebar-header">
+            <a href="/dashboard" class="sidebar-logo" data-enhance-nav="false">
+                <span class="logo-icon">S</span>
+                <span class="logo-text">@Localizer["Header_Brand_Title"]</span>
+            </a>
+            <button type="button" class="sidebar-toggle-btn" onclick="spectrometreToggleSidebar(event)" aria-label="Menu">
+                <i class="bi bi-chevron-left sidebar-toggle-icon-open" aria-hidden="true"></i>
+                <i class="bi bi-chevron-right sidebar-toggle-icon-collapsed" aria-hidden="true"></i>
+            </button>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="user-info">
+                        <i class="bi bi-person-circle" aria-hidden="true"></i>
+                        <span>@context.User.Identity?.Name</span>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+
+        <nav class="sidebar-nav">
+            @if (_isAuthenticated)
+            {
+                @if (_hasCompany)
+                {
+                    <div class="nav-group @(IsGroupActive("entreprise") ? "open" : "")" data-nav-group="entreprise">
+                        <div class="nav-group-row">
+                            <a href="/entreprise/donnees" class="nav-item-auth nav-group-primary @ActiveClass("/entreprise/donnees")">
+                                <span class="nav-icon"><i class="bi bi-building" aria-hidden="true"></i></span>
+                                <span>@Localizer["Entreprise"]</span>
+                            </a>
+                            <button type="button" class="nav-group-caret" onclick="spectrometreToggleNavGroup(this)" aria-expanded="@(IsGroupActive("entreprise") ? "true" : "false")" aria-label="@Localizer["Entreprise"]">
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="nav-submenu">
+                            <div class="nav-module-label">@Localizer["NavGroup_GestionEntreprise"]</div>
+                            <a href="/entreprise/donnees" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/donnees")">
+                                <span class="nav-icon"><i class="bi bi-card-text" aria-hidden="true"></i></span>
+                                <span>@Localizer["DonneesDeLEntreprise"]</span>
+                            </a>
+                            <a href="/entreprise/profil" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/profil")">
+                                <span class="nav-icon"><i class="bi bi-clipboard2-check" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_ProfilEntreprise"]</span>
+                            </a>
+                            <a href="/entreprise/employes" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/employes")">
+                                <span class="nav-icon"><i class="bi bi-people-fill" aria-hidden="true"></i></span>
+                                <span>@Localizer["GestionManagers_Titre"]</span>
+                            </a>
+
+                            @* Un groupe distinct par module réellement actif, dans l'ordre canonique et stable
+                               d'enregistrement des manifestes (ModuleRegistry.AllModules, voir OnInitializedAsync) —
+                               jamais un ordre recalculé/aléatoire à chaque rendu. *@
+                            @foreach (var manifest in ModuleRegistry.AllModules)
+                            {
+                                if (manifest.Code == "PostesRecrutement" && _companyActiveModules.Contains("PostesRecrutement"))
+                                {
+                                    <div class="nav-module-label">@ModuleLabel(manifest)</div>
+                                    <a href="/entreprise/postes" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/postes")">
+                                        <span class="nav-icon"><i class="bi bi-briefcase" aria-hidden="true"></i></span>
+                                        <span>@Localizer["Module_PostesEntreprise"]</span>
+                                    </a>
+                                }
+                                else if (manifest.Code == "Vivier" && _companyActiveModules.Contains("Vivier"))
+                                {
+                                    <div class="nav-module-label">@ModuleLabel(manifest)</div>
+                                    <a href="/vivier" class="nav-item-auth nav-sub-item @ActiveClass("/vivier")">
+                                        <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+                                        <span>@Localizer["Module_Vivier"]</span>
+                                    </a>
+                                }
+                                else if (manifest.Code == "SuiviEvolutif" && _companyActiveModules.Contains("SuiviEvolutif"))
+                                {
+                                    <div class="nav-module-label">@ModuleLabel(manifest)</div>
+                                    <a href="/entreprise/historique" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/historique")">
+                                        <span class="nav-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
+                                        <span>@Localizer["Module_HistoriqueEntreprise"]</span>
+                                    </a>
+                                }
+                                else if (manifest.Code == "Analytics" && _companyActiveModules.Contains("Analytics"))
+                                {
+                                    <div class="nav-module-label">@ModuleLabel(manifest)</div>
+                                    <a href="/entreprise/analytics" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/analytics")">
+                                        <span class="nav-icon"><i class="bi bi-graph-up" aria-hidden="true"></i></span>
+                                        <span>@Localizer["Module_AnalyticsEntreprise"]</span>
+                                    </a>
+                                }
+                            }
+
+                            <a href="/entreprise/modules" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/modules")">
+                                <span class="nav-icon"><i class="bi bi-plus-square" aria-hidden="true"></i></span>
+                                <span>@Localizer["AjouterUnModuleEntreprise"]</span>
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a href="/entreprise/creer" class="nav-item-auth @ActiveClass("/entreprise/creer")">
+                        <span class="nav-icon"><i class="bi bi-building-add" aria-hidden="true"></i></span>
+                        <span>@Localizer["CreerUneEntreprise"]</span>
+                    </a>
+                }
+
+                @if (_candidateActiveModules.Contains("ProfilCandidat"))
+                {
+                    <div class="nav-group @(IsGroupActive("candidat") ? "open" : "")" data-nav-group="candidat">
+                        <div class="nav-group-row">
+                            <a href="/candidat/questionnaire" class="nav-item-auth nav-group-primary @ActiveClass("/candidat/questionnaire")">
+                                <span class="nav-icon"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_QuestionnaireCandidat"]</span>
+                            </a>
+                            <button type="button" class="nav-group-caret" onclick="spectrometreToggleNavGroup(this)" aria-expanded="@(IsGroupActive("candidat") ? "true" : "false")" aria-label="@Localizer["Candidat"]">
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="nav-submenu">
+                            <a href="/candidat/cv" class="nav-item-auth nav-sub-item @ActiveClass("/candidat/cv")">
+                                <span class="nav-icon"><i class="bi bi-file-earmark-person" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_CurriculumVitae"]</span>
+                            </a>
+                            <a href="/candidat/postes" class="nav-item-auth nav-sub-item @ActiveClass("/candidat/postes")">
+                                <span class="nav-icon"><i class="bi bi-search" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_PostesCandidat"]</span>
+                            </a>
+                            <a href="/candidat/historique" class="nav-item-auth nav-sub-item @ActiveClass("/candidat/historique")">
+                                <span class="nav-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_HistoriqueCandidat"]</span>
+                            </a>
+                            <a href="/candidat/modules" class="nav-item-auth nav-sub-item @ActiveClass("/candidat/modules")">
+                                <span class="nav-icon"><i class="bi bi-plus-square" aria-hidden="true"></i></span>
+                                <span>@Localizer["AjouterUnModuleCandidat"]</span>
+                            </a>
+                        </div>
+                    </div>
+                }
+
+                @if (_showGestionDuTemps)
+                {
+                    <div class="nav-group @(IsGroupActive("gdt") ? "open" : "")" data-nav-group="gdt">
+                        <div class="nav-group-row">
+                            <a href="/gestion-du-temps" class="nav-item-auth nav-group-primary @ActiveClassExact("/gestion-du-temps")">
+                                <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_GestionDuTemps"]</span>
+                            </a>
+                            <button type="button" class="nav-group-caret" onclick="spectrometreToggleNavGroup(this)" aria-expanded="@(IsGroupActive("gdt") ? "true" : "false")" aria-label="@Localizer["Module_GestionDuTemps"]">
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="nav-submenu">
+                            <a href="/gestion-du-temps/profil" class="nav-item-auth nav-sub-item @ActiveClass("/gestion-du-temps/profil")">
+                                <span class="nav-icon"><i class="bi bi-emoji-smile" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_ProfilPsychosocial"]</span>
+                            </a>
+                            <a href="/gestion-du-temps/reflexion" class="nav-item-auth nav-sub-item @ActiveClass("/gestion-du-temps/reflexion")">
+                                <span class="nav-icon"><i class="bi bi-lightbulb" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_ReflexionConsciente"]</span>
+                            </a>
+                            <a href="/gestion-du-temps/organisation" class="nav-item-auth nav-sub-item @ActiveClass("/gestion-du-temps/organisation")">
+                                <span class="nav-icon"><i class="bi bi-calendar-week" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_Organisation"]</span>
+                            </a>
+                            <a href="/gestion-du-temps/kanban" class="nav-item-auth nav-sub-item @ActiveClass("/gestion-du-temps/kanban")">
+                                <span class="nav-icon"><i class="bi bi-kanban" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_Planification"]</span>
+                            </a>
+                            <a href="/gestion-du-temps/synthese" class="nav-item-auth nav-sub-item @ActiveClass("/gestion-du-temps/synthese")">
+                                <span class="nav-icon"><i class="bi bi-journal-text" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_Synthese"]</span>
+                            </a>
+                            @if (_showMonCoach)
+                            {
+                                <a href="/mon-coach" class="nav-item-auth nav-sub-item @ActiveClass("/mon-coach")">
+                                    <span class="nav-icon"><i class="bi bi-person-hearts" aria-hidden="true"></i></span>
+                                    <span>@Localizer["Nav_MonCoach"]</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (_coachActiveModules.Contains("ProfilCoach"))
+                {
+                    <div class="nav-group @(IsGroupActive("coach") ? "open" : "")" data-nav-group="coach">
+                        <div class="nav-group-row">
+                            <a href="/coach/profil" class="nav-item-auth nav-group-primary @ActiveClass("/coach/profil")">
+                                <span class="nav-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_ProfilCoach"]</span>
+                            </a>
+                            <button type="button" class="nav-group-caret" onclick="spectrometreToggleNavGroup(this)" aria-expanded="@(IsGroupActive("coach") ? "true" : "false")" aria-label="@Localizer["Coach"]">
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="nav-submenu">
+                            <a href="/coach/suivis" class="nav-item-auth nav-sub-item @ActiveClass("/coach/suivis")">
+                                <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_MesPersonnesSuivies"]</span>
+                            </a>
+                        </div>
+                    </div>
+                }
+
+                @if (_isPlatformAdmin)
+                {
+                    <div class="nav-group @(IsGroupActive("admin") ? "open" : "")" data-nav-group="admin">
+                        <div class="nav-group-row">
+                            <a href="/admin" class="nav-item-auth nav-group-primary @ActiveClassExact("/admin")">
+                                <span class="nav-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["Administration"]</span>
+                            </a>
+                            <button type="button" class="nav-group-caret" onclick="spectrometreToggleNavGroup(this)" aria-expanded="@(IsGroupActive("admin") ? "true" : "false")" aria-label="@AdminLocalizer["Administration"]">
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="nav-submenu">
+                            <a href="/admin/entreprises" class="nav-item-auth nav-sub-item @ActiveClass("/admin/entreprises")">
+                                <span class="nav-icon"><i class="bi bi-building" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavEntreprises"]</span>
+                            </a>
+                            <a href="/admin/candidats" class="nav-item-auth nav-sub-item @ActiveClass("/admin/candidats")">
+                                <span class="nav-icon"><i class="bi bi-person" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavCandidats"]</span>
+                            </a>
+                            <a href="/admin/coachs" class="nav-item-auth nav-sub-item @ActiveClass("/admin/coachs")">
+                                <span class="nav-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavCoachs"]</span>
+                            </a>
+                            <a href="/admin/liens-coaching" class="nav-item-auth nav-sub-item @ActiveClass("/admin/liens-coaching")">
+                                <span class="nav-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavLiensCoaching"]</span>
+                            </a>
+                            <a href="/admin/invitations" class="nav-item-auth nav-sub-item @ActiveClass("/admin/invitations")">
+                                <span class="nav-icon"><i class="bi bi-envelope" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavInvitations"]</span>
+                            </a>
+                            <a href="/admin/recherche" class="nav-item-auth nav-sub-item @ActiveClass("/admin/recherche")">
+                                <span class="nav-icon"><i class="bi bi-search" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavRecherche"]</span>
+                            </a>
+                            <a href="/admin/administrateurs" class="nav-item-auth nav-sub-item @ActiveClass("/admin/administrateurs")">
+                                <span class="nav-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavAdministrateurs"]</span>
+                            </a>
+                            <a href="/admin/plans" class="nav-item-auth nav-sub-item @ActiveClass("/admin/plans")">
+                                <span class="nav-icon"><i class="bi bi-card-list" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavPlans"]</span>
+                            </a>
+                            <a href="/admin/historique" class="nav-item-auth nav-sub-item @ActiveClass("/admin/historique")">
+                                <span class="nav-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
+                                <span>@AdminLocalizer["AdminNavHistorique"]</span>
+                            </a>
+                        </div>
+                    </div>
+                }
+            }
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="/dashboard" class="nav-item-auth @ActiveClass("/dashboard")">
+                <span class="nav-icon"><i class="bi bi-house-door" aria-hidden="true"></i></span>
+                <span>@Localizer["Accueil"]</span>
+            </a>
+            <AuthorizeView>
+                <Authorized>
+                    <a href="/logout" class="nav-item-auth" data-enhance-nav="false">
+                        <span class="nav-icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
+                        <span>@Localizer["Deconnexion"]</span>
+                    </a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login" class="nav-item-auth @ActiveClass("/login")">
+                        <span class="nav-icon"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i></span>
+                        <span>@Localizer["Connexion"]</span>
+                    </a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </aside>
+
+    <div class="main-content-auth">
+        <div class="topbar-auth">
+            <div class="lang-switcher">
+                <a href="@CultureLink("fr")" data-enhance-nav="false" class="@(CurrentCultureIsFrench ? "active" : "")">FR</a>
+                <a href="@CultureLink("en")" data-enhance-nav="false" class="@(!CurrentCultureIsFrench ? "active" : "")">EN</a>
+            </div>
+        </div>
+        <div class="main-content-body">
+            @Body
+        </div>
+    </div>
 </div>
-
-<nav class="main-nav">
-    <a href="/">@Localizer["Accueil"]</a>
-    @if (_isAuthenticated)
-    {
-        @if (_hasCompany)
-        {
-            <a href="/entreprise/profil">@Localizer["Module_ProfilEntreprise"]</a>
-            @if (_companyActiveModules.Contains("PostesRecrutement")) { <a href="/entreprise/postes">@Localizer["Module_PostesEntreprise"]</a> }
-            @if (_companyActiveModules.Contains("Vivier")) { <a href="/vivier">@Localizer["Module_Vivier"]</a> }
-            @if (_companyActiveModules.Contains("SuiviEvolutif")) { <a href="/entreprise/historique">@Localizer["Module_HistoriqueEntreprise"]</a> }
-            @if (_companyActiveModules.Contains("Analytics")) { <a href="/entreprise/analytics">@Localizer["Module_AnalyticsEntreprise"]</a> }
-            <a href="/entreprise/modules">@Localizer["AjouterUnModuleEntreprise"]</a>
-        }
-        else
-        {
-            <a href="/entreprise/creer">@Localizer["CreerUneEntreprise"]</a>
-        }
-
-        @if (_candidateActiveModules.Contains("ProfilCandidat"))
-        {
-            <a href="/candidat/questionnaire">@Localizer["Module_QuestionnaireCandidat"]</a>
-            <a href="/candidat/cv">@Localizer["Module_CurriculumVitae"]</a>
-            <a href="/candidat/postes">@Localizer["Module_PostesCandidat"]</a>
-            <a href="/candidat/historique">@Localizer["Module_HistoriqueCandidat"]</a>
-            <a href="/candidat/modules">@Localizer["AjouterUnModuleCandidat"]</a>
-        }
-
-        @if (_showGestionDuTemps)
-        {
-            <a href="/gestion-du-temps">@Localizer["Module_GestionDuTemps"]</a>
-            <a href="/gestion-du-temps/kanban">@Localizer["Module_Kanban"]</a>
-            <a href="/gestion-du-temps/profil">@Localizer["Module_ProfilPsychosocial"]</a>
-            <a href="/gestion-du-temps/reflexion">@Localizer["Module_ReflexionConsciente"]</a>
-            <a href="/gestion-du-temps/synthese">@Localizer["Module_Synthese"]</a>
-        }
-
-        @if (_coachActiveModules.Contains("ProfilCoach"))
-        {
-            <a href="/coach/profil">@Localizer["Home_ProfilCoach"]</a>
-            <a href="/coach/suivis">@Localizer["Home_MesPersonnesSuivies"]</a>
-        }
-
-        @* "Mon coach" dépend de l'accès à Gestion du temps (lecture des données de la personne suivie),
-           pas d'un module dédié — voir la remarque du module Coaching. *@
-        @if (_showGestionDuTemps)
-        {
-            <a href="/mon-coach">@Localizer["Nav_MonCoach"]</a>
-        }
-    }
-    <AuthorizeView>
-        <Authorized>
-            <span>@Localizer["Connecte"]</span>
-            <a href="/logout">@Localizer["Deconnexion"]</a>
-        </Authorized>
-        <NotAuthorized>
-            <a href="/login">@Localizer["Connexion"]</a>
-        </NotAuthorized>
-    </AuthorizeView>
-</nav>
-
-@Body
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -106,6 +333,9 @@
     private readonly HashSet<string> _candidateActiveModules = [];
     private readonly HashSet<string> _coachActiveModules = [];
     private bool _showGestionDuTemps;
+    /// <summary>Sujet Candidat uniquement — voir IGestionDuTempsAccessService.HasCandidateAccessAsync : une entreprise avec Gestion du temps actif ne doit pas voir « Mon coach ».</summary>
+    private bool _showMonCoach;
+    private bool _isPlatformAdmin;
 
     /// <summary>
     /// Menu entièrement dynamique : chaque lien de module (hors Gestion du temps, voir plus bas) n'apparaît
@@ -132,6 +362,10 @@
             return;
 
         _isAuthenticated = true;
+        // Rôle Identity porté directement par les claims du cookie d'authentification (AddRoles<IdentityRole>()
+        // remplace la fabrique de principal par défaut pour inclure les rôles) — aucun aller-retour base
+        // nécessaire, contrairement aux modules ci-dessous qui restent des tables métier dédiées.
+        _isPlatformAdmin = user.IsInRole(Spectrometre.Core.Identity.PlatformRoles.Admin);
 
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
@@ -166,6 +400,11 @@
         // Ce service utilise déjà sa propre IDbContextFactory en interne, indépendante de coreDb ci-dessus.
         _showGestionDuTemps = await GestionDuTempsAccessService.HasAccessAsync(userId);
 
+        // « Mon coach » dérive de Gestion du temps mais UNIQUEMENT côté Candidat — une entreprise n'a pas de
+        // coach, même si elle a activé Gestion du temps pour ses employés (voir la remarque sur
+        // IGestionDuTempsAccessService.HasCandidateAccessAsync).
+        _showMonCoach = _showGestionDuTemps && await GestionDuTempsAccessService.HasCandidateAccessAsync(userId);
+
         var coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
         foreach (var manifest in ModuleRegistry.AllModules)
         {
@@ -175,6 +414,49 @@
     }
 
     private bool CurrentCultureIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr";
+
+    /// <summary>Libellé de groupe pour un module dans le menu latéral — DisplayName/DisplayNameEn déjà sur chaque manifeste (voir Home.razor pour le même choix).</summary>
+    private string ModuleLabel(ModuleManifest manifest) => CurrentCultureIsFrench ? manifest.DisplayName : manifest.DisplayNameEn;
+
+    private string CurrentPath
+    {
+        get
+        {
+            var path = "/" + Navigation.ToBaseRelativePath(Navigation.Uri);
+            var q = path.IndexOf('?', StringComparison.Ordinal);
+            if (q >= 0) path = path[..q];
+            return path.TrimEnd('/') is "" or "/" ? "/dashboard" : path.TrimEnd('/');
+        }
+    }
+
+    private string ActiveClass(string href) =>
+        CurrentPath.Equals(href, StringComparison.OrdinalIgnoreCase)
+        || CurrentPath.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase)
+            ? "active"
+            : "";
+
+    private string ActiveClassExact(string href) =>
+        CurrentPath.Equals(href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    private bool IsGroupActive(string group) => group switch
+    {
+        "entreprise" => CurrentPath.StartsWith("/entreprise/donnees", StringComparison.OrdinalIgnoreCase)
+                        || CurrentPath.StartsWith("/entreprise/profil", StringComparison.OrdinalIgnoreCase)
+                        || CurrentPath.StartsWith("/entreprise/postes", StringComparison.OrdinalIgnoreCase)
+                        || CurrentPath.StartsWith("/entreprise/historique", StringComparison.OrdinalIgnoreCase)
+                        || CurrentPath.StartsWith("/entreprise/analytics", StringComparison.OrdinalIgnoreCase)
+                        || CurrentPath.StartsWith("/entreprise/employes", StringComparison.OrdinalIgnoreCase)
+                        || CurrentPath.StartsWith("/entreprise/modules", StringComparison.OrdinalIgnoreCase)
+                        || CurrentPath.StartsWith("/vivier", StringComparison.OrdinalIgnoreCase),
+        "candidat" => CurrentPath.StartsWith("/candidat", StringComparison.OrdinalIgnoreCase)
+                      && !CurrentPath.Equals("/candidat/questionnaire", StringComparison.OrdinalIgnoreCase),
+        "gdt" => (CurrentPath.StartsWith("/gestion-du-temps", StringComparison.OrdinalIgnoreCase)
+                  && !CurrentPath.Equals("/gestion-du-temps", StringComparison.OrdinalIgnoreCase))
+                 || CurrentPath.StartsWith("/mon-coach", StringComparison.OrdinalIgnoreCase),
+        "coach" => CurrentPath.StartsWith("/coach/suivis", StringComparison.OrdinalIgnoreCase),
+        "admin" => CurrentPath.StartsWith("/admin", StringComparison.OrdinalIgnoreCase) && !CurrentPath.Equals("/admin", StringComparison.OrdinalIgnoreCase),
+        _ => false
+    };
 
     /// <summary>URL de l'endpoint /culture/set (voir Program.cs), avec la page courante comme retour — jamais construite côté client, jamais un @onclick Blazor (voir la remarque sur le sélecteur ci-dessus).</summary>
     private string CultureLink(string culture)

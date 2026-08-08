@@ -1,28 +1,176 @@
-.grille-champ {
-    margin-bottom: 1rem;
-    max-width: 640px;
+/* /vivier/candidat/{id} – aligné VivierPage / Postes */
+
+.vivier-detail-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
 }
 
-.grille-champ label {
-    display: block;
+.vivier-detail-state,
+.vivier-detail-hint {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.vivier-detail-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.vivier-detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--bs-primary, #345f6d);
     font-weight: 600;
+    font-size: 0.8125rem;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+}
+
+.vivier-detail-back:hover {
+    color: var(--gscv-orange, hsl(18, 80%, 50%));
+    text-decoration: underline;
+}
+
+.vivier-detail-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.vivier-detail-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.vivier-detail-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(234, 119, 61, 0.28);
+    transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vivier-detail-btn-primary:hover {
+    filter: brightness(1.05);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(234, 119, 61, 0.35);
+}
+
+.vivier-detail-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem 1.35rem 1.4rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.vivier-detail-empty {
+    max-width: 32rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.vivier-detail-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.15rem;
+}
+
+.vivier-detail-card-icon {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(52, 95, 109, 0.1);
+    color: var(--bs-primary, #345f6d);
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+}
+
+.vivier-detail-card-icon.tone-alert {
+    background: rgba(234, 119, 61, 0.12);
+    color: var(--gscv-orange, hsl(18, 80%, 45%));
+}
+
+.vivier-detail-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem;
+    color: #0f172a;
+}
+
+.vivier-detail-valeur {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.45;
 }
 
 .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
-    margin: 0.4rem 0;
+    gap: 0.4rem;
+    margin: 0;
 }
 
 .tags .tag {
-    background: #f0f0f0;
+    background: #f1f5f9;
+    color: #475569;
     border-radius: 999px;
-    padding: 0.1rem 0.6rem;
-    font-size: 0.85rem;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.tags .tag-vigilance {
+    background: rgba(234, 119, 61, 0.12);
+    color: hsl(18, 80%, 38%);
 }
 
 .notes {
-    color: #555;
+    margin: 0.75rem 0 0;
+    color: #64748b;
+    font-size: 0.875rem;
     font-style: italic;
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .vivier-detail-page {
+        padding: 1rem;
+    }
+
+    .vivier-detail-title {
+        font-size: 1.4rem;
+    }
+
+    .vivier-detail-btn-primary {
+        width: 100%;
+    }
 }

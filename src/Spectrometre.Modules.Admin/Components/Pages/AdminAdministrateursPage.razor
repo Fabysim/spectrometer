@@ -1,0 +1,130 @@
+@page "/admin/administrateurs"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminAdministrateursTitle"]</PageTitle>
+
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["AdminNavAdministrateurs"]</h1>
+            <p class="admin-subtitle">@Localizer["AdminAdministrateursTitle"]</p>
+        </div>
+    </header>
+
+    <section class="admin-card admin-form-card">
+        <div class="admin-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-shield-lock"></i>
+        </div>
+        <h2 class="admin-section-title">@Localizer["ChampEmailPromotion"]</h2>
+        <EditForm Model="this" OnValidSubmit="PromouvoirAsync" class="admin-form">
+            <div class="admin-field">
+                <label for="admin-promote-email">@Localizer["ChampEmailPromotion"]</label>
+                <InputText id="admin-promote-email" class="admin-input" @bind-Value="_emailAPromouvoir" />
+            </div>
+            <div class="admin-form-actions">
+                <button type="submit" class="admin-btn-primary">
+                    <i class="bi bi-arrow-up-circle" aria-hidden="true"></i>
+                    @Localizer["BoutonPromouvoir"]
+                </button>
+            </div>
+        </EditForm>
+        @if (_message is not null)
+        {
+            <p class="admin-alert">@_message</p>
+        }
+    </section>
+
+    @if (_administrateurs is null)
+    {
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else if (_administrateurs.Count == 0)
+    {
+        <section class="admin-card">
+            <p class="admin-hint">@Localizer["AucunAdministrateur"]</p>
+        </section>
+    }
+    else
+    {
+        <section class="admin-card admin-table-card">
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["ColEmail"]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _administrateurs)
+                        {
+                            <tr>
+                                <td>@a.Email</td>
+                                <td class="admin-table-actions">
+                                    <button type="button" class="admin-btn-secondary" @onclick="() => RetrograderAsync(a.UserId)">
+                                        <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+                                        @Localizer["BoutonRetrograder"]
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string _emailAPromouvoir = "";
+    private string? _message;
+    private IReadOnlyList<AdminAccountSummary>? _administrateurs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+    }
+
+    private async Task<ClaimsPrincipal> CallerAsync() =>
+        AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+
+    private async Task RefreshAsync()
+    {
+        var caller = await CallerAsync();
+        _administrateurs = await AdminService.GetAdministrateursAsync(caller);
+    }
+
+    private async Task PromouvoirAsync()
+    {
+        var caller = await CallerAsync();
+        var resultat = await AdminService.RechercherParEmailAsync(caller, _emailAPromouvoir.Trim());
+        if (resultat is null)
+        {
+            _message = Localizer["Outcome_UtilisateurIntrouvable"];
+            return;
+        }
+
+        var outcome = await AdminService.PromouvoirAsync(caller, resultat.UserId);
+        _message = Localizer[$"Outcome_{outcome}"];
+        if (outcome == AdminActionOutcome.Succes)
+        {
+            _emailAPromouvoir = "";
+            await RefreshAsync();
+        }
+    }
+
+    private async Task RetrograderAsync(string userId)
+    {
+        var caller = await CallerAsync();
+        var outcome = await AdminService.RetrograderAsync(caller, userId);
+        _message = Localizer[$"Outcome_{outcome}"];
+        if (outcome == AdminActionOutcome.Succes)
+            await RefreshAsync();
+    }
+}

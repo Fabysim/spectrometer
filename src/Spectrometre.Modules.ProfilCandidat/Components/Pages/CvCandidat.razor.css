@@ -1,0 +1,284 @@
+/* /candidat/cv – aligné Données / Postes / Vivier */
+
+.cv-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+}
+
+.cv-state,
+.cv-hint {
+    color: #64748b;
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.cv-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.35rem;
+}
+
+.cv-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.cv-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+    max-width: 48rem;
+    line-height: 1.5;
+}
+
+.cv-link {
+    color: var(--bs-primary, #345f6d);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.cv-link:hover {
+    color: var(--gscv-orange, hsl(18, 80%, 50%));
+    text-decoration: underline;
+}
+
+.cv-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.35rem 1.4rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    max-width: 720px;
+}
+
+.cv-card-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 0.85rem;
+}
+
+.cv-card-icon.tone-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+}
+
+.cv-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--foreground, #0f172a);
+}
+
+.cv-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.cv-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.cv-form-row .cv-field {
+    flex: 1 1 0;
+    min-width: 140px;
+}
+
+.cv-field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.3rem;
+}
+
+.cv-input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    background: white;
+    color: #0f172a;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.cv-input:focus,
+.cv-textarea:focus {
+    outline: none;
+    border-color: var(--bs-primary, #345f6d);
+    box-shadow: 0 0 0 3px rgba(52, 95, 109, 0.12);
+}
+
+.cv-textarea {
+    resize: vertical;
+    min-height: 4rem;
+    line-height: 1.45;
+}
+
+.cv-checkbox label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.45;
+    cursor: pointer;
+}
+
+.cv-checkbox input {
+    margin-top: 0.2rem;
+    accent-color: var(--bs-primary, #345f6d);
+}
+
+.cv-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+}
+
+.cv-ligne {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.85rem;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    background: #f8fafc;
+}
+
+.cv-ligne-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.55rem;
+}
+
+.cv-ligne-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cv-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.35rem;
+}
+
+.cv-actions-start {
+    justify-content: flex-start;
+}
+
+.cv-btn-primary,
+.cv-btn-secondary,
+.cv-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cv-btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(234, 119, 61, 0.28);
+}
+
+.cv-btn-primary:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 6px 16px rgba(234, 119, 61, 0.35);
+}
+
+.cv-btn-secondary {
+    background: #fff;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.cv-btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.cv-btn-ghost {
+    background: rgba(52, 95, 109, 0.08);
+    color: var(--bs-primary, #345f6d);
+    border-color: transparent;
+}
+
+.cv-btn-ghost:hover {
+    background: rgba(52, 95, 109, 0.14);
+}
+
+.cv-confirmation {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #15803d;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .cv-page {
+        padding: 1rem;
+    }
+
+    .cv-title {
+        font-size: 1.4rem;
+    }
+
+    .cv-card {
+        padding: 1.1rem 1.15rem 1.25rem;
+    }
+
+    .cv-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .cv-btn-primary,
+    .cv-btn-secondary,
+    .cv-btn-ghost {
+        width: 100%;
+    }
+
+    .cv-ligne-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

@@ -49,6 +49,17 @@ public interface IModuleRegistry
     /// <summary>Active un module pour un sujet. Lève si une dépendance requise n'est pas déjà active (indicateur, pas plan).</summary>
     Task ActivateAsync(ModuleActivationSubjectType subjectType, int subjectId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Active OU désactive un module pour un sujet — idempotent et sûr à appeler plusieurs fois de suite
+    /// (contrairement à <see cref="ActivateAsync"/> seul, qui lèverait une violation d'index unique si la
+    /// ligne existe déjà). Introduit pour la zone Admin (voir <c>Spectrometre.Modules.Admin</c>), seul
+    /// endroit d'écriture sur l'activation en dehors du parcours d'inscription/« Ajouter un module » —
+    /// AUCUNE logique d'activation parallèle : délègue à <see cref="ActivateAsync"/> pour la création
+    /// (même vérification de dépendances), se contente de basculer <see cref="ModuleActivation.IsActive"/>
+    /// si la ligne existe déjà. Un module jamais activé qu'on tente de désactiver est un no-op silencieux.
+    /// </summary>
+    Task SetActiveAsync(ModuleActivationSubjectType subjectType, int subjectId, string moduleCode, bool isActive, CoreDbContext db, CancellationToken cancellationToken = default);
+
     // --- Enveloppes fines "entreprise", pour compatibilité ascendante stricte : aucun appelant existant
     //     (PosteService, CandidatureExistenceChecker, ProfileChangeRecorder, CompanyOnboardingService,
     //     TenantSchemaSynchronizer, ServiceFixture) n'a besoin d'être modifié. ---
@@ -158,6 +169,26 @@ public sealed class ModuleRegistry : IModuleRegistry
 
         db.ModuleActivations.Add(new ModuleActivation { SubjectType = subjectType, SubjectId = subjectId, ModuleCode = moduleCode });
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SetActiveAsync(ModuleActivationSubjectType subjectType, int subjectId, string moduleCode, bool isActive, CoreDbContext db, CancellationToken cancellationToken = default)
+    {
+        var existing = await db.ModuleActivations.FirstOrDefaultAsync(
+            a => a.SubjectType == subjectType && a.SubjectId == subjectId && a.ModuleCode == moduleCode, cancellationToken);
+
+        if (existing is not null)
+        {
+            if (existing.IsActive == isActive)
+                return;
+            existing.IsActive = isActive;
+            await db.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        if (!isActive)
+            return; // Rien à désactiver — jamais activé pour ce sujet.
+
+        await ActivateAsync(subjectType, subjectId, moduleCode, db, cancellationToken);
     }
 
     // --- Enveloppes "entreprise" ---

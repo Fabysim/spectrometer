@@ -649,6 +649,15 @@ namespace Spectrometre.Core.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
+                    b.Property<string>("City")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -656,8 +665,14 @@ namespace Spectrometre.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("text");
+
                     b.Property<string>("SchemaName")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VTA")
                         .HasColumnType("text");
 
                     b.HasKey("Id");

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
+
+  <!-- Navigation commune -->
+  <data name="AdminNavDashboard" xml:space="preserve"><value>Tableau de bord</value></data>
+  <data name="AdminNavEntreprises" xml:space="preserve"><value>Entreprises</value></data>
+  <data name="AdminNavCandidats" xml:space="preserve"><value>Candidats</value></data>
+  <data name="AdminNavCoachs" xml:space="preserve"><value>Coachs</value></data>
+  <data name="AdminNavLiensCoaching" xml:space="preserve"><value>Liens de coaching</value></data>
+  <data name="AdminNavInvitations" xml:space="preserve"><value>Invitations</value></data>
+  <data name="AdminNavRecherche" xml:space="preserve"><value>Recherche par email</value></data>
+  <data name="AdminNavAdministrateurs" xml:space="preserve"><value>Administrateurs</value></data>
+
+  <!-- AdminDashboardPage.razor -->
+  <data name="AdminDashboardTitle" xml:space="preserve"><value>Administration · Spectromètre</value></data>
+  <data name="Administration" xml:space="preserve"><value>Administration</value></data>
+  <data name="TotalEntreprises" xml:space="preserve"><value>Entreprises</value></data>
+  <data name="TotalCandidats" xml:space="preserve"><value>Candidats</value></data>
+  <data name="TotalCoachs" xml:space="preserve"><value>Coachs</value></data>
+  <data name="RepartitionModulesActifs" xml:space="preserve"><value>Répartition des modules actifs</value></data>
+
+  <!-- AdminEntreprisesPage.razor -->
+  <data name="AdminEntreprisesTitle" xml:space="preserve"><value>Entreprises · Administration</value></data>
+  <data name="ColNom" xml:space="preserve"><value>Nom</value></data>
+  <data name="ColProprietaire" xml:space="preserve"><value>Propriétaire</value></data>
+  <data name="ColStatutAbonnement" xml:space="preserve"><value>Statut d'abonnement</value></data>
+  <data name="ColPlan" xml:space="preserve"><value>Plan</value></data>
+  <data name="ColModulesActifs" xml:space="preserve"><value>Modules actifs</value></data>
+  <data name="ColDateCreation" xml:space="preserve"><value>Date de création</value></data>
+  <data name="AucuneEntreprise" xml:space="preserve"><value>Aucune entreprise.</value></data>
+
+  <!-- AdminCandidatsPage.razor -->
+  <data name="AdminCandidatsTitle" xml:space="preserve"><value>Candidats · Administration</value></data>
+  <data name="ColEmail" xml:space="preserve"><value>Email</value></data>
+  <data name="AucunCandidat" xml:space="preserve"><value>Aucun candidat.</value></data>
+
+  <!-- AdminCoachsPage.razor -->
+  <data name="AdminCoachsTitle" xml:space="preserve"><value>Coachs · Administration</value></data>
+  <data name="ColNomAffiche" xml:space="preserve"><value>Nom affiché</value></data>
+  <data name="ColVisibleAnnuaire" xml:space="preserve"><value>Visible dans l'annuaire</value></data>
+  <data name="ColNombreSuivis" xml:space="preserve"><value>Personnes suivies</value></data>
+  <data name="Oui" xml:space="preserve"><value>Oui</value></data>
+  <data name="Non" xml:space="preserve"><value>Non</value></data>
+  <data name="AucunCoach" xml:space="preserve"><value>Aucun coach.</value></data>
+
+  <!-- AdminLiensCoachingPage.razor -->
+  <data name="AdminLiensCoachingTitle" xml:space="preserve"><value>Liens de coaching · Administration</value></data>
+  <data name="ColSuivi" xml:space="preserve"><value>Personne suivie</value></data>
+  <data name="ColCoach" xml:space="preserve"><value>Coach</value></data>
+  <data name="ColStatut" xml:space="preserve"><value>Statut</value></data>
+  <data name="ColDateAcceptation" xml:space="preserve"><value>Accepté le</value></data>
+  <data name="AucunLienCoaching" xml:space="preserve"><value>Aucun lien de coaching.</value></data>
+
+  <!-- AdminInvitationsPage.razor -->
+  <data name="AdminInvitationsTitle" xml:space="preserve"><value>Invitations · Administration</value></data>
+  <data name="ColEmetteur" xml:space="preserve"><value>Émetteur</value></data>
+  <data name="ColEmailInvite" xml:space="preserve"><value>Email invité</value></data>
+  <data name="ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="ColExpiration" xml:space="preserve"><value>Expire le</value></data>
+  <data name="ColAcceptee" xml:space="preserve"><value>Acceptée le</value></data>
+  <data name="AucuneInvitation" xml:space="preserve"><value>Aucune invitation.</value></data>
+
+  <!-- AdminReecherchePage.razor -->
+  <data name="AdminRechercheTitle" xml:space="preserve"><value>Recherche par email · Administration</value></data>
+  <data name="ChampEmail" xml:space="preserve"><value>Adresse email</value></data>
+  <data name="BoutonRechercher" xml:space="preserve"><value>Rechercher</value></data>
+  <data name="AucunResultatRecherche" xml:space="preserve"><value>Aucun compte ne correspond à cet email.</value></data>
+  <data name="ResultatEstAdmin" xml:space="preserve"><value>Administrateur de la plateforme</value></data>
+  <data name="ResultatEstCandidat" xml:space="preserve"><value>Profil candidat</value></data>
+  <data name="ResultatEstCoach" xml:space="preserve"><value>Profil coach</value></data>
+  <data name="ResultatEntreprisesPossedees" xml:space="preserve"><value>Entreprises possédées</value></data>
+  <data name="ResultatAucuneEntreprise" xml:space="preserve"><value>Aucune</value></data>
+
+  <!-- AdminAdministrateursPage.razor -->
+  <data name="AdminAdministrateursTitle" xml:space="preserve"><value>Administrateurs · Administration</value></data>
+  <data name="ChampEmailPromotion" xml:space="preserve"><value>Email du compte à promouvoir</value></data>
+  <data name="BoutonPromouvoir" xml:space="preserve"><value>Promouvoir administrateur</value></data>
+  <data name="BoutonRetrograder" xml:space="preserve"><value>Rétrograder</value></data>
+  <data name="AucunAdministrateur" xml:space="preserve"><value>Aucun administrateur — situation anormale.</value></data>
+
+  <!-- Messages partagés (résultat des actions de promotion/rétrogradation) -->
+  <data name="Outcome_Succes" xml:space="preserve"><value>Opération effectuée avec succès.</value></data>
+  <data name="Outcome_UtilisateurIntrouvable" xml:space="preserve"><value>Aucun compte ne correspond à cet email.</value></data>
+  <data name="Outcome_DejaAdmin" xml:space="preserve"><value>Ce compte est déjà administrateur.</value></data>
+  <data name="Outcome_PasAdmin" xml:space="preserve"><value>Ce compte n'est pas administrateur.</value></data>
+  <data name="Outcome_DernierAdminRestant" xml:space="preserve"><value>Impossible : ce compte est le dernier administrateur restant. La plateforme doit toujours conserver au moins un administrateur.</value></data>
+
+  <!-- Actions d'écriture (modules/plans/historique) -->
+  <data name="AdminNavPlans" xml:space="preserve"><value>Plans</value></data>
+  <data name="AdminNavHistorique" xml:space="preserve"><value>Historique</value></data>
+  <data name="AdminModulesTitre" xml:space="preserve"><value>Modules</value></data>
+  <data name="AdminModulesStatut" xml:space="preserve"><value>Actif</value></data>
+  <data name="AdminModulesActiver" xml:space="preserve"><value>Activer</value></data>
+  <data name="AdminModulesDesactiver" xml:space="preserve"><value>Désactiver</value></data>
+  <data name="AdminPlansTitre" xml:space="preserve"><value>Plans tarifaires</value></data>
+  <data name="AdminPlansRetirer" xml:space="preserve"><value>Retirer</value></data>
+  <data name="AdminPlansAjouter" xml:space="preserve"><value>Ajouter</value></data>
+  <data name="AdminPlansCodeModule" xml:space="preserve"><value>Code du module</value></data>
+  <data name="AdminHistoriqueTitre" xml:space="preserve"><value>Historique des actions</value></data>
+  <data name="AdminHistoriqueAucuneEntree" xml:space="preserve"><value>Aucune action enregistrée.</value></data>
+  <data name="AdminHistoriqueAction" xml:space="preserve"><value>Action</value></data>
+  <data name="AdminHistoriqueCible" xml:space="preserve"><value>Cible</value></data>
+</root>

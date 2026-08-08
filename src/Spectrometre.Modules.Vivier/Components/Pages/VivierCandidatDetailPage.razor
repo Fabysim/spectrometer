@@ -20,65 +20,156 @@
 
 <PageTitle>@Localizer["ProfilCandidat"]</PageTitle>
 
+<div class="vivier-detail-page">
 @if (!_resolu)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="vivier-detail-state">@Localizer["Chargement"]</p>
 }
-else if (_criteria is null)
+else if (_detail is null)
 {
-    <p class="hint">@Localizer["ProfilIntrouvableHint"]</p>
-    <a href="/vivier">&lt; @Localizer["RetourAuVivier"]</a>
+    <section class="vivier-detail-card vivier-detail-empty">
+        <p class="vivier-detail-hint">@Localizer["ProfilIntrouvableHint"]</p>
+        <a class="vivier-detail-back" href="/vivier"><i class="bi bi-arrow-left" aria-hidden="true"></i> @Localizer["RetourAuVivier"]</a>
+    </section>
 }
 else
 {
-    <a href="/vivier">&lt; @Localizer["RetourAuVivier"]</a>
-    <h1>@Localizer["ProfilCandidat"] #@CandidateProfileId</h1>
-    <p class="hint">@Localizer["CriteresDeclaresHint"]</p>
-    <p><a href="@($"/entretien/{CandidateProfileId}")">@Localizer["PreparerLEntretien"]</a></p>
+    <header class="vivier-detail-header">
+        <div>
+            <a class="vivier-detail-back" href="/vivier"><i class="bi bi-arrow-left" aria-hidden="true"></i> @Localizer["RetourAuVivier"]</a>
+            <h1 class="vivier-detail-title">@Localizer["ProfilCandidat"] #@CandidateProfileId</h1>
+            <p class="vivier-detail-subtitle">@Localizer["CriteresDeclaresHint"]</p>
+        </div>
+        <a class="vivier-detail-btn-primary" href="@($"/entretien/{CandidateProfileId}")">
+            <i class="bi bi-chat-dots" aria-hidden="true"></i>
+            @Localizer["PreparerLEntretien"]
+        </a>
+    </header>
 
-    <div class="grille-champ">
-        <label>@Localizer["CompatibiliteTechnique"]</label>
-        <div class="tags">@foreach (var tag in _criteria.TechniqueTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
-        @if (!string.IsNullOrWhiteSpace(_criteria.TechniqueNotes)) { <p class="notes">@_criteria.TechniqueNotes</p> }
+    <div class="vivier-detail-grille">
+        <section class="vivier-detail-card">
+            <div class="vivier-detail-card-icon" aria-hidden="true"><i class="bi bi-gear"></i></div>
+            <h2 class="vivier-detail-section-title">@Localizer["CompatibiliteTechnique"]</h2>
+            <div class="tags">
+                @foreach (var tag in _detail!.Criteres.TechniqueTags)
+                {
+                    <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_detail!.Criteres.TechniqueNotes))
+            {
+                <p class="notes">@_detail!.Criteres.TechniqueNotes</p>
+            }
+        </section>
+
+        <section class="vivier-detail-card">
+            <div class="vivier-detail-card-icon" aria-hidden="true"><i class="bi bi-people"></i></div>
+            <h2 class="vivier-detail-section-title">@Localizer["CompatibiliteComportementale"]</h2>
+            <div class="tags">
+                @foreach (var tag in _detail!.Criteres.ComportementaleTags)
+                {
+                    <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_detail!.Criteres.ComportementaleNotes))
+            {
+                <p class="notes">@_detail!.Criteres.ComportementaleNotes</p>
+            }
+        </section>
+
+        <section class="vivier-detail-card">
+            <div class="vivier-detail-card-icon" aria-hidden="true"><i class="bi bi-building"></i></div>
+            <h2 class="vivier-detail-section-title">@Localizer["CompatibiliteCulturelle"]</h2>
+            <div class="tags">
+                @foreach (var tag in _detail!.Criteres.CulturelleTags)
+                {
+                    <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_detail!.Criteres.CulturelleNotes))
+            {
+                <p class="notes">@_detail!.Criteres.CulturelleNotes</p>
+            }
+        </section>
+
+        <section class="vivier-detail-card">
+            <div class="vivier-detail-card-icon" aria-hidden="true"><i class="bi bi-speedometer2"></i></div>
+            <h2 class="vivier-detail-section-title">@Localizer["RythmeDeTravailTolere"]</h2>
+            <p class="vivier-detail-valeur">
+                @(_detail!.Criteres.RythmeTravail is int r ? $"{r} — {CompatibilityVocabulary.DisplayRythmeTravail(r, _english)}" : Localizer["NonRenseigne"])
+            </p>
+            @if (!string.IsNullOrWhiteSpace(_detail!.Criteres.OrganisationnelleNotes))
+            {
+                <p class="notes">@_detail!.Criteres.OrganisationnelleNotes</p>
+            }
+        </section>
+
+        <section class="vivier-detail-card">
+            <div class="vivier-detail-card-icon" aria-hidden="true"><i class="bi bi-lightning"></i></div>
+            <h2 class="vivier-detail-section-title">@Localizer["CompatibiliteMotivationnelle"]</h2>
+            <div class="tags">
+                @foreach (var tag in _detail!.Criteres.MotivationnelleTags)
+                {
+                    <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_detail!.Criteres.MotivationnelleNotes))
+            {
+                <p class="notes">@_detail!.Criteres.MotivationnelleNotes</p>
+            }
+        </section>
+
+        <section class="vivier-detail-card">
+            <div class="vivier-detail-card-icon tone-alert" aria-hidden="true"><i class="bi bi-exclamation-triangle"></i></div>
+            <h2 class="vivier-detail-section-title">@Localizer["PointsDeVigilance"]</h2>
+            <div class="tags">
+                @foreach (var tag in _detail!.Criteres.PointsVigilanceTags)
+                {
+                    <span class="tag tag-vigilance">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_detail!.Criteres.PointsVigilanceNotes))
+            {
+                <p class="notes">@_detail!.Criteres.PointsVigilanceNotes</p>
+            }
+        </section>
     </div>
 
-    <div class="grille-champ">
-        <label>@Localizer["CompatibiliteComportementale"]</label>
-        <div class="tags">@foreach (var tag in _criteria.ComportementaleTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
-        @if (!string.IsNullOrWhiteSpace(_criteria.ComportementaleNotes)) { <p class="notes">@_criteria.ComportementaleNotes</p> }
-    </div>
+    <!-- CV — contenu informatif uniquement, jamais un facteur de scoring (voir VivierCandidateDetailView). -->
+    <section class="vivier-detail-card">
+        <div class="vivier-detail-card-icon" aria-hidden="true"><i class="bi bi-file-earmark-person"></i></div>
+        <h2 class="vivier-detail-section-title">@Localizer["Cv_SectionTitle"]</h2>
 
-    <div class="grille-champ">
-        <label>@Localizer["CompatibiliteCulturelle"]</label>
-        <div class="tags">@foreach (var tag in _criteria.CulturelleTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
-        @if (!string.IsNullOrWhiteSpace(_criteria.CulturelleNotes)) { <p class="notes">@_criteria.CulturelleNotes</p> }
-    </div>
-
-    <div class="grille-champ">
-        <label>@Localizer["RythmeDeTravailTolere"]</label>
-        <p>@(_criteria.RythmeTravail is int r ? $"{r} — {CompatibilityVocabulary.DisplayRythmeTravail(r, _english)}" : Localizer["NonRenseigne"])</p>
-        @if (!string.IsNullOrWhiteSpace(_criteria.OrganisationnelleNotes)) { <p class="notes">@_criteria.OrganisationnelleNotes</p> }
-    </div>
-
-    <div class="grille-champ">
-        <label>@Localizer["CompatibiliteMotivationnelle"]</label>
-        <div class="tags">@foreach (var tag in _criteria.MotivationnelleTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
-        @if (!string.IsNullOrWhiteSpace(_criteria.MotivationnelleNotes)) { <p class="notes">@_criteria.MotivationnelleNotes</p> }
-    </div>
-
-    <div class="grille-champ">
-        <label>@Localizer["PointsDeVigilance"]</label>
-        <div class="tags">@foreach (var tag in _criteria.PointsVigilanceTags) { <span class="tag">@CompatibilityVocabulary.DisplayTag(tag, _english)</span> }</div>
-        @if (!string.IsNullOrWhiteSpace(_criteria.PointsVigilanceNotes)) { <p class="notes">@_criteria.PointsVigilanceNotes</p> }
-    </div>
+        @if (_detail.Cv.Coordonnees is null && _detail.Cv.Formations.Count == 0 && _detail.Cv.Experiences.Count == 0)
+        {
+            <p class="notes">@Localizer["Cv_NonRempli"]</p>
+        }
+        else
+        {
+            @if (_detail.Cv.Coordonnees is { } coord)
+            {
+                <p class="notes"><strong>@coord.Nom @coord.Prenoms</strong> — @coord.ProfilOuPosteRecherche</p>
+                <p class="notes">@coord.Telephone @coord.Email</p>
+            }
+            @foreach (var f in _detail.Cv.Formations.OrderBy(x => x.DisplayOrder))
+            {
+                <p class="notes">@f.Periode — @f.Etablissement (@f.DiplomeCertificatOuNiveau)</p>
+            }
+            @foreach (var e in _detail.Cv.Experiences.OrderBy(x => x.DisplayOrder))
+            {
+                <p class="notes">@e.Periode — @e.EntrepriseOrganisationOuStage : @e.FonctionOuActiviteExercee</p>
+            }
+        }
+    </section>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
     [Parameter] public int CandidateProfileId { get; set; }
 
     private bool _resolu;
-    private CandidateCompatibilityCriteriaView? _criteria;
+    private VivierCandidateDetailView? _detail;
     private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     protected override async Task OnInitializedAsync()
@@ -101,7 +192,7 @@ else
 
         // Garde de confidentialité appliquée dans VivierService.GetCandidateDetailAsync : renvoie null si
         // ce candidat n'a pas de candidature vers l'entreprise active, quel que soit l'identifiant tapé.
-        _criteria = await VivierService.GetCandidateDetailAsync(CandidateProfileId);
+        _detail = await VivierService.GetCandidateDetailAsync(CandidateProfileId);
         _resolu = true;
     }
 }

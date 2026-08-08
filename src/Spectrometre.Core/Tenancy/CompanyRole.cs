@@ -4,5 +4,5 @@ namespace Spectrometre.Core.Tenancy;
 public enum CompanyRole
 {
     Proprietaire = 0,
-    Manager = 1,
+    Employe = 1,
 }

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Spectrometre.Core.Directory;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.ProfilCoach.Data;
@@ -32,6 +33,10 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<ICoachProfileService, CoachProfileService>();
         services.AddScoped<ICoachSubjectResolver, CoachSubjectResolver>();
+
+        // Implémentation réelle par-dessus le NoOp enregistré par AddSpectrometreCore — voir la remarque
+        // équivalente dans Spectrometre.Modules.ProfilCandidat.
+        services.AddScoped<ICoachDirectoryService, CoachDirectoryService>();
 
         return services;
     }

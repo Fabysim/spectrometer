@@ -1,0 +1,210 @@
+/* /entreprise/modules – cartes modules, tokens Dashboard / Profil entreprise */
+
+.modules-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+}
+
+.modules-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.modules-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.modules-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.modules-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--bs-primary, #345f6d);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.modules-back:hover {
+    color: var(--gscv-orange, hsl(18, 80%, 50%));
+}
+
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    align-items: stretch;
+}
+
+.modules-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.35rem 1.4rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.modules-card:hover {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+}
+
+.modules-card.is-active {
+    border-color: rgba(52, 95, 109, 0.35);
+    background: linear-gradient(180deg, #ffffff 0%, rgba(52, 95, 109, 0.04) 100%);
+}
+
+.modules-card.is-coming {
+    opacity: 0.78;
+}
+
+.modules-card.is-coming:hover {
+    transform: none;
+}
+
+.modules-empty {
+    max-width: 32rem;
+}
+
+.modules-card-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.modules-card-icon.tone-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+}
+
+.modules-card-icon.tone-teal {
+    background: linear-gradient(135deg, var(--gscv-teal, hsl(178, 45%, 40%)) 0%, hsl(178, 45%, 50%) 100%);
+}
+
+.modules-card-icon.tone-muted {
+    background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
+}
+
+.modules-card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0 0 0.65rem;
+    color: #0f172a;
+}
+
+.modules-hint {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 1.25rem;
+    flex: 1 1 auto;
+}
+
+.modules-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.modules-status.is-on {
+    color: var(--gscv-teal, hsl(178, 45%, 32%));
+}
+
+.modules-status.is-soon {
+    color: #94a3b8;
+}
+
+.modules-btn-primary,
+a.modules-btn-primary,
+button.modules-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: white !important;
+    border: none;
+    padding: 0.65rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none !important;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(234, 119, 61, 0.28);
+    transition: all 0.2s ease;
+    align-self: flex-start;
+}
+
+.modules-btn-primary:hover,
+a.modules-btn-primary:hover,
+button.modules-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(234, 119, 61, 0.38);
+    color: white !important;
+}
+
+.modules-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.modules-alert-success {
+    background: rgba(20, 184, 166, 0.1);
+    border: 1px solid rgba(20, 184, 166, 0.35);
+    color: hsl(178, 45%, 28%);
+}
+
+@media (max-width: 600px) {
+    .modules-page {
+        padding: 1rem;
+    }
+
+    .modules-title {
+        font-size: 1.35rem;
+    }
+
+    .modules-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .modules-btn-primary,
+    a.modules-btn-primary,
+    button.modules-btn-primary {
+        width: 100%;
+    }
+}

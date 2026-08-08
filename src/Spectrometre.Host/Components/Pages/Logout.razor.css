@@ -1,0 +1,71 @@
+/* /logout — carte centrée minimale (PublicLayout, SignOut inchangé) */
+
+.login-page-nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5rem;
+    background: linear-gradient(to bottom, rgba(15, 23, 42, 0.92) 0%, rgba(52, 95, 109, 0.6) 60%, transparent 100%);
+    z-index: 1029;
+    pointer-events: none;
+}
+
+.logout-page-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, var(--background) 0%, hsl(220, 14%, 96%) 100%);
+    position: relative;
+}
+
+.logout-card {
+    position: relative;
+    z-index: 1;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid hsl(220, 13%, 90%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    max-width: 22rem;
+    width: 100%;
+}
+
+.logout-spinner {
+    width: 2.25rem;
+    height: 2.25rem;
+    margin: 0 auto 1.25rem;
+    border: 3px solid hsl(220, 13%, 90%);
+    border-top-color: var(--bs-primary);
+    border-radius: 50%;
+    animation: logout-spin 0.8s linear infinite;
+}
+
+@keyframes logout-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.logout-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+@media (max-width: 600px) {
+    .logout-card {
+        padding: 2rem 1.5rem;
+        border-radius: 12px;
+    }
+
+    .logout-title {
+        font-size: 1.125rem;
+    }
+}

@@ -68,6 +68,7 @@
   <!-- Formulaire de CV structuré (8 sections) — libellés de champs/sections uniquement, jamais les données saisies. -->
   <data name="CurriculumVitae" xml:space="preserve"><value>Curriculum vitæ</value></data>
   <data name="Cv_Intro" xml:space="preserve"><value>Ce formulaire est distinct du questionnaire de connaissance de soi — il s'agit d'un CV structuré classique, enregistré section par section.</value></data>
+  <data name="Cv_TelechargerPdf" xml:space="preserve"><value>Télécharger en PDF</value></data>
   <data name="Cv_LienQuestionnaire" xml:space="preserve"><value>questionnaire de connaissance de soi</value></data>
   <data name="Cv_Section1" xml:space="preserve"><value>1. Coordonnées du postulant</value></data>
   <data name="Nom" xml:space="preserve"><value>Nom</value></data>

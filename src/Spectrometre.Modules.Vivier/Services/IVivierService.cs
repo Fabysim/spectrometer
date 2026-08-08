@@ -5,6 +5,15 @@ namespace Spectrometre.Modules.Vivier.Services;
 public sealed record CandidatureVivierView(int PosteId, string PosteTitre, int CandidateProfileId, string Statut, int? ScoreCompatibilite, IReadOnlyList<string> TagsCles, DateTimeOffset UpdatedAt);
 
 /// <summary>
+/// Détail complet exposé à une entreprise pour UN candidat ayant réellement postulé — critères de
+/// compatibilité (déjà exposés) et CV (ajouté pour l'affichage côté entreprise, voir la demande d'origine :
+/// jamais un nouveau chemin d'accès parallèle, seulement une extension de CET accesseur déjà sécurisé).
+/// Le CV reste un contenu informatif ici, jamais un facteur de scoring — aucun impact sur le Moteur de
+/// Compatibilité, qui continue de ne lire que <see cref="Criteres"/> via sa propre voie existante.
+/// </summary>
+public sealed record VivierCandidateDetailView(CandidateCompatibilityCriteriaView Criteres, CvView Cv);
+
+/// <summary>
 /// Point d'entrée public du module Vivier — un pur filtre de lecture sur l'index partagé de recrutement,
 /// jamais un accès plus large au vivier de profils candidats.
 /// </summary>
@@ -30,5 +39,5 @@ public interface IVivierService
     /// l'entreprise active — <c>null</c> sinon (candidat inexistant, jamais postulé ici, ou entreprise
     /// différente), y compris en cas d'accès direct par URL avec un identifiant arbitraire.
     /// </summary>
-    Task<CandidateCompatibilityCriteriaView?> GetCandidateDetailAsync(int candidateProfileId, CancellationToken cancellationToken = default);
+    Task<VivierCandidateDetailView?> GetCandidateDetailAsync(int candidateProfileId, CancellationToken cancellationToken = default);
 }

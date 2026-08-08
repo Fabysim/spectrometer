@@ -1,10 +1,12 @@
 @page "/invitations/accepter/{Token}"
+@layout Spectrometre.Host.Components.Layout.PublicLayout
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Identity
 @using Spectrometre.Core.Invitations
+@using Spectrometre.Core.Tenancy
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.Coaching.Services
@@ -13,74 +15,156 @@
 @inject IInvitationService InvitationService
 @inject CoachOnboardingService CoachOnboarding
 @inject ICoachingService CoachingService
+@inject ICompanyProvisioningService CompanyProvisioningService
 @inject CoreDbContext CoreDb
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> Localizer
 
 <PageTitle>@Localizer["InvitationTitle"]</PageTitle>
 
-<h1>@Localizer["InvitationTitle"]</h1>
-
 @* Rendu statique (pas d'InteractiveServer), comme /inscription et /login : la confirmation d'invitation
    se termine par SignInManager.SignInAsync (chemin "nouveau compte") ou lit l'état d'authentification déjà
    posé par le cookie (chemin "compte existant") — les deux sont incompatibles avec un circuit interactif
    qui n'écrit/relit le cookie qu'au tout premier rendu. *@
+<div class="login-page-nav-overlay" aria-hidden="true"></div>
+<div class="login-page-wrapper">
+    <div class="container-fluid px-3 px-md-4 px-lg-5 px-xl-4 py-5 login-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-xl-6">
+                <div class="login-card invitation-card">
+                    <header class="login-header">
+                        <h1 class="login-title">@Localizer["InvitationTitle"]</h1>
+                        <p class="login-subtitle mb-0">
+                            @if (_invitation is null)
+                            {
+                                @Localizer["InvitationInvalideOuExpiree"]
+                            }
+                            else if (_existingUser is null)
+                            {
+                                @Localizer[IntroKey]
+                            }
+                            else if (_confirme)
+                            {
+                                @Localizer["InvitationConfirmee"]
+                            }
+                            else if (_isAuthenticatedAsInvitee)
+                            {
+                                @Localizer[IntroKey]
+                            }
+                            else
+                            {
+                                @Localizer[IntroKey]
+                            }
+                        </p>
+                    </header>
 
-@if (_invitation is null)
-{
-    <p class="erreur">@Localizer["InvitationInvalideOuExpiree"]</p>
-}
-else if (_existingUser is null)
-{
-    <p>@Localizer["InvitationCoachingIntro"]</p>
-    <p class="hint">@Localizer["InvitationEmailVerrouille"] <strong>@_invitation.EmailInvite</strong></p>
+                    <div class="p-4 p-lg-5">
+                        @if (!string.IsNullOrEmpty(_message))
+                        {
+                            <div class="alert alert-danger">@_message</div>
+                        }
 
-    <EditForm EditContext="_editContext" OnValidSubmit="RegisterAndFinalizeAsync" FormName="invitation-inscription" method="post">
-        <ValidationSummary />
-        <div class="champ">
-            <label>@Localizer["Nom"] <InputText @bind-Value="_model.Nom" /></label>
-        </div>
-        <div class="champ">
-            <label>@Localizer["Prenom"] <InputText @bind-Value="_model.Prenom" /></label>
-        </div>
-        <div class="champ">
-            <label>@Localizer["MotDePasse"] <InputText @bind-Value="_model.MotDePasse" type="password" /></label>
-        </div>
-        <div class="champ">
-            <label>@Localizer["Inscription_ConfirmationMotDePasse"] <InputText @bind-Value="_model.ConfirmationMotDePasse" type="password" /></label>
-        </div>
-        <button type="submit">@Localizer["InvitationCreerVotreCompte"]</button>
-    </EditForm>
-}
-else if (!_isAuthenticatedAsInvitee)
-{
-    @if (_isAuthenticatedAsSomeoneElse)
-    {
-        <p class="erreur">@string.Format(Localizer["InvitationMauvaisCompte"].Value, _invitation.EmailInvite)</p>
-    }
-    else
-    {
-        <p>@string.Format(Localizer["InvitationUnCompteExisteDeja"].Value, _invitation.EmailInvite)</p>
-        <p class="hint">@Localizer["InvitationConnectezVousPourConfirmer"]</p>
-        <p><a href="/login">@Localizer["InvitationSeConnecter"]</a></p>
-    }
-}
-else if (_confirme)
-{
-    <p class="gdt-confirmation">@Localizer["InvitationConfirmee"]</p>
-    <p><a href="/coach/suivis">@Localizer["InvitationVoirMesPersonnesSuivies"]</a></p>
-}
-else
-{
-    <EditForm Model="_confirmModel" OnValidSubmit="ConfirmerAsync" FormName="invitation-confirmation" method="post">
-        <button type="submit">@Localizer["InvitationConfirmer"]</button>
-    </EditForm>
-}
+                        @if (_invitation is null)
+                        {
+                            <div class="alert alert-danger">@Localizer["InvitationInvalideOuExpiree"]</div>
+                            <div class="login-links">
+                                <a href="/login" class="login-link">@Localizer["InvitationSeConnecter"]</a>
+                                <a href="/" class="login-link">@Localizer["Accueil"]</a>
+                            </div>
+                        }
+                        else if (_existingUser is null)
+                        {
+                            <p class="invitation-lead">@Localizer[IntroKey]</p>
+                            <p class="invitation-email-lock">
+                                <i class="bi bi-envelope-lock" aria-hidden="true"></i>
+                                @Localizer["InvitationEmailVerrouille"]
+                                <strong>@_invitation.EmailInvite</strong>
+                            </p>
 
-@if (!string.IsNullOrEmpty(_message))
-{
-    <p class="erreur">@_message</p>
-}
+                            <EditForm EditContext="_editContext" OnValidSubmit="RegisterAndFinalizeAsync" FormName="invitation-inscription" method="post">
+                                <ValidationSummary class="validation-summary" />
+
+                                <h2 class="login-section-title">@Localizer["InvitationCreerVotreCompte"]</h2>
+                                <hr class="login-divider" />
+
+                                <div class="login-form-group">
+                                    <label for="invitation-nom" class="login-form-label">@Localizer["Nom"]</label>
+                                    <InputText id="invitation-nom" @bind-Value="_model.Nom"
+                                               class="login-form-control form-control"
+                                               autocomplete="family-name" />
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="invitation-prenom" class="login-form-label">@Localizer["Prenom"]</label>
+                                    <InputText id="invitation-prenom" @bind-Value="_model.Prenom"
+                                               class="login-form-control form-control"
+                                               autocomplete="given-name" />
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="invitation-password" class="login-form-label">@Localizer["MotDePasse"]</label>
+                                    <InputText id="invitation-password" @bind-Value="_model.MotDePasse" type="password"
+                                               class="login-form-control form-control"
+                                               autocomplete="new-password" />
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="invitation-password-confirm" class="login-form-label">@Localizer["Inscription_ConfirmationMotDePasse"]</label>
+                                    <InputText id="invitation-password-confirm" @bind-Value="_model.ConfirmationMotDePasse" type="password"
+                                               class="login-form-control form-control"
+                                               autocomplete="new-password" />
+                                </div>
+
+                                <div class="mb-2">
+                                    <button type="submit" class="login-btn login-btn-primary">
+                                        @Localizer["InvitationCreerVotreCompte"]
+                                    </button>
+                                </div>
+                            </EditForm>
+                        }
+                        else if (!_isAuthenticatedAsInvitee)
+                        {
+                            @if (_isAuthenticatedAsSomeoneElse)
+                            {
+                                <div class="alert alert-danger">
+                                    @string.Format(Localizer["InvitationMauvaisCompte"].Value, _invitation.EmailInvite)
+                                </div>
+                                <div class="login-links">
+                                    <a href="/logout" class="login-link" data-enhance-nav="false">@Localizer["Deconnexion"]</a>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="invitation-lead">
+                                    @string.Format(Localizer["InvitationUnCompteExisteDeja"].Value, _invitation.EmailInvite)
+                                </p>
+                                <p class="invitation-hint">@Localizer["InvitationConnectezVousPourConfirmer"]</p>
+                                <a href="/login" class="login-link-register">@Localizer["InvitationSeConnecter"]</a>
+                            }
+                        }
+                        else if (_confirme)
+                        {
+                            <div class="alert alert-success">@Localizer["InvitationConfirmee"]</div>
+                            <a href="@DestinationApresAcceptation()" class="login-btn login-btn-primary">
+                                @(_invitation!.Type == InvitationType.CompanyEmploye ? Localizer["Accueil"] : Localizer["InvitationVoirMesPersonnesSuivies"])
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="invitation-lead">@Localizer[IntroKey]</p>
+                            <p class="invitation-email-lock">
+                                <i class="bi bi-person-check" aria-hidden="true"></i>
+                                <strong>@_invitation.EmailInvite</strong>
+                            </p>
+                            <EditForm Model="_confirmModel" OnValidSubmit="ConfirmerAsync" FormName="invitation-confirmation" method="post">
+                                <button type="submit" class="login-btn login-btn-primary">
+                                    @Localizer["InvitationConfirmer"]
+                                </button>
+                            </EditForm>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter] public string Token { get; set; } = "";
@@ -163,7 +247,10 @@ else
         {
             UserName = _invitation!.EmailInvite,
             Email = _invitation.EmailInvite,
-            // Même contournement que /inscription — voir son commentaire.
+            // Contrairement à /inscription (qui envoie désormais un vrai email de confirmation via Resend,
+            // voir son commentaire), pas besoin ici : l'invitation elle-même n'a pu être ouverte qu'en
+            // accédant à la boîte mail visée (jeton sécurisé envoyé à _invitation.EmailInvite) — la
+            // compléter EST la preuve de possession de l'adresse.
             EmailConfirmed = true,
             FirstName = _model.Prenom,
             LastName = _model.Nom,
@@ -179,7 +266,7 @@ else
         await FinaliserSelonTypeAsync(user.Id);
         await InvitationService.MarquerAccepteeAsync(_invitation.Id, CoreDb);
         await SignInManager.SignInAsync(user, isPersistent: true);
-        Navigation.NavigateTo("/coach/suivis");
+        Navigation.NavigateTo(DestinationApresAcceptation());
     }
 
     private async Task ConfirmerAsync()
@@ -189,10 +276,7 @@ else
         _confirme = true;
     }
 
-    /// <summary>
-    /// Seul <see cref="InvitationType.Coaching"/> est câblé ce cycle — voir la remarque sur <see cref="Invitation.Type"/>
-    /// pour l'extension future (ex. un type manager sous entreprise ajouterait un cas ici, rien d'autre).
-    /// </summary>
+    /// <summary>Étendu au cycle multi-entreprise/employés — voir la remarque sur <see cref="Invitation.Type"/>.</summary>
     private async Task FinaliserSelonTypeAsync(string accepteurUserId)
     {
         switch (_invitation!.Type)
@@ -201,6 +285,21 @@ else
                 await CoachOnboarding.CreateCoachAsync(accepteurUserId, CoreDb);
                 await CoachingService.FinaliserDepuisInvitationAsync(_invitation, accepteurUserId);
                 break;
+            case InvitationType.CompanyEmploye:
+                await CompanyProvisioningService.FinaliserEmployeDepuisInvitationAsync(_invitation, accepteurUserId, CoreDb);
+                break;
         }
     }
+
+    private string DestinationApresAcceptation() => _invitation!.Type switch
+    {
+        InvitationType.CompanyEmploye => "/dashboard",
+        _ => "/coach/suivis",
+    };
+
+    private string IntroKey => _invitation?.Type switch
+    {
+        InvitationType.CompanyEmploye => "InvitationManagerIntro",
+        _ => "InvitationCoachingIntro",
+    };
 }

@@ -57,13 +57,21 @@ public sealed class GestionDuTempsService(
 
     // ── Cycles ───────────────────────────────────────────────────────────────
 
-    public async Task<CycleView> GetOrCreateCycleActifAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<CycleView?> GetCycleActifAsync(string userId, CancellationToken cancellationToken = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         var existant = await db.Cycles.AsNoTracking()
             .FirstOrDefaultAsync(c => c.UserId == userId && c.Statut == CycleStatuts.EnCours, cancellationToken);
+        return existant is null ? null : ToCycleView(existant);
+    }
 
-        return ToCycleView(existant ?? await CreerEtSeedCycleAsync(userId, DefaultTypes, cancellationToken));
+    public async Task<CycleView> GetOrCreateCycleActifAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var existant = await GetCycleActifAsync(userId, cancellationToken);
+        if (existant is not null)
+            return existant;
+
+        return ToCycleView(await CreerEtSeedCycleAsync(userId, DefaultTypes, cancellationToken));
     }
 
     public async Task<CycleView> ClotureEtDemarrerNouveauCycleAsync(string userId, CancellationToken cancellationToken = default)
@@ -134,7 +142,9 @@ public sealed class GestionDuTempsService(
 
     public async Task<IReadOnlyList<TypeDeTempsView>> GetTypesDeTempsAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var cycle = await GetOrCreateCycleActifAsync(userId, cancellationToken);
+        var cycle = await GetCycleActifAsync(userId, cancellationToken);
+        if (cycle is null)
+            return [];
 
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         var types = await db.TypesDeTemps
@@ -185,7 +195,10 @@ public sealed class GestionDuTempsService(
 
     public async Task<IReadOnlyList<ActiviteView>> GetActivitesAsync(string userId, int? companyId, bool personnelUniquement, CancellationToken cancellationToken = default)
     {
-        var cycle = await GetOrCreateCycleActifAsync(userId, cancellationToken);
+        var cycle = await GetCycleActifAsync(userId, cancellationToken);
+        if (cycle is null)
+            return [];
+
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
 
         var query = db.Activites.AsNoTracking().Where(a => a.UserId == userId && a.CycleId == cycle.Id);
@@ -206,7 +219,8 @@ public sealed class GestionDuTempsService(
             {
                 types.TryGetValue(a.TypeDeTempsId, out var type);
                 var libelle = type is null ? (english ? "(deleted category)" : "(catégorie supprimée)") : DefaultCategoryLabels.Display(type.Cle, type.Libelle, english);
-                return new ActiviteView(a.Id, a.TypeDeTempsId, libelle, CouleurCategorie(type?.Cle), a.Nom, a.DateActivite, a.HeureDebut, a.DureeMinutes, a.CompanyId);
+                var cle = type?.Cle ?? "";
+                return new ActiviteView(a.Id, a.TypeDeTempsId, cle, libelle, CouleurCategorie(type?.Cle), a.Nom, a.DateActivite, a.HeureDebut, a.DureeMinutes, a.CompanyId);
             })
             .ToList();
     }
@@ -255,7 +269,7 @@ public sealed class GestionDuTempsService(
         return activite.Id;
     }
 
-    public async Task UpdateActiviteAsync(string userId, int activiteId, string nom, DateOnly dateActivite, TimeOnly heureDebut, int dureeMinutes, int? companyId, CancellationToken cancellationToken = default)
+    public async Task UpdateActiviteAsync(string userId, int activiteId, string nom, DateOnly dateActivite, TimeOnly heureDebut, int dureeMinutes, int? companyId, int? typeDeTempsId = null, CancellationToken cancellationToken = default)
     {
         await VerifierCompanyIdAsync(userId, companyId, cancellationToken);
 
@@ -263,10 +277,18 @@ public sealed class GestionDuTempsService(
         var activite = await db.Activites.FirstOrDefaultAsync(a => a.Id == activiteId && a.UserId == userId, cancellationToken);
         if (activite is null) return;
 
+        if (typeDeTempsId is int tid)
+        {
+            var typeExiste = await db.TypesDeTemps.AsNoTracking().AnyAsync(t => t.Id == tid && t.CycleId == activite.CycleId, cancellationToken);
+            if (!typeExiste)
+                throw new InvalidOperationException("Type de temps introuvable dans le cycle actif.");
+            activite.TypeDeTempsId = tid;
+        }
+
         activite.Nom = nom;
         activite.DateActivite = dateActivite;
         activite.HeureDebut = heureDebut;
-        activite.DureeMinutes = dureeMinutes;
+        activite.DureeMinutes = Math.Clamp(dureeMinutes, 5, 720);
         activite.CompanyId = companyId;
         activite.UpdatedAt = DateTimeOffset.UtcNow;
 
@@ -289,7 +311,10 @@ public sealed class GestionDuTempsService(
 
     public async Task<IReadOnlyList<KanbanCarteView>> GetKanbanAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var cycle = await GetOrCreateCycleActifAsync(userId, cancellationToken);
+        var cycle = await GetCycleActifAsync(userId, cancellationToken);
+        if (cycle is null)
+            return [];
+
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
 
         var activites = await db.Activites.AsNoTracking().Where(a => a.CycleId == cycle.Id).ToListAsync(cancellationToken);
@@ -307,8 +332,9 @@ public sealed class GestionDuTempsService(
                 var tempsReelMs = KanbanTimer.GetElapsedMs(statut, maintenant);
                 var libelle = type is null ? (english ? "(deleted category)" : "(catégorie supprimée)") : DefaultCategoryLabels.Display(type.Cle, type.Libelle, english);
                 return new KanbanCarteView(
-                    a.Id, a.Nom, libelle, CouleurCategorie(type?.Cle), a.DureeMinutes, a.CompanyId,
-                    statut.Statut, tempsReelMs, KanbanTimer.IsOvertime(tempsReelMs, a.DureeMinutes));
+                    a.Id, a.TypeDeTempsId, a.Nom, libelle, CouleurCategorie(type?.Cle), a.DureeMinutes, a.CompanyId,
+                    statut.Statut, tempsReelMs, KanbanTimer.IsOvertime(tempsReelMs, a.DureeMinutes),
+                    statut.UpdatedAt, a.CreatedAt);
             })
             .OrderBy(c => ColonneOrdre(c.Statut)).ThenBy(c => c.Nom)
             .ToList();
@@ -377,7 +403,10 @@ public sealed class GestionDuTempsService(
 
     public async Task<ProfilPsychosocial?> GetProfilPsychosocialAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var cycle = await GetOrCreateCycleActifAsync(userId, cancellationToken);
+        var cycle = await GetCycleActifAsync(userId, cancellationToken);
+        if (cycle is null)
+            return null;
+
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         return await db.ProfilsPsychosociaux.AsNoTracking().FirstOrDefaultAsync(p => p.CycleId == cycle.Id, cancellationToken);
     }
@@ -458,7 +487,10 @@ public sealed class GestionDuTempsService(
 
     public async Task<ReflexionConsciente?> GetReflexionConscienteAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var cycle = await GetOrCreateCycleActifAsync(userId, cancellationToken);
+        var cycle = await GetCycleActifAsync(userId, cancellationToken);
+        if (cycle is null)
+            return null;
+
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         return await db.ReflexionsConscientes.AsNoTracking().FirstOrDefaultAsync(r => r.CycleId == cycle.Id, cancellationToken);
     }
@@ -488,13 +520,16 @@ public sealed class GestionDuTempsService(
 
     public async Task<SyntheseView?> GetSyntheseAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var cycle = await GetOrCreateCycleActifAsync(userId, cancellationToken);
+        var cycle = await GetCycleActifAsync(userId, cancellationToken);
+        if (cycle is null)
+            return null;
+
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         var entity = await db.Syntheses.AsNoTracking().FirstOrDefaultAsync(s => s.CycleId == cycle.Id, cancellationToken);
         return entity is null ? null : ToSyntheseView(entity);
     }
 
-    public async Task<SyntheseView> GenererSyntheseAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<SyntheseView> GenererSyntheseAsync(string userId, bool forcerRegeneration = false, CancellationToken cancellationToken = default)
     {
         var cycle = await GetOrCreateCycleActifAsync(userId, cancellationToken);
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
@@ -507,16 +542,18 @@ public sealed class GestionDuTempsService(
         var snapshotHash = CalculerHashSnapshot(cycle.Id, userId, profil, reflexion, resume, english);
 
         var existante = await db.Syntheses.FirstOrDefaultAsync(s => s.CycleId == cycle.Id, cancellationToken);
-        if (existante is not null && existante.ProfilSnapshotHash == snapshotHash)
+        if (!forcerRegeneration && existante is not null && existante.ProfilSnapshotHash == snapshotHash)
             return ToSyntheseView(existante);
 
         var (profilType, indice, maturite) = SyntheseCalculator.Calculer(profil);
 
         SyntheseContenuNarratif contenu;
+        string? avertissementIa = null;
         if (profil is null)
         {
             // Rien à analyser de significatif — pas d'appel IA, texte de repli directement.
             contenu = SyntheseNarrativeBuilder.BuildFallback(new ProfilPsychosocial { CycleId = cycle.Id, UserId = userId }, profilType, indice, maturite, english);
+            avertissementIa = "Profil psychosocial non renseigné pour ce cycle — complétez /gestion-du-temps/profil puis régénérez.";
         }
         else
         {
@@ -527,6 +564,7 @@ public sealed class GestionDuTempsService(
             if (error is not null || string.IsNullOrWhiteSpace(output))
             {
                 contenu = SyntheseNarrativeBuilder.BuildFallback(profil, profilType, indice, maturite, english);
+                avertissementIa = error ?? "Réponse IA vide.";
             }
             else
             {
@@ -534,11 +572,12 @@ public sealed class GestionDuTempsService(
                 {
                     contenu = SyntheseNarrativeBuilder.ParseResponse(output);
                 }
-                catch
+                catch (Exception ex)
                 {
                     // Réponse IA reçue mais mal formée (JSON invalide/inattendu) — même repli que si l'IA
                     // avait échoué : jamais une exception remontée jusqu'à l'utilisateur.
                     contenu = SyntheseNarrativeBuilder.BuildFallback(profil, profilType, indice, maturite, english);
+                    avertissementIa = "Réponse IA illisible : " + ex.Message;
                 }
             }
         }
@@ -562,15 +601,15 @@ public sealed class GestionDuTempsService(
         existante.CalculatedAt = DateTimeOffset.UtcNow;
 
         await db.SaveChangesAsync(cancellationToken);
-        return ToSyntheseView(existante);
+        return ToSyntheseView(existante, avertissementIa);
     }
 
-    private static SyntheseView ToSyntheseView(Synthese s) => new(
+    private static SyntheseView ToSyntheseView(Synthese s, string? avertissementIa = null) => new(
         s.ProfilType, s.IndiceEquilibre, s.NiveauMaturite,
         s.ProfilTexte, s.IndiceCommentaire, s.MaturiteCommentaire,
         string.IsNullOrEmpty(s.RecommandationsJson) ? [] : JsonSerializer.Deserialize<List<RecommandationIa>>(s.RecommandationsJson, JsonOptions) ?? [],
         string.IsNullOrEmpty(s.AlertesJson) ? [] : JsonSerializer.Deserialize<List<string>>(s.AlertesJson, JsonOptions) ?? [],
-        s.GenereeParIa, s.CalculatedAt);
+        s.GenereeParIa, s.CalculatedAt, avertissementIa);
 
     /// <summary>Résumé construit exclusivement à partir des données du module (Activite/KanbanStatut du cycle) — jamais d'un autre module.</summary>
     private static async Task<ResumeActiviteCycle> BuildResumeActiviteAsync(GestionDuTempsDbContext db, int cycleId, CancellationToken cancellationToken)

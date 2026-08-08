@@ -1,160 +1,235 @@
 @page "/"
-@using System.Globalization
-@using System.Security.Claims
+@* Static SSR : PublicLayout ; redirection HTTP si déjà connecté (NavigateTo inefficace ici). *@
+@layout Spectrometre.Host.Components.Layout.PublicLayout
 @using Microsoft.Extensions.Localization
-@using Spectrometre.Core.Data
-@using Spectrometre.Core.Modules
-@using Spectrometre.Core.Tenancy
-@using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
-@inject IModuleRegistry ModuleRegistry
-@inject ICompanyProvisioningService CompanyProvisioningService
-@inject ICandidateSubjectResolver CandidateSubjectResolver
-@inject ICoachSubjectResolver CoachSubjectResolver
-@inject CoreDbContext CoreDb
-@inject IStringLocalizer<SharedResource> Localizer
+@inject IStringLocalizer<SharedResource> L
+@inject IHttpContextAccessor HttpContextAccessor
 
-<PageTitle>@Localizer["TableauDeBord"]</PageTitle>
+<PageTitle>@L["Home_PageTitle"]</PageTitle>
 
-<h1>@Localizer["TableauDeBord"]</h1>
-
-@if (!_isAuthenticated)
+@if (_showLanding)
 {
-    <p>@Localizer["Home_Bienvenue"]</p>
-    <p><a href="/login">@Localizer["SeConnecter"]</a> · <a href="/inscription">@Localizer["CreerUnCompte"]</a></p>
-}
-else
-{
-    @if (_company is not null)
-    {
-        <section>
-            <h2>@Localizer["Home_EntreprisePrefix"] @_company.Name</h2>
-            @if (_companyModuleNames.Count == 0)
-            {
-                <p class="hint">@Localizer["Home_AucunModuleActif"]</p>
-            }
-            else
-            {
-                <ul>
-                    @foreach (var name in _companyModuleNames)
-                    {
-                        <li>@name</li>
-                    }
-                </ul>
-            }
-            <p><a href="/entreprise/modules">@Localizer["AjouterUnModule"]</a></p>
+        <!-- Hero – fond image + overlay -->
+        <section id="home" class="hero-vitrine">
+            <div class="hero-vitrine__bg">
+                <img src="/images/hero-bg.jpg" alt="" />
+            </div>
+            <div class="hero-vitrine__overlay"></div>
+            <div class="hero-vitrine__dots" aria-hidden="true"></div>
+            <div class="container position-relative z-1 py-5 py-lg-5 hero-vitrine__container-pt">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <span class="hero-vitrine__badge">@L["Home_Hero_Badge"]</span>
+                        <h1 class="text-white mb-4 lh-tight" style="max-width: 36rem; text-wrap: balance;">
+                            @L["Home_Hero_Title"]
+                        </h1>
+                        <p class="text-white mb-4 opacity-75 fs-5" style="max-width: 32rem;">
+                            @L["Home_Hero_Subtitle"]
+                        </p>
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="/login" class="btn-hero-inverted px-4 py-3 px-lg-5 py-lg-4 fs-6">
+                                @L["Home_Hero_CTA"]
+                                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
-    }
-    else
-    {
-        <section>
-            <p class="hint">@Localizer["Home_AucuneEntreprise"]</p>
-            <p><a href="/entreprise/creer">@Localizer["CreerUneEntreprise"]</a></p>
-        </section>
-    }
 
-    @if (_candidateModuleNames.Count > 0)
-    {
-        <section>
-            <h2>@Localizer["Home_ProfilCandidat"]</h2>
-            <ul>
-                @foreach (var name in _candidateModuleNames)
-                {
-                    <li>@name</li>
-                }
-            </ul>
-            <p><a href="/candidat/modules">@Localizer["AjouterUnModule"]</a></p>
+        <!-- Bandeau principal -->
+        <section id="bandeau-principal" class="py-5 py-lg-5 section-secondary-50">
+            <div class="container">
+                <div class="row g-4 g-lg-5 align-items-center">
+                    <div class="col-lg-5 scroll-reveal">
+                        <div class="rounded-2 overflow-hidden shadow-lg img-ratio-4x3">
+                            <img src="/images/about-team.jpg" alt="@L["Home_Bandeau_ImgAlt"]" />
+                        </div>
+                    </div>
+                    <div class="col-lg-7 scroll-reveal">
+                        <p class="text-muted fs-5 mb-4 lh-lg">@L["Home_Bandeau_P1"]</p>
+                        <p class="text-muted fs-5 mb-4 lh-lg">@L["Home_Bandeau_P2"]</p>
+                        <p class="text-muted fs-5 mb-4 lh-lg">@L["Home_Bandeau_P3"]</p>
+                        <p class="text-muted fs-5 mb-4 lh-lg">@L["Home_Bandeau_P4"]</p>
+                    </div>
+                </div>
+            </div>
         </section>
-    }
 
-    @if (_coachModuleNames.Count > 0)
-    {
-        <section>
-            <h2>@Localizer["Home_ProfilCoach"]</h2>
-            <ul>
-                @foreach (var name in _coachModuleNames)
-                {
-                    <li>@name</li>
-                }
-            </ul>
-            <p><a href="/coach/profil">@Localizer["Home_ProfilCoach"]</a> · <a href="/coach/suivis">@Localizer["Home_MesPersonnesSuivies"]</a></p>
+        <!-- La dimension socioprofessionnelle -->
+        <section id="dimension-sociopro" class="py-5 py-lg-5">
+            <div class="container">
+                <div class="text-center mx-auto mb-5 mb-lg-5 scroll-reveal" style="max-width: 36rem;">
+                    <h2 class="h1 mb-0">@L["Home_Sociopro_Title"]</h2>
+                </div>
+
+                <!-- Employeur / Recruteur -->
+                <div class="row g-4 g-lg-5 mb-5 mb-lg-5 align-items-center">
+                    <div class="col-lg-5 scroll-reveal">
+                        <div class="rounded-2 overflow-hidden shadow-md img-ratio-5x4">
+                            <img src="/images/recruiter.jpg" alt="@L["Home_Sociopro_Employeur_ImgAlt"]" onerror="this.onerror=null;this.src='/images/recruiter.svg';" />
+                        </div>
+                    </div>
+                    <div class="col-lg-7 scroll-reveal">
+                        <h3 class="h2 text-primary mb-3">@L["Home_Sociopro_Employeur_Title"]</h3>
+                        <p class="lead text-muted mb-3">@L["Home_Sociopro_Employeur_Lead"]</p>
+                        <p class="text-muted mb-2">@L["Home_Sociopro_Employeur_P1"]</p>
+                        <p class="text-muted mb-4">@L["Home_Sociopro_Employeur_P2"]</p>
+                        <p class="fw-semibold mb-2">@L["Home_Sociopro_Employeur_P3"]</p>
+                        <ul class="list-bullet-accent mb-4">
+                            <li>@L["Home_Sociopro_Employeur_Li1"]</li>
+                            <li>@L["Home_Sociopro_Employeur_Li2"]</li>
+                            <li>@L["Home_Sociopro_Employeur_Li3"]</li>
+                            <li>@L["Home_Sociopro_Employeur_Li4"]</li>
+                        </ul>
+                        <a href="/inscription" class="btn-hero px-4 py-3 px-lg-4 py-lg-3">
+                            @L["Home_Sociopro_Employeur_CTA"]
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Candidat / Étudiant / Transition -->
+                <div class="row g-4 g-lg-5 mb-5 mb-lg-5 align-items-center">
+                    <div class="col-lg-5 order-lg-2 scroll-reveal">
+                        <div class="rounded-2 overflow-hidden shadow-md img-ratio-5x4">
+                            <img src="/images/student.jpg" alt="@L["Home_Sociopro_Candidat_ImgAlt"]" onerror="this.onerror=null;this.src='/images/student.svg';" />
+                        </div>
+                    </div>
+                    <div class="col-lg-7 order-lg-1 scroll-reveal">
+                        <h3 class="h2 text-primary mb-3">@L["Home_Sociopro_Candidat_Title"]</h3>
+                        <p class="lead text-muted mb-3">@L["Home_Sociopro_Candidat_Lead"]</p>
+                        <p class="text-muted mb-2">@L["Home_Sociopro_Candidat_P1"]</p>
+                        <p class="text-muted mb-4">@L["Home_Sociopro_Candidat_P2"]</p>
+                        <p class="fw-semibold mb-2">@L["Home_Sociopro_Candidat_P3"]</p>
+                        <ul class="list-bullet-accent mb-4">
+                            <li>@L["Home_Sociopro_Candidat_Li1"]</li>
+                            <li>@L["Home_Sociopro_Candidat_Li2"]</li>
+                            <li>@L["Home_Sociopro_Candidat_Li3"]</li>
+                            <li>@L["Home_Sociopro_Candidat_Li4"]</li>
+                        </ul>
+                        <a href="/inscription" class="btn-hero px-4 py-3 px-lg-4 py-lg-3">
+                            @L["Home_Sociopro_Candidat_CTA"]
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Coach / Psychologue / Accompagnant -->
+                <div class="row g-4 g-lg-5 align-items-center">
+                    <div class="col-lg-5 scroll-reveal">
+                        <div class="rounded-2 overflow-hidden shadow-md img-ratio-5x4">
+                            <img src="/images/coach.jpg" alt="@L["Home_Sociopro_Coach_ImgAlt"]" onerror="this.onerror=null;this.src='/images/coach.svg';" />
+                        </div>
+                    </div>
+                    <div class="col-lg-7 scroll-reveal">
+                        <h3 class="h2 text-primary mb-3">@L["Home_Sociopro_Coach_Title"]</h3>
+                        <p class="lead text-muted mb-4">@L["Home_Sociopro_Coach_Lead"]</p>
+                        <p class="fw-semibold mb-2">@L["Home_Sociopro_Candidat_P3"]</p>
+                        <ul class="list-bullet-accent mb-4">
+                            <li>@L["Home_Sociopro_Coach_Li1"]</li>
+                            <li>@L["Home_Sociopro_Coach_Li2"]</li>
+                            <li>@L["Home_Sociopro_Coach_Li3"]</li>
+                        </ul>
+                        <a href="/inscription" class="btn-hero px-4 py-3 px-lg-4 py-lg-3">
+                            @L["Home_Sociopro_Coach_CTA"]
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </section>
-    }
+
+        <!-- La dimension psychosociale -->
+        <section id="dimension-psychosociale" class="py-5 py-lg-5 section-secondary-50">
+            <div class="container">
+                <div class="row g-4 g-lg-5 align-items-center">
+                    <div class="col-lg-5 scroll-reveal">
+                        <div class="rounded-2 overflow-hidden shadow-md img-ratio-4x3">
+                            <img src="/images/psychosocial.jpg" alt="@L["Home_Psycho_ImgAlt"]" />
+                        </div>
+                    </div>
+                    <div class="col-lg-7 scroll-reveal">
+                        <h2 class="h1 mb-4">@L["Home_Psycho_Title"]</h2>
+                        <p class="lead text-muted mb-3">@L["Home_Psycho_Lead"]</p>
+                        <p class="fw-semibold mb-2">@L["Home_Psycho_P"]</p>
+                        <ul class="list-bullet-accent list-bullet-teal mb-4">
+                            <li>@L["Home_Psycho_Li1"]</li>
+                            <li>@L["Home_Psycho_Li2"]</li>
+                            <li>@L["Home_Psycho_Li3"]</li>
+                        </ul>
+                        <a href="/inscription" class="btn-hero px-4 py-3 px-lg-4 py-lg-3">
+                            @L["Home_Psycho_CTA"]
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pourquoi cette approche est différente ? -->
+        <section id="pourquoi-different" class="py-5 py-lg-5">
+            <div class="container">
+                <div class="text-center mx-auto mb-5 scroll-reveal" style="max-width: 36rem;">
+                    <p class="section-label mb-2">@L["Home_Approach_Label"]</p>
+                    <h2 class="h1 mb-4">@L["Home_Approach_Title"]</h2>
+                    <p class="lead text-muted mb-0">@L["Home_Approach_Lead"]</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA – Démarrer maintenant -->
+        <section id="demarrer" class="cta-vitrine py-5 py-lg-5">
+            <div class="cta-vitrine__dots" aria-hidden="true"></div>
+            <div class="container position-relative z-1">
+                <div class="text-center mx-auto mb-5 scroll-reveal" style="max-width: 36rem;">
+                    <h2 class="h2 text-white mb-0 lh-sm" style="text-wrap: balance;">
+                        @L["Home_CTA_Title"]
+                    </h2>
+                </div>
+                <div class="mx-auto scroll-reveal" style="max-width: 32rem;">
+                    <ul class="list-unstyled mb-4 fs-5 demarrer-list">
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li1"]</li>
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li2"]</li>
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li3"]</li>
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li4"]</li>
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li5"]</li>
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li6"]</li>
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li7"]</li>
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li8"]</li>
+                        <li class="mb-2 text-white opacity-85 demarrer-list-item">@L["Home_CTA_Li9"]</li>
+                    </ul>
+                    <p class="text-center text-white opacity-80 fs-5 mb-5">@L["Home_CTA_P"]</p>
+                    <div class="text-center">
+                        <a href="/inscription" class="btn-hero-inverted px-5 py-4 px-lg-5 py-lg-4 fs-6">
+                            @L["Home_CTA_CTA"]
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </a>
+                        <p class="text-white opacity-60 small mt-4 mb-0">@L["Home_CTA_Footer"]</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 }
 
 @code {
-    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
 
-    private bool _isAuthenticated;
-    private Company? _company;
-    private readonly List<string> _companyModuleNames = [];
-    private readonly List<string> _candidateModuleNames = [];
-    private readonly List<string> _coachModuleNames = [];
+    private bool _showLanding;
 
-    /// <summary>
-    /// Tableau de bord entièrement dynamique — mêmes vérifications que le menu principal (voir
-    /// MainLayout) : IsActiveAsync/IsActiveForCandidateAsync module par module, jamais GetActiveModuleCodesAsync.
-    /// </summary>
-    /// <remarks>
-    /// Côté entreprise, <see cref="PersonalModuleCodes"/> est exclu de l'énumération — un module personnel
-    /// (Profil Candidat) n'a pas sa place dans le tableau de bord d'une entreprise, même si une ligne
-    /// <c>ModuleActivation</c> existe pour ce sujet (voir le commentaire sur <see cref="PersonalModuleCodes"/>).
-    /// Jamais appliqué côté candidat : ses propres modules personnels sont précisément ce qu'il doit voir ici.
-    /// </remarks>
     protected override async Task OnInitializedAsync()
     {
-        if (AuthenticationStateTask is null)
-            return;
-
-        var user = (await AuthenticationStateTask).User;
-        if (user.Identity?.IsAuthenticated != true)
-            return;
-
-        _isAuthenticated = true;
-
-        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
-            return;
-
-        var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
-        if (companies.Count > 0)
+        if (AuthenticationStateTask is not null)
         {
-            _company = companies[0];
-            foreach (var manifest in ModuleRegistry.AllModules)
+            var user = (await AuthenticationStateTask).User;
+            if (user.Identity?.IsAuthenticated == true)
             {
-                if (PersonalModuleCodes.Codes.Contains(manifest.Code))
-                    continue;
-                if (await ModuleRegistry.IsActiveAsync(_company.Id, manifest.Code, CoreDb))
-                    _companyModuleNames.Add(DisplayNameFor(manifest));
+                HttpContextAccessor.HttpContext?.Response.Redirect("/dashboard");
+                return;
             }
         }
 
-        var candidateProfileId = await CandidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
-        foreach (var manifest in ModuleRegistry.AllModules)
-        {
-            if (await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, CoreDb))
-                _candidateModuleNames.Add(DisplayNameFor(manifest));
-        }
-
-        // Un utilisateur peut cumuler plusieurs profils (voir CoachOnboardingService) — même schéma que la
-        // résolution candidat ci-dessus : GetOrCreateCoachProfileIdAsync crée un CoachProfile "coquille vide"
-        // pour tout visiteur authentifié du tableau de bord, même sans inscription/invitation Coach (déjà le
-        // comportement existant côté candidat, reproduit ici à l'identique plutôt que corrigé isolément).
-        // La section ne s'affiche que si un module Coach est effectivement actif (IsActiveForCoachAsync),
-        // ce qui reste false pour cette coquille vide tant qu'aucun onboarding réel n'a eu lieu.
-        var coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
-        foreach (var manifest in ModuleRegistry.AllModules)
-        {
-            if (await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, manifest.Code, CoreDb))
-                _coachModuleNames.Add(DisplayNameFor(manifest));
-        }
+        _showLanding = true;
     }
-
-    /// <summary>
-    /// Nom du module selon la culture courante — voir <see cref="ModuleManifest.DisplayNameEn"/> (cycle de
-    /// bilinguisme, écart corrigé) : DisplayName (français) reste le contenu source, DisplayNameEn n'est
-    /// consulté qu'ici et au tableau de bord, jamais par les écrans propres du module (hors périmètre).
-    /// </summary>
-    private static string DisplayNameFor(ModuleManifest manifest) =>
-        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr" ? manifest.DisplayName : manifest.DisplayNameEn;
 }

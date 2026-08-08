@@ -17,33 +17,59 @@
 
 <PageTitle>@Localizer["AjouterUnModule"]</PageTitle>
 
-<h1>@Localizer["AjouterUnModule"]</h1>
-<p class="hint"><a href="/">@Localizer["RetourAuTableauDeBord"]</a></p>
+<div class="modules-page">
+    <header class="modules-header">
+        <div>
+            <h1 class="modules-title">@Localizer["AjouterUnModule"]</h1>
+            <p class="modules-subtitle">@Localizer["Home_ProfilCandidat"]</p>
+        </div>
+        <a href="/dashboard" class="modules-back">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["RetourAuTableauDeBord"]
+        </a>
+    </header>
 
-@if (_loading)
-{
-    <p>@Localizer["Chargement"]</p>
-}
-else
-{
-    <div class="module-carte">
-        <h3>@Localizer["Module_GestionDuTemps"]</h3>
-        <p class="hint">@Localizer["Module_GestionDuTempsDescription"]</p>
-        @if (_gestionDuTempsActif)
-        {
-            <p class="confirmation">@Localizer["DejaActive"]</p>
-        }
-        else
-        {
-            <button @onclick="ActiverGestionDuTempsAsync">@Localizer["Activer"]</button>
-        }
-    </div>
-
-    @if (!string.IsNullOrEmpty(_message))
+    @if (_loading)
     {
-        <p class="confirmation">@_message</p>
+        <section class="modules-card modules-empty">
+            <p class="modules-hint">@Localizer["Chargement"]</p>
+        </section>
     }
-}
+    else
+    {
+        @if (!string.IsNullOrEmpty(_message))
+        {
+            <div class="modules-alert modules-alert-success" role="status">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                @_message
+            </div>
+        }
+
+        <div class="modules-grid">
+            <article class="modules-card @(_gestionDuTempsActif ? "is-active" : "")">
+                <div class="modules-card-icon tone-teal">
+                    <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                </div>
+                <h2 class="modules-card-title">@Localizer["Module_GestionDuTemps"]</h2>
+                <p class="modules-hint">@Localizer["Module_GestionDuTempsDescription"]</p>
+                @if (_gestionDuTempsActif)
+                {
+                    <p class="modules-status is-on">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["DejaActive"]
+                    </p>
+                }
+                else
+                {
+                    <button type="button" class="modules-btn-primary" @onclick="ActiverGestionDuTempsAsync">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        @Localizer["Activer"]
+                    </button>
+                }
+            </article>
+        </div>
+    }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

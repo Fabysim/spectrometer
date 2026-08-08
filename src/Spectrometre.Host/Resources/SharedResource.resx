@@ -32,121 +32,697 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
   <!-- Culture par défaut (aucun suffixe de culture) = français, cohérent avec le reste de l'application. -->
-
-  <data name="Connexion" xml:space="preserve"><value>Connexion</value></data>
-  <data name="Email" xml:space="preserve"><value>Email</value></data>
-  <data name="MotDePasse" xml:space="preserve"><value>Mot de passe</value></data>
-  <data name="SeConnecter" xml:space="preserve"><value>Se connecter</value></data>
-  <data name="CreerUnCompte" xml:space="preserve"><value>Créer un compte</value></data>
-  <data name="Login_EchecConnexion" xml:space="preserve"><value>Échec de connexion.</value></data>
-
-  <data name="Inscription_InformationsDuCompte" xml:space="preserve"><value>Informations du compte</value></data>
-  <data name="Nom" xml:space="preserve"><value>Nom</value></data>
-  <data name="Prenom" xml:space="preserve"><value>Prénom</value></data>
-  <data name="Inscription_SuggererMotDePasseFort" xml:space="preserve"><value>Suggérer un mot de passe fort</value></data>
-  <data name="Robustesse" xml:space="preserve"><value>Robustesse :</value></data>
-  <data name="TresFaible" xml:space="preserve"><value>Très faible</value></data>
-  <data name="Faible" xml:space="preserve"><value>Faible</value></data>
-  <data name="Moyen" xml:space="preserve"><value>Moyen</value></data>
-  <data name="Bon" xml:space="preserve"><value>Bon</value></data>
-  <data name="Fort" xml:space="preserve"><value>Fort</value></data>
-  <data name="TresFort" xml:space="preserve"><value>Très fort</value></data>
-  <data name="Inscription_ConfirmationMotDePasse" xml:space="preserve"><value>Confirmation du mot de passe</value></data>
-  <data name="Inscription_ChoixDuProfil" xml:space="preserve"><value>Choix du profil</value></data>
-  <data name="Entreprise" xml:space="preserve"><value>Entreprise</value></data>
-  <data name="Independant" xml:space="preserve"><value>Indépendant</value></data>
-  <data name="BientotDisponible" xml:space="preserve"><value>Bientôt disponible</value></data>
-  <data name="Candidat" xml:space="preserve"><value>Candidat</value></data>
-  <data name="Coach" xml:space="preserve"><value>Coach</value></data>
-  <data name="NomDeLEntreprise" xml:space="preserve"><value>Nom de l'entreprise</value></data>
-  <data name="Inscription_CreerMonCompte" xml:space="preserve"><value>Créer mon compte</value></data>
-  <data name="Inscription_DejaUnCompte" xml:space="preserve"><value>Déjà un compte ? Se connecter</value></data>
-  <data name="Inscription_ChoisirProfil" xml:space="preserve"><value>Veuillez choisir un profil (Entreprise, Candidat ou Coach).</value></data>
-  <data name="Inscription_NomEntrepriseRequis" xml:space="preserve"><value>Le nom de l'entreprise est requis.</value></data>
-
+  <data name="Connexion" xml:space="preserve">
+    <value>Connexion</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="MotDePasse" xml:space="preserve">
+    <value>Mot de passe</value>
+  </data>
+  <data name="SeConnecter" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="CreerUnCompte" xml:space="preserve">
+    <value>Créer un compte</value>
+  </data>
+  <data name="Login_EchecConnexion" xml:space="preserve">
+    <value>Échec de connexion.</value>
+  </data>
+  <data name="Login_EmailNonConfirme" xml:space="preserve">
+    <value>Votre adresse email n'est pas encore confirmée. Vérifiez votre boîte de réception (et vos indésirables) pour le lien de confirmation.</value>
+  </data>
+  <data name="Inscription_ErreurEnvoiEmailConfirmation" xml:space="preserve">
+    <value>Votre compte a été créé, mais l'email de confirmation n'a pas pu être envoyé. Contactez le support ou réessayez plus tard.</value>
+  </data>
+  <data name="ConfirmationEmail_Titre" xml:space="preserve">
+    <value>Confirmation de l'email</value>
+  </data>
+  <data name="ConfirmationEmail_LienInvalide" xml:space="preserve">
+    <value>Ce lien de confirmation n'est pas valide.</value>
+  </data>
+  <data name="ConfirmationEmail_Succes" xml:space="preserve">
+    <value>Merci ! Votre adresse email a été confirmée. Vous pouvez maintenant vous connecter.</value>
+  </data>
+  <data name="ConfirmationEmail_Echec" xml:space="preserve">
+    <value>La confirmation de votre email a échoué. Le lien a peut-être expiré.</value>
+  </data>
+  <data name="VerificationEmail_Titre" xml:space="preserve">
+    <value>Vérifiez votre boîte de réception</value>
+  </data>
+  <data name="VerificationEmail_Message" xml:space="preserve">
+    <value>Nous avons envoyé un email de confirmation à {0}. Cliquez sur le lien qu'il contient pour activer votre compte.</value>
+  </data>
+  <data name="Inscription_InformationsDuCompte" xml:space="preserve">
+    <value>Informations du compte</value>
+  </data>
+  <data name="Nom" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="Prenom" xml:space="preserve">
+    <value>Prénom</value>
+  </data>
+  <data name="Inscription_SuggererMotDePasseFort" xml:space="preserve">
+    <value>Suggérer un mot de passe fort</value>
+  </data>
+  <data name="Robustesse" xml:space="preserve">
+    <value>Robustesse :</value>
+  </data>
+  <data name="TresFaible" xml:space="preserve">
+    <value>Très faible</value>
+  </data>
+  <data name="Faible" xml:space="preserve">
+    <value>Faible</value>
+  </data>
+  <data name="Moyen" xml:space="preserve">
+    <value>Moyen</value>
+  </data>
+  <data name="Bon" xml:space="preserve">
+    <value>Bon</value>
+  </data>
+  <data name="Fort" xml:space="preserve">
+    <value>Fort</value>
+  </data>
+  <data name="TresFort" xml:space="preserve">
+    <value>Très fort</value>
+  </data>
+  <data name="Inscription_ConfirmationMotDePasse" xml:space="preserve">
+    <value>Confirmation du mot de passe</value>
+  </data>
+  <data name="Inscription_AfficherMotDePasse" xml:space="preserve">
+    <value>Afficher le mot de passe</value>
+  </data>
+  <data name="Inscription_MasquerMotDePasse" xml:space="preserve">
+    <value>Masquer le mot de passe</value>
+  </data>
+  <data name="Inscription_ChoixDuProfil" xml:space="preserve">
+    <value>Choix du profil</value>
+  </data>
+  <data name="Entreprise" xml:space="preserve">
+    <value>Entreprise</value>
+  </data>
+  <data name="Independant" xml:space="preserve">
+    <value>Indépendant</value>
+  </data>
+  <data name="BientotDisponible" xml:space="preserve">
+    <value>Bientôt disponible</value>
+  </data>
+  <data name="Candidat" xml:space="preserve">
+    <value>Candidat</value>
+  </data>
+  <data name="Coach" xml:space="preserve">
+    <value>Coach</value>
+  </data>
+  <data name="NomDeLEntreprise" xml:space="preserve">
+    <value>Nom de l'entreprise</value>
+  </data>
+  <data name="Inscription_CreerMonCompte" xml:space="preserve">
+    <value>Créer mon compte</value>
+  </data>
+  <data name="Inscription_DejaUnCompte" xml:space="preserve">
+    <value>Déjà un compte ? Se connecter</value>
+  </data>
+  <data name="Inscription_ChoisirProfil" xml:space="preserve">
+    <value>Veuillez choisir un profil (Entreprise, Candidat ou Coach).</value>
+  </data>
+  <data name="Inscription_NomEntrepriseRequis" xml:space="preserve">
+    <value>Le nom de l'entreprise est requis.</value>
+  </data>
   <!-- Messages de validation du formulaire d'inscription, résolus manuellement via IStringLocalizer
        (ValidationMessageStore) plutôt que via ErrorMessageResourceType sur les attributs DataAnnotations —
        voir le commentaire dans Inscription.razor. -->
-  <data name="Inscription_NomRequis" xml:space="preserve"><value>Le nom est requis.</value></data>
-  <data name="Inscription_PrenomRequis" xml:space="preserve"><value>Le prénom est requis.</value></data>
-  <data name="Inscription_EmailRequis" xml:space="preserve"><value>L'adresse email est requise.</value></data>
-  <data name="Inscription_EmailInvalide" xml:space="preserve"><value>Adresse email invalide.</value></data>
-  <data name="Inscription_MotDePasseRequis" xml:space="preserve"><value>Le mot de passe est requis.</value></data>
-  <data name="Inscription_ConfirmationMotDePasseRequise" xml:space="preserve"><value>La confirmation du mot de passe est requise.</value></data>
-  <data name="Inscription_MotsDePasseNeCorrespondentPas" xml:space="preserve"><value>Les mots de passe ne correspondent pas.</value></data>
-  <data name="Inscription_ProfilRequis" xml:space="preserve"><value>Veuillez choisir un profil.</value></data>
-
-  <data name="Logout_EnCours" xml:space="preserve"><value>Déconnexion…</value></data>
-
-  <data name="CreerUneEntreprise" xml:space="preserve"><value>Créer une entreprise</value></data>
-  <data name="Creer" xml:space="preserve"><value>Créer</value></data>
-  <data name="UtilisateurNonAuthentifie" xml:space="preserve"><value>Utilisateur non authentifié.</value></data>
-
-  <data name="AjouterUnModule" xml:space="preserve"><value>Ajouter un module</value></data>
-  <data name="RetourAuTableauDeBord" xml:space="preserve"><value>Retour au tableau de bord</value></data>
-  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
-  <data name="AjouterModule_AucuneEntrepriseAssociee" xml:space="preserve"><value>Aucune entreprise associée à ce compte.</value></data>
-  <data name="Module_Recrutement" xml:space="preserve"><value>Recrutement</value></data>
-  <data name="Module_RecrutementDescription" xml:space="preserve"><value>Postes &amp; Recrutement et modules associés (compatibilité, vivier, entretien, analytics).</value></data>
-  <data name="DejaActive" xml:space="preserve"><value>Déjà activé.</value></data>
-  <data name="Activer" xml:space="preserve"><value>Activer</value></data>
-  <data name="Module_GestionDuTemps" xml:space="preserve"><value>Gestion du temps</value></data>
-  <data name="Module_GestionDuTempsDescription" xml:space="preserve"><value>Rituels, cycles, Kanban, minuteur, profil psychosocial et synthèse IA.</value></data>
-  <data name="Module_SuiviEvaluationEmployes" xml:space="preserve"><value>Suivi &amp; évaluation des employés</value></data>
-  <data name="Module_RecrutementActiveMessage" xml:space="preserve"><value>Module Recrutement activé.</value></data>
-  <data name="Module_GestionDuTempsActiveMessage" xml:space="preserve"><value>Module Gestion du temps activé.</value></data>
-
-  <data name="TableauDeBord" xml:space="preserve"><value>Tableau de bord</value></data>
-  <data name="Home_Bienvenue" xml:space="preserve"><value>Bienvenue sur Spectromètre.</value></data>
-  <data name="Home_EntreprisePrefix" xml:space="preserve"><value>Entreprise :</value></data>
-  <data name="Home_AucunModuleActif" xml:space="preserve"><value>Aucun module actif pour le moment.</value></data>
-  <data name="Home_AucuneEntreprise" xml:space="preserve"><value>Vous ne gérez aucune entreprise pour le moment.</value></data>
-  <data name="Home_ProfilCandidat" xml:space="preserve"><value>Profil candidat</value></data>
-  <data name="Home_ProfilCoach" xml:space="preserve"><value>Profil coach</value></data>
-  <data name="Home_MesPersonnesSuivies" xml:space="preserve"><value>Mes personnes suivies</value></data>
-  <data name="Nav_MonCoach" xml:space="preserve"><value>Mon coach</value></data>
-
-  <data name="Accueil" xml:space="preserve"><value>Accueil</value></data>
-  <data name="Module_ProfilEntreprise" xml:space="preserve"><value>Profil entreprise</value></data>
-  <data name="Module_PostesEntreprise" xml:space="preserve"><value>Postes (entreprise)</value></data>
-  <data name="Module_Vivier" xml:space="preserve"><value>Vivier</value></data>
-  <data name="Module_HistoriqueEntreprise" xml:space="preserve"><value>Historique (entreprise)</value></data>
-  <data name="Module_AnalyticsEntreprise" xml:space="preserve"><value>Analytics (entreprise)</value></data>
-  <data name="AjouterUnModuleEntreprise" xml:space="preserve"><value>Ajouter un module (entreprise)</value></data>
-  <data name="Module_QuestionnaireCandidat" xml:space="preserve"><value>Questionnaire candidat</value></data>
-  <data name="Module_CurriculumVitae" xml:space="preserve"><value>Curriculum vitæ</value></data>
-  <data name="Module_PostesCandidat" xml:space="preserve"><value>Postes ouverts (candidat)</value></data>
-  <data name="Module_HistoriqueCandidat" xml:space="preserve"><value>Historique (candidat)</value></data>
-  <data name="AjouterUnModuleCandidat" xml:space="preserve"><value>Ajouter un module (candidat)</value></data>
-  <data name="Module_Kanban" xml:space="preserve"><value>Kanban</value></data>
-  <data name="Module_ProfilPsychosocial" xml:space="preserve"><value>Profil psychosocial</value></data>
-  <data name="Module_ReflexionConsciente" xml:space="preserve"><value>Réflexion consciente</value></data>
-  <data name="Module_Synthese" xml:space="preserve"><value>Synthèse</value></data>
-  <data name="Connecte" xml:space="preserve"><value>Connecté</value></data>
-  <data name="Deconnexion" xml:space="preserve"><value>Déconnexion</value></data>
-
+  <data name="Inscription_NomRequis" xml:space="preserve">
+    <value>Le nom est requis.</value>
+  </data>
+  <data name="Inscription_PrenomRequis" xml:space="preserve">
+    <value>Le prénom est requis.</value>
+  </data>
+  <data name="Inscription_EmailRequis" xml:space="preserve">
+    <value>L'adresse email est requise.</value>
+  </data>
+  <data name="Inscription_EmailInvalide" xml:space="preserve">
+    <value>Adresse email invalide.</value>
+  </data>
+  <data name="Inscription_MotDePasseRequis" xml:space="preserve">
+    <value>Le mot de passe est requis.</value>
+  </data>
+  <data name="Inscription_ConfirmationMotDePasseRequise" xml:space="preserve">
+    <value>La confirmation du mot de passe est requise.</value>
+  </data>
+  <data name="Inscription_MotsDePasseNeCorrespondentPas" xml:space="preserve">
+    <value>Les mots de passe ne correspondent pas.</value>
+  </data>
+  <data name="Inscription_ProfilRequis" xml:space="preserve">
+    <value>Veuillez choisir un profil.</value>
+  </data>
+  <data name="Logout_EnCours" xml:space="preserve">
+    <value>Déconnexion…</value>
+  </data>
+  <data name="CreerUneEntreprise" xml:space="preserve">
+    <value>Créer une entreprise</value>
+  </data>
+  <data name="CreerEntreprise_SousTitre" xml:space="preserve">
+    <value>Créez votre espace entreprise pour gérer le profil et les modules.</value>
+  </data>
+  <data name="CreerEntreprise_Erreur" xml:space="preserve">
+    <value>La création de l'entreprise a échoué. Veuillez réessayer.</value>
+  </data>
+  <data name="Creer" xml:space="preserve">
+    <value>Créer</value>
+  </data>
+  <data name="UtilisateurNonAuthentifie" xml:space="preserve">
+    <value>Utilisateur non authentifié.</value>
+  </data>
+  <data name="AjouterUnModule" xml:space="preserve">
+    <value>Ajouter un module</value>
+  </data>
+  <data name="RetourAuTableauDeBord" xml:space="preserve">
+    <value>Retour au tableau de bord</value>
+  </data>
+  <data name="Chargement" xml:space="preserve">
+    <value>Chargement…</value>
+  </data>
+  <data name="AjouterModule_AucuneEntrepriseAssociee" xml:space="preserve">
+    <value>Aucune entreprise associée à ce compte.</value>
+  </data>
+  <data name="Module_Recrutement" xml:space="preserve">
+    <value>Recrutement</value>
+  </data>
+  <data name="Module_RecrutementDescription" xml:space="preserve">
+    <value>Postes &amp; Recrutement et modules associés (compatibilité, vivier, entretien, analytics).</value>
+  </data>
+  <data name="DejaActive" xml:space="preserve">
+    <value>Déjà activé.</value>
+  </data>
+  <data name="Activer" xml:space="preserve">
+    <value>Activer</value>
+  </data>
+  <data name="Module_GestionDuTemps" xml:space="preserve">
+    <value>Gestion du temps</value>
+  </data>
+  <data name="Module_GestionDuTempsDescription" xml:space="preserve">
+    <value>Rituels, cycles, Kanban, minuteur, profil psychosocial et synthèse IA.</value>
+  </data>
+  <data name="Module_SuiviEvaluationEmployes" xml:space="preserve">
+    <value>Suivi &amp; évaluation des employés</value>
+  </data>
+  <data name="Module_RecrutementActiveMessage" xml:space="preserve">
+    <value>Module Recrutement activé.</value>
+  </data>
+  <data name="Module_GestionDuTempsActiveMessage" xml:space="preserve">
+    <value>Module Gestion du temps activé.</value>
+  </data>
+  <data name="TableauDeBord" xml:space="preserve">
+    <value>Tableau de bord</value>
+  </data>
+  <data name="Home_Bienvenue" xml:space="preserve">
+    <value>Bienvenue sur Spectromètre.</value>
+  </data>
+  <data name="Home_EntreprisePrefix" xml:space="preserve">
+    <value>Entreprise :</value>
+  </data>
+  <data name="Home_AucunModuleActif" xml:space="preserve">
+    <value>Aucun module actif pour le moment.</value>
+  </data>
+  <data name="Home_AucuneEntreprise" xml:space="preserve">
+    <value>Vous ne gérez aucune entreprise pour le moment.</value>
+  </data>
+  <data name="Home_ProfilCandidat" xml:space="preserve">
+    <value>Profil candidat</value>
+  </data>
+  <data name="Home_ProfilCoach" xml:space="preserve">
+    <value>Profil coach</value>
+  </data>
+  <data name="Home_MesPersonnesSuivies" xml:space="preserve">
+    <value>Mes personnes suivies</value>
+  </data>
+  <data name="Nav_MonCoach" xml:space="preserve">
+    <value>Mon coach</value>
+  </data>
+  <data name="Accueil" xml:space="preserve">
+    <value>Accueil</value>
+  </data>
+  <data name="Module_ProfilEntreprise" xml:space="preserve">
+    <value>Profil de l'entreprise</value>
+  </data>
+  <data name="DonneesDeLEntreprise" xml:space="preserve">
+    <value>Données de l'entreprise</value>
+  </data>
+  <data name="NavGroup_GestionEntreprise" xml:space="preserve">
+    <value>Gestion</value>
+  </data>
+  <data name="DonneesEntreprise_Infos" xml:space="preserve">
+    <value>Informations de l'entreprise</value>
+  </data>
+  <data name="DonneesEntreprise_TVA" xml:space="preserve">
+    <value>Numéro de TVA</value>
+  </data>
+  <data name="DonneesEntreprise_TVAPlaceholder" xml:space="preserve">
+    <value>BE0123456789</value>
+  </data>
+  <data name="DonneesEntreprise_Adresse" xml:space="preserve">
+    <value>Adresse</value>
+  </data>
+  <data name="DonneesEntreprise_AdressePlaceholder" xml:space="preserve">
+    <value>Rue et numéro</value>
+  </data>
+  <data name="DonneesEntreprise_Ville" xml:space="preserve">
+    <value>Ville</value>
+  </data>
+  <data name="DonneesEntreprise_CodePostal" xml:space="preserve">
+    <value>Code postal</value>
+  </data>
+  <data name="DonneesEntreprise_Pays" xml:space="preserve">
+    <value>Pays</value>
+  </data>
+  <data name="DonneesEntreprise_NomRequis" xml:space="preserve">
+    <value>Le nom de l'entreprise est requis.</value>
+  </data>
+  <data name="DonneesEntreprise_ErreurEnregistrement" xml:space="preserve">
+    <value>Impossible d'enregistrer les modifications.</value>
+  </data>
+  <data name="DonneesEntreprise_Enregistre" xml:space="preserve">
+    <value>Données enregistrées.</value>
+  </data>
+  <data name="Optionnel" xml:space="preserve">
+    <value>(optionnel)</value>
+  </data>
+  <data name="EntrepriseActive" xml:space="preserve">
+    <value>Entreprise active :</value>
+  </data>
+  <data name="Module_PostesEntreprise" xml:space="preserve">
+    <value>Postes (entreprise)</value>
+  </data>
+  <data name="Module_Vivier" xml:space="preserve">
+    <value>Vivier</value>
+  </data>
+  <data name="Module_HistoriqueEntreprise" xml:space="preserve">
+    <value>Historique (entreprise)</value>
+  </data>
+  <data name="Module_AnalyticsEntreprise" xml:space="preserve">
+    <value>Analytics (entreprise)</value>
+  </data>
+  <data name="AjouterUnModuleEntreprise" xml:space="preserve">
+    <value>Ajouter un module (entreprise)</value>
+  </data>
+  <data name="Module_QuestionnaireCandidat" xml:space="preserve">
+    <value>Questionnaire candidat</value>
+  </data>
+  <data name="Module_CurriculumVitae" xml:space="preserve">
+    <value>Curriculum vitæ</value>
+  </data>
+  <data name="Module_PostesCandidat" xml:space="preserve">
+    <value>Postes ouverts (candidat)</value>
+  </data>
+  <data name="Module_HistoriqueCandidat" xml:space="preserve">
+    <value>Historique (candidat)</value>
+  </data>
+  <data name="AjouterUnModuleCandidat" xml:space="preserve">
+    <value>Ajouter un module (candidat)</value>
+  </data>
+  <data name="Module_Kanban" xml:space="preserve">
+    <value>Kanban</value>
+  </data>
+  <data name="Module_Planification" xml:space="preserve">
+    <value>Planification</value>
+  </data>
+  <data name="Module_Organisation" xml:space="preserve">
+    <value>Organisation</value>
+  </data>
+  <data name="Module_ProfilPsychosocial" xml:space="preserve">
+    <value>Profil psychosocial</value>
+  </data>
+  <data name="Module_ReflexionConsciente" xml:space="preserve">
+    <value>Réflexion consciente</value>
+  </data>
+  <data name="Module_Synthese" xml:space="preserve">
+    <value>Synthèse</value>
+  </data>
+  <data name="Connecte" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="Deconnexion" xml:space="preserve">
+    <value>Déconnexion</value>
+  </data>
   <!-- Vocabulaire générique pas encore consommé par aucun écran (aucun bouton "Enregistrer"/"Annuler"/
        "Suivant"/"Précédent" dans le chrome actuel — ces libellés vivent dans les formulaires propres à
        chaque module, hors périmètre de ce cycle) : ajoutés par anticipation pour que les futurs cycles de
        traduction module par module réutilisent ces clés plutôt que d'en réinventer à chaque fois. -->
-  <data name="Enregistrer" xml:space="preserve"><value>Enregistrer</value></data>
-  <data name="Annuler" xml:space="preserve"><value>Annuler</value></data>
-  <data name="Suivant" xml:space="preserve"><value>Suivant</value></data>
-  <data name="Precedent" xml:space="preserve"><value>Précédent</value></data>
-
+  <data name="Enregistrer" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="Annuler" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Suivant" xml:space="preserve">
+    <value>Suivant</value>
+  </data>
+  <data name="Precedent" xml:space="preserve">
+    <value>Précédent</value>
+  </data>
   <!-- InvitationAcceptancePage.razor (/invitations/accepter/{Token}) -->
-  <data name="InvitationTitle" xml:space="preserve"><value>Invitation · Spectromètre</value></data>
-  <data name="InvitationInvalideOuExpiree" xml:space="preserve"><value>Cette invitation est invalide, déjà utilisée ou a expiré.</value></data>
-  <data name="InvitationCoachingIntro" xml:space="preserve"><value>Vous avez été invité(e) à devenir coach sur Spectromètre.</value></data>
-  <data name="InvitationCreerVotreCompte" xml:space="preserve"><value>Créer votre compte</value></data>
-  <data name="InvitationEmailVerrouille" xml:space="preserve"><value>Cette invitation est réservée à cette adresse email.</value></data>
-  <data name="InvitationUnCompteExisteDeja" xml:space="preserve"><value>Un compte existe déjà pour {0}.</value></data>
-  <data name="InvitationConnectezVousPourConfirmer" xml:space="preserve"><value>Connectez-vous avec ce compte, puis revenez sur ce lien pour confirmer l'invitation.</value></data>
-  <data name="InvitationSeConnecter" xml:space="preserve"><value>Se connecter</value></data>
-  <data name="InvitationMauvaisCompte" xml:space="preserve"><value>Cette invitation est destinée à {0}, mais vous êtes connecté(e) avec un autre compte. Déconnectez-vous puis reconnectez-vous avec le bon compte pour confirmer.</value></data>
-  <data name="InvitationConfirmer" xml:space="preserve"><value>Confirmer l'invitation</value></data>
-  <data name="InvitationConfirmee" xml:space="preserve"><value>Invitation confirmée — vous suivez désormais cette personne.</value></data>
-  <data name="InvitationVoirMesPersonnesSuivies" xml:space="preserve"><value>Voir mes personnes suivies</value></data>
+  <data name="InvitationTitle" xml:space="preserve">
+    <value>Invitation · Spectromètre</value>
+  </data>
+  <data name="InvitationInvalideOuExpiree" xml:space="preserve">
+    <value>Cette invitation est invalide, déjà utilisée ou a expiré.</value>
+  </data>
+  <data name="InvitationCoachingIntro" xml:space="preserve">
+    <value>Vous avez été invité(e) à devenir coach sur Spectromètre.</value>
+  </data>
+  <data name="InvitationManagerIntro" xml:space="preserve">
+    <value>Vous avez été invité(e) à rejoindre une entreprise sur Spectromètre en tant qu'employé.</value>
+  </data>
+  <data name="GestionManagers_Titre" xml:space="preserve">
+    <value>Employés de l'entreprise</value>
+  </data>
+  <data name="GestionManagers_ReserveProprietaire" xml:space="preserve">
+    <value>Seul le propriétaire de l'entreprise peut gérer les employés.</value>
+  </data>
+  <data name="GestionManagers_Inviter" xml:space="preserve">
+    <value>Inviter un employé</value>
+  </data>
+  <data name="GestionManagers_InvitationsEnCours" xml:space="preserve">
+    <value>Invitations en cours</value>
+  </data>
+  <data name="GestionManagers_AucuneInvitation" xml:space="preserve">
+    <value>Aucune invitation en attente.</value>
+  </data>
+  <data name="GestionManagers_RevoquerInvitation" xml:space="preserve">
+    <value>Révoquer</value>
+  </data>
+  <data name="GestionManagers_ManagersRattaches" xml:space="preserve">
+    <value>Employés rattachés</value>
+  </data>
+  <data name="GestionManagers_AucunManager" xml:space="preserve">
+    <value>Aucun employé rattaché.</value>
+  </data>
+  <data name="GestionManagers_RevoquerRattachement" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="GestionManagers_EmailRequis" xml:space="preserve">
+    <value>L'email est requis.</value>
+  </data>
+  <data name="GestionManagers_ErreurInvitation" xml:space="preserve">
+    <value>Impossible d'envoyer l'invitation.</value>
+  </data>
+  <data name="GestionManagers_InvitationEnvoyee" xml:space="preserve">
+    <value>Invitation envoyée.</value>
+  </data>
+  <data name="InvitationCreerVotreCompte" xml:space="preserve">
+    <value>Créer votre compte</value>
+  </data>
+  <data name="InvitationEmailVerrouille" xml:space="preserve">
+    <value>Cette invitation est réservée à cette adresse email.</value>
+  </data>
+  <data name="InvitationUnCompteExisteDeja" xml:space="preserve">
+    <value>Un compte existe déjà pour {0}.</value>
+  </data>
+  <data name="InvitationConnectezVousPourConfirmer" xml:space="preserve">
+    <value>Connectez-vous avec ce compte, puis revenez sur ce lien pour confirmer l'invitation.</value>
+  </data>
+  <data name="InvitationSeConnecter" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="InvitationMauvaisCompte" xml:space="preserve">
+    <value>Cette invitation est destinée à {0}, mais vous êtes connecté(e) avec un autre compte. Déconnectez-vous puis reconnectez-vous avec le bon compte pour confirmer.</value>
+  </data>
+  <data name="InvitationConfirmer" xml:space="preserve">
+    <value>Confirmer l'invitation</value>
+  </data>
+  <data name="InvitationConfirmee" xml:space="preserve">
+    <value>Invitation confirmée — vous suivez désormais cette personne.</value>
+  </data>
+  <data name="InvitationVoirMesPersonnesSuivies" xml:space="preserve">
+    <value>Voir mes personnes suivies</value>
+  </data>
+  <data name="Header_Brand_Title" xml:space="preserve">
+    <value>Le Spectromètre</value>
+  </data>
+  <data name="Nav_Public_Home" xml:space="preserve">
+    <value>Accueil</value>
+  </data>
+  <data name="Nav_Public_Sociopro" xml:space="preserve">
+    <value>Dimension sociopro</value>
+  </data>
+  <data name="Nav_Public_Psychosociale" xml:space="preserve">
+    <value>Dimension psychosociale</value>
+  </data>
+  <data name="Nav_Public_Approach" xml:space="preserve">
+    <value>Notre approche</value>
+  </data>
+  <data name="Nav_Public_Login" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="Home_PageTitle" xml:space="preserve">
+    <value>Le Spectromètre</value>
+  </data>
+  <data name="Home_Hero_Badge" xml:space="preserve">
+    <value>Le Spectromètre</value>
+  </data>
+  <data name="Home_Hero_Title" xml:space="preserve">
+    <value>Un outil intégratif pour un portrait complet et nuancé des individus</value>
+  </data>
+  <data name="Home_Hero_Subtitle" xml:space="preserve">
+    <value>Lors de l'établissement d'un profil professionnel ou psychosocial, cet outil prend en compte les dimensions émotionnelle, relationnelle, situationnelle et cognitive d'un individu.</value>
+  </data>
+  <data name="Home_Hero_CTA" xml:space="preserve">
+    <value>Démarrer maintenant</value>
+  </data>
+  <data name="Home_Bandeau_ImgAlt" xml:space="preserve">
+    <value>Équipe professionnelle</value>
+  </data>
+  <data name="Home_Bandeau_P1" xml:space="preserve">
+    <value>Au moment de l'embauche ou en cours d'emploi, les compétences techniques d'une personne ne suffisent pas à définir son profil professionnel.</value>
+  </data>
+  <data name="Home_Bandeau_P2" xml:space="preserve">
+    <value>Cerner l'employabilité d'une personne exige aussi de prendre en compte ses dimensions humaines, relationnelles et psychosociales.</value>
+  </data>
+  <data name="Home_Bandeau_P3" xml:space="preserve">
+    <value>Dans ce cas on parle d'établir un profil socioprofessionnel plutôt que strictement professionnel.</value>
+  </data>
+  <data name="Home_Bandeau_P4" xml:space="preserve">
+    <value>Que vous soyez un recruteur, un particulier, un manager, un accompagnateur, cet outil peut vous aider à révéler les particularités d'une personne (qualités humaines, talents, aptitudes, valeurs etc.).</value>
+  </data>
+  <data name="Home_Sociopro_Title" xml:space="preserve">
+    <value>La dimension socioprofessionnelle</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_Title" xml:space="preserve">
+    <value>Vous êtes employeur ou recruteur</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_Lead" xml:space="preserve">
+    <value>Recrutez au-delà des simples compétences techniques.</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_P1" xml:space="preserve">
+    <value>La stabilité d'une entreprise dépend de celle de ses employés.</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_P2" xml:space="preserve">
+    <value>Diminuer le taux d'absentéisme, de rotation du personnel. (N'oubliez pas que celui qui travaille par plaisir ne s'épuise pas)</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_P3" xml:space="preserve">
+    <value>Notre approche vous permet de créer le bon profil socioprofessionnel pour occuper un poste.</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_Li1" xml:space="preserve">
+    <value>Mieux comprendre le fonctionnement relationnel et comportemental d'un candidat potentiel dans un environnement de travail</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_Li2" xml:space="preserve">
+    <value>Repérer ses forces majeures et les environnements favorables à la croissance personnelle et professionnelle</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_Li3" xml:space="preserve">
+    <value>Clarifier les contextes de travail épanouissant pour obtenir le meilleur de soi</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_Li4" xml:space="preserve">
+    <value>Offrir une supervision et un suivi à partir d'indicateurs de performances adaptés</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_CTA" xml:space="preserve">
+    <value>Créer le bon profil socioprofessionnel</value>
+  </data>
+  <data name="Home_Sociopro_Employeur_ImgAlt" xml:space="preserve">
+    <value>Recrutement au-delà des compétences techniques</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_Title" xml:space="preserve">
+    <value>Vous êtes candidat, étudiant ou en transition professionnelle</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_Lead" xml:space="preserve">
+    <value>Apprenez à mieux vous connaître pour mieux vous orienter.</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_P1" xml:space="preserve">
+    <value>Mieux se connaître pour mieux choisir. Mieux choisir pour mieux s'épanouir.</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_P2" xml:space="preserve">
+    <value>Un outil pour faire des choix d'emploi conscients, cohérents et alignés avec qui vous êtes.</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_P3" xml:space="preserve">
+    <value>Cet outil vous aide à :</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_Li1" xml:space="preserve">
+    <value>Identifier vos points forts</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_Li2" xml:space="preserve">
+    <value>Clarifier vos valeurs et vos motivations profondes</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_Li3" xml:space="preserve">
+    <value>Comprendre votre rapport au travail, au temps, au collectif et à l'autorité</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_Li4" xml:space="preserve">
+    <value>Cibler les environnements professionnels dans lesquels vous pouvez vous épanouir.</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_CTA" xml:space="preserve">
+    <value>Créer mon profil</value>
+  </data>
+  <data name="Home_Sociopro_Candidat_ImgAlt" xml:space="preserve">
+    <value>Mieux se connaître pour mieux s'orienter</value>
+  </data>
+  <data name="Home_Sociopro_Coach_Title" xml:space="preserve">
+    <value>Vous êtes coach, psychologue ou accompagnant</value>
+  </data>
+  <data name="Home_Sociopro_Coach_Lead" xml:space="preserve">
+    <value>Utilisez une grille claire et humaniste.</value>
+  </data>
+  <data name="Home_Sociopro_Coach_Li1" xml:space="preserve">
+    <value>Mettre en lumière les leviers de motivation et de blocage</value>
+  </data>
+  <data name="Home_Sociopro_Coach_Li2" xml:space="preserve">
+    <value>Objectiver les forces et axes de développement</value>
+  </data>
+  <data name="Home_Sociopro_Coach_Li3" xml:space="preserve">
+    <value>Accompagner l'orientation, la transition ou la prise de poste.</value>
+  </data>
+  <data name="Home_Sociopro_Coach_CTA" xml:space="preserve">
+    <value>Accéder au mode accompagnant</value>
+  </data>
+  <data name="Home_Sociopro_Coach_ImgAlt" xml:space="preserve">
+    <value>Accompagnement qualitatif</value>
+  </data>
+  <data name="Home_Psycho_Title" xml:space="preserve">
+    <value>La dimension psychosociale</value>
+  </data>
+  <data name="Home_Psycho_Lead" xml:space="preserve">
+    <value>Identifier les environnements qui soutiennent votre bien-être au travail au quotidien (face au stress, à la pression, au manque de reconnaissance et au déséquilibre).</value>
+  </data>
+  <data name="Home_Psycho_P" xml:space="preserve">
+    <value>Cet outil vous aide à analyser le climat relationnel qui :</value>
+  </data>
+  <data name="Home_Psycho_Li1" xml:space="preserve">
+    <value>Apaise le niveau de pression et d'exigence</value>
+  </data>
+  <data name="Home_Psycho_Li2" xml:space="preserve">
+    <value>Répond au besoin de reconnaissance et de justice</value>
+  </data>
+  <data name="Home_Psycho_Li3" xml:space="preserve">
+    <value>Facilite le rapport au changement et à l'incertitude.</value>
+  </data>
+  <data name="Home_Psycho_CTA" xml:space="preserve">
+    <value>Explorer ma dimension psychosociale</value>
+  </data>
+  <data name="Home_Psycho_ImgAlt" xml:space="preserve">
+    <value>Bien-être au travail</value>
+  </data>
+  <data name="Home_Approach_Label" xml:space="preserve">
+    <value>Notre approche</value>
+  </data>
+  <data name="Home_Approach_Title" xml:space="preserve">
+    <value>Pourquoi cette approche est différente ?</value>
+  </data>
+  <data name="Home_Approach_Lead" xml:space="preserve">
+    <value>Elle est une vision globale de l'humain qui tient compte de l'équilibre à créer entre vie sociale, vie professionnelle et vie personnelle.</value>
+  </data>
+  <data name="Home_CTA_Title" xml:space="preserve">
+    <value>Et si la bonne approche commençait par une meilleure connaissance de soi ?</value>
+  </data>
+  <data name="Home_CTA_Li1" xml:space="preserve">
+    <value>— Nos valeurs non négociables et nos motivations profondes</value>
+  </data>
+  <data name="Home_CTA_Li2" xml:space="preserve">
+    <value>— Nos aptitudes naturelles et les activités qui nous énergisent</value>
+  </data>
+  <data name="Home_CTA_Li3" xml:space="preserve">
+    <value>— Notre façon de travailler (rythme, degré d'autonomie, niveau de collaboration)</value>
+  </data>
+  <data name="Home_CTA_Li4" xml:space="preserve">
+    <value>— Les environnements où nous donnons le meilleur (climat relationnel, reconnaissance, justice)</value>
+  </data>
+  <data name="Home_CTA_Li5" xml:space="preserve">
+    <value>— Le style de management et le niveau de pression/exigence qui nous conviennent</value>
+  </data>
+  <data name="Home_CTA_Li6" xml:space="preserve">
+    <value>— Nos déclencheurs de stress et les facteurs de blocage à éviter</value>
+  </data>
+  <data name="Home_CTA_Li7" xml:space="preserve">
+    <value>— Nos leviers d'engagement et d'apprentissage</value>
+  </data>
+  <data name="Home_CTA_Li8" xml:space="preserve">
+    <value>— L'impact du changement et de l'incertitude sur notre équilibre</value>
+  </data>
+  <data name="Home_CTA_Li9" xml:space="preserve">
+    <value>— Les conditions d'un alignement durable entre vies sociale, professionnelle et familiale</value>
+  </data>
+  <data name="Home_CTA_P" xml:space="preserve">
+    <value>Que vous cherchiez à recruter, à vous orienter, à accompagner ou à améliorer votre quotidien, cet outil vous offre une base solide, humaine et structurée pour avancer.</value>
+  </data>
+  <data name="Home_CTA_CTA" xml:space="preserve">
+    <value>Démarrer maintenant</value>
+  </data>
+  <data name="Home_CTA_Footer" xml:space="preserve">
+    <value>Le premier pas vers un alignement durable.</value>
+  </data>
+  <data name="Footer_Brand_Title" xml:space="preserve">
+    <value>Le Spectromètre</value>
+  </data>
+  <data name="Footer_Description" xml:space="preserve">
+    <value>Outil intégratif pour un portrait complet et nuancé des individus dans leurs environnements professionnel, familial et social.</value>
+  </data>
+  <data name="Footer_Location" xml:space="preserve">
+    <value>Liège, Belgique</value>
+  </data>
+  <data name="Footer_Nav_Title" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="Footer_Nav_Start" xml:space="preserve">
+    <value>Démarrer</value>
+  </data>
+  <data name="Footer_Copyright" xml:space="preserve">
+    <value>© {0} Catalys-art - Le Spectromètre. Tous droits réservés.</value>
+  </data>
+  <data name="Footer_Legal" xml:space="preserve">
+    <value>Mentions légales</value>
+  </data>
+  <data name="Login_PageTitle" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="Login_Title" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="Login_Subtitle" xml:space="preserve">
+    <value>Accédez à votre espace personnel</value>
+  </data>
+  <data name="Login_SectionTitle" xml:space="preserve">
+    <value>Utilisez un compte local pour vous connecter</value>
+  </data>
+  <data name="Login_EmailLabel" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Login_EmailPlaceholder" xml:space="preserve">
+    <value>nom@exemple.com</value>
+  </data>
+  <data name="Login_PasswordLabel" xml:space="preserve">
+    <value>Mot de passe</value>
+  </data>
+  <data name="Login_PasswordPlaceholder" xml:space="preserve">
+    <value>Votre mot de passe</value>
+  </data>
+  <data name="Login_RememberMe" xml:space="preserve">
+    <value>Se souvenir de moi</value>
+  </data>
+  <data name="Login_SubmitButton" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="Login_RegisterLink" xml:space="preserve">
+    <value>Créer un compte</value>
+  </data>
+  <data name="Login_RegisterColumnSubtitle" xml:space="preserve">
+    <value>Pas encore de compte ? Inscrivez-vous pour accéder à votre espace.</value>
+  </data>
 </root>

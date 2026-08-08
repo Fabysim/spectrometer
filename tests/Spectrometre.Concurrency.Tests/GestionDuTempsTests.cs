@@ -14,11 +14,14 @@ namespace Spectrometre.Concurrency.Tests;
 public sealed class GestionDuTempsTests(ServiceFixture fixture)
 {
     [Fact]
-    public async Task GetTypesDeTempsAsync_CreeLes6CategoriesParDefaut_AuPremierAcces()
+    public async Task GetOrCreateCycleActifAsync_CreeLes6CategoriesParDefaut_AuPremierAcces()
     {
         var service = fixture.Services.GetRequiredService<IGestionDuTempsService>();
         var userId = $"gdt-test-defauts-{Guid.NewGuid()}";
 
+        Assert.Empty(await service.GetTypesDeTempsAsync(userId));
+
+        await service.GetOrCreateCycleActifAsync(userId);
         var types = await service.GetTypesDeTempsAsync(userId);
 
         Assert.Equal(6, types.Count);
@@ -37,6 +40,7 @@ public sealed class GestionDuTempsTests(ServiceFixture fixture)
         var userId = $"gdt-test-rappel-{Guid.NewGuid()}";
         var autreUserId = $"gdt-test-autre-{Guid.NewGuid()}";
 
+        await service.GetOrCreateCycleActifAsync(userId);
         var types = await service.GetTypesDeTempsAsync(userId);
         var typePro = types.Single(t => t.Cle == "pro");
 
@@ -54,7 +58,7 @@ public sealed class GestionDuTempsTests(ServiceFixture fixture)
         Assert.Equal(KanbanColonnes.AFaire, carte.Statut);
 
         // Un autre utilisateur (même base) n'a par construction aucun type de temps ni rappel en commun —
-        // la création lui crée SES propres catégories par défaut, jamais un accès à celles de userId.
+        // une lecture pure ne crée pas de cycle pour lui.
         var activitesAutreUser = await service.GetActivitesAsync(autreUserId, companyId: null, personnelUniquement: false);
         Assert.Empty(activitesAutreUser);
 
@@ -74,7 +78,7 @@ public sealed class GestionDuTempsTests(ServiceFixture fixture)
         // Entreprise réelle, mais gérée par un AUTRE utilisateur — userId n'a aucun UserCompanyLink dessus.
         var company = await fixture.CreateCompanyAsync($"Entreprise GDT Refus {suffix}", $"gdt-test-owner-{suffix}");
 
-        await service.GetTypesDeTempsAsync(userId); // force la création des catégories par défaut
+        await service.GetOrCreateCycleActifAsync(userId);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.UpsertTypeDeTempsAsync(userId, id: null, "projet-x", "Projet X", new TimeOnly(9, 0), new TimeOnly(10, 0), "L,M", 10, company.Id));
@@ -92,6 +96,7 @@ public sealed class GestionDuTempsTests(ServiceFixture fixture)
         // CreateCompanyAsync crée l'entreprise ET lie ownerUserId via UserCompanyLink (voir ServiceFixture).
         var company = await fixture.CreateCompanyAsync($"Entreprise GDT {suffix}", userId);
 
+        await service.GetOrCreateCycleActifAsync(userId);
         var types = await service.GetTypesDeTempsAsync(userId);
         var typePro = types.Single(t => t.Cle == "pro");
 

@@ -28,6 +28,18 @@ public sealed class ProfilEntrepriseDbContext(DbContextOptions<ProfilEntrepriseD
         base.OnModelCreating(builder);
         builder.HasDefaultSchema(TenantSchema);
 
+        builder.Entity<CompanyProfile>(e =>
+        {
+            // Un schéma tenant = une entreprise = un seul profil (contrairement à CandidateProfile/CoachProfile,
+            // qui ont un index unique applicatif sur UserId — ici il n'y a pas de colonne applicative naturelle
+            // à contraindre, le schéma représente déjà l'entreprise). Colonne fantôme fixée à 1 + index unique :
+            // garantit qu'une seule ligne peut exister dans ce schéma, quelle que soit sa valeur d'Id. Voir
+            // CompanyProfileService.GetOrCreateProfileIdAsync pour le correctif de la course qui, avant cette
+            // contrainte, pouvait créer plusieurs lignes silencieusement (aucune exception ne le signalait).
+            e.Property<int>("Singleton").HasDefaultValue(1);
+            e.HasIndex("Singleton").IsUnique();
+        });
+
         builder.Entity<CompanyQuestion>(e => e.HasIndex(q => q.Number).IsUnique());
         builder.Entity<CompanyAnswer>(e => e.HasIndex(a => new { a.CompanyProfileId, a.QuestionId }).IsUnique());
         builder.Entity<CompanyCompatibilityCriteria>(e =>

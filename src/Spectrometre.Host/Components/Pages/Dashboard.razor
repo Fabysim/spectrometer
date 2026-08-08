@@ -1,0 +1,333 @@
+@page "/dashboard"
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Host.Onboarding
+@using Spectrometre.Host.Resources
+@inject IModuleRegistry ModuleRegistry
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject ICandidateSubjectResolver CandidateSubjectResolver
+@inject ICoachSubjectResolver CoachSubjectResolver
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["TableauDeBord"]</PageTitle>
+
+<div class="dashboard-page">
+    <div class="header-bar-dashboard">
+        <div class="welcome-section-dashboard">
+            <h1>@Localizer["TableauDeBord"]</h1>
+            <p>@Localizer["Home_Bienvenue"]</p>
+        </div>
+        <div class="header-actions-dashboard">
+            @if (!_isAuthenticated)
+            {
+                <a href="/login" class="btn-secondary-modern-dashboard">@Localizer["SeConnecter"]</a>
+                <a href="/inscription" class="btn-primary-modern-dashboard">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    @Localizer["CreerUnCompte"]
+                </a>
+            }
+            else if (_company is null)
+            {
+                <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    @Localizer["CreerUneEntreprise"]
+                </a>
+            }
+            else
+            {
+                <a href="/entreprise/modules" class="btn-primary-modern-dashboard">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    @Localizer["AjouterUnModule"]
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (!_isAuthenticated)
+    {
+        <section class="card-modern-dashboard dashboard-guest-card">
+            <div class="card-header-modern-dashboard">
+                <h2 class="card-title-modern-dashboard">
+                    <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                    @Localizer["Connexion"]
+                </h2>
+            </div>
+            <p class="dashboard-hint">@Localizer["Home_Bienvenue"]</p>
+            <div class="dashboard-inline-actions">
+                <a href="/login" class="btn-primary-modern-dashboard">@Localizer["SeConnecter"]</a>
+                <a href="/inscription" class="btn-secondary-modern-dashboard">@Localizer["CreerUnCompte"]</a>
+            </div>
+        </section>
+    }
+    else
+    {
+        <div class="content-grid-dashboard">
+            <section class="card-modern-dashboard">
+                <div class="card-header-modern-dashboard">
+                    <h2 class="card-title-modern-dashboard">
+                        <i class="bi bi-building" aria-hidden="true"></i>
+                        @if (_company is not null)
+                        {
+                            <span>@Localizer["Home_EntreprisePrefix"] @_company.Name</span>
+                        }
+                        else
+                        {
+                            <span>@Localizer["Entreprise"]</span>
+                        }
+                    </h2>
+                    @if (_company is not null)
+                    {
+                        <a href="/entreprise/modules" class="card-action-dashboard">
+                            @Localizer["AjouterUnModule"]
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    }
+                </div>
+
+                @if (_company is null)
+                {
+                    <p class="dashboard-hint">@Localizer["Home_AucuneEntreprise"]</p>
+                    <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        @Localizer["CreerUneEntreprise"]
+                    </a>
+                }
+                else if (_companyLinks.Count == 0)
+                {
+                    <p class="dashboard-hint">@Localizer["Home_AucunModuleActif"]</p>
+                    <a href="/entreprise/modules" class="btn-secondary-modern-dashboard">@Localizer["AjouterUnModule"]</a>
+                }
+                else
+                {
+                    <div class="quick-actions-dashboard">
+                        @for (var i = 0; i < _companyLinks.Count; i++)
+                        {
+                            var link = _companyLinks[i];
+                            <a href="@link.Href" class="quick-action-btn-dashboard">
+                                <div class="quick-action-icon-dashboard @IconTone(i)">
+                                    <i class="bi @IconForCode(link.Code)" aria-hidden="true"></i>
+                                </div>
+                                <div class="quick-action-label-dashboard">@link.Label</div>
+                            </a>
+                        }
+                    </div>
+                }
+            </section>
+
+            @if (_candidateLinks.Count > 0)
+            {
+                <section class="card-modern-dashboard">
+                    <div class="card-header-modern-dashboard">
+                        <h2 class="card-title-modern-dashboard">
+                            <i class="bi bi-person-badge" aria-hidden="true"></i>
+                            @Localizer["Home_ProfilCandidat"]
+                        </h2>
+                        <a href="/candidat/modules" class="card-action-dashboard">
+                            @Localizer["AjouterUnModule"]
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    <div class="quick-actions-dashboard">
+                        @for (var i = 0; i < _candidateLinks.Count; i++)
+                        {
+                            var link = _candidateLinks[i];
+                            <a href="@link.Href" class="quick-action-btn-dashboard">
+                                <div class="quick-action-icon-dashboard @IconTone(i)">
+                                    <i class="bi @IconForCode(link.Code)" aria-hidden="true"></i>
+                                </div>
+                                <div class="quick-action-label-dashboard">@link.Label</div>
+                            </a>
+                        }
+                    </div>
+                </section>
+            }
+
+            @if (_coachLinks.Count > 0)
+            {
+                <section class="card-modern-dashboard">
+                    <div class="card-header-modern-dashboard">
+                        <h2 class="card-title-modern-dashboard">
+                            <i class="bi bi-people" aria-hidden="true"></i>
+                            @Localizer["Home_ProfilCoach"]
+                        </h2>
+                        <a href="/coach/suivis" class="card-action-dashboard">
+                            @Localizer["Home_MesPersonnesSuivies"]
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    <div class="quick-actions-dashboard">
+                        @for (var i = 0; i < _coachLinks.Count; i++)
+                        {
+                            var link = _coachLinks[i];
+                            <a href="@link.Href" class="quick-action-btn-dashboard">
+                                <div class="quick-action-icon-dashboard @IconTone(i)">
+                                    <i class="bi @IconForCode(link.Code)" aria-hidden="true"></i>
+                                </div>
+                                <div class="quick-action-label-dashboard">@link.Label</div>
+                            </a>
+                        }
+                    </div>
+                    <div class="dashboard-inline-actions mt-3">
+                        <a href="/coach/profil" class="btn-secondary-modern-dashboard">@Localizer["Home_ProfilCoach"]</a>
+                        <a href="/coach/suivis" class="btn-secondary-modern-dashboard">@Localizer["Home_MesPersonnesSuivies"]</a>
+                    </div>
+                </section>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool _isAuthenticated;
+    private Company? _company;
+    private readonly List<DashboardLink> _companyLinks = [];
+    private readonly List<DashboardLink> _candidateLinks = [];
+    private readonly List<DashboardLink> _coachLinks = [];
+
+    private static readonly string[] IconTones = ["tone-primary", "tone-teal", "tone-blue", "tone-purple", "tone-orange"];
+
+    private sealed record DashboardLink(string Code, string Label, string Href);
+
+    private static string IconTone(int index) => IconTones[index % IconTones.Length];
+
+    private static string IconForCode(string code) => code switch
+    {
+        "ProfilEntreprise" => "bi-building",
+        "PostesRecrutement" => "bi-briefcase",
+        "Vivier" => "bi-people",
+        "SuiviEvolutif" => "bi-clock-history",
+        "Analytics" => "bi-graph-up",
+        "GestionDuTemps" => "bi-hourglass-split",
+        "Compatibilite" => "bi-intersect",
+        "Entretien" => "bi-chat-dots",
+        "ProfilCandidat" => "bi-ui-checks-grid",
+        "ProfilCoach" => "bi-person-badge",
+        _ => "bi-grid-1x2"
+    };
+
+    private static string? HrefForCompanyModule(string code) => code switch
+    {
+        "ProfilEntreprise" => "/entreprise/profil",
+        "PostesRecrutement" => "/entreprise/postes",
+        "Vivier" => "/vivier",
+        "SuiviEvolutif" => "/entreprise/historique",
+        "Analytics" => "/entreprise/analytics",
+        "GestionDuTemps" => "/gestion-du-temps",
+        _ => null
+    };
+
+    private static string? HrefForCandidateModule(string code) => code switch
+    {
+        "ProfilCandidat" => "/candidat/questionnaire",
+        "GestionDuTemps" => "/gestion-du-temps",
+        _ => null
+    };
+
+    private static string? HrefForCoachModule(string code) => code switch
+    {
+        "ProfilCoach" => "/coach/profil",
+        _ => null
+    };
+
+    /// <summary>
+    /// Tableau de bord entièrement dynamique — mêmes vérifications que le menu principal (voir
+    /// MainLayout) : IsActiveAsync/IsActiveForCandidateAsync module par module, jamais GetActiveModuleCodesAsync.
+    /// </summary>
+    /// <remarks>
+    /// Côté entreprise, <see cref="PersonalModuleCodes"/> est exclu de l'énumération — un module personnel
+    /// (Profil Candidat) n'a pas sa place dans le tableau de bord d'une entreprise, même si une ligne
+    /// <c>ModuleActivation</c> existe pour ce sujet (voir le commentaire sur <see cref="PersonalModuleCodes"/>).
+    /// Jamais appliqué côté candidat : ses propres modules personnels sont précisément ce qu'il doit voir ici.
+    /// </remarks>
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is null)
+            return;
+
+        var user = (await AuthenticationStateTask).User;
+        if (user.Identity?.IsAuthenticated != true)
+            return;
+
+        _isAuthenticated = true;
+
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return;
+
+        var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
+        if (companies.Count > 0)
+        {
+            _company = companies[0];
+
+            // Même entrée principale que le menu latéral : le profil entreprise est toujours accessible
+            // dès qu'une entreprise est associée, indépendamment de l'activation des autres modules.
+            _companyLinks.Add(new DashboardLink(
+                "ProfilEntreprise",
+                Localizer["Module_ProfilEntreprise"],
+                "/entreprise/profil"));
+
+            foreach (var manifest in ModuleRegistry.AllModules)
+            {
+                if (PersonalModuleCodes.Codes.Contains(manifest.Code))
+                    continue;
+                if (manifest.Code is "ProfilEntreprise")
+                    continue;
+                if (!await ModuleRegistry.IsActiveAsync(_company.Id, manifest.Code, CoreDb))
+                    continue;
+
+                var href = HrefForCompanyModule(manifest.Code);
+                if (href is null)
+                    continue;
+
+                _companyLinks.Add(new DashboardLink(manifest.Code, DisplayNameFor(manifest), href));
+            }
+        }
+
+        var candidateProfileId = await CandidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
+        foreach (var manifest in ModuleRegistry.AllModules)
+        {
+            if (!await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, CoreDb))
+                continue;
+
+            var href = HrefForCandidateModule(manifest.Code);
+            if (href is null)
+                continue;
+
+            _candidateLinks.Add(new DashboardLink(manifest.Code, DisplayNameFor(manifest), href));
+        }
+
+        // Un utilisateur peut cumuler plusieurs profils (voir CoachOnboardingService) — même schéma que la
+        // résolution candidat ci-dessus : GetOrCreateCoachProfileIdAsync crée un CoachProfile "coquille vide"
+        // pour tout visiteur authentifié du tableau de bord, même sans inscription/invitation Coach (déjà le
+        // comportement existant côté candidat, reproduit ici à l'identique plutôt que corrigé isolément).
+        // La section ne s'affiche que si un module Coach est effectivement actif (IsActiveForCoachAsync),
+        // ce qui reste false pour cette coquille vide tant qu'aucun onboarding réel n'a eu lieu.
+        var coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
+        foreach (var manifest in ModuleRegistry.AllModules)
+        {
+            if (!await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, manifest.Code, CoreDb))
+                continue;
+
+            var href = HrefForCoachModule(manifest.Code);
+            if (href is null)
+                continue;
+
+            _coachLinks.Add(new DashboardLink(manifest.Code, DisplayNameFor(manifest), href));
+        }
+    }
+
+    /// <summary>
+    /// Nom du module selon la culture courante — voir <see cref="ModuleManifest.DisplayNameEn"/> (cycle de
+    /// bilinguisme, écart corrigé) : DisplayName (français) reste le contenu source, DisplayNameEn n'est
+    /// consulté qu'ici et au tableau de bord, jamais par les écrans propres du module (hors périmètre).
+    /// </summary>
+    private static string DisplayNameFor(ModuleManifest manifest) =>
+        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr" ? manifest.DisplayName : manifest.DisplayNameEn;
+}

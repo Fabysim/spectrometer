@@ -1,4 +1,5 @@
 @page "/login"
+@layout Spectrometre.Host.Components.Layout.PublicLayout
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Identity
@@ -7,31 +8,75 @@
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> Localizer
 
-<PageTitle>@Localizer["Connexion"]</PageTitle>
-
-<h1>@Localizer["Connexion"]</h1>
+<PageTitle>@Localizer["Login_PageTitle"]</PageTitle>
 
 @* Formulaires en rendu statique (pas d'InteractiveServer) : l'écriture du cookie d'authentification
-   doit se faire avant que la réponse HTTP ne commence à être diffusée, ce qui exclut un rendu interactif.
-   Deux formulaires indépendants (chacun avec ses propres champs) : un formulaire SSR nommé ne reçoit
-   que les valeurs de ses propres champs, jamais celles d'un autre formulaire de la page. *@
-<h2>@Localizer["Connexion"]</h2>
-<EditForm Model="_loginModel" OnValidSubmit="SubmitLoginAsync" FormName="login" method="post">
-    <div>
-        <label>@Localizer["Email"] <InputText @bind-Value="_loginModel.Email" /></label>
+   doit se faire avant que la réponse HTTP ne commence à être diffusée, ce qui exclut un rendu interactif. *@
+<div class="login-page-nav-overlay" aria-hidden="true"></div>
+<div class="login-page-wrapper">
+    <div class="container-fluid px-3 px-md-4 px-lg-5 px-xl-4 py-5 login-container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-10 col-xxl-9">
+                <div class="login-card login-card-merged">
+                    <section class="login-merged-section">
+                        <header class="login-header login-header-unified">
+                            <div class="row g-0">
+                                <div class="col-12 col-lg-6 order-2 order-lg-1 login-header-unified-pane text-center text-lg-start">
+                                    <h2 class="login-title login-title-pane">@Localizer["Login_RegisterLink"]</h2>
+                                    <p class="login-subtitle mb-0">@Localizer["Login_RegisterColumnSubtitle"]</p>
+                                </div>
+                                <div class="col-12 col-lg-6 order-1 order-lg-2 login-header-unified-pane text-center text-lg-start">
+                                    <h1 class="login-title">@Localizer["Login_Title"]</h1>
+                                    <p class="login-subtitle mb-0">@Localizer["Login_Subtitle"]</p>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="row g-0 align-items-stretch login-merged-columns">
+                            <div class="col-12 col-lg-6 order-2 order-lg-1 login-split-pane login-split-pane-register d-flex flex-column">
+                                <div class="login-split-body p-4 p-lg-5 flex-grow-1 d-flex flex-column justify-content-center">
+                                    <a href="/inscription" class="login-link login-link-register mb-0">@Localizer["Login_RegisterLink"]</a>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 order-1 order-lg-2 login-split-pane login-split-pane-login d-flex flex-column">
+                                <div class="login-split-body p-4 p-lg-5 flex-grow-1">
+                                    @if (!string.IsNullOrEmpty(_message))
+                                    {
+                                        <div class="alert alert-danger">@_message</div>
+                                    }
+                                    <EditForm Model="_loginModel" OnValidSubmit="SubmitLoginAsync" FormName="login" method="post">
+                                        <h2 class="login-section-title">@Localizer["Login_SectionTitle"]</h2>
+                                        <hr class="login-divider" />
+                                        <div class="login-form-group">
+                                            <label for="login-email" class="login-form-label">@Localizer["Login_EmailLabel"]</label>
+                                            <InputText id="login-email" @bind-Value="_loginModel.Email"
+                                                       class="login-form-control form-control"
+                                                       autocomplete="username"
+                                                       placeholder="@Localizer["Login_EmailPlaceholder"]" />
+                                        </div>
+                                        <div class="login-form-group">
+                                            <label for="login-password" class="login-form-label">@Localizer["Login_PasswordLabel"]</label>
+                                            <InputText id="login-password" @bind-Value="_loginModel.Password" type="password"
+                                                       class="login-form-control form-control"
+                                                       autocomplete="current-password"
+                                                       placeholder="@Localizer["Login_PasswordPlaceholder"]" />
+                                        </div>
+                                        <div class="login-checkbox-wrapper">
+                                            <InputCheckbox id="login-remember" @bind-Value="_loginModel.RememberMe" class="login-checkbox" />
+                                            <label for="login-remember" class="login-checkbox-label">@Localizer["Login_RememberMe"]</label>
+                                        </div>
+                                        <div class="mb-4">
+                                            <button type="submit" class="login-btn login-btn-primary">@Localizer["Login_SubmitButton"]</button>
+                                        </div>
+                                    </EditForm>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
     </div>
-    <div>
-        <label>@Localizer["MotDePasse"] <InputText @bind-Value="_loginModel.Password" type="password" /></label>
-    </div>
-    <button type="submit">@Localizer["SeConnecter"]</button>
-</EditForm>
-
-<p class="hint"><a href="/inscription">@Localizer["CreerUnCompte"]</a></p>
-
-@if (!string.IsNullOrEmpty(_message))
-{
-    <p>@_message</p>
-}
+</div>
 
 @code {
     [SupplyParameterFromForm(FormName = "login")]
@@ -43,13 +88,20 @@
     {
         public string Email { get; set; } = "";
         public string Password { get; set; } = "";
+        public bool RememberMe { get; set; } = true;
     }
 
     private async Task SubmitLoginAsync()
     {
-        var result = await SignInManager.PasswordSignInAsync(_loginModel.Email, _loginModel.Password, isPersistent: true, lockoutOnFailure: false);
+        var result = await SignInManager.PasswordSignInAsync(
+            _loginModel.Email,
+            _loginModel.Password,
+            isPersistent: _loginModel.RememberMe,
+            lockoutOnFailure: false);
         if (result.Succeeded)
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("/dashboard");
+        else if (result.IsNotAllowed)
+            _message = Localizer["Login_EmailNonConfirme"];
         else
             _message = Localizer["Login_EchecConnexion"];
     }

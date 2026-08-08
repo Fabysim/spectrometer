@@ -19,52 +19,70 @@
 
 <PageTitle>@Localizer["VivierDeCandidats"]</PageTitle>
 
-<h1>@Localizer["VivierDeCandidats"]</h1>
-<p class="hint">@Localizer["VivierIntro"]</p>
-
+<div class="vivier-page">
 @if (_companies is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="vivier-state">@Localizer["Chargement"]</p>
 }
 else if (_companies.Count == 0)
 {
-    <p>@Localizer["AucuneEntrepriseAssociee"]</p>
+    <section class="vivier-card vivier-empty">
+        <p class="vivier-hint">@Localizer["AucuneEntrepriseAssociee"]</p>
+    </section>
 }
 else
 {
-    <div class="entreprise-header">
+    <header class="vivier-header">
+        <div>
+            <h1 class="vivier-title">@Localizer["VivierDeCandidats"]</h1>
+            <p class="vivier-subtitle">
+                @if (_companies.Count == 1)
+                {
+                    @_companies[0].Name
+                }
+                else
+                {
+                    @Localizer["EntrepriseActive"]
+                }
+            </p>
+        </div>
         @if (_companies.Count > 1)
         {
-            <label>
-                @Localizer["EntrepriseActive"]
-                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+            <div class="vivier-company-select">
+                <label for="vivier-active">@Localizer["EntrepriseActive"]</label>
+                <select id="vivier-active" value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
                     @foreach (var company in _companies)
                     {
                         <option value="@company.Id">@company.Name</option>
                     }
                 </select>
-            </label>
+            </div>
         }
-        else
-        {
-            <strong>@_companies[0].Name</strong>
-        }
-    </div>
+    </header>
+
+    <p class="vivier-intro">@Localizer["VivierIntro"]</p>
 
     @if (_candidatures is null)
     {
-        <p>@Localizer["ChargementDesCandidatures"]</p>
+        <p class="vivier-state">@Localizer["ChargementDesCandidatures"]</p>
     }
     else
     {
         <div class="vivier-layout">
-            <aside class="vivier-filtres">
-                <h3>@Localizer["Filtres"]</h3>
+            <aside class="vivier-card vivier-filtres">
+                <div class="vivier-filtres-icon" aria-hidden="true">
+                    <i class="bi bi-funnel"></i>
+                </div>
+                <h2 class="vivier-filtres-title">@Localizer["Filtres"]</h2>
 
                 <div class="filtre-champ">
-                    <label>@string.Format(Localizer["ScoreMinimum"].Value, _scoreMinimum)</label>
-                    <input type="range" min="0" max="100" step="5" value="@_scoreMinimum"
+                    <label for="vivier-score">@string.Format(Localizer["ScoreMinimum"].Value, _scoreMinimum)</label>
+                    <input id="vivier-score" class="vivier-range" type="range" min="0" max="100" step="5" value="@_scoreMinimum"
                            @oninput="e => _scoreMinimum = int.Parse(e.Value!.ToString()!)" />
+                    <div class="vivier-range-scale" aria-hidden="true">
+                        <span>0</span>
+                        <span>100</span>
+                    </div>
                 </div>
 
                 <div class="filtre-champ">
@@ -75,7 +93,7 @@ else
                             <label class="tag-checkbox">
                                 <input type="checkbox" checked="@_tagsSelectionnes.Contains(tag)"
                                        @onchange="e => ToggleTagFiltre(tag, (bool)e.Value!)" />
-                                @CompatibilityVocabulary.DisplayTag(tag, _english)
+                                <span>@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
                             </label>
                         }
                     </div>
@@ -83,49 +101,64 @@ else
 
                 @if (_tagsSelectionnes.Count > 0)
                 {
-                    <button @onclick="() => _tagsSelectionnes.Clear()">@Localizer["ReinitialiserLesTags"]</button>
+                    <button type="button" class="vivier-btn-secondary" @onclick="() => _tagsSelectionnes.Clear()">
+                        @Localizer["ReinitialiserLesTags"]
+                    </button>
                 }
             </aside>
 
             <section class="vivier-candidats">
                 @if (_candidatures.Count == 0)
                 {
-                    <p class="hint">@Localizer["AucuneCandidatureRecue"]</p>
+                    <div class="vivier-card vivier-empty">
+                        <p class="vivier-hint">@Localizer["AucuneCandidatureRecue"]</p>
+                    </div>
                 }
                 else
                 {
                     @foreach (var candidature in TriEtFiltre())
                     {
                         var horsFiltre = EstHorsFiltre(candidature);
-                        <div class="candidat-carte @(horsFiltre ? "hors-filtre" : "")">
+                        <article class="vivier-card candidat-carte @(horsFiltre ? "hors-filtre" : "")">
                             <div class="candidat-entete">
-                                <strong>@Localizer["Candidat"] #@candidature.CandidateProfileId</strong>
-                                <span class="poste-origine">→ @candidature.PosteTitre</span>
+                                <div class="candidat-entete-main">
+                                    <h3 class="candidat-nom">@Localizer["Candidat"] #@candidature.CandidateProfileId</h3>
+                                    <span class="poste-origine">
+                                        <i class="bi bi-briefcase" aria-hidden="true"></i>
+                                        @candidature.PosteTitre
+                                    </span>
+                                </div>
                                 <span class="score @ScoreClasse(candidature.ScoreCompatibilite)">
                                     @(candidature.ScoreCompatibilite is int s ? $"{s}%" : Localizer["ScoreNonCalcule"])
                                 </span>
                             </div>
-                            <div class="tags">
-                                @foreach (var tag in candidature.TagsCles)
-                                {
-                                    <span class="tag @(_tagsSelectionnes.Contains(tag) ? "tag-actif" : "")">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
-                                }
-                            </div>
+                            @if (candidature.TagsCles.Count > 0)
+                            {
+                                <div class="tags">
+                                    @foreach (var tag in candidature.TagsCles)
+                                    {
+                                        <span class="tag @(_tagsSelectionnes.Contains(tag) ? "tag-actif" : "")">@CompatibilityVocabulary.DisplayTag(tag, _english)</span>
+                                    }
+                                </div>
+                            }
                             <div class="candidat-pied">
                                 <span class="statut">@StatutLabel(candidature.Statut)</span>
-                                <a href="@($"/vivier/candidat/{candidature.CandidateProfileId}")">@Localizer["VoirLeProfilDetaille"]</a>
-                                @if (candidature.ScoreCompatibilite is not null)
-                                {
-                                    <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">@Localizer["DetailDuScore"]</a>
-                                }
+                                <div class="candidat-liens">
+                                    <a href="@($"/vivier/candidat/{candidature.CandidateProfileId}")">@Localizer["VoirLeProfilDetaille"]</a>
+                                    @if (candidature.ScoreCompatibilite is not null)
+                                    {
+                                        <a href="@($"/compatibilite/resultat/{candidature.CandidateProfileId}")">@Localizer["DetailDuScore"]</a>
+                                    }
+                                </div>
                             </div>
-                        </div>
+                        </article>
                     }
                 }
             </section>
         </div>
     }
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

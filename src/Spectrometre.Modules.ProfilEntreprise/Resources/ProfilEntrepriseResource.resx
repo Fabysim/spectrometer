@@ -33,7 +33,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <data name="ProfilEntreprise" xml:space="preserve"><value>Profil entreprise</value></data>
+  <data name="ProfilEntreprise" xml:space="preserve"><value>Profil de l'entreprise</value></data>
   <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
   <data name="AucuneEntrepriseAssociee" xml:space="preserve"><value>Aucune entreprise associée à votre compte pour le moment.</value></data>
   <data name="EntrepriseActive" xml:space="preserve"><value>Entreprise active :</value></data>
@@ -59,4 +59,5 @@
   <data name="QuestionPointsVigilance" xml:space="preserve"><value>Sélectionnez les situations qui peuvent créer de la fatigue, du stress ou des départs prématurés.</value></data>
   <data name="GrilleComplete" xml:space="preserve"><value>Grille de compatibilité complète.</value></data>
   <data name="GrilleIncomplete" xml:space="preserve"><value>Grille de compatibilité incomplète.</value></data>
+  <data name="CreerUneEntreprise" xml:space="preserve"><value>Créer une entreprise</value></data>
 </root>

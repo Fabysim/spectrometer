@@ -15,29 +15,46 @@
 
 <PageTitle>@Localizer["HistoriqueDeMonProfil"]</PageTitle>
 
-<h1>@Localizer["HistoriqueDeMonProfil"]</h1>
-<p class="hint">@Localizer["HistoriqueCandidatHint"]</p>
+<div class="historique-page">
+    <header class="historique-header">
+        <div>
+            <h1 class="historique-title">@Localizer["HistoriqueDeMonProfil"]</h1>
+            <p class="historique-subtitle">@Localizer["HistoriqueCandidatHint"]</p>
+        </div>
+    </header>
 
 @if (_historique is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="historique-state">@Localizer["Chargement"]</p>
 }
 else if (_historique.Count == 0)
 {
-    <p class="hint">@Localizer["AucuneModificationEnregistree"]</p>
+    <section class="historique-card historique-empty">
+        <div class="historique-empty-icon" aria-hidden="true">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <p class="historique-hint">@Localizer["AucuneModificationEnregistree"]</p>
+    </section>
 }
 else
 {
-    <ul class="historique-liste">
+    <ol class="historique-liste">
         @foreach (var entree in _historique)
         {
-            <li class="historique-entree">
-                <span class="historique-date">@entree.Horodatage.LocalDateTime.ToString(Localizer["DateFormat"].Value, CultureInfo.CurrentUICulture)</span>
-                <p>@Phrase(entree)</p>
+            <li class="historique-card historique-entree">
+                <div class="historique-entree-marker" aria-hidden="true"></div>
+                <div class="historique-entree-body">
+                    <time class="historique-date" datetime="@entree.Horodatage.UtcDateTime.ToString("o")">
+                        <i class="bi bi-calendar3" aria-hidden="true"></i>
+                        @entree.Horodatage.LocalDateTime.ToString(Localizer["DateFormat"].Value, CultureInfo.CurrentUICulture)
+                    </time>
+                    <p class="historique-phrase">@Phrase(entree)</p>
+                </div>
             </li>
         }
-    </ul>
+    </ol>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

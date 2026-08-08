@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Modules.GestionDuTemps.Entities;
+using Spectrometre.Modules.GestionDuTemps.Helpers;
 using Spectrometre.Modules.GestionDuTemps.Services;
 using Xunit;
 
@@ -75,6 +76,7 @@ public sealed class CyclesKanbanMinuteurTests(ServiceFixture fixture)
         var service = fixture.Services.GetRequiredService<IGestionDuTempsService>();
         var userId = $"gdt-kanban-{Guid.NewGuid()}";
 
+        await service.GetOrCreateCycleActifAsync(userId);
         var types = await service.GetTypesDeTempsAsync(userId);
         var typePro = types.Single(t => t.Cle == "pro");
         var activiteId = await service.CreateActiviteAsync(
@@ -109,21 +111,55 @@ public sealed class CyclesKanbanMinuteurTests(ServiceFixture fixture)
     }
 
     [Fact]
-    public async Task Kanban_EnDepassement_QuandLeTempsReelDepasseLaDureePlanifiee()
+    public async Task Kanban_ActiviteTerminee_AlimenteLesHeuresReellesDuMoniteur()
     {
         var service = fixture.Services.GetRequiredService<IGestionDuTempsService>();
-        var userId = $"gdt-depassement-{Guid.NewGuid()}";
+        var userId = $"gdt-moniteur-reel-{Guid.NewGuid()}";
+
+        await service.GetOrCreateCycleActifAsync(userId);
+        var cycle = await service.GetCycleActifAsync(userId);
+        Assert.NotNull(cycle);
 
         var types = await service.GetTypesDeTempsAsync(userId);
         var typePro = types.Single(t => t.Cle == "pro");
-        // Durée planifiée volontairement à 0 minute : n'importe quel temps réel mesurable la dépasse.
         var activiteId = await service.CreateActiviteAsync(
-            userId, typePro.Id, "Tâche courte", new DateOnly(2026, 8, 14), new TimeOnly(9, 0), 0, companyId: null);
+            userId, typePro.Id, "Livrable", new DateOnly(2026, 8, 8), new TimeOnly(10, 0), 30, companyId: null);
 
         await service.MarquerDebutAsync(userId, activiteId);
-        await Task.Delay(30);
+        await Task.Delay(80);
+        await service.MarquerTermineAsync(userId, activiteId);
 
-        var carte = Assert.Single(await service.GetKanbanAsync(userId));
-        Assert.True(carte.EnDepassement);
+        var cartes = await service.GetKanbanAsync(userId);
+        var carte = Assert.Single(cartes);
+        Assert.Equal(KanbanColonnes.Termine, carte.Statut);
+        Assert.True(carte.TempsReelMs > 0);
+
+        var heuresReelles = MoniteurChartMath.SumHeuresReelles(
+            typePro.Id, cartes, cycle!.DemarreLe, "Hebdomadaire");
+
+        Assert.True(heuresReelles > 0,
+            "Une activité passée en Terminé avec minuteur doit alimenter la série Réel des graphiques du moniteur.");
+        Assert.Equal(TypeDuration.GetTempsReelHeures(carte.TempsReelMs, carte.Statut), heuresReelles);
+    }
+
+    [Fact]
+    public async Task Kanban_EnCours_AlimenteAussiLesHeuresReellesDuMoniteur()
+    {
+        var service = fixture.Services.GetRequiredService<IGestionDuTempsService>();
+        var userId = $"gdt-moniteur-encours-{Guid.NewGuid()}";
+
+        var cycle = await service.GetOrCreateCycleActifAsync(userId);
+        var typePro = (await service.GetTypesDeTempsAsync(userId)).Single(t => t.Cle == "pro");
+        var activiteId = await service.CreateActiviteAsync(
+            userId, typePro.Id, "En cours", new DateOnly(2026, 8, 8), new TimeOnly(11, 0), 45, companyId: null);
+
+        await service.MarquerDebutAsync(userId, activiteId);
+        await Task.Delay(50);
+
+        var cartes = await service.GetKanbanAsync(userId);
+        Assert.Equal(KanbanColonnes.EnCours, Assert.Single(cartes).Statut);
+
+        var heures = MoniteurChartMath.SumHeuresReelles(typePro.Id, cartes, cycle.DemarreLe, "Hebdomadaire");
+        Assert.True(heures > 0);
     }
 }

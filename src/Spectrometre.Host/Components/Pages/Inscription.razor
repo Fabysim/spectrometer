@@ -1,13 +1,18 @@
 @page "/inscription"
+@layout Spectrometre.Host.Components.Layout.PublicLayout
 @using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
+@using Spectrometre.Core.Email
 @using Spectrometre.Core.Identity
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
 @inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
+@inject IResendEmailService ResendEmailService
 @inject CompanyOnboardingService CompanyOnboarding
 @inject CandidateOnboardingService CandidateOnboarding
 @inject CoachOnboardingService CoachOnboarding
@@ -17,136 +22,185 @@
 
 <PageTitle>@Localizer["CreerUnCompte"]</PageTitle>
 
-<h1>@Localizer["CreerUnCompte"]</h1>
+@* Rendu statique (pas d'InteractiveServer), comme /login : la création du compte passe par
+   UserManager.CreateAsync puis l'envoi de l'email de confirmation avant que la réponse ne commence à
+   être diffusée — incompatible avec un rendu interactif. Les à-côtés purement visuels (étapes, suggestion
+   de mot de passe, indicateur de robustesse, affichage conditionnel du nom d'entreprise) sont donc
+   implémentés en JavaScript simple plutôt qu'en gestionnaires Blazor. *@
+<div class="login-page-nav-overlay" aria-hidden="true"></div>
+<div class="login-page-wrapper">
+    <div class="container-fluid px-3 px-md-4 px-lg-5 px-xl-4 py-5 login-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="login-card inscription-card">
+                    <header class="login-header">
+                        <h1 class="login-title">@Localizer["CreerUnCompte"]</h1>
+                        <p id="inscription-subtitle" class="login-subtitle mb-0"
+                           data-step1="@Localizer["Inscription_InformationsDuCompte"]"
+                           data-step2="@Localizer["Inscription_ChoixDuProfil"]">
+                            @Localizer["Inscription_InformationsDuCompte"]
+                        </p>
+                    </header>
+                    <div class="p-4 p-lg-5">
+                        @if (!string.IsNullOrEmpty(_message))
+                        {
+                            <div class="alert alert-danger">@_message</div>
+                        }
 
-@* Rendu statique (pas d'InteractiveServer), comme /login : la création du compte se termine par
-   SignInManager.SignInAsync, qui doit écrire le cookie d'authentification avant que la réponse ne
-   commence à être diffusée — incompatible avec un rendu interactif. Les à-côtés purement visuels
-   (suggestion de mot de passe, indicateur de robustesse, affichage conditionnel du nom d'entreprise)
-   sont donc implémentés en JavaScript simple ci-dessous plutôt qu'en gestionnaires d'évènements Blazor,
-   qui ne se déclenchent pas sans circuit interactif. *@
-<EditForm EditContext="_editContext" OnValidSubmit="SubmitAsync" FormName="inscription" method="post">
-    <ValidationSummary />
+                        <div id="inscription-wizard" data-step="@(_startOnStep2 ? "2" : "1")">
+                            <div class="inscription-steps mb-4" aria-hidden="true">
+                                <div class="inscription-step-indicator active" data-step-marker="1">
+                                    <span class="inscription-step-number">1</span>
+                                    <span class="inscription-step-label">@Localizer["Inscription_InformationsDuCompte"]</span>
+                                </div>
+                                <div class="inscription-step-line"></div>
+                                <div class="inscription-step-indicator" data-step-marker="2">
+                                    <span class="inscription-step-number">2</span>
+                                    <span class="inscription-step-label">@Localizer["Inscription_ChoixDuProfil"]</span>
+                                </div>
+                            </div>
 
-    <h2>@Localizer["Inscription_InformationsDuCompte"]</h2>
-    <div class="champ">
-        <label>@Localizer["Nom"] <InputText @bind-Value="_model.Nom" /></label>
-    </div>
-    <div class="champ">
-        <label>@Localizer["Prenom"] <InputText @bind-Value="_model.Prenom" /></label>
-    </div>
-    <div class="champ">
-        <label>@Localizer["Email"] <InputText @bind-Value="_model.Email" /></label>
-    </div>
-    <div class="champ">
-        <label>@Localizer["MotDePasse"] <InputText @bind-Value="_model.MotDePasse" type="password" id="motDePasse" oninput="spectrometreUpdateStrength(this.value)" /></label>
-        <button type="button" onclick="spectrometreSuggestPassword()">@Localizer["Inscription_SuggererMotDePasseFort"]</button>
-        <p id="forceIndicateur" class="hint">@Localizer["Robustesse"] —</p>
-    </div>
-    <div class="champ">
-        <label>@Localizer["Inscription_ConfirmationMotDePasse"] <InputText @bind-Value="_model.ConfirmationMotDePasse" type="password" id="confirmationMotDePasse" /></label>
-    </div>
+                            <EditForm EditContext="_editContext" OnValidSubmit="SubmitAsync" FormName="inscription" method="post">
+                                <ValidationSummary class="validation-summary" />
 
-    <h2>@Localizer["Inscription_ChoixDuProfil"]</h2>
-    <InputRadioGroup @bind-Value="_model.Profil">
-        <div class="profil-choix">
-            <label>
-                <InputRadio Value="@("Entreprise")" /> @Localizer["Entreprise"]
-            </label>
-            <label class="profil-desactive">
-                <input type="radio" disabled /> @Localizer["Independant"] <em>(@Localizer["BientotDisponible"])</em>
-            </label>
-            <label>
-                <InputRadio Value="@("Candidat")" /> @Localizer["Candidat"]
-            </label>
-            <label>
-                <InputRadio Value="@("Coach")" /> @Localizer["Coach"]
-            </label>
+                                <section id="inscription-step-1" class="inscription-step" data-inscription-step="1">
+                                    <h2 class="login-section-title">@Localizer["Inscription_InformationsDuCompte"]</h2>
+                                    <hr class="login-divider" />
+
+                                    <div class="login-form-group">
+                                        <label for="inscription-nom" class="login-form-label">@Localizer["Nom"]</label>
+                                        <InputText id="inscription-nom" @bind-Value="_model.Nom"
+                                                   class="login-form-control form-control"
+                                                   autocomplete="family-name" required />
+                                    </div>
+                                    <div class="login-form-group">
+                                        <label for="inscription-prenom" class="login-form-label">@Localizer["Prenom"]</label>
+                                        <InputText id="inscription-prenom" @bind-Value="_model.Prenom"
+                                                   class="login-form-control form-control"
+                                                   autocomplete="given-name" required />
+                                    </div>
+                                    <div class="login-form-group">
+                                        <label for="inscription-email" class="login-form-label">@Localizer["Email"]</label>
+                                        <InputText id="inscription-email" @bind-Value="_model.Email" type="email"
+                                                   class="login-form-control form-control"
+                                                   autocomplete="username" required />
+                                    </div>
+                                    <div class="login-form-group">
+                                        <label for="motDePasse" class="login-form-label">@Localizer["MotDePasse"]</label>
+                                        <div class="password-field-wrapper">
+                                            <InputText id="motDePasse" @bind-Value="_model.MotDePasse" type="password"
+                                                       class="login-form-control form-control"
+                                                       autocomplete="new-password" required
+                                                       oninput="spectrometreUpdateStrength(this.value)" />
+                                            <button type="button" class="password-toggle-btn" data-toggle-password="motDePasse"
+                                                    data-label-show="@Localizer["Inscription_AfficherMotDePasse"]"
+                                                    data-label-hide="@Localizer["Inscription_MasquerMotDePasse"]"
+                                                    aria-label="@Localizer["Inscription_AfficherMotDePasse"]"
+                                                    title="@Localizer["Inscription_AfficherMotDePasse"]">
+                                                <i class="bi bi-eye" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                        <button type="button" class="inscription-btn-secondary mt-2"
+                                                onclick="spectrometreSuggestPassword()">
+                                            @Localizer["Inscription_SuggererMotDePasseFort"]
+                                        </button>
+                                        <p id="forceIndicateur" class="inscription-strength hint"
+                                           data-strength-labels="@StrengthLabelsData"
+                                           data-strength-prefix="@Localizer["Robustesse"]">@Localizer["Robustesse"] —</p>
+                                    </div>
+                                    <div class="login-form-group">
+                                        <label for="confirmationMotDePasse" class="login-form-label">@Localizer["Inscription_ConfirmationMotDePasse"]</label>
+                                        <div class="password-field-wrapper">
+                                            <InputText id="confirmationMotDePasse" @bind-Value="_model.ConfirmationMotDePasse" type="password"
+                                                       class="login-form-control form-control"
+                                                       autocomplete="new-password" required
+                                                       data-mismatch-message="@Localizer["Inscription_MotsDePasseNeCorrespondentPas"]" />
+                                            <button type="button" class="password-toggle-btn" data-toggle-password="confirmationMotDePasse"
+                                                    data-label-show="@Localizer["Inscription_AfficherMotDePasse"]"
+                                                    data-label-hide="@Localizer["Inscription_MasquerMotDePasse"]"
+                                                    aria-label="@Localizer["Inscription_AfficherMotDePasse"]"
+                                                    title="@Localizer["Inscription_AfficherMotDePasse"]">
+                                                <i class="bi bi-eye" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4 mt-4">
+                                        <button type="button" class="login-btn login-btn-primary"
+                                                onclick="spectrometreInscriptionGoToStep(2)">
+                                            @Localizer["Suivant"]
+                                        </button>
+                                    </div>
+                                </section>
+
+                                <section id="inscription-step-2" class="inscription-step" data-inscription-step="2" hidden>
+                                    <h2 class="login-section-title">@Localizer["Inscription_ChoixDuProfil"]</h2>
+                                    <hr class="login-divider" />
+
+                                    <InputRadioGroup @bind-Value="_model.Profil">
+                                        <div class="profil-choix">
+                                            <label class="profil-option">
+                                                <InputRadio Value="@("Entreprise")" />
+                                                <span>@Localizer["Entreprise"]</span>
+                                            </label>
+                                            <label class="profil-option profil-desactive">
+                                                <input type="radio" disabled />
+                                                <span>@Localizer["Independant"] <em>(@Localizer["BientotDisponible"])</em></span>
+                                            </label>
+                                            <label class="profil-option">
+                                                <InputRadio Value="@("Candidat")" />
+                                                <span>@Localizer["Candidat"]</span>
+                                            </label>
+                                            <label class="profil-option">
+                                                <InputRadio Value="@("Coach")" />
+                                                <span>@Localizer["Coach"]</span>
+                                            </label>
+                                        </div>
+                                    </InputRadioGroup>
+
+                                    <div class="login-form-group" id="champNomEntreprise" style="display:none">
+                                        <label for="inscription-entreprise" class="login-form-label">@Localizer["NomDeLEntreprise"]</label>
+                                        <InputText id="inscription-entreprise" @bind-Value="_model.NomEntreprise"
+                                                   class="login-form-control form-control" />
+                                    </div>
+
+                                    <div class="inscription-step-actions mb-4 mt-4">
+                                        <button type="button" class="inscription-btn-secondary"
+                                                onclick="spectrometreInscriptionGoToStep(1)">
+                                            @Localizer["Precedent"]
+                                        </button>
+                                        <button type="submit" class="login-btn login-btn-primary">
+                                            @Localizer["Inscription_CreerMonCompte"]
+                                        </button>
+                                    </div>
+                                </section>
+
+                                <div class="login-links">
+                                    <a href="/login" class="login-link">@Localizer["Inscription_DejaUnCompte"]</a>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </InputRadioGroup>
-
-    <div class="champ" id="champNomEntreprise" style="display:none">
-        <label>@Localizer["NomDeLEntreprise"] <InputText @bind-Value="_model.NomEntreprise" /></label>
     </div>
-
-    <button type="submit">@Localizer["Inscription_CreerMonCompte"]</button>
-</EditForm>
-
-@if (!string.IsNullOrEmpty(_message))
-{
-    <p class="erreur">@_message</p>
-}
-
-<p class="hint"><a href="/login">@Localizer["Inscription_DejaUnCompte"]</a></p>
-
-<script>
-    // Libellés injectés côté serveur (culture déjà résolue lors du rendu de la page) : voir la remarque
-    // sur la culture de circuit dans Program.cs — ce script s'exécute au chargement initial de la page,
-    // dans la même culture que le reste du rendu HTML.
-    const spectrometreStrengthLabels = ["@Localizer["TresFaible"]", "@Localizer["Faible"]", "@Localizer["Moyen"]", "@Localizer["Bon"]", "@Localizer["Fort"]", "@Localizer["TresFort"]"];
-    const spectrometreRobustessePrefix = "@Localizer["Robustesse"]";
-
-    function spectrometreSuggestPassword() {
-        const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-        const lower = "abcdefghijkmnpqrstuvwxyz";
-        const digits = "23456789";
-        const special = "!@@#$%^&*-_=+?";
-        const all = upper + lower + digits + special;
-        const pick = set => set[Math.floor(Math.random() * set.length)];
-        const length = 14;
-        let chars = [pick(upper), pick(lower), pick(digits), pick(special)];
-        for (let i = chars.length; i < length; i++) chars.push(pick(all));
-        for (let i = chars.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [chars[i], chars[j]] = [chars[j], chars[i]];
-        }
-        const password = chars.join('');
-        const mdp = document.getElementById('motDePasse');
-        const confirmation = document.getElementById('confirmationMotDePasse');
-        mdp.value = password;
-        confirmation.value = password;
-        spectrometreUpdateStrength(password);
-    }
-
-    function spectrometreUpdateStrength(password) {
-        let score = 0;
-        if (password.length >= 6) score++;
-        if (password.length >= 10) score++;
-        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-        if (/\d/.test(password)) score++;
-        if (/[^A-Za-z0-9]/.test(password)) score++;
-        const labels = spectrometreStrengthLabels;
-        const el = document.getElementById('forceIndicateur');
-        if (el) el.textContent = spectrometreRobustessePrefix + " " + (password.length === 0 ? "—" : labels[Math.min(score, labels.length - 1)]);
-    }
-
-    function spectrometreOnProfilChange() {
-        const entreprise = document.querySelector('.profil-choix input[type=radio][value=Entreprise]');
-        const champ = document.getElementById('champNomEntreprise');
-        if (champ) champ.style.display = (entreprise && entreprise.checked) ? '' : 'none';
-    }
-
-    // InputRadio (Blazor) ne relaie pas les attributs HTML bruts comme "onchange" (contrairement à
-    // InputText, qui les relaie bien) — on attache donc l'écouteur nous-mêmes après le rendu de la page,
-    // plutôt que de compter sur un attribut onchange qui ne serait jamais posé sur l'élément.
-    document.querySelectorAll('.profil-choix input[type=radio]:not([disabled])').forEach(function (input) {
-        input.addEventListener('change', spectrometreOnProfilChange);
-    });
-</script>
+</div>
 
 @code {
+    // Les fonctions spectrometreSuggestPassword/spectrometreUpdateStrength/spectrometreOnProfilChange /
+    // spectrometreInscriptionGoToStep vivent dans wwwroot/js/inscription.js, chargé depuis App.razor.
+    private string StrengthLabelsData =>
+        string.Join("|", Localizer["TresFaible"].Value, Localizer["Faible"].Value, Localizer["Moyen"].Value, Localizer["Bon"].Value, Localizer["Fort"].Value, Localizer["TresFort"].Value);
+
     [SupplyParameterFromForm(FormName = "inscription")]
     private InscriptionModel _model { get; set; } = new();
 
     private EditContext _editContext = null!;
     private ValidationMessageStore _messageStore = null!;
     private string? _message;
+    private bool _startOnStep2;
 
-    // Les messages de validation sont résolus manuellement (voir HandleValidationRequested) plutôt que via
-    // ErrorMessageResourceType sur les attributs DataAnnotations natifs : cet outillage repose sur une
-    // génération de code resx (Designer.cs) jugée trop fragile à piloter hors Visual Studio, et empêchait de
-    // localiser ces messages au cycle précédent. Le modèle reste donc un simple sac de propriétés, sans
-    // attribut de validation.
     private sealed class InscriptionModel
     {
         public string Nom { get; set; } = "";
@@ -168,31 +222,55 @@
     private void HandleValidationRequested(object? sender, ValidationRequestedEventArgs e)
     {
         _messageStore.Clear();
+        var accountOk = true;
 
         if (string.IsNullOrWhiteSpace(_model.Nom))
+        {
             _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Nom)), Localizer["Inscription_NomRequis"].Value);
+            accountOk = false;
+        }
 
         if (string.IsNullOrWhiteSpace(_model.Prenom))
+        {
             _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Prenom)), Localizer["Inscription_PrenomRequis"].Value);
+            accountOk = false;
+        }
 
         if (string.IsNullOrWhiteSpace(_model.Email))
+        {
             _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Email)), Localizer["Inscription_EmailRequis"].Value);
+            accountOk = false;
+        }
         else if (!new EmailAddressAttribute().IsValid(_model.Email))
+        {
             _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Email)), Localizer["Inscription_EmailInvalide"].Value);
+            accountOk = false;
+        }
 
         if (string.IsNullOrWhiteSpace(_model.MotDePasse))
+        {
             _messageStore.Add(_editContext.Field(nameof(InscriptionModel.MotDePasse)), Localizer["Inscription_MotDePasseRequis"].Value);
+            accountOk = false;
+        }
 
         if (string.IsNullOrWhiteSpace(_model.ConfirmationMotDePasse))
+        {
             _messageStore.Add(_editContext.Field(nameof(InscriptionModel.ConfirmationMotDePasse)), Localizer["Inscription_ConfirmationMotDePasseRequise"].Value);
+            accountOk = false;
+        }
         else if (_model.ConfirmationMotDePasse != _model.MotDePasse)
+        {
             _messageStore.Add(_editContext.Field(nameof(InscriptionModel.ConfirmationMotDePasse)), Localizer["Inscription_MotsDePasseNeCorrespondentPas"].Value);
+            accountOk = false;
+        }
 
         if (string.IsNullOrWhiteSpace(_model.Profil))
+        {
             _messageStore.Add(_editContext.Field(nameof(InscriptionModel.Profil)), Localizer["Inscription_ProfilRequis"].Value);
+            if (accountOk)
+                _startOnStep2 = true;
+        }
 
-        // Requis pour que ValidationSummary/ValidationMessage/le CSS "invalid" reflètent le nouveau contenu
-        // du message store — même mécanisme que DataAnnotationsValidator.ValidateModel() en interne.
         _editContext.NotifyValidationStateChanged();
     }
 
@@ -200,17 +278,17 @@
     {
         _message = null;
 
-        // "Indépendant" n'a jamais de InputRadio lié — seules "Entreprise"/"Candidat"/"Coach" sont
-        // atteignables, donc ce test suffit à couvrir aussi bien une valeur absente qu'une valeur inattendue.
         if (_model.Profil != "Entreprise" && _model.Profil != "Candidat" && _model.Profil != "Coach")
         {
             _message = Localizer["Inscription_ChoisirProfil"];
+            _startOnStep2 = true;
             return;
         }
 
         if (_model.Profil == "Entreprise" && string.IsNullOrWhiteSpace(_model.NomEntreprise))
         {
             _message = Localizer["Inscription_NomEntrepriseRequis"];
+            _startOnStep2 = true;
             return;
         }
 
@@ -218,11 +296,6 @@
         {
             UserName = _model.Email,
             Email = _model.Email,
-            // Même contournement que la démonstration précédente sur /login : aucun flux de confirmation
-            // par courriel n'existe dans ce cycle, et Identity exige RequireConfirmedAccount pour la
-            // connexion (voir AddSpectrometreCore) — sans ceci, le compte tout juste créé ne pourrait
-            // jamais se connecter.
-            EmailConfirmed = true,
             FirstName = _model.Prenom,
             LastName = _model.Nom,
         };
@@ -241,7 +314,24 @@
         else
             await CandidateOnboarding.CreateCandidateAsync(user.Id, CoreDb);
 
-        await SignInManager.SignInAsync(user, isPersistent: true);
-        Navigation.NavigateTo("/");
+        // Email de confirmation obligatoire (Identity.RequireConfirmedAccount, voir AddSpectrometreCore) :
+        // le compte existe déjà à ce stade mais PasswordSignInAsync le refusera tant que EmailConfirmed est
+        // faux — voir ConfirmationEmailPage.razor pour la suite du parcours. Même mécanique que mvp
+        // (Register.razor) : jeton généré puis encodé en Base64Url pour circuler proprement dans une URL.
+        var userId = await UserManager.GetUserIdAsync(user);
+        var confirmCode = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+        confirmCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmCode));
+        var callbackUrl = Navigation.GetUriWithQueryParameters(
+            Navigation.ToAbsoluteUri("confirmation-email").AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = confirmCode });
+
+        var emailEnvoye = await ResendEmailService.SendConfirmationEmailAsync(_model.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        if (!emailEnvoye)
+        {
+            _message = Localizer["Inscription_ErreurEnvoiEmailConfirmation"];
+            return;
+        }
+
+        Navigation.NavigateTo($"/verification-email?email={Uri.EscapeDataString(_model.Email)}");
     }
 }

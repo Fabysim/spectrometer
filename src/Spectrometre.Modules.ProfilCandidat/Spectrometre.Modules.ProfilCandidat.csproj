@@ -15,6 +15,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.18" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <!-- Export PDF du CV — même bibliothèque que mvp (Spectrometre.csproj), licence Community (voir CvPdfService). -->
+    <PackageReference Include="QuestPDF" Version="2024.12.3" />
   </ItemGroup>
 
   <ItemGroup>

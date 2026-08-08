@@ -10,4 +10,14 @@ namespace Spectrometre.Modules.GestionDuTemps.Services;
 public interface IGestionDuTempsAccessService
 {
     Task<bool> HasAccessAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Accès restreint au sujet Candidat uniquement (<c>ModuleActivationSubjectType.Candidate</c>) — jamais
+    /// via une entreprise gérée. Utilisé pour tout ce qui dérive de Gestion du temps mais n'a de sens que
+    /// pour une personne suivie individuellement (ex. Coaching côté « Mon coach ») : une entreprise n'a pas
+    /// de coach, même si elle a activé Gestion du temps pour ses employés. Voir la remarque sur
+    /// <see cref="HasAccessAsync"/> — même principe de point d'entrée unique, pour ne jamais faire diverger
+    /// menu et route.
+    /// </summary>
+    Task<bool> HasCandidateAccessAsync(string userId, CancellationToken cancellationToken = default);
 }

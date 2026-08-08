@@ -1,107 +1,380 @@
-.vivier-layout {
+/* /vivier – plein écran utile, avec marges */
+
+.vivier-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
     display: flex;
-    gap: 1.5rem;
-    align-items: flex-start;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+.vivier-state,
+.vivier-hint {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.vivier-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
+}
+
+.vivier-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.vivier-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.vivier-intro {
+    color: #64748b;
+    font-size: 0.925rem;
+    line-height: 1.5;
+    margin: 0 0 1.5rem;
+    max-width: none;
+    flex-shrink: 0;
+}
+
+.vivier-company-select {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 220px;
+}
+
+.vivier-company-select label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.vivier-company-select select {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    background: white;
+    color: #0f172a;
+    box-sizing: border-box;
+}
+
+.vivier-company-select select:focus {
+    outline: none;
+    border-color: var(--bs-primary, #345f6d);
+    box-shadow: 0 0 0 3px rgba(52, 95, 109, 0.12);
+}
+
+.vivier-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem 1.35rem 1.4rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.vivier-empty {
+    width: 100%;
+}
+
+.vivier-layout {
+    display: grid;
+    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
 }
 
 .vivier-filtres {
-    flex: 0 0 220px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 1rem;
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+}
+
+.vivier-filtres-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(52, 95, 109, 0.1);
+    color: var(--bs-primary, #345f6d);
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+.vivier-filtres-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 0 0 1.1rem;
 }
 
 .filtre-champ {
-    margin-bottom: 1rem;
+    margin-bottom: 1.15rem;
 }
 
 .filtre-champ label {
     display: block;
+    font-size: 0.8rem;
     font-weight: 600;
-    margin-bottom: 0.4rem;
+    color: #475569;
+    margin-bottom: 0.45rem;
+}
+
+.vivier-range {
+    width: 100%;
+    accent-color: var(--bs-primary, #345f6d);
+    cursor: pointer;
+}
+
+.vivier-range-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 0.15rem;
 }
 
 .tag-checkboxes {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.35rem;
+    max-height: 16rem;
+    overflow-y: auto;
+    padding-right: 0.15rem;
 }
 
 .tag-checkbox {
-    font-weight: normal;
     display: flex;
-    gap: 0.4rem;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    line-height: 1.35;
+}
+
+.tag-checkbox input {
+    margin-top: 0.15rem;
+    accent-color: var(--bs-primary, #345f6d);
+    flex-shrink: 0;
+}
+
+.vivier-btn-secondary {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    width: 100%;
+    border-radius: 10px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.vivier-btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
 .vivier-candidats {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+    gap: 0.9rem;
+    min-width: 0;
+    width: 100%;
+    align-content: start;
+}
+
+.vivier-candidats > .vivier-empty {
+    grid-column: 1 / -1;
 }
 
 .candidat-carte {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 1rem;
-    max-width: 640px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.candidat-carte:hover {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .candidat-carte.hors-filtre {
-    opacity: 0.45;
+    opacity: 0.48;
 }
 
 .candidat-entete {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
     flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.candidat-entete-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.candidat-nom {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
 }
 
 .poste-origine {
-    color: #555;
-    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 .score {
-    margin-left: auto;
+    flex-shrink: 0;
     font-weight: 700;
-    padding: 0.15rem 0.6rem;
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.7rem;
     border-radius: 999px;
 }
 
-.score-eleve { background: #e3f5e9; color: #1e7a34; }
-.score-moyen { background: #fff6e0; color: #8a6d00; }
-.score-faible { background: #fbe6e6; color: #a3312f; }
-.score-inconnu { background: #eee; color: #666; }
+.score-eleve {
+    background: rgba(20, 184, 166, 0.12);
+    color: hsl(178, 45%, 28%);
+}
+
+.score-moyen {
+    background: rgba(234, 179, 8, 0.15);
+    color: #854d0e;
+}
+
+.score-faible {
+    background: rgba(239, 68, 68, 0.1);
+    color: #b91c1c;
+}
+
+.score-inconnu {
+    background: #f1f5f9;
+    color: #64748b;
+}
 
 .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
-    margin: 0.5rem 0;
+    gap: 0.4rem;
+    margin: 0.75rem 0 0;
 }
 
 .tags .tag {
-    background: #f0f0f0;
+    background: #f1f5f9;
+    color: #475569;
     border-radius: 999px;
-    padding: 0.1rem 0.6rem;
-    font-size: 0.85rem;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
 .tags .tag-actif {
-    background: #d6e8ff;
-    color: #1a3d7c;
+    background: rgba(52, 95, 109, 0.12);
+    color: var(--bs-primary, #345f6d);
 }
 
 .candidat-pied {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
     align-items: center;
-    font-size: 0.9rem;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid #f1f5f9;
 }
 
 .candidat-pied .statut {
-    color: #555;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.candidat-liens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+}
+
+.candidat-liens a {
+    color: var(--bs-primary, #345f6d);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-decoration: none;
+}
+
+.candidat-liens a:hover {
+    color: var(--gscv-orange, hsl(18, 80%, 50%));
+    text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+    .vivier-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .vivier-filtres {
+        position: static;
+    }
+}
+
+@media (max-width: 640px) {
+    .vivier-page {
+        padding: 1rem;
+    }
+
+    .vivier-title {
+        font-size: 1.4rem;
+    }
+
+    .candidat-pied {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

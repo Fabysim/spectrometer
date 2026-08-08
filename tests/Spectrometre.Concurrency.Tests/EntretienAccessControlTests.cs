@@ -24,9 +24,9 @@ public sealed class EntretienAccessControlTests(ServiceFixture fixture)
     {
         var suffix = Guid.NewGuid();
         var candidatUserId = $"entretien-test-candidat-{suffix}";
-        var managerUserId = $"entretien-test-manager-{suffix}";
+        var employeUserId = $"entretien-test-manager-{suffix}";
 
-        var company = await fixture.CreateCompanyAsync($"Entreprise Entretien {suffix}", managerUserId);
+        var company = await fixture.CreateCompanyAsync($"Entreprise Entretien {suffix}", employeUserId);
 
         using (var setupScope = NewScope())
         {
@@ -42,7 +42,7 @@ public sealed class EntretienAccessControlTests(ServiceFixture fixture)
             using var scope = NewScope();
             var entretienService = scope.ServiceProvider.GetRequiredService<IEntretienService>();
 
-            var grille = await entretienService.GenererGrilleAsync(candidateProfileId, managerUserId);
+            var grille = await entretienService.GenererGrilleAsync(candidateProfileId, employeUserId);
 
             Assert.NotNull(grille);
             Assert.Equal(candidateProfileId, grille!.CandidateProfileId);

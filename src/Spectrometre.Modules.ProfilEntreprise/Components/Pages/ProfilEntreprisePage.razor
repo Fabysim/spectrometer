@@ -20,77 +20,97 @@
 
 <PageTitle>@Localizer["ProfilEntreprise"]</PageTitle>
 
+<div class="entreprise-profil-page">
 @if (_companies is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="entreprise-state">@Localizer["Chargement"]</p>
 }
 else if (_companies.Count == 0)
 {
-    <p>@Localizer["AucuneEntrepriseAssociee"]</p>
+    <section class="entreprise-card">
+        <p class="entreprise-hint">@Localizer["AucuneEntrepriseAssociee"]</p>
+        <a href="/entreprise/creer" class="entreprise-btn-primary">@Localizer["CreerUneEntreprise"]</a>
+    </section>
 }
 else
 {
-    <div class="entreprise-header">
+    <header class="entreprise-profil-header">
+        <div>
+            <h1 class="entreprise-profil-title">@Localizer["ProfilEntreprise"]</h1>
+            <p class="entreprise-profil-subtitle">
+                @if (_companies.Count == 1)
+                {
+                    @_companies[0].Name
+                }
+                else
+                {
+                    @Localizer["EntrepriseActive"]
+                }
+            </p>
+        </div>
         @if (_companies.Count > 1)
         {
-            <label>
-                @Localizer["EntrepriseActive"]
-                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+            <div class="entreprise-company-select">
+                <label for="entreprise-active">@Localizer["EntrepriseActive"]</label>
+                <select id="entreprise-active" value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
                     @foreach (var company in _companies)
                     {
                         <option value="@company.Id">@company.Name</option>
                     }
                 </select>
-            </label>
+            </div>
         }
-        else
-        {
-            <strong>@_companies[0].Name</strong>
-        }
-    </div>
+    </header>
 
     @if (_questions is not null)
     {
         var themes = Enum.GetValues<CompanyTheme>();
 
-        <div class="entreprise-tabs">
+        <nav class="entreprise-tabs" aria-label="@Localizer["ProfilEntreprise"]">
             @foreach (var theme in themes)
             {
-                <button class="@(!_showGrilleK && theme == _activeTheme ? "active" : "")" @onclick="() => { _showGrilleK = false; _activeTheme = theme; }">
+                <button type="button"
+                        class="@(!_showGrilleK && theme == _activeTheme ? "active" : "")"
+                        @onclick="() => { _showGrilleK = false; _activeTheme = theme; }">
                     @CompanyThemeLabels.TabLabel(theme, _english)
                 </button>
             }
-            <button class="@(_showGrilleK ? "active" : "")" @onclick="() => _showGrilleK = true">
-                @(GrilleComplete ? "✅" : "◯") @Localizer["GrilleCompatibiliteTab"]
+            <button type="button"
+                    class="@(_showGrilleK ? "active" : "")"
+                    @onclick="() => _showGrilleK = true">
+                <i class="bi @(GrilleComplete ? "bi-check-circle-fill" : "bi-circle")" aria-hidden="true"></i>
+                @Localizer["GrilleCompatibiliteTab"]
             </button>
-        </div>
+        </nav>
 
         @if (!_showGrilleK)
         {
             <div class="entreprise-body">
-                <section class="entreprise-form">
-                    <h3>@CompanyThemeLabels.Label(_activeTheme, _english)</h3>
+                <section class="entreprise-card entreprise-form">
+                    <h2 class="entreprise-section-title">@CompanyThemeLabels.Label(_activeTheme, _english)</h2>
                     @foreach (var question in _questions.Where(q => q.Theme == _activeTheme))
                     {
                         <div class="question">
                             <label>@question.Text</label>
-                            <textarea value="@question.AnswerText" @onchange="e => SaveAnswerAsync(question.QuestionId, e.Value?.ToString())" rows="2"></textarea>
+                            <textarea value="@question.AnswerText"
+                                      @onchange="e => SaveAnswerAsync(question.QuestionId, e.Value?.ToString())"
+                                      rows="3"></textarea>
                         </div>
                     }
                 </section>
 
-                <aside class="entreprise-synthese">
-                    <h3>@Localizer["SyntheseEntreprise"]</h3>
-                    <p class="hint">@Localizer["SyntheseEntrepriseHint"]</p>
+                <aside class="entreprise-card entreprise-synthese">
+                    <h2 class="entreprise-section-title">@Localizer["SyntheseEntreprise"]</h2>
+                    <p class="entreprise-hint">@Localizer["SyntheseEntrepriseHint"]</p>
                 </aside>
             </div>
         }
         else
         {
             <div class="entreprise-body">
-                <section class="entreprise-form">
-                    <h3>@Localizer["GrilleK_Entete"]</h3>
-                    <p class="hint">@Localizer["GrilleK_Hint"]</p>
+                <section class="entreprise-card entreprise-form">
+                    <h2 class="entreprise-section-title">@Localizer["GrilleK_Entete"]</h2>
+                    <p class="entreprise-hint">@Localizer["GrilleK_Hint"]</p>
 
                     <div class="grille-champ">
                         <label>@Localizer["CompatibiliteTechnique"]</label>
@@ -146,7 +166,7 @@ else
                     <div class="grille-champ">
                         <label>@Localizer["CompatibiliteOrganisationnelle"]</label>
                         <p class="grille-question">@Localizer["QuestionRythme"]</p>
-                        <select value="@(_grille.RythmeTravail?.ToString() ?? "")" @onchange="OnRythmeChangedAsync">
+                        <select class="entreprise-select" value="@(_grille.RythmeTravail?.ToString() ?? "")" @onchange="OnRythmeChangedAsync">
                             <option value="">@Localizer["ChoisirOption"]</option>
                             @foreach (var (valeur, libelle) in CompatibilityVocabulary.RythmeTravailLabels)
                             {
@@ -192,14 +212,18 @@ else
                     </div>
                 </section>
 
-                <aside class="entreprise-synthese">
-                    <h3>@Localizer["SyntheseEntreprise"]</h3>
-                    <p class="hint">@(GrilleComplete ? "✅ " + Localizer["GrilleComplete"] : "◯ " + Localizer["GrilleIncomplete"])</p>
+                <aside class="entreprise-card entreprise-synthese">
+                    <h2 class="entreprise-section-title">@Localizer["SyntheseEntreprise"]</h2>
+                    <p class="entreprise-hint entreprise-status @(GrilleComplete ? "is-complete" : "is-incomplete")">
+                        <i class="bi @(GrilleComplete ? "bi-check-circle-fill" : "bi-circle")" aria-hidden="true"></i>
+                        @(GrilleComplete ? Localizer["GrilleComplete"] : Localizer["GrilleIncomplete"])
+                    </p>
                 </aside>
             </div>
         }
     }
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

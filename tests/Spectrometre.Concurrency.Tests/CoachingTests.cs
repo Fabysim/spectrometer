@@ -196,6 +196,7 @@ public sealed class CoachingTests(ServiceFixture fixture)
         var gdt = scope.ServiceProvider.GetRequiredService<IGestionDuTempsService>();
         var coachingAccessChecker = scope.ServiceProvider.GetRequiredService<ICoachingAccessChecker>();
 
+        await gdt.GetOrCreateCycleActifAsync(userId);
         var types = await gdt.GetTypesDeTempsAsync(userId);
         Assert.Equal(6, types.Count);
 

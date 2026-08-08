@@ -3,7 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Resend;
+using Spectrometre.Core.Ai;
 using Spectrometre.Core.Data;
+using Spectrometre.Core.Directory;
+using Spectrometre.Core.Email;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
@@ -64,12 +68,39 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRecruitmentIndexService, RecruitmentIndexService>();
         services.AddScoped<IInvitationService, InvitationService>();
 
+        // Resend : envoi d'email de confirmation d'inscription — mêmes clés de configuration que mvp
+        // (Resend:ApiKey/Resend:From/Resend:AppName, variable d'environnement RESEND_API_KEY en repli).
+        services.AddOptions();
+        services.Configure<ResendEmailServiceOptions>(configuration.GetSection(ResendEmailServiceOptions.SectionName));
+        services.Configure<ResendClientOptions>(o =>
+        {
+            o.ApiToken = configuration["Resend:ApiKey"] is { Length: > 0 } configured
+                ? configured
+                : Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
+        });
+        services.AddHttpClient<ResendClient>();
+        services.AddTransient<IResend, ResendClient>();
+        services.AddScoped<IResendEmailService, ResendEmailService>();
+
+        // Replicate (Claude / Whisper) — mêmes clés que mvp (Replicate:ApiToken en user secrets,
+        // repli REPLICATE_API_TOKEN). AddHttpClient idempotent ; utilisé par GestionDuTemps et Coaching.
+        services.AddHttpClient();
+        services.AddScoped<IReplicateService, ReplicateService>();
+
         // Filet de sécurité : voir NoOpProfileChangeRecorder. Program.cs branche l'implémentation réelle
         // de SuiviEvolutif PAR-DESSUS cet enregistrement (la dernière inscription gagne à la résolution).
         services.AddScoped<IProfileChangeRecorder, NoOpProfileChangeRecorder>();
 
         // Même filet de sécurité pour Coaching — voir NoOpCoachingAccessChecker.
         services.AddScoped<ICoachingAccessChecker, NoOpCoachingAccessChecker>();
+
+        // Filets de sécurité pour la zone Admin (lecture seule des métadonnées candidat/coach/coaching) —
+        // chaque module concerné branche son implémentation réelle PAR-DESSUS directement dans sa propre
+        // AddXxxModule() (pas de conflit circulaire à résoudre depuis Host ici, voir la remarque sur
+        // ICandidateDirectoryService).
+        services.AddScoped<ICandidateDirectoryService, NoOpCandidateDirectoryService>();
+        services.AddScoped<ICoachDirectoryService, NoOpCoachDirectoryService>();
+        services.AddScoped<ICoachingLinkOverviewService, NoOpCoachingLinkOverviewService>();
 
         return services;
     }

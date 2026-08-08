@@ -15,23 +15,55 @@
 
 <PageTitle>@Localizer["CreerUneEntreprise"]</PageTitle>
 
-<h1>@Localizer["CreerUneEntreprise"]</h1>
+<div class="creer-entreprise-page">
+    <header class="creer-header">
+        <div>
+            <h1 class="creer-title">@Localizer["CreerUneEntreprise"]</h1>
+            <p class="creer-subtitle">@Localizer["CreerEntreprise_SousTitre"]</p>
+        </div>
+        <a href="/dashboard" class="creer-back">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["RetourAuTableauDeBord"]
+        </a>
+    </header>
 
-<EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="create-company">
-    <label>@Localizer["NomDeLEntreprise"] <InputText @bind-Value="_model.Name" /></label>
-    <button type="submit">@Localizer["Creer"]</button>
-</EditForm>
+    <section class="creer-card">
+        <div class="creer-card-icon" aria-hidden="true">
+            <i class="bi bi-building-add"></i>
+        </div>
+        <h2 class="creer-section-title">@Localizer["NomDeLEntreprise"]</h2>
 
-@if (!string.IsNullOrEmpty(_message))
-{
-    <p>@_message</p>
-}
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="create-company" class="creer-form">
+            <div class="creer-field">
+                <label for="creer-name">@Localizer["NomDeLEntreprise"]</label>
+                <InputText id="creer-name"
+                           class="creer-input"
+                           @bind-Value="_model.Name"
+                           placeholder="@Localizer["NomDeLEntreprise"]" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(_message))
+            {
+                <div class="creer-alert" role="alert">@_message</div>
+            }
+
+            <div class="creer-actions">
+                <a href="/dashboard" class="creer-btn-secondary">@Localizer["Annuler"]</a>
+                <button type="submit" class="creer-btn-primary" disabled="@_submitting">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    @Localizer["Creer"]
+                </button>
+            </div>
+        </EditForm>
+    </section>
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
     private readonly CompanyModel _model = new();
     private string? _message;
+    private bool _submitting;
 
     private sealed class CompanyModel
     {
@@ -40,6 +72,12 @@
 
     private async Task SubmitAsync()
     {
+        if (string.IsNullOrWhiteSpace(_model.Name))
+        {
+            _message = Localizer["DonneesEntreprise_NomRequis"];
+            return;
+        }
+
         var userId = AuthenticationStateTask is not null
             ? (await AuthenticationStateTask).User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             : null;
@@ -50,7 +88,16 @@
             return;
         }
 
-        await OnboardingService.CreateCompanyAsync(_model.Name, userId, CoreDb);
-        Navigation.NavigateTo("/entreprise/profil");
+        _submitting = true;
+        try
+        {
+            await OnboardingService.CreateCompanyAsync(_model.Name.Trim(), userId, CoreDb);
+            Navigation.NavigateTo("/entreprise/donnees");
+        }
+        catch
+        {
+            _message = Localizer["CreerEntreprise_Erreur"];
+            _submitting = false;
+        }
     }
 }

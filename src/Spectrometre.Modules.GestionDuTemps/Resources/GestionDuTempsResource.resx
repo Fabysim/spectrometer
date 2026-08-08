@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -45,6 +45,7 @@
   <data name="Parfois" xml:space="preserve"><value>Parfois</value></data>
   <data name="Souvent" xml:space="preserve"><value>Souvent</value></data>
   <data name="NavKanban" xml:space="preserve"><value>Kanban</value></data>
+  <data name="NavOrganisation" xml:space="preserve"><value>Organisation</value></data>
   <data name="NavProfilPsychosocial" xml:space="preserve"><value>Profil psychosocial</value></data>
   <data name="NavReflexionConsciente" xml:space="preserve"><value>Réflexion consciente</value></data>
   <data name="NavSynthese" xml:space="preserve"><value>Synthèse</value></data>
@@ -154,10 +155,57 @@
   <data name="EnregistrerLeProfil" xml:space="preserve"><value>Enregistrer le profil</value></data>
   <data name="ProfilEnregistre" xml:space="preserve"><value>Profil enregistré.</value></data>
 
+  <!-- GestionDuTempsOrganisationPage.razor -->
+  <data name="OrganisationTitle" xml:space="preserve"><value>Organisation · Gestion du temps</value></data>
+  <data name="OrganisationDeLaSemaine" xml:space="preserve"><value>Organisation de la semaine</value></data>
+  <data name="OrganisationHint" xml:space="preserve"><value>Calendrier hebdomadaire — glissez-déposez vos activités, cliquez sur une plage pour en créer, ou sur un bloc pour le modifier.</value></data>
+  <data name="Calendrier_Today" xml:space="preserve"><value>Aujourd'hui</value></data>
+  <data name="GdtOrg_Subtitle" xml:space="preserve"><value>Visualisez vos blocs de temps · ajoutez vos activités sur le calendrier</value></data>
+  <data name="GdtOrg_PreviousWeek" xml:space="preserve"><value>Semaine précédente</value></data>
+  <data name="GdtOrg_NextWeek" xml:space="preserve"><value>Semaine suivante</value></data>
+  <data name="GdtOrg_JumpToDate" xml:space="preserve"><value>Aller à une date</value></data>
+  <data name="GdtOrg_PickMonth" xml:space="preserve"><value>Choisir un mois</value></data>
+  <data name="GdtOrg_WeekView" xml:space="preserve"><value>Semaine</value></data>
+  <data name="GdtOrg_WeekNavigation" xml:space="preserve"><value>Navigation dans le calendrier</value></data>
+  <data name="GdtOrg_Types" xml:space="preserve"><value>Types</value></data>
+  <data name="GdtOrg_TypesRepartition" xml:space="preserve"><value>Répartition des types</value></data>
+  <data name="GdtOrg_LoadError" xml:space="preserve"><value>Impossible de charger les activités du calendrier. Réessayez ou rafraîchissez la page.</value></data>
+  <data name="GdtOrg_Label_Name" xml:space="preserve"><value>Nom</value></data>
+  <data name="GdtOrg_Label_Duration" xml:space="preserve"><value>Durée</value></data>
+  <data name="GdtOrg_Label_Day" xml:space="preserve"><value>Jour</value></data>
+  <data name="GdtOrg_Label_StartTime" xml:space="preserve"><value>Heure de début</value></data>
+  <data name="GdtOrg_Label_TimeType" xml:space="preserve"><value>Type de temps</value></data>
+  <data name="GdtOrg_AddButton" xml:space="preserve"><value>+ Ajouter</value></data>
+  <data name="GdtOrg_Placeholder_ActivityShort" xml:space="preserve"><value>Ex : Lecture, Sport…</value></data>
+  <data name="GdtOrg_SleepNoActivities" xml:space="preserve"><value>Le sommeil ne peut pas recevoir d'activités</value></data>
+  <data name="GdtOrg_ClickToAdd" xml:space="preserve"><value>Cliquer pour ajouter une activité</value></data>
+  <data name="GdtOrg_NewActivity" xml:space="preserve"><value>Nouvelle activité</value></data>
+  <data name="GdtOrg_EditActivity" xml:space="preserve"><value>Modifier l'activité</value></data>
+  <data name="GdtOrg_Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="GdtOrg_Save" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="GdtOrg_Err_NameRequired" xml:space="preserve"><value>Le nom de l'activité est requis.</value></data>
+  <data name="GdtOrg_Err_SleepBlocked" xml:space="preserve"><value>Impossible de créer une activité sur le temps Sommeil.</value></data>
+  <data name="GdtOrg_Err_SleepPlacement" xml:space="preserve"><value>Impossible de placer une activité sur le temps Sommeil.</value></data>
+  <data name="GdtOrg_ActivityDeleted" xml:space="preserve"><value>Activité supprimée.</value></data>
+  <data name="SemainePrecedente" xml:space="preserve"><value>◂ Semaine précédente</value></data>
+  <data name="SemaineSuivante" xml:space="preserve"><value>Semaine suivante ▸</value></data>
+  <data name="CetteSemaine" xml:space="preserve"><value>Cette semaine</value></data>
+  <data name="SemaineDu" xml:space="preserve"><value>Semaine du {0} au {1}</value></data>
+  <data name="JourLundi" xml:space="preserve"><value>Lundi</value></data>
+  <data name="JourMardi" xml:space="preserve"><value>Mardi</value></data>
+  <data name="JourMercredi" xml:space="preserve"><value>Mercredi</value></data>
+  <data name="JourJeudi" xml:space="preserve"><value>Jeudi</value></data>
+  <data name="JourVendredi" xml:space="preserve"><value>Vendredi</value></data>
+  <data name="JourSamedi" xml:space="preserve"><value>Samedi</value></data>
+  <data name="JourDimanche" xml:space="preserve"><value>Dimanche</value></data>
+  <data name="AucunRappelCeJour" xml:space="preserve"><value>Aucun rappel</value></data>
+  <data name="AjouterUnRappel" xml:space="preserve"><value>+ Ajouter</value></data>
+  <data name="RecurrencesDuJour" xml:space="preserve"><value>Catégories récurrentes ce jour</value></data>
+
   <!-- GestionDuTempsKanbanPage.razor -->
-  <data name="KanbanTitle" xml:space="preserve"><value>Kanban · Gestion du temps</value></data>
-  <data name="KanbanDuCycleActif" xml:space="preserve"><value>Kanban du cycle actif</value></data>
-  <data name="KanbanHint1" xml:space="preserve"><value>Faites progresser vos rappels À faire → En cours → Terminé. Le minuteur mesure le temps réel passé en « En cours » et l'accumule à travers plusieurs pauses/reprises.</value></data>
+  <data name="KanbanTitle" xml:space="preserve"><value>Planification · Gestion du temps</value></data>
+  <data name="KanbanDuCycleActif" xml:space="preserve"><value>Planification du cycle actif</value></data>
+  <data name="KanbanHint1" xml:space="preserve"><value>Glissez les cartes entre À faire → En cours → Terminé (ou utilisez les boutons sur mobile). Le minuteur mesure le temps réel passé en « En cours » et l'accumule à travers plusieurs pauses/reprises.</value></data>
   <data name="CycleBandeau" xml:space="preserve"><value>Cycle #{0} — en cours depuis le {1}</value></data>
   <data name="ClotureCycleBouton" xml:space="preserve"><value>Clôturer ce cycle et en démarrer un nouveau</value></data>
   <data name="ClotureCycleHint" xml:space="preserve"><value>À la clôture, vos catégories (types de temps) sont reconduites dans le nouveau cycle ; les rappels de ce cycle-ci restent archivés tels quels, ils ne sont jamais reportés.</value></data>
@@ -209,4 +257,258 @@
   <data name="ProfilTypeStructure" xml:space="preserve"><value>Structuré</value></data>
   <data name="ProfilTypeSature" xml:space="preserve"><value>Saturé</value></data>
   <data name="ProfilTypeFragmente" xml:space="preserve"><value>Fragmenté</value></data>
+
+  <!-- GestionDuTempsProfilPage wizard -->
+  <data name="GdtProfil_StepProgress" xml:space="preserve"><value>Étape {0} sur {1}</value></data>
+  <data name="GdtProfil_Back" xml:space="preserve"><value>Retour</value></data>
+  <data name="GdtProfil_Continue" xml:space="preserve"><value>Continuer</value></data>
+  <data name="GdtProfil_GoToReflexion" xml:space="preserve"><value>Passer à la Réflexion consciente</value></data>
+  <data name="GdtProfil_GoToSynthese" xml:space="preserve"><value>Générer la synthèse détaillée</value></data>
+  <data name="GdtProfil_SyntheseStepHint" xml:space="preserve"><value>Votre profil est enregistré. Générez la synthèse détaillée, ou poursuivez vers la réflexion consciente.</value></data>
+  <data name="GdtProfil_Step0_Title" xml:space="preserve"><value>Rythme de vie</value></data>
+  <data name="GdtProfil_Step0_Short" xml:space="preserve"><value>Rythme</value></data>
+  <data name="GdtProfil_Step0_Sub" xml:space="preserve"><value>Comprendre la structure de base de votre temps selon les 6 types</value></data>
+  <data name="GdtProfil_Step1_Title" xml:space="preserve"><value>Contraintes structurelles</value></data>
+  <data name="GdtProfil_Step1_Short" xml:space="preserve"><value>Contraintes</value></data>
+  <data name="GdtProfil_Step1_Sub" xml:space="preserve"><value>Obligations non négociables qui influencent votre gestion du temps</value></data>
+  <data name="GdtProfil_Step2_Title" xml:space="preserve"><value>État psychosocial &amp; perception du temps</value></data>
+  <data name="GdtProfil_Step2_Short" xml:space="preserve"><value>Psychosocial</value></data>
+  <data name="GdtProfil_Step2_Sub" xml:space="preserve"><value>Votre relation subjective au temps — essentielle pour comprendre vos comportements</value></data>
+  <data name="GdtProfil_Step3_Title" xml:space="preserve"><value>Habitudes organisationnelles</value></data>
+  <data name="GdtProfil_Step3_Short" xml:space="preserve"><value>Organisation</value></data>
+  <data name="GdtProfil_Step3_Sub" xml:space="preserve"><value>Évaluation de votre maturité organisationnelle — score calculé en temps réel</value></data>
+  <data name="GdtProfil_Step4_Title" xml:space="preserve"><value>Équilibre des temps de vie</value></data>
+  <data name="GdtProfil_Step4_Short" xml:space="preserve"><value>Équilibre</value></data>
+  <data name="GdtProfil_Step4_Sub" xml:space="preserve"><value>Mesurer l'harmonie entre les 6 types de temps · indice calculé automatiquement</value></data>
+  <data name="GdtProfil_Step5_Title" xml:space="preserve"><value>Objectifs personnels &amp; professionnels</value></data>
+  <data name="GdtProfil_Step5_Short" xml:space="preserve"><value>Objectifs</value></data>
+  <data name="GdtProfil_Step5_Sub" xml:space="preserve"><value>Prépare la transition vers les modules Organisation et Planification</value></data>
+  <data name="GdtProfil_Step6_Title" xml:space="preserve"><value>Synthèse psychosociale</value></data>
+  <data name="GdtProfil_Step6_Short" xml:space="preserve"><value>Synthèse</value></data>
+  <data name="GdtProfil_Step6_Sub" xml:space="preserve"><value>Générée automatiquement · Profil · Indice · Maturité · Recommandations</value></data>
+  <data name="GdtRc_CurrentFeelings" xml:space="preserve"><value>Ressentis actuels</value></data>
+  <data name="GdtRc_Remove" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="GdtRc_Add" xml:space="preserve"><value>+ Ajouter</value></data>
+  <data name="GdtRc_Placeholder_NewFeeling" xml:space="preserve"><value>Nouveau ressenti…</value></data>
+  <data name="GdtRc_Confirm" xml:space="preserve"><value>Confirmer</value></data>
+  <data name="GdtRc_CurrentSituation" xml:space="preserve"><value>Situation actuelle ressentie</value></data>
+  <data name="GdtRc_Placeholder_Situation" xml:space="preserve"><value>Décrivez la situation…</value></data>
+  <data name="GdtRc_SourceIdentified" xml:space="preserve"><value>Source identifiée ?</value></data>
+  <data name="GdtRc_SourceUnknown" xml:space="preserve"><value>Source inconnue</value></data>
+  <data name="GdtRc_SourceIdentifiedGoStep4" xml:space="preserve"><value>Source identifiée → étape 4</value></data>
+  <data name="GdtRc_PossibleSources" xml:space="preserve"><value>Sources possibles</value></data>
+  <data name="GdtRc_Placeholder_CustomSource" xml:space="preserve"><value>Source personnalisée…</value></data>
+  <data name="GdtRc_ResolutionDate" xml:space="preserve"><value>Date de résolution de la situation</value></data>
+  <data name="GdtRc_Ressenti_AngoisseContrainte" xml:space="preserve"><value>Angoisse · contrainte</value></data>
+  <data name="GdtRc_Ressenti_Satisfaction" xml:space="preserve"><value>Satisfaction</value></data>
+  <data name="GdtRc_Ressenti_Injustice" xml:space="preserve"><value>Injustice</value></data>
+  <data name="GdtRc_Ressenti_Insatisfaction" xml:space="preserve"><value>Insatisfaction</value></data>
+  <data name="GdtRc_Ressenti_Utilite" xml:space="preserve"><value>Utilité</value></data>
+  <data name="GdtRc_Ressenti_Efficacite" xml:space="preserve"><value>Efficacité</value></data>
+  <data name="GdtRc_Ressenti_Inutilite" xml:space="preserve"><value>Inutilité</value></data>
+  <data name="GdtRc_Ressenti_Harcelement" xml:space="preserve"><value>Harcèlement</value></data>
+  <data name="GdtRc_Source_Temporelle" xml:space="preserve"><value>Temporelle</value></data>
+  <data name="GdtRc_Source_Organisationnelle" xml:space="preserve"><value>Organisationnelle</value></data>
+  <data name="GdtRc_Source_Humaine" xml:space="preserve"><value>Humaine</value></data>
+  <data name="GdtRc_Source_Financiere" xml:space="preserve"><value>Financière</value></data>
+  <data name="GdtRc_Source_Materielle" xml:space="preserve"><value>Matérielle</value></data>
+  <data name="GdtRc_Source_Autre" xml:space="preserve"><value>Autre</value></data>
+
+  <!-- Moniteur / Tableau de bord -->
+  <data name="NavMoniteur" xml:space="preserve"><value>Moniteur</value></data>
+  <data name="NavPlanification" xml:space="preserve"><value>Planification</value></data>
+  <data name="Gdt_TdbPeriodLabel" xml:space="preserve"><value>Période {0} · cycle depuis le {1}</value></data>
+  <data name="Gdt_TdbCycleDay" xml:space="preserve"><value>Jour {0}</value></data>
+  <data name="Dashboard_GdtStatutAFaire" xml:space="preserve"><value>À faire</value></data>
+  <data name="Dashboard_GdtStatutEnCours" xml:space="preserve"><value>En cours</value></data>
+  <data name="Dashboard_GdtStatutTermine" xml:space="preserve"><value>Terminé</value></data>
+  <data name="Gdt_Tdb_Theoretical" xml:space="preserve"><value>Théorique</value></data>
+  <data name="Gdt_Tdb_Real" xml:space="preserve"><value>Réel (temps utilisé)</value></data>
+  <data name="Gdt_Tdb_BarChartAria" xml:space="preserve"><value>Comparaison théorique et réel</value></data>
+  <data name="Gdt_Tdb_RadarChartAria" xml:space="preserve"><value>Radar théorique et réel</value></data>
+  <data name="Gdt_Tdb_DetailTitle" xml:space="preserve"><value>Détail par type · taux de réalisation</value></data>
+  <data name="Gdt_Tdb_RecoUnderused" xml:space="preserve"><value>Moins de 50% du temps alloué pour : {0}. Pensez à planifier ces activités.</value></data>
+  <data name="Gdt_Tdb_RecoBalanced" xml:space="preserve"><value>Bon équilibre global. Continuez sur cette lancée !</value></data>
+  <data name="Gdt_Tdb_ResetWeekly" xml:space="preserve"><value>Reset hebdomadaire · lundi 00h00</value></data>
+  <data name="Gdt_Tdb_ResetGeneric" xml:space="preserve"><value>Reset {0}</value></data>
+  <data name="Gdt_Period_Journalier" xml:space="preserve"><value>Journalier</value></data>
+  <data name="Gdt_Period_Hebdomadaire" xml:space="preserve"><value>Hebdomadaire</value></data>
+  <data name="Gdt_Period_Mensuel" xml:space="preserve"><value>Mensuel</value></data>
+  <data name="Gdt_Period_Trimestriel" xml:space="preserve"><value>Trimestriel</value></data>
+  <data name="Gdt_Period_Annuel" xml:space="preserve"><value>Annuel</value></data>
+
+  <!-- MVP ProfilPsychosocial option/label keys -->
+  <data name="GdtProfil_Chip_Acceptation" xml:space="preserve"><value>Acceptation</value></data>
+  <data name="GdtProfil_Chip_AmeliorerEfficacite" xml:space="preserve"><value>Améliorer mon efficacité</value></data>
+  <data name="GdtProfil_Chip_AmeliorerSupportManagerial" xml:space="preserve"><value>Améliorer le support managérial</value></data>
+  <data name="GdtProfil_Chip_BaissePerformance" xml:space="preserve"><value>Baisse de performance</value></data>
+  <data name="GdtProfil_Chip_BienEtre" xml:space="preserve"><value>Bien-être</value></data>
+  <data name="GdtProfil_Chip_Colere" xml:space="preserve"><value>Colère</value></data>
+  <data name="GdtProfil_Chip_DeleguerDavantage" xml:space="preserve"><value>Déléguer davantage</value></data>
+  <data name="GdtProfil_Chip_DifficulteDeleguer" xml:space="preserve"><value>Difficulté à déléguer</value></data>
+  <data name="GdtProfil_Chip_DifficulteDireNon" xml:space="preserve"><value>Difficulté à dire non</value></data>
+  <data name="GdtProfil_Chip_Epanouissement" xml:space="preserve"><value>Épanouissement</value></data>
+  <data name="GdtProfil_Chip_EvitementAdministratif" xml:space="preserve"><value>Évitement administratif</value></data>
+  <data name="GdtProfil_Chip_Fatigue" xml:space="preserve"><value>Fatigue</value></data>
+  <data name="GdtProfil_Chip_Frustration" xml:space="preserve"><value>Frustration</value></data>
+  <data name="GdtProfil_Chip_HyperDisponibilite" xml:space="preserve"><value>Hyper-disponibilité</value></data>
+  <data name="GdtProfil_Chip_Insatisfaction" xml:space="preserve"><value>Insatisfaction</value></data>
+  <data name="GdtProfil_Chip_Irritabilite" xml:space="preserve"><value>Irritabilité</value></data>
+  <data name="GdtProfil_Chip_Joie" xml:space="preserve"><value>Joie</value></data>
+  <data name="GdtProfil_Chip_ManqueDiscipline" xml:space="preserve"><value>Manque de discipline</value></data>
+  <data name="GdtProfil_Chip_ManqueOutils" xml:space="preserve"><value>Manque d'outils</value></data>
+  <data name="GdtProfil_Chip_ManqueTemps" xml:space="preserve"><value>Manque de temps</value></data>
+  <data name="GdtProfil_Chip_MieuxPriorites" xml:space="preserve"><value>Mieux gérer mes priorités</value></data>
+  <data name="GdtProfil_Chip_PasAssezTempsPerso" xml:space="preserve"><value>Pas assez de temps personnel</value></data>
+  <data name="GdtProfil_Chip_Perfectionnisme" xml:space="preserve"><value>Perfectionnisme</value></data>
+  <data name="GdtProfil_Chip_PressionsExternes" xml:space="preserve"><value>Pressions externes</value></data>
+  <data name="GdtProfil_Chip_Procrastination" xml:space="preserve"><value>Procrastination</value></data>
+  <data name="GdtProfil_Chip_ReduireChargeMentale" xml:space="preserve"><value>Réduire ma charge mentale</value></data>
+  <data name="GdtProfil_Chip_Satisfaction" xml:space="preserve"><value>Satisfaction</value></data>
+  <data name="GdtProfil_Chip_SentimentEchec" xml:space="preserve"><value>Sentiment d'échec</value></data>
+  <data name="GdtProfil_Chip_Serenite" xml:space="preserve"><value>Sérénité</value></data>
+  <data name="GdtProfil_Chip_SommeilInsuffisant" xml:space="preserve"><value>Sommeil insuffisant</value></data>
+  <data name="GdtProfil_Chip_SurEngagement" xml:space="preserve"><value>Sur-engagement</value></data>
+  <data name="GdtProfil_Chip_TempsAdminNeglige" xml:space="preserve"><value>Temps administratif négligé</value></data>
+  <data name="GdtProfil_Chip_TempsFamilialInsuffisant" xml:space="preserve"><value>Temps familial insuffisant</value></data>
+  <data name="GdtProfil_Chip_TempsSocialInexistant" xml:space="preserve"><value>Temps social inexistant</value></data>
+  <data name="GdtProfil_Chip_TropTempsPro" xml:space="preserve"><value>Trop de temps professionnel</value></data>
+  <data name="GdtProfil_Hint_DirectionTemps" xml:space="preserve"><value>Pour chaque type de temps, indiquez si vous souhaitez augmenter, réduire ou maintenir</value></data>
+  <data name="GdtProfil_Hint_SatisfactionTemps" xml:space="preserve"><value>Déplacez chaque curseur pour indiquer votre niveau de satisfaction actuel</value></data>
+  <data name="GdtProfil_Imprev_Adaptatif_Desc" xml:space="preserve"><value>Je prends un moment pour réévaluer la situation et ajuster mon programme.</value></data>
+  <data name="GdtProfil_Imprev_Adaptatif_Title" xml:space="preserve"><value>Réaction adaptative</value></data>
+  <data name="GdtProfil_Imprev_Anxieux_Desc" xml:space="preserve"><value>Je me sens vite débordé(e) et j'ai du mal à retrouver mon organisation.</value></data>
+  <data name="GdtProfil_Imprev_Anxieux_Title" xml:space="preserve"><value>Réaction anxieuse</value></data>
+  <data name="GdtProfil_Imprev_Souple_Desc" xml:space="preserve"><value>Les imprévus font partie du quotidien, je m'adapte assez facilement.</value></data>
+  <data name="GdtProfil_Imprev_Souple_Title" xml:space="preserve"><value>Réaction souple</value></data>
+  <data name="GdtProfil_Lbl_ActivitesRessourcantes" xml:space="preserve"><value>Activités qui vous ressourcent (optionnel)</value></data>
+  <data name="GdtProfil_Lbl_AutonomieGestion" xml:space="preserve"><value>Niveau d'autonomie dans la gestion de votre temps</value></data>
+  <data name="GdtProfil_Lbl_AutonomieMax" xml:space="preserve"><value>Très autonome</value></data>
+  <data name="GdtProfil_Lbl_AutonomieMin" xml:space="preserve"><value>Très contraint</value></data>
+  <data name="GdtProfil_Lbl_CapaciteNon" xml:space="preserve"><value>Capacité à reporter ou refuser quand vous êtes submergé(e) ?</value></data>
+  <data name="GdtProfil_Lbl_Culpabilite" xml:space="preserve"><value>Culpabilité lorsque vous prenez du temps pour vous ?</value></data>
+  <data name="GdtProfil_Lbl_DecisionsPrecipitees" xml:space="preserve"><value>Décisions prises de façon précipitée ?</value></data>
+  <data name="GdtProfil_Lbl_DeplacementsImprevus" xml:space="preserve"><value>Déplacements imprévisibles fréquents ?</value></data>
+  <data name="GdtProfil_Lbl_Desequilibres" xml:space="preserve"><value>Domaines qui souffrent le plus (plusieurs choix possibles)</value></data>
+  <data name="GdtProfil_Lbl_DifficultesConcentration" xml:space="preserve"><value>Difficultés à vous concentrer ?</value></data>
+  <data name="GdtProfil_Lbl_DureeTrajets" xml:space="preserve"><value>Durée moyenne des trajets quotidiens</value></data>
+  <data name="GdtProfil_Lbl_EcransAvantSommeil" xml:space="preserve"><value>Utilisation d'écrans avant de dormir ?</value></data>
+  <data name="GdtProfil_Lbl_EmotionsNeg" xml:space="preserve"><value>Émotions négatives ressenties liées au manque de temps (plusieurs choix)</value></data>
+  <data name="GdtProfil_Lbl_EmotionsPos" xml:space="preserve"><value>Émotions positives associées à certaines activités (plusieurs choix)</value></data>
+  <data name="GdtProfil_Lbl_EngagementCommunautaire" xml:space="preserve"><value>Engagements communautaires / bénévolat / associations ?</value></data>
+  <data name="GdtProfil_Lbl_EngagementNature" xml:space="preserve"><value>Nature de l'engagement</value></data>
+  <data name="GdtProfil_Lbl_GestionAdmin" xml:space="preserve"><value>Gestion des tâches administratives (classement, factures, rangement…)</value></data>
+  <data name="GdtProfil_Lbl_HoraireTravail" xml:space="preserve"><value>Horaire de travail</value></data>
+  <data name="GdtProfil_Lbl_InterruptionsTravail" xml:space="preserve"><value>Interruptions fréquentes dans la journée ?</value></data>
+  <data name="GdtProfil_Lbl_ManqueTempsPerso" xml:space="preserve"><value>Fréquence du manque de temps pour vous</value></data>
+  <data name="GdtProfil_Lbl_ModeTravail" xml:space="preserve"><value>Mode de travail</value></data>
+  <data name="GdtProfil_Lbl_ObjectifsPro" xml:space="preserve"><value>Ce que vous souhaitez améliorer (plusieurs choix)</value></data>
+  <data name="GdtProfil_Lbl_OuiTropFacile" xml:space="preserve"><value>Tendance à dire oui trop facilement ?</value></data>
+  <data name="GdtProfil_Lbl_PlanificationAvance" xml:space="preserve"><value>Vous planifiez vos journées à l'avance ?</value></data>
+  <data name="GdtProfil_Lbl_ProcheMalade" xml:space="preserve"><value>Gestion d'un proche malade ?</value></data>
+  <data name="GdtProfil_Lbl_ReveilsNocturnes" xml:space="preserve"><value>Réveils nocturnes fréquents ?</value></data>
+  <data name="GdtProfil_Lbl_RituelsQuotidiens" xml:space="preserve"><value>Vous avez des rituels journaliers auxquels vous tenez ?</value></data>
+  <data name="GdtProfil_Lbl_SentimentPression" xml:space="preserve"><value>Vous sentez-vous souvent pressé(e) ou sous pression ?</value></data>
+  <data name="GdtProfil_Lbl_SommeilCoucher" xml:space="preserve"><value>Heure de coucher habituelle</value></data>
+  <data name="GdtProfil_Lbl_SommeilLever" xml:space="preserve"><value>Heure de lever habituelle</value></data>
+  <data name="GdtProfil_Lbl_SommeilReparateur" xml:space="preserve"><value>Votre sommeil est-il réparateur ?</value></data>
+  <data name="GdtProfil_Lbl_StressAdmin" xml:space="preserve"><value>Ces tâches génèrent-elles du stress ?</value></data>
+  <data name="GdtProfil_Lbl_SurchargePrevisible" xml:space="preserve"><value>Périodes de surcharge prévisibles ?</value></data>
+  <data name="GdtProfil_Lbl_TempsPersoQuotidien" xml:space="preserve"><value>Moment quotidien réservé à vous-même ?</value></data>
+  <data name="GdtProfil_Lbl_Tendances" xml:space="preserve"><value>Tendances comportementales (plusieurs choix possibles)</value></data>
+  <data name="GdtProfil_Lbl_ToleranceImprevu" xml:space="preserve"><value>Comment réagissez-vous face à un imprévu qui perturbe votre planning ?</value></data>
+  <data name="GdtProfil_Lbl_TravailHorsHeures" xml:space="preserve"><value>Travail régulier hors des heures prévues ?</value></data>
+  <data name="GdtProfil_Lbl_UtiliseAgenda" xml:space="preserve"><value>Vous utilisez un agenda, calendrier ou application pour organiser votre temps ?</value></data>
+  <data name="GdtProfil_Maturite_Chaotique" xml:space="preserve"><value>Chaotique</value></data>
+  <data name="GdtProfil_Maturite_Fonctionnel" xml:space="preserve"><value>Fonctionnel</value></data>
+  <data name="GdtProfil_Maturite_Instable" xml:space="preserve"><value>Instable</value></data>
+  <data name="GdtProfil_Maturite_Maitrise" xml:space="preserve"><value>Maîtrisé</value></data>
+  <data name="GdtProfil_Indice_Severe" xml:space="preserve"><value>Déséquilibre sévère</value></data>
+  <data name="GdtProfil_Indice_Important" xml:space="preserve"><value>Déséquilibre important</value></data>
+  <data name="GdtProfil_Indice_Fragile" xml:space="preserve"><value>Équilibre fragile</value></data>
+  <data name="GdtProfil_Indice_Satisfaisant" xml:space="preserve"><value>Équilibre satisfaisant</value></data>
+  <data name="GdtProfil_Indice_Optimal" xml:space="preserve"><value>Équilibre optimal</value></data>
+  <data name="GdtProfil_Synthese_Analyzing" xml:space="preserve"><value>Analyse en cours…</value></data>
+  <data name="GdtProfil_Synthese_ProfilBadge" xml:space="preserve"><value>Profil psychosocial</value></data>
+  <data name="GdtProfil_Synthese_IndiceBadge" xml:space="preserve"><value>Indice d'équilibre</value></data>
+  <data name="GdtProfil_Synthese_IndiceAria" xml:space="preserve"><value>Indice d'équilibre {0} sur 100</value></data>
+  <data name="GdtProfil_Synthese_MaturiteBadge" xml:space="preserve"><value>Maturité organisationnelle</value></data>
+  <data name="GdtProfil_Synthese_MaturiteLevel" xml:space="preserve"><value>Niveau {0} — {1}</value></data>
+  <data name="GdtProfil_Synthese_RepartitionTitle" xml:space="preserve"><value>Répartition des types de temps · journée idéale</value></data>
+  <data name="GdtProfil_Synthese_RepartitionNote" xml:space="preserve"><value>Plages horaires et récurrence de chaque type (éditables dans Organisation).</value></data>
+  <data name="GdtProfil_Synthese_ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="GdtProfil_Synthese_ColCouleur" xml:space="preserve"><value>Couleur</value></data>
+  <data name="GdtProfil_Synthese_ColPlage" xml:space="preserve"><value>Plage horaire</value></data>
+  <data name="GdtProfil_Synthese_ColDuree" xml:space="preserve"><value>Durée</value></data>
+  <data name="GdtProfil_Synthese_ColRecurrence" xml:space="preserve"><value>Récurrence</value></data>
+  <data name="GdtProfil_Synthese_Recommandations" xml:space="preserve"><value>Recommandations personnalisées</value></data>
+  <data name="GdtProfil_Synthese_Regenerer" xml:space="preserve"><value>Régénérer l'analyse</value></data>
+  <data name="GdtProfil_Maturite_Structure" xml:space="preserve"><value>Structuré</value></data>
+  <data name="GdtProfil_Opt_15To30Min" xml:space="preserve"><value>15–30 min</value></data>
+  <data name="GdtProfil_Opt_30To60Min" xml:space="preserve"><value>30–60 min</value></data>
+  <data name="GdtProfil_Opt_Annuel" xml:space="preserve"><value>Annuel</value></data>
+  <data name="GdtProfil_Opt_Augmenter" xml:space="preserve"><value>Augmenter</value></data>
+  <data name="GdtProfil_Opt_AuGreDesCirconstances" xml:space="preserve"><value>Au gré des circonstances</value></data>
+  <data name="GdtProfil_Opt_AuJourLeJour" xml:space="preserve"><value>Au jour le jour</value></data>
+  <data name="GdtProfil_Opt_Beaucoup" xml:space="preserve"><value>Beaucoup</value></data>
+  <data name="GdtProfil_Opt_Choix" xml:space="preserve"><value>Par choix</value></data>
+  <data name="GdtProfil_Opt_Constantement" xml:space="preserve"><value>Constamment</value></data>
+  <data name="GdtProfil_Opt_Contrainte" xml:space="preserve"><value>Par contrainte</value></data>
+  <data name="GdtProfil_Opt_Facilement" xml:space="preserve"><value>Facilement</value></data>
+  <data name="GdtProfil_Opt_Fixe" xml:space="preserve"><value>Fixe</value></data>
+  <data name="GdtProfil_Opt_Hebdomadaire" xml:space="preserve"><value>Hebdomadaire</value></data>
+  <data name="GdtProfil_Opt_Hybride" xml:space="preserve"><value>Hybride</value></data>
+  <data name="GdtProfil_Opt_Jamais" xml:space="preserve"><value>Jamais</value></data>
+  <data name="GdtProfil_Opt_Journalier" xml:space="preserve"><value>Journalier</value></data>
+  <data name="GdtProfil_Opt_Less15Min" xml:space="preserve"><value>&lt; 15 min</value></data>
+  <data name="GdtProfil_Opt_Mensuel" xml:space="preserve"><value>Mensuel</value></data>
+  <data name="GdtProfil_Opt_Mensuelle" xml:space="preserve"><value>Mensuelle</value></data>
+  <data name="GdtProfil_Opt_Mixte" xml:space="preserve"><value>Mixte</value></data>
+  <data name="GdtProfil_Opt_More1Hour" xml:space="preserve"><value>&gt; 1 heure</value></data>
+  <data name="GdtProfil_Opt_Non" xml:space="preserve"><value>Non</value></data>
+  <data name="GdtProfil_Opt_Oui" xml:space="preserve"><value>Oui</value></data>
+  <data name="GdtProfil_Opt_Parfois" xml:space="preserve"><value>Parfois</value></data>
+  <data name="GdtProfil_Opt_Presentiel" xml:space="preserve"><value>Présentiel</value></data>
+  <data name="GdtProfil_Opt_Quotidiennement" xml:space="preserve"><value>Quotidiennement</value></data>
+  <data name="GdtProfil_Opt_Rarement" xml:space="preserve"><value>Rarement</value></data>
+  <data name="GdtProfil_Opt_Reduire" xml:space="preserve"><value>Réduire</value></data>
+  <data name="GdtProfil_Opt_Souvent" xml:space="preserve"><value>Souvent</value></data>
+  <data name="GdtProfil_Opt_Stable" xml:space="preserve"><value>Stable</value></data>
+  <data name="GdtProfil_Opt_Systematiquement" xml:space="preserve"><value>Systématiquement</value></data>
+  <data name="GdtProfil_Opt_Teletravail" xml:space="preserve"><value>Télétravail</value></data>
+  <data name="GdtProfil_Opt_Toujours" xml:space="preserve"><value>Toujours</value></data>
+  <data name="GdtProfil_Opt_Trimestriel" xml:space="preserve"><value>Trimestriel</value></data>
+  <data name="GdtProfil_Opt_UnPeu" xml:space="preserve"><value>Un peu</value></data>
+  <data name="GdtProfil_Opt_Variable" xml:space="preserve"><value>Variable</value></data>
+  <data name="GdtProfil_Ph_ActivitesRessourcantes" xml:space="preserve"><value>Sport, lecture, méditation…</value></data>
+  <data name="GdtProfil_Satisfaction_Neutral" xml:space="preserve"><value>Neutre</value></data>
+  <data name="GdtProfil_Satisfaction_Satisfied" xml:space="preserve"><value>Satisfait</value></data>
+  <data name="GdtProfil_Satisfaction_Unsatisfied" xml:space="preserve"><value>Insatisfait</value></data>
+  <data name="GdtProfil_Satisfaction_VerySatisfied" xml:space="preserve"><value>Très satisfait</value></data>
+  <data name="GdtProfil_Satisfaction_VeryUnsatisfied" xml:space="preserve"><value>Très insatisfait</value></data>
+  <data name="GdtProfil_Section_Deplacements" xml:space="preserve"><value>Déplacements</value></data>
+  <data name="GdtProfil_Section_Desequilibres" xml:space="preserve"><value>Déséquilibres ressentis</value></data>
+  <data name="GdtProfil_Section_DirectionTemps" xml:space="preserve"><value>Direction souhaitée par type de temps</value></data>
+  <data name="GdtProfil_Section_EnvironnementTravail" xml:space="preserve"><value>Environnement de travail</value></data>
+  <data name="GdtProfil_Section_ImpactsEmotionnels" xml:space="preserve"><value>Impacts émotionnels</value></data>
+  <data name="GdtProfil_Section_ObjectifsPro" xml:space="preserve"><value>Objectifs professionnels</value></data>
+  <data name="GdtProfil_Section_Obstacles" xml:space="preserve"><value>Obstacles perçus</value></data>
+  <data name="GdtProfil_Section_Planification" xml:space="preserve"><value>Planification</value></data>
+  <data name="GdtProfil_Section_Priorisation" xml:space="preserve"><value>Priorisation &amp; gestion des interruptions</value></data>
+  <data name="GdtProfil_Section_RapportEmotionnel" xml:space="preserve"><value>Rapport émotionnel au temps</value></data>
+  <data name="GdtProfil_Section_Responsabilites" xml:space="preserve"><value>Responsabilités additionnelles</value></data>
+  <data name="GdtProfil_Section_SatisfactionTemps" xml:space="preserve"><value>Satisfaction par type de temps</value></data>
+  <data name="GdtProfil_Section_StressCharge" xml:space="preserve"><value>Stress &amp; charge mentale</value></data>
+  <data name="GdtProfil_Section_TempsAdmin" xml:space="preserve"><value>Temps administratif</value></data>
+  <data name="GdtProfil_Section_TempsPerso" xml:space="preserve"><value>Temps personnel</value></data>
+  <data name="GdtProfil_Section_TempsPro" xml:space="preserve"><value>Temps professionnel</value></data>
+  <data name="GdtProfil_Section_ToleranceImprevu" xml:space="preserve"><value>Tolérance à l'imprévu</value></data>
+  <data name="GdtProfil_Subtitle" xml:space="preserve"><value>Anamnèse</value></data>
+  <data name="GdtProfil_Type_admin" xml:space="preserve"><value>Administratif</value></data>
+  <data name="GdtProfil_Type_famille" xml:space="preserve"><value>Familial · affectif</value></data>
+  <data name="GdtProfil_Type_perso" xml:space="preserve"><value>Personnel</value></data>
+  <data name="GdtProfil_Type_pro" xml:space="preserve"><value>Professionnel</value></data>
+  <data name="GdtProfil_Type_social" xml:space="preserve"><value>Social</value></data>
+  <data name="GdtProfil_Type_sommeil" xml:space="preserve"><value>Sommeil</value></data>
+  <data name="GdtProfil_Type_sommeil_extended" xml:space="preserve"><value>Sommeil · Repos · Ressourcement</value></data>
 </root>

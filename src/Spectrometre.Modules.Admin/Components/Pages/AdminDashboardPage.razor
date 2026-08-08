@@ -1,0 +1,85 @@
+@page "/admin"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminDashboardTitle"]</PageTitle>
+
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["Administration"]</h1>
+            <p class="admin-subtitle">@Localizer["AdminDashboardTitle"]</p>
+        </div>
+    </header>
+
+    @if (_counts is null)
+    {
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else
+    {
+        <section class="admin-counters">
+            <a class="admin-counter" href="/admin/entreprises">
+                <span class="admin-counter-icon tone-primary" aria-hidden="true">
+                    <i class="bi bi-building"></i>
+                </span>
+                <strong class="admin-counter-value">@_counts.TotalEntreprises</strong>
+                <span class="admin-counter-label">@Localizer["TotalEntreprises"]</span>
+            </a>
+            <a class="admin-counter" href="/admin/candidats">
+                <span class="admin-counter-icon tone-teal" aria-hidden="true">
+                    <i class="bi bi-person-badge"></i>
+                </span>
+                <strong class="admin-counter-value">@_counts.TotalCandidats</strong>
+                <span class="admin-counter-label">@Localizer["TotalCandidats"]</span>
+            </a>
+            <a class="admin-counter" href="/admin/coachs">
+                <span class="admin-counter-icon tone-orange" aria-hidden="true">
+                    <i class="bi bi-people"></i>
+                </span>
+                <strong class="admin-counter-value">@_counts.TotalCoachs</strong>
+                <span class="admin-counter-label">@Localizer["TotalCoachs"]</span>
+            </a>
+        </section>
+
+        <section class="admin-card">
+            <div class="admin-card-header">
+                <h2 class="admin-section-title">
+                    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                    @Localizer["RepartitionModulesActifs"]
+                </h2>
+            </div>
+            @if (_counts.RepartitionModulesActifs.Count == 0)
+            {
+                <p class="admin-hint">—</p>
+            }
+            else
+            {
+                <ul class="admin-modules-list">
+                    @foreach (var entry in _counts.RepartitionModulesActifs.OrderByDescending(kv => kv.Value))
+                    {
+                        <li class="admin-modules-item">
+                            <span class="admin-modules-name">@entry.Key</span>
+                            <span class="admin-modules-count">@entry.Value</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private AdminGlobalCounts? _counts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var caller = AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+        _counts = await AdminService.GetCompteursGlobauxAsync(caller);
+    }
+}

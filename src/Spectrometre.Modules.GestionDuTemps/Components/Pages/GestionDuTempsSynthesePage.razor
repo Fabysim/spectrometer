@@ -1,10 +1,11 @@
 @page "/gestion-du-temps/synthese"
 @page "/gestion-du-temps/synthese/{Suivi}"
 @attribute [Authorize]
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Modules
 @using Spectrometre.Modules.GestionDuTemps.Entities
@@ -18,97 +19,217 @@
 
 <PageTitle>@Localizer["SyntheseTitle"]</PageTitle>
 
-<h1>@Localizer["SyntheseDuCycle"]</h1>
-<p class="hint">
-    @Localizer["Synthese_IntroDebut"] <a href="@Href("/gestion-du-temps/profil")">@Localizer["Synthese_IntroMilieu1"]</a>@Localizer["Synthese_IntroMilieu2"]
-    <a href="@Href("/gestion-du-temps/reflexion")">@Localizer["Synthese_IntroMilieu3"]</a> @Localizer["Synthese_IntroFin"]
-    <a href="@Href("/gestion-du-temps")">@Localizer["NavRetourAuxRituels"]</a>.
-</p>
+<div class="gdt-page">
+    <h1 class="gdt-title">@Localizer["SyntheseDuCycle"]</h1>
+    <p class="hint">
+        @Localizer["Synthese_IntroDebut"] <a href="@Href("/gestion-du-temps/profil")">@Localizer["Synthese_IntroMilieu1"]</a>@Localizer["Synthese_IntroMilieu2"]
+        <a href="@Href("/gestion-du-temps/reflexion")">@Localizer["Synthese_IntroMilieu3"]</a> @Localizer["Synthese_IntroFin"]
+        <a href="@Href("/gestion-du-temps")">@Localizer["NavRetourAuxRituels"]</a>.
+    </p>
 
-@if (_userId is null)
-{
-    <p>@Localizer["Chargement"]</p>
-}
-else if (!_hasAccess)
-{
-    <p class="hint">@Localizer["ModuleNonActive"]</p>
-}
-else
-{
-    <button @onclick="GenererAsync" disabled="@_generationEnCours">
-        @(_synthese is null ? Localizer["GenererLaSynthese"] : Localizer["RegenererLaSynthese"])
-    </button>
-    @if (_generationEnCours)
+    @if (_userId is null || !_accessResolved)
     {
-        <p class="hint">@Localizer["GenerationEnCours"]</p>
+        <p>@Localizer["Chargement"]</p>
     }
-
-    @if (_erreur is not null)
+    else if (!_hasAccess)
     {
-        <p class="erreur">@_erreur</p>
+        <p class="hint">@Localizer["ModuleNonActive"]</p>
     }
-
-    @if (_synthese is not null)
+    else
     {
         <div class="gdt-synthese">
-            @if (_synthese.GenereeParIa)
+            @if (_generationEnCours && _synthese is null)
             {
-                <p class="gdt-tag-ia">@Localizer["SyntheseGintIa"]</p>
-            }
-            else
-            {
-                <p class="gdt-tag-repli">@Localizer["SyntheseRepli"]</p>
-            }
-
-            <h3>@Localizer["Profil"] : @SyntheseProfilTypeLabels.Display(_synthese.ProfilType, _english)</h3>
-            @if (!string.IsNullOrWhiteSpace(_synthese.ProfilTexte))
-            {
-                <p>@_synthese.ProfilTexte</p>
+                <div class="gdt-synthese-loading">
+                    <div class="gdt-spinner" aria-hidden="true"></div>
+                    <span>@Localizer["GdtProfil_Synthese_Analyzing"]</span>
+                </div>
             }
 
-            <div class="gdt-indicateurs">
-                <div><strong>@Localizer["IndiceDEquilibre"]</strong> : @_synthese.IndiceEquilibre / 100</div>
-                @if (!string.IsNullOrWhiteSpace(_synthese.IndiceCommentaire))
+            @if (_erreur is not null)
+            {
+                <div class="gdt-synthese-error">@_erreur</div>
+            }
+
+            @if (_synthese is not null)
+            {
+                @if (_generationEnCours)
                 {
-                    <p>@_synthese.IndiceCommentaire</p>
+                    <p class="hint">@Localizer["GdtProfil_Synthese_Analyzing"]</p>
                 }
-                <div><strong>@Localizer["NiveauDeMaturiteOrganisationnelle"]</strong> : @_synthese.NiveauMaturite / 5</div>
-                @if (!string.IsNullOrWhiteSpace(_synthese.MaturiteCommentaire))
+
+                @if (_synthese.GenereeParIa)
                 {
-                    <p>@_synthese.MaturiteCommentaire</p>
+                    <p class="gdt-tag-ia">@Localizer["SyntheseGintIa"]</p>
                 }
-            </div>
-
-            @if (_synthese.Recommandations.Count > 0)
-            {
-                <h4>@Localizer["Recommandations"]</h4>
-                <ul>
-                    @foreach (var reco in _synthese.Recommandations.OrderBy(r => r.Priorite))
+                else
+                {
+                    <p class="gdt-tag-repli">@Localizer["SyntheseRepli"]</p>
+                    @if (!string.IsNullOrWhiteSpace(_synthese.AvertissementIa))
                     {
-                        <li><strong>[@DomaineLabel(reco.Domaine)]</strong> @reco.Texte</li>
+                        <p class="erreur">@_synthese.AvertissementIa</p>
                     }
-                </ul>
-            }
+                }
 
-            @if (_synthese.Alertes.Count > 0)
-            {
-                <h4>@Localizer["PointsDAttention"]</h4>
-                <ul>
-                    @foreach (var alerte in _synthese.Alertes)
+                <div class="gdt-synthese-card gdt-synthese-card--profil">
+                    <div class="gdt-synthese-card__header">
+                        <span class="gdt-synthese-badge">@Localizer["GdtProfil_Synthese_ProfilBadge"]</span>
+                        <span class="gdt-synthese-type">@SyntheseProfilTypeLabels.Display(_synthese.ProfilType, _english)</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(_synthese.ProfilTexte))
                     {
-                        <li>@alerte</li>
+                        <p class="gdt-synthese-text">@_synthese.ProfilTexte</p>
                     }
-                </ul>
-            }
+                </div>
 
-            <p class="gdt-date">@string.Format(Localizer["CalculeeLe"].Value, _synthese.CalculatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))</p>
+                <div class="gdt-synthese-row">
+                    <div class="gdt-synthese-card gdt-synthese-card--indice">
+                        <div class="gdt-synthese-card__header">
+                            <span class="gdt-synthese-badge">@Localizer["GdtProfil_Synthese_IndiceBadge"]</span>
+                        </div>
+                        <div class="gdt-indice-gauge">
+                            <svg viewBox="0 0 120 70" class="gdt-gauge-svg" role="img"
+                                 aria-label="@string.Format(Localizer["GdtProfil_Synthese_IndiceAria"].Value, _synthese.IndiceEquilibre)">
+                                <path d="M10 55 A50 50 0 0 1 110 55" fill="none" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
+                                <path d="M10 55 A50 50 0 0 1 110 55" fill="none" stroke="@IndiceColor"
+                                      stroke-width="10" stroke-linecap="round"
+                                      stroke-dasharray="157"
+                                      stroke-dashoffset="@(157 - (_synthese.IndiceEquilibre * 157 / 100))"/>
+                                <text x="60" y="48" text-anchor="middle" class="gdt-gauge-val">@_synthese.IndiceEquilibre</text>
+                                <text x="60" y="62" text-anchor="middle" class="gdt-gauge-sub">/100</text>
+                            </svg>
+                        </div>
+                        <p class="gdt-synthese-indice-label">@IndiceLabel</p>
+                        @if (!string.IsNullOrWhiteSpace(_synthese.IndiceCommentaire))
+                        {
+                            <p class="gdt-synthese-text">@_synthese.IndiceCommentaire</p>
+                        }
+                    </div>
+
+                    <div class="gdt-synthese-card gdt-synthese-card--maturite">
+                        <div class="gdt-synthese-card__header">
+                            <span class="gdt-synthese-badge">@Localizer["GdtProfil_Synthese_MaturiteBadge"]</span>
+                        </div>
+                        <div class="gdt-stars">
+                            @for (var i = 1; i <= 5; i++)
+                            {
+                                <svg class="gdt-star @(i <= _synthese.NiveauMaturite ? "gdt-star--on" : "")"
+                                     viewBox="0 0 20 20" width="28" height="28" aria-hidden="true">
+                                    <path d="M10 2l2.4 5H17l-4 3.1 1.5 5.2L10 12.2l-4.5 3.1L7 10.1 3 7h4.6z"/>
+                                </svg>
+                            }
+                        </div>
+                        <p class="gdt-synthese-niveau">@string.Format(Localizer["GdtProfil_Synthese_MaturiteLevel"].Value, _synthese.NiveauMaturite, MaturiteLabel)</p>
+                        @if (!string.IsNullOrWhiteSpace(_synthese.MaturiteCommentaire))
+                        {
+                            <p class="gdt-synthese-text">@_synthese.MaturiteCommentaire</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="gdt-synthese-card gdt-synthese-card--full">
+                    <div class="gdt-section__label gdt-section__label--teal">@Localizer["GdtProfil_Synthese_RepartitionTitle"]</div>
+                    <div class="gdt-note gdt-note--teal">
+                        @Localizer["GdtProfil_Synthese_RepartitionNote"]
+                        @if (!_readOnly)
+                        {
+                            <text> — </text>
+                            <a href="@Href("/gestion-du-temps/organisation")">@Localizer["NavOrganisation"]</a>
+                        }
+                    </div>
+                    @if (_types.Count == 0)
+                    {
+                        <p class="hint">@Localizer["Chargement"]</p>
+                    }
+                    else
+                    {
+                        <div class="gdt-tt-wrap">
+                            <table class="gdt-ttime">
+                                <thead>
+                                    <tr>
+                                        <th>@Localizer["GdtProfil_Synthese_ColType"]</th>
+                                        <th style="text-align:center">@Localizer["GdtProfil_Synthese_ColCouleur"]</th>
+                                        <th>@Localizer["GdtProfil_Synthese_ColPlage"]</th>
+                                        <th style="text-align:center">@Localizer["GdtProfil_Synthese_ColDuree"]</th>
+                                        <th>@Localizer["GdtProfil_Synthese_ColRecurrence"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var type in _types)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="gdt-tc-label">
+                                                    <span class="gdt-tc-swatch" style="background:@CouleurType(type.Cle)"></span>
+                                                    @DefaultCategoryLabels.Display(type.Cle, type.Libelle, _english)
+                                                </div>
+                                            </td>
+                                            <td style="text-align:center">
+                                                <span class="gdt-color-swatch" style="background:@CouleurType(type.Cle)" title="@CouleurType(type.Cle)"></span>
+                                            </td>
+                                            <td>
+                                                <span class="gdt-plage">@type.HeureDebut.ToString("HH:mm") → @type.HeureFin.ToString("HH:mm")</span>
+                                            </td>
+                                            <td style="text-align:center">@FormatDuree(type.HeureDebut, type.HeureFin)</td>
+                                            <td>@FormatRecurrence(type.RecurrenceJours)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                @if (_synthese.Recommandations.Count > 0)
+                {
+                    <div class="gdt-synthese-card">
+                        <div class="gdt-synthese-card__header">
+                            <span class="gdt-synthese-badge">@Localizer["GdtProfil_Synthese_Recommandations"]</span>
+                        </div>
+                        <ul class="gdt-recommandations">
+                            @foreach (var reco in _synthese.Recommandations.OrderBy(r => r.Priorite))
+                            {
+                                <li class="gdt-recommandation-item">
+                                    <span class="gdt-reco-domaine">@DomaineLabel(reco.Domaine)</span>
+                                    @reco.Texte
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @if (_synthese.Alertes.Count > 0)
+                {
+                    <div class="gdt-alertes">
+                        @foreach (var alerte in _synthese.Alertes)
+                        {
+                            <div class="gdt-alerte-item">⚠ @alerte</div>
+                        }
+                    </div>
+                }
+
+                <p class="gdt-date">@string.Format(Localizer["CalculeeLe"].Value, _synthese.CalculatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))</p>
+
+                @if (!_readOnly)
+                {
+                    <button type="button" class="gdt-btn-regenerer" disabled="@_generationEnCours" @onclick="GenererAsync">
+                        ↺ @Localizer["GdtProfil_Synthese_Regenerer"]
+                    </button>
+                }
+            }
+            else if (!_generationEnCours)
+            {
+                <p class="hint">@Localizer["AucuneSyntheseHint"]</p>
+                @if (!_readOnly)
+                {
+                    <button type="button" class="gdt-btn-regenerer" @onclick="GenererAsync">
+                        @Localizer["GenererLaSynthese"]
+                    </button>
+                }
+            }
         </div>
     }
-    else if (!_generationEnCours)
-    {
-        <p class="hint">@Localizer["AucuneSyntheseHint"]</p>
-    }
-}
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
@@ -116,19 +237,74 @@ else
     [Parameter] public string? Suivi { get; set; }
     private bool _readOnly => !string.IsNullOrEmpty(Suivi);
 
-    /// <summary>Ajoute le segment Suivi aux liens croisés vers les autres écrans du module, pour qu'un coach en mode lecture seule reste sur les données de la personne suivie en naviguant.</summary>
     private string Href(string basePath) => _readOnly ? $"{basePath}/{Suivi}" : basePath;
 
     private string? _userId;
     private bool _hasAccess;
+    private bool _accessResolved;
     private bool _generationEnCours;
+    private bool _refreshLance;
     private string? _erreur;
     private SyntheseView? _synthese;
+    private List<TypeDeTempsView> _types = [];
     private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
-    /// <summary>"organisation" n'est pas une clé de <see cref="TypeDeTemps"/> (ce n'est pas une vraie catégorie de temps) : traduite séparément, les 6 autres domaines réutilisent <see cref="DefaultCategoryLabels"/> avec le domaine comme clé ET repli (déjà en minuscule canonique, ex. "pro"/"perso").</summary>
     private string DomaineLabel(string domaine) =>
         domaine == "organisation" ? Localizer["DomaineOrganisation"] : DefaultCategoryLabels.Display(domaine, domaine, _english);
+
+    private int Indice => _synthese?.IndiceEquilibre ?? 0;
+
+    private string IndiceColor => Indice switch
+    {
+        <= 25 => "#c44440",
+        <= 50 => "#b45309",
+        <= 75 => "#d97706",
+        <= 90 => "#1e6b4a",
+        _ => "#15803d",
+    };
+
+    private string IndiceLabel => Indice switch
+    {
+        <= 25 => Localizer["GdtProfil_Indice_Severe"],
+        <= 50 => Localizer["GdtProfil_Indice_Important"],
+        <= 75 => Localizer["GdtProfil_Indice_Fragile"],
+        <= 90 => Localizer["GdtProfil_Indice_Satisfaisant"],
+        _ => Localizer["GdtProfil_Indice_Optimal"],
+    };
+
+    private string MaturiteLabel => (_synthese?.NiveauMaturite ?? 0) switch
+    {
+        1 => Localizer["GdtProfil_Maturite_Chaotique"],
+        2 => Localizer["GdtProfil_Maturite_Instable"],
+        3 => Localizer["GdtProfil_Maturite_Fonctionnel"],
+        4 => Localizer["GdtProfil_Maturite_Structure"],
+        5 => Localizer["GdtProfil_Maturite_Maitrise"],
+        _ => "—",
+    };
+
+    private static string CouleurType(string cle) => cle switch
+    {
+        "sommeil" => "#4a3f6b",
+        "perso" => "#345f6d",
+        "pro" => "#1e6b4a",
+        "admin" => "#7a5c1e",
+        "famille" => "#7a3f2d",
+        "social" => "#3d4f8a",
+        _ => "#6b5248",
+    };
+
+    private static string FormatDuree(TimeOnly debut, TimeOnly fin)
+    {
+        var minutes = fin <= debut
+            ? (int)(fin.ToTimeSpan() + TimeSpan.FromHours(24) - debut.ToTimeSpan()).TotalMinutes
+            : (int)(fin - debut).TotalMinutes;
+        var h = minutes / 60;
+        var m = minutes % 60;
+        return m == 0 ? $"{h} h" : $"{h} h {m:D2}";
+    }
+
+    private static string FormatRecurrence(string recurrence) =>
+        string.IsNullOrWhiteSpace(recurrence) ? "—" : recurrence;
 
     protected override async Task OnInitializedAsync()
     {
@@ -151,25 +327,60 @@ else
             _hasAccess = await AccessService.HasAccessAsync(userId);
         }
 
-        if (!_hasAccess)
+        _accessResolved = true;
+        if (!_hasAccess || _userId is null)
             return;
 
+        // Lecture immédiate depuis la base (fiable au démarrage) — ne dépend pas de OnAfterRender.
+        if (!_readOnly)
+            await GdtService.GetOrCreateCycleActifAsync(_userId);
+
+        _types = (await GdtService.GetTypesDeTempsAsync(_userId)).ToList();
         _synthese = await GdtService.GetSyntheseAsync(_userId);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Propriétaire : rafraîchit via le cache hash (régénère seulement si profil/réflexion a changé).
+        // Si une synthèse est déjà affichée et à jour, GenererSyntheseAsync retourne le cache sans appel IA.
+        if (!firstRender || _refreshLance || _readOnly || !_hasAccess || _userId is null)
+            return;
+
+        _refreshLance = true;
+        _generationEnCours = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            _synthese = await GdtService.GenererSyntheseAsync(_userId, forcerRegeneration: false);
+            _types = (await GdtService.GetTypesDeTempsAsync(_userId)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _erreur = string.Format(Localizer["ImpossibleDeGenererLaSynthese"].Value, ex.Message);
+            _synthese ??= await GdtService.GetSyntheseAsync(_userId);
+        }
+        finally
+        {
+            _generationEnCours = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task GenererAsync()
     {
+        if (_readOnly)
+            return;
+
         _generationEnCours = true;
         _erreur = null;
         StateHasChanged();
         try
         {
-            _synthese = await GdtService.GenererSyntheseAsync(_userId!);
+            _synthese = await GdtService.GenererSyntheseAsync(_userId!, forcerRegeneration: true);
+            _types = (await GdtService.GetTypesDeTempsAsync(_userId!)).ToList();
         }
         catch (Exception ex)
         {
-            // Ne devrait normalement jamais arriver (IAiSynthesisService ne lève pas) — filet de sécurité
-            // pour toute autre erreur inattendue (ex. base de données), toujours avec un message clair.
             _erreur = string.Format(Localizer["ImpossibleDeGenererLaSynthese"].Value, ex.Message);
         }
         finally

@@ -131,6 +131,7 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
             await moduleRegistry.ActivateForCandidateAsync(candidateProfileId, GestionDuTemps, coreDb);
         }
         Assert.True(await accessService.HasAccessAsync(userCandidat));
+        Assert.True(await accessService.HasCandidateAccessAsync(userCandidat));
 
         // Cas autorisé (entreprise) : le gestionnaire d'une entreprise passée au plan StandardPlusTemps et
         // activée obtient l'accès, sans le moindre abonnement candidat personnel.
@@ -147,6 +148,11 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
             await moduleRegistry.ActivateForCompanyAsync(company.Id, GestionDuTemps, coreDb);
         }
         Assert.True(await accessService.HasAccessAsync(userManager));
+
+        // « Mon coach » (Coaching côté personne suivie) dérive de Gestion du temps mais UNIQUEMENT côté
+        // Candidat — un gestionnaire d'entreprise avec Gestion du temps actif ne doit PAS avoir accès à
+        // cette dérivation, même si HasAccessAsync (le module lui-même) le lui accorde bien.
+        Assert.False(await accessService.HasCandidateAccessAsync(userManager));
     }
 
     [Fact]
@@ -162,6 +168,10 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
         // qui crée désormais un abonnement) — simule fidèlement une entreprise créée AVANT ce cycle, jamais
         // passée par la création d'abonnement.
         var company = await provisioning.CreateCompanyAsync($"Entreprise Legacy Backfill {suffix}", $"legacy-owner-{suffix}", coreDb);
+        // Contrairement à fixture.CreateCompanyAsync (qui s'auto-enregistre), CreateCompanyAsync appelé
+        // directement ci-dessus provisionne un VRAI schéma Postgres dédié sans que rien ne le sache — sans cet
+        // enregistrement manuel, ServiceFixture.DisposeAsync ne le nettoierait jamais (voir sa remarque).
+        fixture.TrackCompanyForCleanup(company);
 
         Assert.False(await coreDb.TenantSubscriptions.AnyAsync(s => s.CompanyId == company.Id));
 

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Spectrometre.Core.Directory;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.ProfilCandidat.Data;
@@ -37,6 +38,13 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<ICandidateProfileService, CandidateProfileService>();
         services.AddScoped<ICandidateSubjectResolver, CandidateSubjectResolver>();
+        services.AddScoped<ICvPdfService, CvPdfService>();
+
+        // Implémentation réelle par-dessus le NoOp enregistré par AddSpectrometreCore (la dernière
+        // inscription gagne à la résolution) — consommée par la zone Admin (Spectrometre.Modules.Admin),
+        // jamais par ProfilCandidat lui-même. Pas de conflit circulaire à résoudre depuis Host ici
+        // (contrairement à ICoachingAccessChecker) : ProfilCandidat n'a besoin que de ses propres données.
+        services.AddScoped<ICandidateDirectoryService, CandidateDirectoryService>();
 
         // L'inscription au registre se fait explicitement dans Program.cs (moduleRegistry.Register(Manifest))
         // une fois l'IServiceCollection construite — impossible de résoudre IModuleRegistry ici.

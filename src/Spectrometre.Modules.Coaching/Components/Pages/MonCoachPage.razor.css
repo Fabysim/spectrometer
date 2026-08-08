@@ -1,0 +1,349 @@
+/* /mon-coach – aligné Données / Postes / Vivier */
+
+.mon-coach-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+}
+
+.mc-state,
+.mc-hint {
+    color: #64748b;
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.mc-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.mc-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.mc-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.mc-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem 1.35rem 1.4rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.mc-empty {
+    max-width: 32rem;
+}
+
+.mc-section {
+    margin-bottom: 2rem;
+}
+
+.mc-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    color: var(--foreground, #0f172a);
+}
+
+.mc-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.mc-search {
+    position: relative;
+    max-width: 28rem;
+    margin-bottom: 1rem;
+}
+
+.mc-search > i {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.mc-search .mc-input {
+    padding-left: 2.35rem;
+}
+
+.mc-input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    background: white;
+    color: #0f172a;
+    box-sizing: border-box;
+}
+
+.mc-input:focus {
+    outline: none;
+    border-color: var(--bs-primary, #345f6d);
+    box-shadow: 0 0 0 3px rgba(52, 95, 109, 0.12);
+}
+
+.lien-entete,
+.coach-entete {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.85rem;
+}
+
+.lien-entete-main,
+.coach-entete-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.coach-entete {
+    align-items: center;
+}
+
+.coach-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.lien-nom,
+.coach-nom {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+}
+
+.coach-specialites {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0.15rem 0 0;
+    width: 100%;
+}
+
+.coach-bio {
+    color: #475569;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0.75rem 0 0;
+}
+
+.coach-pied {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.statut {
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.statut.en-attente {
+    background: rgba(234, 179, 8, 0.15);
+    color: #854d0e;
+}
+
+.statut.actif {
+    background: rgba(20, 184, 166, 0.12);
+    color: hsl(178, 45%, 28%);
+}
+
+.statut.refuse {
+    background: rgba(239, 68, 68, 0.1);
+    color: #b91c1c;
+}
+
+.statut.revoque {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.mc-btn-primary,
+.mc-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mc-btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(234, 119, 61, 0.28);
+}
+
+.mc-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.05);
+    box-shadow: 0 6px 16px rgba(234, 119, 61, 0.35);
+}
+
+.mc-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.mc-btn-secondary {
+    background: #fff;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.mc-btn-secondary:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.mc-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+}
+
+.mc-alert-success {
+    background: rgba(22, 163, 74, 0.08);
+    color: #15803d;
+    border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.mc-invite-card {
+    max-width: 560px;
+}
+
+.mc-card-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 0.85rem;
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+}
+
+.mc-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.65rem;
+    color: var(--foreground, #0f172a);
+}
+
+.mc-invite-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.mc-field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.3rem;
+}
+
+.mc-invite-result {
+    margin-top: 1rem;
+}
+
+.mc-invite-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+}
+
+.mc-invite-link {
+    display: block;
+    word-break: break-all;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.8rem;
+    color: #0f172a;
+}
+
+@media (max-width: 640px) {
+    .mon-coach-page {
+        padding: 1rem;
+    }
+
+    .mc-title {
+        font-size: 1.4rem;
+    }
+
+    .lien-entete {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .mc-btn-primary,
+    .mc-btn-secondary {
+        width: 100%;
+    }
+
+    .coach-pied {
+        justify-content: stretch;
+    }
+}

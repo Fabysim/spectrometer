@@ -13,133 +13,363 @@
 
 <PageTitle>@Localizer["CurriculumVitae"]</PageTitle>
 
-<h1>@Localizer["CurriculumVitae"]</h1>
-<p class="hint">
-    @Localizer["Cv_Intro"] (<a href="/candidat/questionnaire">@Localizer["Cv_LienQuestionnaire"]</a>)
-</p>
+<div class="cv-page">
+    <header class="cv-header">
+        <div>
+            <h1 class="cv-title">@Localizer["CurriculumVitae"]</h1>
+            <p class="cv-subtitle">
+                @Localizer["Cv_Intro"]
+                (<a class="cv-link" href="/candidat/questionnaire">@Localizer["Cv_LienQuestionnaire"]</a>)
+            </p>
+        </div>
+        <a class="cv-link" href="/candidat/cv/pdf" data-enhance-nav="false">
+            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+            @Localizer["Cv_TelechargerPdf"]
+        </a>
+    </header>
 
 @if (_cv is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="cv-state">@Localizer["Chargement"]</p>
 }
 else
 {
-    <section class="cv-section">
-        <h2>@Localizer["Cv_Section1"]</h2>
-        <div class="champ"><label>@Localizer["Nom"]</label><input @bind="_coordonnees.Nom" /></div>
-        <div class="champ"><label>@Localizer["Prenoms"]</label><input @bind="_coordonnees.Prenoms" /></div>
-        <div class="champ"><label>@Localizer["DateNaissance"]</label><input type="date" @bind="_coordonnees.DateNaissance" /></div>
-        <div class="champ"><label>@Localizer["LieuNaissance"]</label><input @bind="_coordonnees.LieuNaissance" /></div>
-        <div class="champ"><label>@Localizer["Nationalite"]</label><input @bind="_coordonnees.Nationalite" /></div>
-        <div class="champ"><label>@Localizer["AdresseComplete"]</label><input @bind="_coordonnees.AdresseComplete" /></div>
-        <div class="champ"><label>@Localizer["Telephone"]</label><input @bind="_coordonnees.Telephone" /></div>
-        <div class="champ"><label>@Localizer["AdresseElectronique"]</label><input @bind="_coordonnees.Email" /></div>
-        <div class="champ"><label>@Localizer["ProfilOuPosteRecherche"]</label><input @bind="_coordonnees.ProfilOuPosteRecherche" /></div>
-        <button @onclick="SaveCoordonneesAsync">@Localizer["EnregistrerLesCoordonnees"]</button>
-        @if (_coordonneesSaved) { <span class="confirmation">@Localizer["Enregistre"]</span> }
-    </section>
-
-    <section class="cv-section">
-        <h2>@Localizer["Cv_Section2"]</h2>
-        @foreach (var row in _formations)
-        {
-            <div class="cv-ligne">
-                <input placeholder="@Localizer["Cv_PeriodeExemple"]" @bind="row.Periode" />
-                <input placeholder="@Localizer["Etablissement"]" @bind="row.Etablissement" />
-                <input placeholder="@Localizer["DiplomeCertificatOuNiveau"]" @bind="row.Diplome" />
-                <input placeholder="@Localizer["DomaineEtudes"]" @bind="row.Domaine" />
-                <button @onclick="() => SaveFormationAsync(row)">@Localizer["Enregistrer"]</button>
-                <button @onclick="() => DeleteFormationAsync(row)">@Localizer["Supprimer"]</button>
-                @if (row.Saved) { <span class="confirmation">✓</span> }
-            </div>
-        }
-        <button @onclick="AjouterFormation">@Localizer["AjouterUneFormation"]</button>
-    </section>
-
-    <section class="cv-section">
-        <h2>@Localizer["Cv_Section3"]</h2>
-        <div class="champ"><label>@Localizer["SpecialitePrincipale"]</label><input @bind="_competencesEtudes.SpecialitePrincipale" /></div>
-        <div class="champ"><label>@Localizer["CompetencesTechniquesAcquises"]</label><textarea @bind="_competencesEtudes.CompetencesTechniques" rows="2"></textarea></div>
-        <div class="champ"><label>@Localizer["ConnaissancesTheoriquesImportantes"]</label><textarea @bind="_competencesEtudes.ConnaissancesTheoriques" rows="2"></textarea></div>
-        <div class="champ"><label>@Localizer["LanguesMaitrisees"]</label><input @bind="_competencesEtudes.LanguesMaitrisees" /></div>
-        <div class="champ"><label>@Localizer["OutilsLogicielsMethodesEtudies"]</label><input @bind="_competencesEtudes.OutilsLogicielsMethodes" /></div>
-        <button @onclick="SaveCompetencesEtudesAsync">@Localizer["Enregistrer"]</button>
-        @if (_competencesEtudesSaved) { <span class="confirmation">@Localizer["Enregistre"]</span> }
-    </section>
-
-    <section class="cv-section">
-        <h2>@Localizer["Cv_Section4"]</h2>
-        @foreach (var row in _experiences)
-        {
-            <div class="cv-ligne">
-                <input placeholder="@Localizer["Periode"]" @bind="row.Periode" />
-                <input placeholder="@Localizer["EntrepriseOrganisationOuLieuStage"]" @bind="row.Entreprise" />
-                <input placeholder="@Localizer["FonctionOuActiviteExercee"]" @bind="row.Fonction" />
-                <input placeholder="@Localizer["CompetencesDeveloppees"]" @bind="row.Competences" />
-                <button @onclick="() => SaveExperienceAsync(row)">@Localizer["Enregistrer"]</button>
-                <button @onclick="() => DeleteExperienceAsync(row)">@Localizer["Supprimer"]</button>
-                @if (row.Saved) { <span class="confirmation">✓</span> }
-            </div>
-        }
-        <button @onclick="AjouterExperience">@Localizer["AjouterUneExperience"]</button>
-    </section>
-
-    <section class="cv-section">
-        <h2>@Localizer["Cv_Section5"]</h2>
-        <div class="champ"><label>@Localizer["QualitesPersonnelles"]</label><textarea @bind="_caracteristiques.QualitesPersonnelles" rows="2" placeholder="@Localizer["QualitesPersonnellesExemples"]"></textarea></div>
-        <div class="champ"><label>@Localizer["AptitudesProfessionnelles"]</label><textarea @bind="_caracteristiques.AptitudesProfessionnelles" rows="2" placeholder="@Localizer["AptitudesProfessionnellesExemples"]"></textarea></div>
-        <div class="champ"><label>@Localizer["AttitudesRelationnelles"]</label><textarea @bind="_caracteristiques.AttitudesRelationnelles" rows="2" placeholder="@Localizer["AttitudesRelationnellesExemples"]"></textarea></div>
-        <div class="champ"><label>@Localizer["CapaciteSousPression"]</label><input @bind="_caracteristiques.CapaciteSousPression" /></div>
-        <div class="champ"><label>@Localizer["DisponibiliteMobilite"]</label><input @bind="_caracteristiques.DisponibiliteMobilite" /></div>
-        <button @onclick="SaveCaracteristiquesAsync">@Localizer["Enregistrer"]</button>
-        @if (_caracteristiquesSaved) { <span class="confirmation">@Localizer["Enregistre"]</span> }
-    </section>
-
-    <section class="cv-section">
-        <h2>@Localizer["Cv_Section6"]</h2>
-        <div class="champ"><label>@Localizer["LoisirsPreferes"]</label><input @bind="_loisirs.LoisirsPreferes" /></div>
-        <div class="champ"><label>@Localizer["ActivitesSportivesCulturelles"]</label><input @bind="_loisirs.ActivitesSportivesCulturelles" /></div>
-        <div class="champ"><label>@Localizer["EngagementsAssociatifs"]</label><input @bind="_loisirs.EngagementsAssociatifs" /></div>
-        <div class="champ"><label>@Localizer["AutresCentresInteret"]</label><input @bind="_loisirs.AutresCentresInteret" /></div>
-        <button @onclick="SaveLoisirsAsync">@Localizer["Enregistrer"]</button>
-        @if (_loisirsSaved) { <span class="confirmation">@Localizer["Enregistre"]</span> }
-    </section>
-
-    <section class="cv-section">
-        <h2>@Localizer["Cv_Section7"]</h2>
-        <p class="hint">@Localizer["Cv_ReferencesHint"]</p>
-        @foreach (var row in _references)
-        {
-            <div class="cv-ligne">
-                <input placeholder="@Localizer["NomEtPrenom"]" @bind="row.NomPrenom" />
-                <input placeholder="@Localizer["Fonction"]" @bind="row.Fonction" />
-                <input placeholder="@Localizer["EntrepriseOuOrganisation"]" @bind="row.Entreprise" />
-                <input placeholder="@Localizer["TelephoneOuAdresseElectronique"]" @bind="row.Contact" />
-                <input placeholder="@Localizer["LienAvecLePostulant"]" @bind="row.Lien" />
-                <button @onclick="() => SaveReferenceAsync(row)">@Localizer["Enregistrer"]</button>
-                <button @onclick="() => DeleteReferenceAsync(row)">@Localizer["Supprimer"]</button>
-                @if (row.Saved) { <span class="confirmation">✓</span> }
-            </div>
-        }
-        <button @onclick="AjouterReference">@Localizer["AjouterUneReference"]</button>
-    </section>
-
-    <section class="cv-section">
-        <h2>@Localizer["Cv_Section8"]</h2>
-        <p class="hint">@Localizer["Cv_DeclarationHint1"]</p>
-        <p class="hint">@Localizer["Cv_DeclarationHint2"]</p>
-        <div class="champ-case">
-            <label><input type="checkbox" @bind="_declaration.CertificationExactitude" /> @Localizer["Cv_CertificationExactitude"]</label>
+    <section class="cv-card">
+        <div class="cv-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-person-vcard"></i>
         </div>
-        <div class="champ-case">
-            <label><input type="checkbox" @bind="_declaration.ConsentementConsultation" /> @Localizer["Cv_ConsentementConsultation"]</label>
+        <h2 class="cv-section-title">@Localizer["Cv_Section1"]</h2>
+        <div class="cv-form">
+            <div class="cv-form-row">
+                <div class="cv-field">
+                    <label>@Localizer["Nom"]</label>
+                    <input class="cv-input" @bind="_coordonnees.Nom" />
+                </div>
+                <div class="cv-field">
+                    <label>@Localizer["Prenoms"]</label>
+                    <input class="cv-input" @bind="_coordonnees.Prenoms" />
+                </div>
+            </div>
+            <div class="cv-form-row">
+                <div class="cv-field">
+                    <label>@Localizer["DateNaissance"]</label>
+                    <input class="cv-input" type="date" @bind="_coordonnees.DateNaissance" />
+                </div>
+                <div class="cv-field">
+                    <label>@Localizer["LieuNaissance"]</label>
+                    <input class="cv-input" @bind="_coordonnees.LieuNaissance" />
+                </div>
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["Nationalite"]</label>
+                <input class="cv-input" @bind="_coordonnees.Nationalite" />
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["AdresseComplete"]</label>
+                <input class="cv-input" @bind="_coordonnees.AdresseComplete" />
+            </div>
+            <div class="cv-form-row">
+                <div class="cv-field">
+                    <label>@Localizer["Telephone"]</label>
+                    <input class="cv-input" @bind="_coordonnees.Telephone" />
+                </div>
+                <div class="cv-field">
+                    <label>@Localizer["AdresseElectronique"]</label>
+                    <input class="cv-input" @bind="_coordonnees.Email" />
+                </div>
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["ProfilOuPosteRecherche"]</label>
+                <input class="cv-input" @bind="_coordonnees.ProfilOuPosteRecherche" />
+            </div>
+            <div class="cv-actions">
+                @if (_coordonneesSaved)
+                {
+                    <span class="cv-confirmation">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["Enregistre"]
+                    </span>
+                }
+                <button type="button" class="cv-btn-primary" @onclick="SaveCoordonneesAsync">
+                    <i class="bi bi-check-lg" aria-hidden="true"></i>
+                    @Localizer["EnregistrerLesCoordonnees"]
+                </button>
+            </div>
         </div>
-        <div class="champ"><label>@Localizer["Date"]</label><input type="date" @bind="_declaration.Date" /></div>
-        <div class="champ"><label>@Localizer["Cv_SignatureDuPostulant"]</label><input @bind="_declaration.NomSignataire" /></div>
-        <button @onclick="SaveDeclarationAsync">@Localizer["EnregistrerLaDeclaration"]</button>
-        @if (_declarationSaved) { <span class="confirmation">@Localizer["Enregistre"]</span> }
+    </section>
+
+    <section class="cv-card">
+        <div class="cv-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-mortarboard"></i>
+        </div>
+        <h2 class="cv-section-title">@Localizer["Cv_Section2"]</h2>
+        <div class="cv-rows">
+            @foreach (var row in _formations)
+            {
+                <div class="cv-ligne">
+                    <div class="cv-ligne-fields">
+                        <input class="cv-input" placeholder="@Localizer["Cv_PeriodeExemple"]" @bind="row.Periode" />
+                        <input class="cv-input" placeholder="@Localizer["Etablissement"]" @bind="row.Etablissement" />
+                        <input class="cv-input" placeholder="@Localizer["DiplomeCertificatOuNiveau"]" @bind="row.Diplome" />
+                        <input class="cv-input" placeholder="@Localizer["DomaineEtudes"]" @bind="row.Domaine" />
+                    </div>
+                    <div class="cv-ligne-actions">
+                        <button type="button" class="cv-btn-primary" @onclick="() => SaveFormationAsync(row)">@Localizer["Enregistrer"]</button>
+                        <button type="button" class="cv-btn-secondary" @onclick="() => DeleteFormationAsync(row)">@Localizer["Supprimer"]</button>
+                        @if (row.Saved)
+                        {
+                            <span class="cv-confirmation" title="@Localizer["Enregistre"]">
+                                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="cv-actions cv-actions-start">
+            <button type="button" class="cv-btn-ghost" @onclick="AjouterFormation">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                @Localizer["AjouterUneFormation"]
+            </button>
+        </div>
+    </section>
+
+    <section class="cv-card">
+        <div class="cv-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-tools"></i>
+        </div>
+        <h2 class="cv-section-title">@Localizer["Cv_Section3"]</h2>
+        <div class="cv-form">
+            <div class="cv-field">
+                <label>@Localizer["SpecialitePrincipale"]</label>
+                <input class="cv-input" @bind="_competencesEtudes.SpecialitePrincipale" />
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["CompetencesTechniquesAcquises"]</label>
+                <textarea class="cv-input cv-textarea" @bind="_competencesEtudes.CompetencesTechniques" rows="2"></textarea>
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["ConnaissancesTheoriquesImportantes"]</label>
+                <textarea class="cv-input cv-textarea" @bind="_competencesEtudes.ConnaissancesTheoriques" rows="2"></textarea>
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["LanguesMaitrisees"]</label>
+                <input class="cv-input" @bind="_competencesEtudes.LanguesMaitrisees" />
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["OutilsLogicielsMethodesEtudies"]</label>
+                <input class="cv-input" @bind="_competencesEtudes.OutilsLogicielsMethodes" />
+            </div>
+            <div class="cv-actions">
+                @if (_competencesEtudesSaved)
+                {
+                    <span class="cv-confirmation">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["Enregistre"]
+                    </span>
+                }
+                <button type="button" class="cv-btn-primary" @onclick="SaveCompetencesEtudesAsync">@Localizer["Enregistrer"]</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="cv-card">
+        <div class="cv-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-briefcase"></i>
+        </div>
+        <h2 class="cv-section-title">@Localizer["Cv_Section4"]</h2>
+        <div class="cv-rows">
+            @foreach (var row in _experiences)
+            {
+                <div class="cv-ligne">
+                    <div class="cv-ligne-fields">
+                        <input class="cv-input" placeholder="@Localizer["Periode"]" @bind="row.Periode" />
+                        <input class="cv-input" placeholder="@Localizer["EntrepriseOrganisationOuLieuStage"]" @bind="row.Entreprise" />
+                        <input class="cv-input" placeholder="@Localizer["FonctionOuActiviteExercee"]" @bind="row.Fonction" />
+                        <input class="cv-input" placeholder="@Localizer["CompetencesDeveloppees"]" @bind="row.Competences" />
+                    </div>
+                    <div class="cv-ligne-actions">
+                        <button type="button" class="cv-btn-primary" @onclick="() => SaveExperienceAsync(row)">@Localizer["Enregistrer"]</button>
+                        <button type="button" class="cv-btn-secondary" @onclick="() => DeleteExperienceAsync(row)">@Localizer["Supprimer"]</button>
+                        @if (row.Saved)
+                        {
+                            <span class="cv-confirmation" title="@Localizer["Enregistre"]">
+                                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="cv-actions cv-actions-start">
+            <button type="button" class="cv-btn-ghost" @onclick="AjouterExperience">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                @Localizer["AjouterUneExperience"]
+            </button>
+        </div>
+    </section>
+
+    <section class="cv-card">
+        <div class="cv-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-emoji-smile"></i>
+        </div>
+        <h2 class="cv-section-title">@Localizer["Cv_Section5"]</h2>
+        <div class="cv-form">
+            <div class="cv-field">
+                <label>@Localizer["QualitesPersonnelles"]</label>
+                <textarea class="cv-input cv-textarea" @bind="_caracteristiques.QualitesPersonnelles" rows="2" placeholder="@Localizer["QualitesPersonnellesExemples"]"></textarea>
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["AptitudesProfessionnelles"]</label>
+                <textarea class="cv-input cv-textarea" @bind="_caracteristiques.AptitudesProfessionnelles" rows="2" placeholder="@Localizer["AptitudesProfessionnellesExemples"]"></textarea>
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["AttitudesRelationnelles"]</label>
+                <textarea class="cv-input cv-textarea" @bind="_caracteristiques.AttitudesRelationnelles" rows="2" placeholder="@Localizer["AttitudesRelationnellesExemples"]"></textarea>
+            </div>
+            <div class="cv-form-row">
+                <div class="cv-field">
+                    <label>@Localizer["CapaciteSousPression"]</label>
+                    <input class="cv-input" @bind="_caracteristiques.CapaciteSousPression" />
+                </div>
+                <div class="cv-field">
+                    <label>@Localizer["DisponibiliteMobilite"]</label>
+                    <input class="cv-input" @bind="_caracteristiques.DisponibiliteMobilite" />
+                </div>
+            </div>
+            <div class="cv-actions">
+                @if (_caracteristiquesSaved)
+                {
+                    <span class="cv-confirmation">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["Enregistre"]
+                    </span>
+                }
+                <button type="button" class="cv-btn-primary" @onclick="SaveCaracteristiquesAsync">@Localizer["Enregistrer"]</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="cv-card">
+        <div class="cv-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-heart"></i>
+        </div>
+        <h2 class="cv-section-title">@Localizer["Cv_Section6"]</h2>
+        <div class="cv-form">
+            <div class="cv-field">
+                <label>@Localizer["LoisirsPreferes"]</label>
+                <input class="cv-input" @bind="_loisirs.LoisirsPreferes" />
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["ActivitesSportivesCulturelles"]</label>
+                <input class="cv-input" @bind="_loisirs.ActivitesSportivesCulturelles" />
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["EngagementsAssociatifs"]</label>
+                <input class="cv-input" @bind="_loisirs.EngagementsAssociatifs" />
+            </div>
+            <div class="cv-field">
+                <label>@Localizer["AutresCentresInteret"]</label>
+                <input class="cv-input" @bind="_loisirs.AutresCentresInteret" />
+            </div>
+            <div class="cv-actions">
+                @if (_loisirsSaved)
+                {
+                    <span class="cv-confirmation">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["Enregistre"]
+                    </span>
+                }
+                <button type="button" class="cv-btn-primary" @onclick="SaveLoisirsAsync">@Localizer["Enregistrer"]</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="cv-card">
+        <div class="cv-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-people"></i>
+        </div>
+        <h2 class="cv-section-title">@Localizer["Cv_Section7"]</h2>
+        <p class="cv-hint">@Localizer["Cv_ReferencesHint"]</p>
+        <div class="cv-rows">
+            @foreach (var row in _references)
+            {
+                <div class="cv-ligne">
+                    <div class="cv-ligne-fields">
+                        <input class="cv-input" placeholder="@Localizer["NomEtPrenom"]" @bind="row.NomPrenom" />
+                        <input class="cv-input" placeholder="@Localizer["Fonction"]" @bind="row.Fonction" />
+                        <input class="cv-input" placeholder="@Localizer["EntrepriseOuOrganisation"]" @bind="row.Entreprise" />
+                        <input class="cv-input" placeholder="@Localizer["TelephoneOuAdresseElectronique"]" @bind="row.Contact" />
+                        <input class="cv-input" placeholder="@Localizer["LienAvecLePostulant"]" @bind="row.Lien" />
+                    </div>
+                    <div class="cv-ligne-actions">
+                        <button type="button" class="cv-btn-primary" @onclick="() => SaveReferenceAsync(row)">@Localizer["Enregistrer"]</button>
+                        <button type="button" class="cv-btn-secondary" @onclick="() => DeleteReferenceAsync(row)">@Localizer["Supprimer"]</button>
+                        @if (row.Saved)
+                        {
+                            <span class="cv-confirmation" title="@Localizer["Enregistre"]">
+                                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="cv-actions cv-actions-start">
+            <button type="button" class="cv-btn-ghost" @onclick="AjouterReference">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                @Localizer["AjouterUneReference"]
+            </button>
+        </div>
+    </section>
+
+    <section class="cv-card">
+        <div class="cv-card-icon tone-primary" aria-hidden="true">
+            <i class="bi bi-pen"></i>
+        </div>
+        <h2 class="cv-section-title">@Localizer["Cv_Section8"]</h2>
+        <p class="cv-hint">@Localizer["Cv_DeclarationHint1"]</p>
+        <p class="cv-hint">@Localizer["Cv_DeclarationHint2"]</p>
+        <div class="cv-form">
+            <div class="cv-checkbox">
+                <label>
+                    <input type="checkbox" @bind="_declaration.CertificationExactitude" />
+                    @Localizer["Cv_CertificationExactitude"]
+                </label>
+            </div>
+            <div class="cv-checkbox">
+                <label>
+                    <input type="checkbox" @bind="_declaration.ConsentementConsultation" />
+                    @Localizer["Cv_ConsentementConsultation"]
+                </label>
+            </div>
+            <div class="cv-form-row">
+                <div class="cv-field">
+                    <label>@Localizer["Date"]</label>
+                    <input class="cv-input" type="date" @bind="_declaration.Date" />
+                </div>
+                <div class="cv-field">
+                    <label>@Localizer["Cv_SignatureDuPostulant"]</label>
+                    <input class="cv-input" @bind="_declaration.NomSignataire" />
+                </div>
+            </div>
+            <div class="cv-actions">
+                @if (_declarationSaved)
+                {
+                    <span class="cv-confirmation">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["Enregistre"]
+                    </span>
+                }
+                <button type="button" class="cv-btn-primary" @onclick="SaveDeclarationAsync">
+                    <i class="bi bi-check-lg" aria-hidden="true"></i>
+                    @Localizer["EnregistrerLaDeclaration"]
+                </button>
+            </div>
+        </div>
     </section>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

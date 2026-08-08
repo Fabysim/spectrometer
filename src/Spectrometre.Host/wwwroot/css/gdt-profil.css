@@ -1,0 +1,26 @@
+/* GDT profil Safari time picker (popover on body) */
+.gdt-time-picker-popover {
+  position: fixed;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.625rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
+.gdt-time-picker-part {
+  font-size: 0.8125rem;
+  font-family: inherit;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  color: #374151;
+}
+.gdt-time-picker-sep { font-size: 0.8125rem; color: #6b7280; user-select: none; }
+.gdt-time-picker-ampm { min-width: 3.25rem; }
+html.gdt-safari .gdt-time-wrap .gdt-time-icon { display: inline-flex !important; }

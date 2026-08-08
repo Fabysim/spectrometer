@@ -21,16 +21,22 @@ public sealed class VivierService(
             .ToList();
     }
 
-    public async Task<CandidateCompatibilityCriteriaView?> GetCandidateDetailAsync(int candidateProfileId, CancellationToken cancellationToken = default)
+    public async Task<VivierCandidateDetailView?> GetCandidateDetailAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
         // Garde de confidentialité : on ne lit le détail du profil QUE si ce candidat a réellement postulé
         // à l'entreprise active — jamais un accès libre au module Profil Candidat par identifiant, y
-        // compris si quelqu'un tape directement /vivier/candidat/{id} dans la barre d'adresse.
+        // compris si quelqu'un tape directement /vivier/candidat/{id} dans la barre d'adresse. Le CV suit
+        // exactement la même garde (voir la remarque sur VivierCandidateDetailView) : jamais lu séparément.
         var candidatures = await recruitmentIndex.GetCandidaturesPourEntrepriseAsync(ActiveCompanyId, cancellationToken);
         var aPostuleIci = candidatures.Any(c => c.CandidateProfileId == candidateProfileId);
         if (!aPostuleIci)
             return null;
 
-        return await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
+        var criteres = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
+        if (criteres is null)
+            return null;
+
+        var cv = await candidateProfileService.GetCvAsync(candidateProfileId, cancellationToken);
+        return new VivierCandidateDetailView(criteres, cv);
     }
 }

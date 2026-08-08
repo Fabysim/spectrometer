@@ -9,14 +9,28 @@ public sealed record SyntheseView(
     string ProfilType, int IndiceEquilibre, int NiveauMaturite,
     string? ProfilTexte, string? IndiceCommentaire, string? MaturiteCommentaire,
     IReadOnlyList<RecommandationIa> Recommandations, IReadOnlyList<string> Alertes,
-    bool GenereeParIa, DateTimeOffset CalculatedAt);
+    bool GenereeParIa, DateTimeOffset CalculatedAt,
+    /// <summary>Diagnostic non persisté — pourquoi le repli local a été utilisé (clé API, erreur Replicate, profil manquant, JSON invalide).</summary>
+    string? AvertissementIa = null);
 
 public sealed record TypeDeTempsView(int Id, string Cle, string Libelle, TimeOnly HeureDebut, TimeOnly HeureFin, string RecurrenceJours, int OrdreAffichage, int? CompanyId);
 
-public sealed record ActiviteView(int Id, int TypeDeTempsId, string TypeLibelle, string TypeCouleur, string Nom, DateOnly DateActivite, TimeOnly HeureDebut, int DureeMinutes, int? CompanyId);
+public sealed record ActiviteView(int Id, int TypeDeTempsId, string TypeCle, string TypeLibelle, string TypeCouleur, string Nom, DateOnly DateActivite, TimeOnly HeureDebut, int DureeMinutes, int? CompanyId);
 
 /// <summary>Carte Kanban : statut (3 colonnes) + minuteur — voir <c>KanbanTimer</c> pour <see cref="TempsReelMs"/>/<see cref="EnDepassement"/>.</summary>
-public sealed record KanbanCarteView(int ActiviteId, string Nom, string TypeLibelle, string TypeCouleur, int DureeMinutes, int? CompanyId, string Statut, long TempsReelMs, bool EnDepassement);
+public sealed record KanbanCarteView(
+    int ActiviteId,
+    int TypeDeTempsId,
+    string Nom,
+    string TypeLibelle,
+    string TypeCouleur,
+    int DureeMinutes,
+    int? CompanyId,
+    string Statut,
+    long TempsReelMs,
+    bool EnDepassement,
+    DateTimeOffset UpdatedAt,
+    DateTimeOffset ActiviteCreatedAt);
 
 /// <summary>
 /// Point d'entrée public du module Gestion du temps. Toutes les méthodes prennent <c>userId</c> en
@@ -26,7 +40,10 @@ public sealed record KanbanCarteView(int ActiviteId, string Nom, string TypeLibe
 /// </summary>
 public interface IGestionDuTempsService
 {
-    /// <summary>Cycle actif de l'utilisateur, créé paresseusement (avec les 6 catégories par défaut) au tout premier accès.</summary>
+    /// <summary>Cycle actif s'il existe déjà — lecture pure, ne crée rien (Suivi coach / Coaching anamnèse).</summary>
+    Task<CycleView?> GetCycleActifAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Cycle actif de l'utilisateur, créé paresseusement (avec les 6 catégories par défaut) au premier écriture ou accès propriétaire explicite.</summary>
     Task<CycleView> GetOrCreateCycleActifAsync(string userId, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -35,7 +52,7 @@ public interface IGestionDuTempsService
     /// </summary>
     Task<CycleView> ClotureEtDemarrerNouveauCycleAsync(string userId, CancellationToken cancellationToken = default);
 
-    /// <summary>Types de temps du cycle ACTIF uniquement — ceux d'un cycle clôturé restent en base mais ne sont plus modifiables.</summary>
+    /// <summary>Types de temps du cycle ACTIF uniquement — lecture pure (liste vide s'il n'y a pas encore de cycle).</summary>
     Task<IReadOnlyList<TypeDeTempsView>> GetTypesDeTempsAsync(string userId, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -56,7 +73,8 @@ public interface IGestionDuTempsService
     /// <summary>Crée un rappel dans le cycle ACTIF (avec son statut Kanban initial "À faire").</summary>
     Task<int> CreateActiviteAsync(string userId, int typeDeTempsId, string nom, DateOnly dateActivite, TimeOnly heureDebut, int dureeMinutes, int? companyId, CancellationToken cancellationToken = default);
 
-    Task UpdateActiviteAsync(string userId, int activiteId, string nom, DateOnly dateActivite, TimeOnly heureDebut, int dureeMinutes, int? companyId, CancellationToken cancellationToken = default);
+    /// <summary>Met à jour un rappel. <paramref name="typeDeTempsId"/> optionnel — si fourni, doit appartenir au cycle actif (édition calendrier Organisation).</summary>
+    Task UpdateActiviteAsync(string userId, int activiteId, string nom, DateOnly dateActivite, TimeOnly heureDebut, int dureeMinutes, int? companyId, int? typeDeTempsId = null, CancellationToken cancellationToken = default);
 
     Task DeleteActiviteAsync(string userId, int activiteId, CancellationToken cancellationToken = default);
 
@@ -97,9 +115,9 @@ public interface IGestionDuTempsService
     Task<SyntheseView?> GetSyntheseAsync(string userId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Génère (ou retourne depuis le cache si le profil/la réflexion n'ont pas changé depuis le dernier
-    /// calcul — hash scopé par cycle+utilisateur) la synthèse du cycle actif. Ne lève jamais si l'IA est
-    /// indisponible : retombe sur un texte généré localement (voir <see cref="SyntheseView.GenereeParIa"/>).
+    /// Génère la synthèse du cycle actif via Replicate (Claude). Si <paramref name="forcerRegeneration"/>
+    /// est <c>false</c> et que le hash profil/réflexion est inchangé, retourne le cache. Ne lève jamais si
+    /// l'IA est indisponible : retombe sur un texte généré localement (voir <see cref="SyntheseView.GenereeParIa"/>).
     /// </summary>
-    Task<SyntheseView> GenererSyntheseAsync(string userId, CancellationToken cancellationToken = default);
+    Task<SyntheseView> GenererSyntheseAsync(string userId, bool forcerRegeneration = false, CancellationToken cancellationToken = default);
 }

@@ -26,6 +26,8 @@
     <ProjectReference Include="..\..\src\Spectrometre.Modules.GestionDuTemps\Spectrometre.Modules.GestionDuTemps.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.ProfilCoach\Spectrometre.Modules.ProfilCoach.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.Coaching\Spectrometre.Modules.Coaching.csproj" />
+    <ProjectReference Include="..\..\src\Spectrometre.Modules.Admin\Spectrometre.Modules.Admin.csproj" />
+    <ProjectReference Include="..\..\src\Spectrometre.Modules.Vivier\Spectrometre.Modules.Vivier.csproj" />
   </ItemGroup>
 
 </Project>

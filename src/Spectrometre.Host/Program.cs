@@ -11,6 +11,7 @@ using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Host.Components;
 using Spectrometre.Host.Onboarding;
+using Spectrometre.Modules.Admin;
 using Spectrometre.Modules.Analytics;
 using Spectrometre.Modules.Coaching;
 using Spectrometre.Modules.Coaching.Data;
@@ -21,6 +22,7 @@ using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.PostesRecrutement;
 using Spectrometre.Modules.PostesRecrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
+using Spectrometre.Modules.ProfilCandidat.Services;
 using Spectrometre.Modules.ProfilCoach;
 using Spectrometre.Modules.ProfilCoach.Data;
 using Spectrometre.Modules.ProfilEntreprise;
@@ -44,6 +46,7 @@ builder.Services.AddRazorComponents()
 // ("...Resources.Resources.SharedResource") et ferait échouer silencieusement toute résolution
 // (IStringLocalizer retombe alors sur la clé brute, sans lever d'exception).
 builder.Services.AddLocalization();
+builder.Services.AddHttpContextAccessor();
 
 // Noyau, puis chaque module — dans l'ordre de dépendance déclaré par son manifeste
 // (Compatibilite dépend de ProfilCandidat + ProfilEntreprise).
@@ -64,6 +67,11 @@ builder.Services.AddProfilCoachModule(builder.Configuration);
 // Coaching a de vraies dépendances de projet vers GestionDuTemps/ProfilCoach (voir son .csproj) — doit donc
 // être enregistré après les deux. Pas de manifeste/activation propre, voir sa ServiceCollectionExtensions.
 builder.Services.AddCoachingModule(builder.Configuration);
+// Zone transverse /admin — jamais un sujet du registre d'activation généralisé, aucune activation à
+// enregistrer (voir sa ServiceCollectionExtensions). Référence uniquement Core, jamais un autre module :
+// les métadonnées candidat/coach/coaching lui parviennent via ICandidateDirectoryService/
+// ICoachDirectoryService/ICoachingLinkOverviewService, déjà branchées par chaque AddXxxModule ci-dessus.
+builder.Services.AddAdminModule(builder.Configuration);
 
 // Inversion de dépendance : les pages GestionDuTemps consomment ICoachingAccessChecker (défini dans Core)
 // sans connaître Coaching. C'est ICI, dans Host — le seul projet qui référence à la fois GestionDuTemps et
@@ -178,10 +186,31 @@ using (var startupScope = app.Services.CreateScope())
         coachingDb.Database.Migrate();
     }
 
+    // Amorce idempotente du rôle Admin — indispensable pour que le tout premier compte PlatformAdmin
+    // (créé hors application, voir Spectrometre.AdminBootstrap) puisse être promu même si ce rôle n'a
+    // jamais été créé auparavant. AdminService la refait aussi défensivement avant une promotion, au cas où
+    // ce démarrage n'aurait jamais eu lieu (ex. base neuve manipulée directement par l'outil bootstrap).
+    var roleManager = startupScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    if (!await roleManager.RoleExistsAsync(PlatformRoles.Admin))
+        await roleManager.CreateAsync(new IdentityRole(PlatformRoles.Admin));
+
+    // Admin : schéma fixe non tenant-scopé (journal d'audit uniquement) — migré globalement ici, comme
+    // ProfilCoach/Coaching.
+    using (var adminDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<Spectrometre.Modules.Admin.Data.AdminDbContext>>()
+               .CreateDbContext())
+    {
+        adminDb.Database.Migrate();
+    }
+
     // Comble rétroactivement l'abonnement des entreprises créées avant le gating par plan introduit dans ce
     // cycle — sans ça, elles perdraient l'accès à tous leurs modules déjà activés (échec fermé, voir
     // ModuleRegistry.IsActiveAsync). Exécuté tôt, avant tout ce qui pourrait lire IsActiveAsync.
     await TenantSubscriptionBackfill.RunAsync(startupScope.ServiceProvider.GetRequiredService<CoreDbContext>());
+
+    // Rétroactif : dédoublonne puis contraint à un seul CompanyProfile par schéma tenant déjà provisionné —
+    // voir CompanyProfileUniquenessBackfill. Exécuté avant tout accès pouvant résoudre/créer un profil.
+    await CompanyProfileUniquenessBackfill.RunAsync(startupScope.ServiceProvider);
 
     // Comble rétroactivement le schéma de tout module tenant-scopé marqué actif pour une entreprise
     // existante mais pas encore provisionné (ex. une entreprise créée avant l'ajout d'un module) — voir
@@ -235,6 +264,28 @@ app.MapGet("/culture/set", (string culture, string redirectUri, HttpContext http
     return Results.LocalRedirect(redirectUri);
 });
 
+// Export PDF du propre CV du candidat connecté — jamais un paramètre candidateProfileId dans l'URL : la
+// route ne prend aucun identifiant, résolu exclusivement depuis l'utilisateur authentifié (voir
+// ICandidateSubjectResolver), donc structurellement impossible de demander le CV de quelqu'un d'autre par
+// cet endpoint. Endpoint minimal plutôt qu'un lien direct depuis une page Blazor : un composant ne peut pas
+// streamer un fichier binaire vers le navigateur (voir la remarque sur ICvPdfService).
+app.MapGet("/candidat/cv/pdf", async (
+    HttpContext httpContext,
+    Spectrometre.Core.Modules.ICandidateSubjectResolver candidateSubjectResolver,
+    ICandidateProfileService candidateProfileService,
+    ICvPdfService cvPdfService) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var candidateProfileId = await candidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
+    var cv = await candidateProfileService.GetCvAsync(candidateProfileId);
+    var pdfBytes = cvPdfService.GenerateCvPdf(cv);
+
+    return Results.File(pdfBytes, "application/pdf", "cv.pdf");
+}).RequireAuthorization();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
@@ -251,6 +302,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.Analytics.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions).Assembly,
-        typeof(Spectrometre.Modules.Coaching.ServiceCollectionExtensions).Assembly);
+        typeof(Spectrometre.Modules.Coaching.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.Admin.ServiceCollectionExtensions).Assembly);
 
 app.Run();

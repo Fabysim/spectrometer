@@ -1,0 +1,611 @@
+﻿/* Home vitrine – extracted from MVP site.css */
+
+/* Spectromètre – styles regroupés (app + custom) */
+:root {
+    /* App / Medinova */
+    --primary: var(--bs-primary, #ea773d);
+    --secondary: #0f172a;
+    --light: #f9fafb;
+    --dark: #020617;
+    /* GSCV Color Palette */
+    --bs-primary: #345f6d;
+    --bs-primary-rgb: 52, 95, 109;
+    --bs-secondary: hsl(220, 14%, 96%);
+    --bs-success: hsl(90, 42%, 48%);
+    --bs-info: hsl(178, 45%, 40%);
+    --bs-warning: hsl(44, 89%, 55%);
+    --bs-danger: hsl(2, 53%, 51%);
+    --gscv-orange: hsl(18, 80%, 54%);
+    --gscv-teal: hsl(178, 45%, 40%);
+    --gscv-gold: hsl(44, 89%, 55%);
+    --gscv-red: hsl(2, 53%, 51%);
+    --gscv-green: hsl(90, 42%, 48%);
+    --background: hsl(0, 0%, 98%);
+    --foreground: hsl(220, 20%, 20%);
+    --muted-foreground: hsl(220, 10%, 50%);
+    --gradient-hero: linear-gradient(135deg, hsl(220, 20%, 98%) 0%, hsl(220, 14%, 94%) 100%);
+    --gradient-hero-overlay: linear-gradient(to right, rgba(15, 23, 42, 0.6) 0%, rgba(52, 95, 109, 0.5) 40%, transparent 50%);
+    --gradient-cta: linear-gradient(135deg, hsl(195, 35%, 28%) 0%, hsl(200, 40%, 22%) 100%);
+    --accent: hsl(210, 80%, 54%);
+    --teal: hsl(178, 45%, 40%);
+}
+
+/* ========== custom (suite) ========== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+}
+
+
+/* Buttons â€“ style React (hero, heroInverted, heroOutline)
+   Spécificité renforcée pour éviter les conflits avec les règles globales (a, .btn) */
+a.btn-hero,
+a.btn-hero-inverted,
+a.btn-hero-outline-white,
+.btn-hero,
+.btn-hero-inverted,
+.btn-hero-outline-white {
+  cursor: pointer;
+}
+a.btn-hero,
+.btn-hero,
+a.btn.btn-hero,
+.btn.btn-hero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--bs-primary) !important;
+  color: white !important;
+  border: none;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+}
+a.btn-hero:hover,
+.btn-hero:hover,
+a.btn.btn-hero:hover:not(:disabled),
+.btn.btn-hero:hover:not(:disabled) {
+  background-color: hsl(195, 35%, 26%) !important;
+  color: white !important;
+  text-decoration: none !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+.btn.btn-hero:disabled,
+a.btn.btn-hero:disabled {
+  background-color: var(--bs-primary) !important;
+  color: white !important;
+  border-color: transparent;
+  opacity: 0.65;
+}
+.btn-hero .bi {
+  font-size: 1rem;
+}
+
+a.btn-hero-inverted,
+.btn-hero-inverted {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: white;
+  color: var(--bs-primary) !important;
+  border: none;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+}
+a.btn-hero-inverted:hover,
+.btn-hero-inverted:hover {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--bs-primary) !important;
+  text-decoration: none !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+.btn-hero-inverted .bi {
+  font-size: 1.25rem;
+}
+
+a.btn-hero-outline-white,
+.btn-hero-outline-white {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white !important;
+  background: transparent;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+}
+a.btn-hero-outline-white:hover,
+.btn-hero-outline-white:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white !important;
+  text-decoration: none !important;
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-hero-outline {
+  border: 2px solid var(--bs-primary);
+  color: var(--bs-primary);
+  background-color: transparent;
+  transition: all 0.2s;
+}
+.btn-hero-outline:hover {
+  background-color: var(--bs-primary);
+  color: white;
+}
+
+
+/* Footer – pas de marge au-dessus (priorité sur Bootstrap .mt-5) */
+div.footer-vitrine {
+  margin-top: 0 !important;
+}
+.footer-custom {
+  background-color: var(--foreground);
+  padding: 3rem 0;
+  color: hsl(220, 10%, 60%);
+}
+
+.footer-custom a {
+  color: hsl(220, 10%, 60%);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-custom a:hover {
+  color: white;
+}
+
+.footer-logo {
+  filter: brightness(0) invert(1);
+}
+
+/* Section backgrounds */
+.section-secondary {
+  background-color: rgba(220, 14%, 96%, 0.3);
+}
+
+.section-secondary-50 {
+  background-color: rgba(220, 14%, 96%, 0.5);
+}
+
+
+/* ========== Responsive – correctifs globaux ========== */
+
+/* Hero vitrine : hauteur réduite sur mobile, padding-top géré en CSS */
+@media (max-width: 575.98px) {
+  .hero-vitrine {
+    min-height: 70vh;
+  }
+  .hero-vitrine__container-pt {
+    padding-top: 5rem !important;
+  }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .hero-vitrine__container-pt {
+    padding-top: 5.5rem !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .hero-vitrine__container-pt {
+    padding-top: 6rem !important;
+  }
+}
+
+/* Stats card : ne déborde plus sur mobile */
+@media (max-width: 575.98px) {
+  .stats-card {
+    position: static;
+    margin-top: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Boutons héro : pleine largeur sur très petits écrans */
+@media (max-width: 400px) {
+  .btn-hero,
+  .btn-hero-inverted,
+  .btn-hero-outline-white,
+  a.btn-hero,
+  a.btn-hero-inverted,
+  a.btn-hero-outline-white {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* CTA demarrer list : texte normal sur mobile */
+@media (max-width: 991.98px) {
+  .demarrer-list .demarrer-list-item {
+    white-space: normal;
+  }
+}
+
+/* Sections : espacement vertical réduit sur mobile */
+@media (max-width: 575.98px) {
+  .py-5.py-lg-5 {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+  .mb-5.mb-lg-5 {
+    margin-bottom: 2rem !important;
+  }
+}
+
+/* Images ratio : hauteur minimum sur très petits écrans */
+@media (max-width: 400px) {
+  .img-ratio-5x4,
+  .img-ratio-4x3 {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* Typographie héro : correction de la hiérarchie responsive */
+.hero-vitrine h1 {
+  font-size: clamp(1.6rem, 5vw, 3rem);
+}
+
+/* Badge héro : retour à la ligne autorisé sur mobile */
+@media (max-width: 575.98px) {
+  .hero-vitrine__badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.75rem;
+  }
+}
+
+/* ========== Home page (vitrine) â€“ design type React ========== */
+
+/* Navbar vitrine : fixe, transparent puis opaque au scroll */
+.navbar-vitrine {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  transition: background-color 0.3s, backdrop-filter 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.navbar-vitrine.navbar-vitrine--scrolled {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid hsl(220, 13%, 90%);
+}
+.navbar-vitrine .navbar-vitrine__brand {
+  font-family: 'Merriweather', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--bs-primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+@media (max-width: 991.98px) {
+  .navbar-vitrine .navbar-vitrine__brand {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+.navbar-vitrine > .container > .d-flex {
+  gap: 0.75rem;
+}
+.navbar-vitrine .navbar-toggler.d-lg-none {
+  flex-shrink: 0;
+}
+.navbar-vitrine:not(.navbar-vitrine--scrolled) .navbar-vitrine__brand {
+  color: white;
+}
+.navbar-vitrine .nav-link-vitrine {
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: opacity 0.2s;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+}
+.navbar-vitrine.navbar-vitrine--scrolled .nav-link-vitrine {
+  color: var(--foreground);
+}
+.navbar-vitrine .nav-link-vitrine:hover {
+  opacity: 0.8;
+}
+/* CTA bouton (ex. Se connecter) : priorité sur les styles des liens nav pour éviter les conflits */
+.navbar-vitrine .btn-demarrer,
+.navbar-vitrine nav a.btn-demarrer {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  text-decoration: none !important;
+  display: inline-block;
+  opacity: 1;
+}
+.navbar-vitrine:not(.navbar-vitrine--scrolled) .btn-demarrer,
+.navbar-vitrine:not(.navbar-vitrine--scrolled) nav a.btn-demarrer {
+  background: rgba(255, 255, 255, 0.15);
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.navbar-vitrine:not(.navbar-vitrine--scrolled) .btn-demarrer:hover,
+.navbar-vitrine:not(.navbar-vitrine--scrolled) nav a.btn-demarrer:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: white !important;
+}
+.navbar-vitrine.navbar-vitrine--scrolled .btn-demarrer,
+.navbar-vitrine.navbar-vitrine--scrolled nav a.btn-demarrer {
+  background: var(--bs-primary);
+  color: white !important;
+  border: none;
+}
+.navbar-vitrine.navbar-vitrine--scrolled .btn-demarrer:hover,
+.navbar-vitrine.navbar-vitrine--scrolled nav a.btn-demarrer:hover {
+  background: hsl(195, 35%, 26%);
+  color: white !important;
+}
+.navbar-vitrine:not(.navbar-vitrine--scrolled) .navbar-toggler-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* Hamburger SVG natif */
+.navbar-vitrine-hamburger-icon {
+  display: block;
+  color: white;
+}
+.navbar-vitrine.navbar-vitrine--scrolled .navbar-vitrine-hamburger-icon {
+  color: var(--foreground);
+}
+/* Quand le menu mobile est ouvert, forcer la couleur foncée */
+.navbar-vitrine-mobile-menu[data-open="true"] ~ * .navbar-vitrine-hamburger-icon,
+.navbar-vitrine .navbar-vitrine-hamburger-icon {
+  transition: color 0.2s;
+}
+
+/* Panneau menu mobile : fond opaque + texte foncé */
+.navbar-vitrine-mobile-menu {
+  display: none;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  border-top-color: hsl(220, 13%, 90%) !important;
+  /* Assurer que le menu s'affiche par-dessus le contenu */
+  position: relative;
+  z-index: 1029;
+}
+.navbar-vitrine-mobile-menu[data-open="true"] {
+  display: block;
+}
+@media (min-width: 992px) {
+  .navbar-vitrine-mobile-menu {
+    display: none !important;
+  }
+}
+.navbar-vitrine-mobile-menu .nav-link-vitrine {
+  color: var(--foreground);
+}
+.navbar-vitrine-mobile-menu .nav-link-vitrine:hover {
+  color: var(--bs-primary);
+  opacity: 1;
+}
+.navbar-vitrine-mobile-menu .btn-demarrer {
+  background: var(--bs-primary);
+  color: white !important;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  display: block;
+  text-align: center;
+  text-decoration: none !important;
+}
+.navbar-vitrine-mobile-menu .btn-demarrer:hover {
+  background: hsl(195, 35%, 26%);
+  color: white !important;
+}
+
+/* Ancien sélecteur conservé pour compatibilité */
+.navbar-vitrine #navbarVitrineMenu {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+.navbar-vitrine #navbarVitrineMenu.border-top {
+  border-top-color: hsl(220, 13%, 90%) !important;
+}
+.navbar-vitrine #navbarVitrineMenu .nav-link-vitrine {
+  color: var(--foreground);
+}
+.navbar-vitrine #navbarVitrineMenu .nav-link-vitrine:hover {
+  color: var(--bs-primary);
+  opacity: 1;
+}
+.navbar-vitrine #navbarVitrineMenu .btn-demarrer,
+.navbar-vitrine #navbarVitrineMenu nav a.btn-demarrer {
+  background: var(--bs-primary);
+  color: white !important;
+  border: none;
+}
+.navbar-vitrine #navbarVitrineMenu .btn-demarrer:hover,
+.navbar-vitrine #navbarVitrineMenu nav a.btn-demarrer:hover {
+  background: hsl(195, 35%, 26%);
+  color: white !important;
+}
+
+/* Hero vitrine : fond image + overlay */
+.hero-vitrine {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.hero-vitrine__bg {
+  position: absolute;
+  inset: 0;
+}
+.hero-vitrine__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hero-vitrine__overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-hero-overlay);
+}
+.hero-vitrine__dots {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0);
+  background-size: 40px 40px;
+}
+.hero-vitrine__badge {
+  display: inline-block;
+  padding: 0.375rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 1.5rem;
+}
+/* Section label (Dimension, Notre approche) */
+.section-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+/* List bullets accent */
+.list-bullet-accent {
+  list-style: none;
+  padding-left: 0;
+}
+.list-bullet-accent li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.list-bullet-accent li::before {
+  content: '';
+  margin-top: 0.4rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.list-bullet-teal li::before {
+  background: var(--teal);
+}
+
+/* CTA section fond dÃ©gradÃ© */
+.cta-vitrine {
+  background: var(--gradient-cta);
+  position: relative;
+  overflow: hidden;
+}
+.cta-vitrine__dots {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0);
+  background-size: 32px 32px;
+}
+.demarrer-list .demarrer-list-item {
+  white-space: normal;
+}
+/* Scroll reveal (Intersection Observer) */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.scroll-reveal.scroll-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Pendant le chargement initial (SSR/streaming) : forcer la visibilité
+   dès que Blazor a fini de streamer le HTML, avant que JS ait pu tourner.
+   Le JS retire cet attribut une fois initialisé. */
+html:not([data-scroll-ready]) .scroll-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Images dans .ratio : forcer remplissage pour Ã©viter hauteur 0 (Bootstrap ratio) */
+.ratio > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Conteneurs image page d'accueil : ratio garanti sans conflit Bootstrap */
+.img-ratio-5x4,
+.img-ratio-4x3 {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.img-ratio-5x4 {
+  aspect-ratio: 5 / 4;
+}
+.img-ratio-4x3 {
+  aspect-ratio: 4 / 3;
+}
+.img-ratio-5x4 > img,
+.img-ratio-4x3 > img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lh-tight { line-height: 1.15; }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1); }
+.opacity-85 { opacity: .85; }
+.z-1 { z-index: 1; }
+

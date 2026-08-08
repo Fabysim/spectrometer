@@ -1,0 +1,89 @@
+@page "/confirmation-email"
+@layout Spectrometre.Host.Components.Layout.PublicLayout
+@using System.Text
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Identity
+@using Spectrometre.Host.Resources
+@inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["ConfirmationEmail_Titre"]</PageTitle>
+
+<div class="login-page-nav-overlay" aria-hidden="true"></div>
+<div class="login-page-wrapper">
+    <div class="container-fluid px-3 px-md-4 px-lg-5 px-xl-4 py-5 login-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-xl-6">
+                <div class="login-card confirmation-card">
+                    <header class="login-header">
+                        <h1 class="login-title">@Localizer["ConfirmationEmail_Titre"]</h1>
+                    </header>
+
+                    <div class="p-4 p-lg-5">
+                        @if (_confirme)
+                        {
+                            <div class="alert alert-success">@_message</div>
+                            <a href="/login" class="login-btn login-btn-primary">@Localizer["SeConnecter"]</a>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger">@_message</div>
+                            <div class="login-links">
+                                <a href="/login" class="login-link">@Localizer["SeConnecter"]</a>
+                                <a href="/" class="login-link">@Localizer["Accueil"]</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] private string? UserId { get; set; }
+    [SupplyParameterFromQuery] private string? Code { get; set; }
+
+    private string? _message;
+    private bool _confirme;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(UserId) || string.IsNullOrEmpty(Code))
+        {
+            _message = Localizer["ConfirmationEmail_LienInvalide"];
+            return;
+        }
+
+        var user = await UserManager.FindByIdAsync(UserId);
+        if (user is null)
+        {
+            _message = Localizer["ConfirmationEmail_LienInvalide"];
+            return;
+        }
+
+        string decodedCode;
+        try
+        {
+            decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
+        }
+        catch (FormatException)
+        {
+            _message = Localizer["ConfirmationEmail_LienInvalide"];
+            return;
+        }
+
+        var result = await UserManager.ConfirmEmailAsync(user, decodedCode);
+        if (result.Succeeded)
+        {
+            _confirme = true;
+            _message = Localizer["ConfirmationEmail_Succes"];
+        }
+        else
+        {
+            _message = Localizer["ConfirmationEmail_Echec"];
+        }
+    }
+}

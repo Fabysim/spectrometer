@@ -132,10 +132,18 @@ namespace Spectrometre.Modules.ProfilEntreprise.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Singleton")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Singleton")
+                        .IsUnique();
 
                     b.ToTable("CompanyProfiles", "public");
                 });

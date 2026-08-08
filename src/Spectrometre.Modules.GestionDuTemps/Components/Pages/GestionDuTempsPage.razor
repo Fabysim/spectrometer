@@ -6,33 +6,24 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
-@using Spectrometre.Core.Data
+@using Microsoft.JSInterop
 @using Spectrometre.Core.Modules
-@using Spectrometre.Core.Tenancy
 @using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Helpers
 @using Spectrometre.Modules.GestionDuTemps.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
+@implements IDisposable
 @inject IGestionDuTempsService GdtService
 @inject IGestionDuTempsAccessService AccessService
 @inject ICoachingAccessChecker CoachingAccessChecker
-@inject ICompanyProvisioningService CompanyProvisioningService
-@inject CoreDbContext CoreDb
 @inject IStringLocalizer<GestionDuTempsResource> Localizer
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
 
-<PageTitle>@Localizer["GestionDuTemps"]</PageTitle>
+<PageTitle>@Localizer["NavMoniteur"]</PageTitle>
 
-<h1>@Localizer["GestionDuTemps"]</h1>
-@if (!_readOnly)
-{
-    <p class="hint">
-        @Localizer["Page1_IntroDebut"] <a href="/gestion-du-temps/kanban">@Localizer["NavKanban"]</a> ·
-        <a href="/gestion-du-temps/profil">@Localizer["NavProfilPsychosocial"]</a> ·
-        <a href="/gestion-du-temps/reflexion">@Localizer["NavReflexionConsciente"]</a> ·
-        <a href="/gestion-du-temps/synthese">@Localizer["NavSynthese"]</a>.
-    </p>
-}
-
+<div class="gdt-page">
 @if (_userId is null)
 {
     <p>@Localizer["Chargement"]</p>
@@ -41,215 +32,144 @@ else if (!_hasAccess)
 {
     <p class="hint">@Localizer["ModuleNonActiveDetail"]</p>
 }
+else if (_loading)
+{
+    <p>@Localizer["Chargement"]</p>
+}
 else
 {
-    @if (!_readOnly)
-    {
-        <div class="entreprise-header">
-            <label>
-                @Localizer["Filtrer"]
-                <select value="@_filtreValue" @onchange="OnFiltreChangedAsync">
-                    <option value="tout">@Localizer["TousMesRituels"]</option>
-                    <option value="personnel">@Localizer["PersonnelsUniquement"]</option>
-                    @foreach (var company in _companies)
-                    {
-                        <option value="@company.Id">@company.Name</option>
-                    }
-                </select>
-            </label>
+<div class="tdb-page">
+    <h1 class="gdt-title">@Localizer["NavMoniteur"]</h1>
+
+    <div class="tdb-panel">
+        <div class="tdb-period-header small text-muted mb-2">@_periodHeaderLabel</div>
+        <div class="tdb-legend">
+            <span class="tdb-legend-item">
+                <span class="tdb-legend-swatch tdb-legend-swatch--alloc"></span> @Localizer["Gdt_Tdb_Theoretical"]
+            </span>
+            <span class="tdb-legend-item">
+                <span class="tdb-legend-swatch tdb-legend-swatch--used"></span> @Localizer["Gdt_Tdb_Real"]
+            </span>
         </div>
-    }
 
-    <section class="gdt-types">
-        <h3>@Localizer["MesCategoriesDeTemps"]</h3>
-        @if (_types is null)
-        {
-            <p>@Localizer["Chargement"]</p>
-        }
-        else
-        {
-            @foreach (var type in _types)
-            {
-                <div class="gdt-type-carte">
-                    <span class="gdt-couleur" style="background:@CouleurCategorie(type.Cle)"></span>
-                    <strong>@DefaultCategoryLabels.Display(type.Cle, type.Libelle, _english)</strong>
-                    <span class="gdt-horaire">@type.HeureDebut.ToString("HH:mm") – @type.HeureFin.ToString("HH:mm")</span>
-                    <span class="gdt-recurrence">@type.RecurrenceJours</span>
-                    @if (type.CompanyId is int cid)
-                    {
-                        <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
-                    }
-                    @if (!_readOnly)
-                    {
-                        <button @onclick="() => CommencerEditionType(type)">@Localizer["Modifier"]</button>
-                    }
-                </div>
-            }
+        <div class="tdb-charts">
+            <div class="tdb-chart-box">
+                <canvas id="gdt-bar-chart" aria-label="@Localizer["Gdt_Tdb_BarChartAria"]"></canvas>
+            </div>
+            <div class="tdb-chart-box">
+                <canvas id="gdt-radar-chart" aria-label="@Localizer["Gdt_Tdb_RadarChartAria"]"></canvas>
+            </div>
+        </div>
+    </div>
 
-            @if (!_readOnly)
-            {
-                <div class="gdt-form">
-                    <h4>@(_typeEnEdition is null ? Localizer["NouvelleCategorie"] : string.Format(Localizer["ModifierCategorie"].Value, _typeEnEdition.Libelle))</h4>
-                    <div class="champ">
-                        <label>@Localizer["Cle"]</label>
-                        <input @bind="_typeCle" @bind:event="oninput" placeholder="@Localizer["ClePlaceholder"]" />
-                    </div>
-                    <div class="champ">
-                        <label>@Localizer["Libelle"]</label>
-                        <input @bind="_typeLibelle" @bind:event="oninput" placeholder="@Localizer["LibellePlaceholder"]" />
-                    </div>
-                    <div class="champ">
-                        <label>@Localizer["HeureDeDebut"]</label>
-                        <input type="time" @bind="_typeHeureDebut" />
-                    </div>
-                    <div class="champ">
-                        <label>@Localizer["HeureDeFin"]</label>
-                        <input type="time" @bind="_typeHeureFin" />
-                    </div>
-                    <div class="champ">
-                        <label>@Localizer["JoursDeRecurrence"]</label>
-                        <input @bind="_typeRecurrence" @bind:event="oninput" placeholder="@Localizer["JoursDeRecurrencePlaceholder"]" />
-                    </div>
-                    <div class="champ">
-                        <label>@Localizer["EntrepriseOptionnel"]</label>
-                        <select @bind="_typeCompanyIdText">
-                            <option value="">@Localizer["Personnel"]</option>
-                            @foreach (var company in _companies)
-                            {
-                                <option value="@company.Id">@company.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <button @onclick="EnregistrerTypeAsync" disabled="@(string.IsNullOrWhiteSpace(_typeCle) || string.IsNullOrWhiteSpace(_typeLibelle))">@Localizer["Enregistrer"]</button>
-                    @if (_typeEnEdition is not null)
-                    {
-                        <button @onclick="AnnulerEditionType">@Localizer["Annuler"]</button>
-                    }
-                </div>
-            }
-        }
-    </section>
-
-    <section class="gdt-activites">
-        <h3>@Localizer["MesRappels"]</h3>
-        @if (!_readOnly)
+    <div class="tdb-panel">
+        <h2 class="tdb-section-title">@Localizer["Gdt_Tdb_DetailTitle"]</h2>
+        @foreach (var row in _typeRows)
         {
-            <p class="hint">
-                @Localizer["Page1_KanbanHintDebut"]
-                <a href="/gestion-du-temps/kanban">@Localizer["VueKanban"]</a> @Localizer["Page1_KanbanHintFin"]
-            </p>
-        }
-        @if (_activites is null)
-        {
-            <p>@Localizer["Chargement"]</p>
-        }
-        else if (_activites.Count == 0)
-        {
-            <p class="hint">@Localizer["AucunRappelPourCeFiltre"]</p>
-        }
-        else
-        {
-            @foreach (var activite in _activites)
-            {
-                <div class="gdt-activite-carte">
-                    <span class="gdt-couleur" style="background:@activite.TypeCouleur"></span>
-                    <strong>@activite.Nom</strong>
-                    <span class="gdt-type-libelle">@activite.TypeLibelle</span>
-                    <span class="gdt-date">@activite.DateActivite.ToString("dd/MM/yyyy") @activite.HeureDebut.ToString("HH:mm") · @activite.DureeMinutes min</span>
-                    @if (activite.CompanyId is int cid)
-                    {
-                        <span class="gdt-tag-entreprise">@NomEntreprise(cid)</span>
-                    }
-                    @if (!_readOnly)
-                    {
-                        <button @onclick="() => SupprimerActiviteAsync(activite.Id)">@Localizer["Supprimer"]</button>
-                    }
+            <div class="tdb-type-row">
+                <div class="tdb-type-label">
+                    <span class="tdb-swatch" style="background:@row.Color"></span>
+                    @row.Label
                 </div>
-            }
-        }
-
-        @if (!_readOnly && _types is { Count: > 0 })
-        {
-            <div class="gdt-form">
-                <h4>@Localizer["NouveauRappel"]</h4>
-                <div class="champ">
-                    <label>@Localizer["Nom"]</label>
-                    <input @bind="_activiteNom" @bind:event="oninput" placeholder="@Localizer["NomRappelPlaceholder"]" />
+                <div class="tdb-progress-track">
+                    <div class="tdb-progress-fill" style="width:@(row.ProgressPct)%; background:@row.Color"></div>
                 </div>
-                <div class="champ">
-                    <label>@Localizer["Categorie"]</label>
-                    <select @bind="_activiteTypeDeTempsId">
-                        @foreach (var type in _types)
-                        {
-                            <option value="@type.Id">@DefaultCategoryLabels.Display(type.Cle, type.Libelle, _english)</option>
-                        }
-                    </select>
+                <div class="tdb-ratio @row.RatioClass">
+                    @row.RatioText
                 </div>
-                <div class="champ">
-                    <label>@Localizer["Date"]</label>
-                    <input type="date" @bind="_activiteDate" />
-                </div>
-                <div class="champ">
-                    <label>@Localizer["HeureDeDebut"]</label>
-                    <input type="time" @bind="_activiteHeureDebut" />
-                </div>
-                <div class="champ">
-                    <label>@Localizer["DureeMinutes"]</label>
-                    <input type="number" min="5" step="5" @bind="_activiteDuree" />
-                </div>
-                <div class="champ">
-                    <label>@Localizer["EntrepriseOptionnel"]</label>
-                    <select @bind="_activiteCompanyIdText">
-                        <option value="">@Localizer["Personnel"]</option>
-                        @foreach (var company in _companies)
-                        {
-                            <option value="@company.Id">@company.Name</option>
-                        }
-                    </select>
-                </div>
-                <button @onclick="CreerActiviteAsync" disabled="@string.IsNullOrWhiteSpace(_activiteNom)">@Localizer["CreerLeRappel"]</button>
             </div>
         }
-    </section>
+    </div>
 
-    @if (!string.IsNullOrEmpty(_erreur))
+    <div class="tdb-stats">
+        <div class="tdb-stat tdb-stat--done">
+            <div class="tdb-stat__value">@_statsTerminees</div>
+            <div class="tdb-stat__label">@Localizer["Dashboard_GdtStatutTermine"]</div>
+        </div>
+        <div class="tdb-stat tdb-stat--progress">
+            <div class="tdb-stat__value">@_statsEnCours</div>
+            <div class="tdb-stat__label">@Localizer["Dashboard_GdtStatutEnCours"]</div>
+        </div>
+        <div class="tdb-stat tdb-stat--todo">
+            <div class="tdb-stat__value">@_statsAFaire</div>
+            <div class="tdb-stat__label">@Localizer["Dashboard_GdtStatutAFaire"]</div>
+        </div>
+    </div>
+
+    <div class="tdb-reco">@_recommandation</div>
+
+    <div class="tdb-panel">
+        <div class="tdb-cycle-progress__label">@_resetLabel</div>
+        <div class="tdb-cycle-bar" role="progressbar" aria-valuenow="@_cycleProgressPct" aria-valuemin="0" aria-valuemax="100">
+            <div class="tdb-cycle-bar__fill" style="width:@(_cycleProgressPct)%"></div>
+        </div>
+        <div class="tdb-cycle-progress__ends">
+            <span>@_cycleLeftLabel</span>
+            <span>@_cycleRightLabel</span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
     {
-        <p class="erreur">@_erreur</p>
+        <div class="alert alert-warning py-2 small" role="alert">@_error</div>
     }
+
+    <div class="tdb-footer">
+        <button type="button" class="btn-prev-section" @onclick="GoPlanification">
+            <i class="bi bi-arrow-left"></i> @Localizer["NavPlanification"]
+        </button>
+    </div>
+</div>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
-    /// <summary>Segment de route optionnel — présent quand un coach consulte le Gestion du temps d'une personne suivie (voir ICoachingAccessChecker) : lecture seule, plus aucun formulaire de mutation.</summary>
+    /// <summary>Segment de route optionnel — présent quand un coach consulte le Gestion du temps d'une personne suivie (voir ICoachingAccessChecker) : lecture seule.</summary>
     [Parameter] public string? Suivi { get; set; }
     private bool _readOnly => !string.IsNullOrEmpty(Suivi);
 
+    private string Href(string basePath) => _readOnly ? $"{basePath}/{Suivi}" : basePath;
+
     private string? _userId;
     private bool _hasAccess;
-    private List<Company> _companies = [];
-    private List<TypeDeTempsView>? _types;
-    private List<ActiviteView>? _activites;
-    private string? _erreur;
+    private bool _loading = true;
+    private bool _dataReady;
+    private bool _chartsInitialized;
+    private int _chartGeneration;
+    private string? _error;
+    private int _cycleId;
 
-    // Filtre : "tout" | "personnel" | "<companyId>"
-    private string _filtreValue = "tout";
+    private int _statsTerminees;
+    private int _statsEnCours;
+    private int _statsAFaire;
+    private string _recommandation = "";
+    private const string PeriodeReset = "Hebdomadaire";
+    private DateTimeOffset _cycleStartedAt;
+    private string _periodHeaderLabel = "";
+    private string _resetLabel = "";
+    private int _cycleProgressPct;
+    private string _cycleLeftLabel = "";
+    private string _cycleRightLabel = "";
 
-    private TypeDeTempsView? _typeEnEdition;
-    private string _typeCle = "";
-    private string _typeLibelle = "";
-    private TimeOnly _typeHeureDebut = new(9, 0);
-    private TimeOnly _typeHeureFin = new(17, 0);
-    private string _typeRecurrence = "L,M,Me,J,V";
-    private string _typeCompanyIdText = "";
+    private List<TypeRow> _typeRows = new();
+    private string[] _chartLabels = Array.Empty<string>();
+    private double[] _allocData = Array.Empty<double>();
+    private double[] _usedData = Array.Empty<double>();
+    private string[] _colors = Array.Empty<string>();
+    private string[] _axisColors = Array.Empty<string>();
 
-    private string _activiteNom = "";
-    private int _activiteTypeDeTempsId;
-    private DateOnly _activiteDate = DateOnly.FromDateTime(DateTime.Today);
-    private TimeOnly _activiteHeureDebut = new(9, 0);
-    private int _activiteDuree = 30;
-    private string _activiteCompanyIdText = "";
+    private Timer? _refreshTimer;
+    private CultureInfo DisplayCulture => CultureInfo.CurrentCulture;
     private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+    private sealed record TypeRow(
+        string Label,
+        string Color,
+        double ProgressPct,
+        string RatioText,
+        string RatioClass);
 
     protected override async Task OnInitializedAsync()
     {
@@ -266,49 +186,257 @@ else
             _userId = autorise ?? userId;
             _hasAccess = autorise is not null;
             if (!_hasAccess)
+            {
+                _loading = false;
                 return;
+            }
         }
         else
         {
             _userId = userId;
             _hasAccess = await AccessService.HasAccessAsync(userId);
             if (!_hasAccess)
+            {
+                _loading = false;
                 return;
-
-            _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb)).ToList();
+            }
         }
 
-        await RefreshTypesAsync();
-        await RefreshActivitesAsync();
+        await LoadDataAsync();
+        _refreshTimer = new Timer(_ => _ = InvokeAsync(RefreshLiveDataAsync), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        _loading = false;
     }
 
-    private (int? CompanyId, bool PersonnelUniquement) ParseFiltre() => _filtreValue switch
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        "tout" => (null, false),
-        "personnel" => (null, true),
-        _ => (int.Parse(_filtreValue), false),
+        if (!_dataReady || _loading || _chartsInitialized)
+            return;
+
+        try
+        {
+            await InitChartsAsync();
+            _chartsInitialized = true;
+        }
+        catch
+        {
+            /* Chart.js ou canvas pas encore prêt — nouvel essai au prochain rendu */
+        }
+    }
+
+    private async Task InitChartsAsync()
+    {
+        _chartGeneration++;
+        var gen = _chartGeneration;
+        await JS.InvokeVoidAsync("gdtCharts.initBarChart",
+            "gdt-bar-chart", _chartLabels, _allocData, _usedData, _colors, gen);
+        await JS.InvokeVoidAsync("gdtCharts.initRadarChart",
+            "gdt-radar-chart", _chartLabels, _allocData, _usedData, _axisColors, gen);
+    }
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            if (!_readOnly)
+                await GdtService.GetOrCreateCycleActifAsync(_userId!);
+
+            var cycle = await GdtService.GetCycleActifAsync(_userId!);
+            if (cycle is null)
+            {
+                _dataReady = false;
+                return;
+            }
+
+            _cycleId = cycle.Id;
+            _cycleStartedAt = cycle.DemarreLe;
+
+            var types = (await GdtService.GetTypesDeTempsAsync(_userId!)).ToList();
+            var cartes = (await GdtService.GetKanbanAsync(_userId!)).ToList();
+
+            ComputeDashboard(types, cartes);
+            _dataReady = true;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task RefreshLiveDataAsync()
+    {
+        if (!_dataReady || _cycleId == 0 || _userId is null)
+            return;
+
+        try
+        {
+            var types = (await GdtService.GetTypesDeTempsAsync(_userId)).ToList();
+            var cartes = (await GdtService.GetKanbanAsync(_userId)).ToList();
+            ComputeDashboard(types, cartes);
+
+            if (_chartsInitialized)
+            {
+                await JS.InvokeVoidAsync("gdtCharts.updateCharts", _allocData, _usedData, _axisColors);
+            }
+
+            StateHasChanged();
+        }
+        catch
+        {
+            /* ignore refresh errors */
+        }
+    }
+
+    private void ComputeDashboard(List<TypeDeTempsView> types, List<KanbanCarteView> cartes)
+    {
+        var ordered = types.OrderBy(t => t.OrdreAffichage).ThenBy(t => t.Cle).ToList();
+        if (ordered.Count == 0)
+            ordered = BuildFallbackTypes();
+
+        _chartLabels = ordered.Select(ChartLabel).ToArray();
+        _colors = ordered.Select(t => CouleurCategorie(t.Cle)).ToArray();
+        _allocData = ordered.Select(t => GetHeuresTheoriques(t, PeriodeReset)).ToArray();
+        _usedData = ordered.Select(t => GetHeuresReelles(t.Id, cartes)).ToArray();
+
+        _periodHeaderLabel = string.Format(
+            Localizer["Gdt_TdbPeriodLabel"].Value,
+            LocalizePeriod(PeriodeReset),
+            _cycleStartedAt.ToLocalTime().ToString("d MMMM yyyy", DisplayCulture));
+
+        _axisColors = ordered.Select((_, i) => AxisColor(_allocData[i], _usedData[i])).ToArray();
+
+        _typeRows = ordered.Select((t, i) =>
+        {
+            var theo = _allocData[i];
+            var real = _usedData[i];
+            var pct = theo <= 0 ? 0 : real / theo * 100;
+            return new TypeRow(
+                ChartLabel(t),
+                CouleurCategorie(t.Cle),
+                Math.Min(100, pct),
+                $"{FormatH(real)} / {FormatH(theo)} ({pct:0}%)",
+                RatioClass(pct));
+        }).ToList();
+
+        _statsTerminees = cartes.Count(c => c.Statut == KanbanColonnes.Termine);
+        _statsEnCours = cartes.Count(c => c.Statut == KanbanColonnes.EnCours);
+        _statsAFaire = cartes.Count(c => c.Statut == KanbanColonnes.AFaire);
+
+        var underUsed = ordered
+            .Select((t, i) => (Label: ChartLabel(t), Theo: _allocData[i], Real: _usedData[i]))
+            .Where(x => x.Theo > 0 && x.Real / x.Theo < 0.5)
+            .Select(x => x.Label)
+            .ToList();
+
+        _recommandation = underUsed.Count > 0
+            ? string.Format(Localizer["Gdt_Tdb_RecoUnderused"].Value, string.Join(", ", underUsed))
+            : Localizer["Gdt_Tdb_RecoBalanced"].Value;
+
+        ComputeCycleProgress(_cycleStartedAt, PeriodeReset);
+    }
+
+    private static int CountJoursActifs(TypeDeTempsView type)
+    {
+        if (string.IsNullOrWhiteSpace(type.RecurrenceJours))
+            return 7;
+
+        return type.RecurrenceJours
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Length;
+    }
+
+    private static double GetHeuresTheoriques(TypeDeTempsView type, string periodeReset)
+    {
+        var durJour = TypeDuration.GetDurationHours(type.HeureDebut, type.HeureFin);
+        var joursActifs = CountJoursActifs(type);
+
+        var multiplicateur = periodeReset switch
+        {
+            "Journalier" => joursActifs / 7.0,
+            "Hebdomadaire" => joursActifs,
+            "Mensuel" => joursActifs * 4.33,
+            "Trimestriel" => joursActifs * 13.0,
+            "Annuel" => joursActifs * 52.0,
+            _ => joursActifs
+        };
+
+        return durJour * multiplicateur;
+    }
+
+    private double GetHeuresReelles(int typeId, List<KanbanCarteView> cartes) =>
+        MoniteurChartMath.SumHeuresReelles(typeId, cartes, _cycleStartedAt, PeriodeReset);
+
+    private void ComputeCycleProgress(DateTimeOffset cycleStartedAt, string periodeReset)
+    {
+        _resetLabel = periodeReset.Equals("Hebdomadaire", StringComparison.OrdinalIgnoreCase)
+            ? Localizer["Gdt_Tdb_ResetWeekly"].Value
+            : string.Format(Localizer["Gdt_Tdb_ResetGeneric"].Value, LocalizePeriod(periodeReset).ToLower(DisplayCulture));
+
+        var duree = periodeReset switch
+        {
+            "Journalier" => 1,
+            "Hebdomadaire" => 7,
+            "Mensuel" => 30,
+            "Trimestriel" => 90,
+            "Annuel" => 365,
+            _ => 7
+        };
+
+        var startedAt = cycleStartedAt.ToLocalTime().Date;
+        var elapsed = (DateTime.Today - startedAt).Days + 1;
+        if (elapsed < 1)
+            elapsed = 1;
+
+        _cycleProgressPct = Math.Min(100, (int)((double)elapsed / duree * 100));
+        _cycleLeftLabel = string.Format(Localizer["Gdt_TdbCycleDay"].Value, elapsed);
+        _cycleRightLabel = startedAt.AddDays(duree).ToString("dddd d MMMM", DisplayCulture);
+    }
+
+    private string LocalizePeriod(string periodeReset) => periodeReset switch
+    {
+        "Journalier" => Localizer["Gdt_Period_Journalier"].Value,
+        "Hebdomadaire" => Localizer["Gdt_Period_Hebdomadaire"].Value,
+        "Mensuel" => Localizer["Gdt_Period_Mensuel"].Value,
+        "Trimestriel" => Localizer["Gdt_Period_Trimestriel"].Value,
+        "Annuel" => Localizer["Gdt_Period_Annuel"].Value,
+        _ => periodeReset
     };
 
-    private async Task RefreshTypesAsync()
+    private static List<TypeDeTempsView> BuildFallbackTypes() =>
+    [
+        new(0, "sommeil", "Sommeil", new TimeOnly(22, 30), new TimeOnly(6, 30), "L,M,Me,J,V,S,D", 0, null),
+        new(0, "perso", "Personnel", new TimeOnly(7, 0), new TimeOnly(8, 0), "L,M,Me,J,V,S,D", 1, null),
+        new(0, "pro", "Professionnel", new TimeOnly(8, 0), new TimeOnly(17, 0), "L,M,Me,J,V", 2, null),
+        new(0, "admin", "Administratif", new TimeOnly(17, 0), new TimeOnly(18, 0), "L,M,Me,J,V", 3, null),
+        new(0, "famille", "Familial", new TimeOnly(18, 0), new TimeOnly(21, 0), "L,M,Me,J,V,S,D", 4, null),
+        new(0, "social", "Social", new TimeOnly(19, 0), new TimeOnly(21, 0), "L,M,Me,J,V,S,D", 5, null),
+    ];
+
+    private string ChartLabel(TypeDeTempsView type)
     {
-        _types = (await GdtService.GetTypesDeTempsAsync(_userId!)).ToList();
-        if (_types.Count > 0 && _types.All(t => t.Id != _activiteTypeDeTempsId))
-            _activiteTypeDeTempsId = _types[0].Id;
+        var display = DefaultCategoryLabels.Display(type.Cle, type.Libelle, _english);
+        return display.Split('·', ' ')[0].Trim();
     }
 
-    private async Task RefreshActivitesAsync()
-    {
-        var (companyId, personnelUniquement) = ParseFiltre();
-        _activites = (await GdtService.GetActivitesAsync(_userId!, companyId, personnelUniquement)).ToList();
-    }
+    private string FormatH(double h) =>
+        h.ToString("0.#", DisplayCulture) + "h";
 
-    private async Task OnFiltreChangedAsync(ChangeEventArgs e)
+    private static string RatioClass(double pct) => pct switch
     {
-        _filtreValue = e.Value?.ToString() ?? "tout";
-        await RefreshActivitesAsync();
-    }
+        > 110 => "tdb-ratio--bad",
+        < 90 => "tdb-ratio--warn",
+        _ => "tdb-ratio--good"
+    };
 
-    private string? NomEntreprise(int companyId) => _companies.FirstOrDefault(c => c.Id == companyId)?.Name;
+    private static string AxisColor(double theo, double real)
+    {
+        if (theo <= 0)
+            return "#9ca3af";
+        if (real > theo * 1.1)
+            return "#c44440";
+        if (real < theo * 0.9)
+            return "#345f6d";
+        return "#9ca3af";
+    }
 
     private static string CouleurCategorie(string cle) => cle switch
     {
@@ -321,66 +449,21 @@ else
         _ => "#6b5248",
     };
 
-    private void CommencerEditionType(TypeDeTempsView type)
-    {
-        _typeEnEdition = type;
-        _typeCle = type.Cle;
-        _typeLibelle = type.Libelle;
-        _typeHeureDebut = type.HeureDebut;
-        _typeHeureFin = type.HeureFin;
-        _typeRecurrence = type.RecurrenceJours;
-        _typeCompanyIdText = type.CompanyId?.ToString() ?? "";
-    }
+    private void GoPlanification() =>
+        NavigationManager.NavigateTo(Href("/gestion-du-temps/kanban"));
 
-    private void AnnulerEditionType()
+    public void Dispose()
     {
-        _typeEnEdition = null;
-        _typeCle = "";
-        _typeLibelle = "";
-        _typeHeureDebut = new(9, 0);
-        _typeHeureFin = new(17, 0);
-        _typeRecurrence = "L,M,Me,J,V";
-        _typeCompanyIdText = "";
-    }
-
-    private async Task EnregistrerTypeAsync()
-    {
-        _erreur = null;
-        var companyId = string.IsNullOrWhiteSpace(_typeCompanyIdText) ? (int?)null : int.Parse(_typeCompanyIdText);
+        _refreshTimer?.Dispose();
         try
         {
-            await GdtService.UpsertTypeDeTempsAsync(
-                _userId!, _typeEnEdition?.Id, _typeCle, _typeLibelle, _typeHeureDebut, _typeHeureFin, _typeRecurrence,
-                _typeEnEdition?.OrdreAffichage ?? (_types?.Count ?? 0), companyId);
-
-            AnnulerEditionType();
-            await RefreshTypesAsync();
+            // destroyIf ignore les appels retardés d'une instance précédente (évite d'effacer
+            // les graphiques du moniteur au retour depuis le kanban).
+            _ = JS.InvokeVoidAsync("gdtCharts.destroyIf", _chartGeneration);
         }
-        catch (InvalidOperationException ex)
+        catch
         {
-            _erreur = ex.Message;
+            /* ignore */
         }
-    }
-
-    private async Task CreerActiviteAsync()
-    {
-        _erreur = null;
-        var companyId = string.IsNullOrWhiteSpace(_activiteCompanyIdText) ? (int?)null : int.Parse(_activiteCompanyIdText);
-        try
-        {
-            await GdtService.CreateActiviteAsync(_userId!, _activiteTypeDeTempsId, _activiteNom, _activiteDate, _activiteHeureDebut, _activiteDuree, companyId);
-            _activiteNom = "";
-            await RefreshActivitesAsync();
-        }
-        catch (InvalidOperationException ex)
-        {
-            _erreur = ex.Message;
-        }
-    }
-
-    private async Task SupprimerActiviteAsync(int activiteId)
-    {
-        await GdtService.DeleteActiviteAsync(_userId!, activiteId);
-        await RefreshActivitesAsync();
     }
 }

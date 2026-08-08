@@ -15,30 +15,40 @@
 
 <PageTitle>@Localizer["QuestionnaireCandidat"]</PageTitle>
 
+<div class="candidat-profil-page">
 @if (_questions is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="candidat-state">@Localizer["Chargement"]</p>
 }
 else
 {
     var themes = Enum.GetValues<CandidateTheme>();
     var onGrilleStep = _currentIndex >= _questions.Count;
 
+    <header class="candidat-profil-header">
+        <div>
+            <h1 class="candidat-profil-title">@Localizer["QuestionnaireCandidat"]</h1>
+            <p class="candidat-profil-subtitle">@Localizer["SyntheseHint"]</p>
+        </div>
+    </header>
+
     <div class="candidat-questionnaire">
-        <aside class="progression">
-            <h3>@Localizer["Progression"]</h3>
-            <ul>
+        <aside class="candidat-card candidat-progression">
+            <h2 class="candidat-section-title">@Localizer["Progression"]</h2>
+            <ul class="progression-list">
                 @foreach (var theme in themes)
                 {
                     var themeQuestions = _questions.Where(q => q.Theme == theme).ToList();
                     var allAnswered = themeQuestions.Count > 0 && themeQuestions.All(q => !string.IsNullOrWhiteSpace(q.AnswerText));
                     var isActive = !onGrilleStep && _questions[_currentIndex].Theme == theme;
-                    <li class="@(isActive ? "active" : "")">
-                        @(allAnswered ? "✅" : "◯") @CandidateThemeLabels.ShortLabel(theme, _english)
+                    <li class="progression-item @(isActive ? "active" : "") @(allAnswered ? "is-complete" : "")">
+                        <i class="bi @(allAnswered ? "bi-check-circle-fill" : (isActive ? "bi-circle-fill" : "bi-circle"))" aria-hidden="true"></i>
+                        <span>@CandidateThemeLabels.ShortLabel(theme, _english)</span>
                     </li>
                 }
-                <li class="@(onGrilleStep ? "active" : "")">
-                    @(GrilleComplete ? "✅" : "◯") @Localizer["GrilleDeCompatibilite"]
+                <li class="progression-item @(onGrilleStep ? "active" : "") @(GrilleComplete ? "is-complete" : "")">
+                    <i class="bi @(GrilleComplete ? "bi-check-circle-fill" : (onGrilleStep ? "bi-circle-fill" : "bi-circle"))" aria-hidden="true"></i>
+                    <span>@Localizer["GrilleDeCompatibilite"]</span>
                 </li>
             </ul>
         </aside>
@@ -46,26 +56,39 @@ else
         @if (!onGrilleStep)
         {
             var current = _questions[_currentIndex];
-            <section class="question-panel">
-                <p class="counter">@string.Format(Localizer["QuestionCompteur"].Value, _currentIndex + 1, _questions.Count)</p>
-                <h2>@current.Text</h2>
+            <section class="candidat-card candidat-form">
+                <p class="candidat-counter">
+                    <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+                    @string.Format(Localizer["QuestionCompteur"].Value, _currentIndex + 1, _questions.Count)
+                </p>
+                <h2 class="candidat-question-title">@current.Text</h2>
 
-                <textarea @bind="_currentAnswer" @bind:event="oninput"
+                <textarea class="candidat-textarea"
+                          @bind="_currentAnswer" @bind:event="oninput"
                           placeholder="@ExamplesPlaceholder(current)"
                           rows="5"></textarea>
 
-                <div class="actions">
-                    <button @onclick="PreviousAsync" disabled="@(_currentIndex == 0)">&lt; @Localizer["Precedent"]</button>
-                    <button @onclick="NextAsync">@Localizer["Suivant"] &gt;</button>
+                <div class="candidat-actions">
+                    <button type="button" class="candidat-btn-secondary" @onclick="PreviousAsync" disabled="@(_currentIndex == 0)">
+                        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                        @Localizer["Precedent"]
+                    </button>
+                    <button type="button" class="candidat-btn-primary" @onclick="NextAsync">
+                        @Localizer["Suivant"]
+                        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    </button>
                 </div>
             </section>
         }
         else
         {
-            <section class="question-panel">
-                <p class="counter">@Localizer["GrilleH_Entete"]</p>
-                <h2>@Localizer["CriteresPourMoteur"]</h2>
-                <p class="hint">@Localizer["GrilleH_Hint"]</p>
+            <section class="candidat-card candidat-form">
+                <p class="candidat-counter">
+                    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                    @Localizer["GrilleH_Entete"]
+                </p>
+                <h2 class="candidat-section-title">@Localizer["CriteresPourMoteur"]</h2>
+                <p class="candidat-hint">@Localizer["GrilleH_Hint"]</p>
 
                 <div class="grille-champ">
                     <label>@Localizer["CompatibiliteTechnique"]</label>
@@ -80,7 +103,7 @@ else
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Technique, e.Value?.ToString())"
+                    <textarea class="candidat-textarea" @bind="_grille.TechniqueNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Technique, e.Value?.ToString())"
                               placeholder="@Localizer["NotesLibresTechnique"]" rows="2"></textarea>
                 </div>
 
@@ -97,7 +120,7 @@ else
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Comportementale, e.Value?.ToString())"
+                    <textarea class="candidat-textarea" @bind="_grille.ComportementaleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Comportementale, e.Value?.ToString())"
                               placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
@@ -114,21 +137,21 @@ else
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Culturelle, e.Value?.ToString())"
+                    <textarea class="candidat-textarea" @bind="_grille.CulturelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Culturelle, e.Value?.ToString())"
                               placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
                 <div class="grille-champ">
                     <label>@Localizer["CompatibiliteOrganisationnelle"]</label>
                     <p class="grille-question">@Localizer["QuestionRythme"]</p>
-                    <select value="@(_grille.RythmeTravail?.ToString() ?? "")" @onchange="OnRythmeChangedAsync">
+                    <select class="candidat-select" value="@(_grille.RythmeTravail?.ToString() ?? "")" @onchange="OnRythmeChangedAsync">
                         <option value="">@Localizer["ChoisirOption"]</option>
                         @foreach (var (valeur, libelle) in CompatibilityVocabulary.RythmeTravailLabels)
                         {
                             <option value="@valeur">@valeur — @CompatibilityVocabulary.DisplayRythmeTravail(valeur, _english)</option>
                         }
                     </select>
-                    <textarea @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Organisationnelle, e.Value?.ToString())"
+                    <textarea class="candidat-textarea" @bind="_grille.OrganisationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Organisationnelle, e.Value?.ToString())"
                               placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
@@ -145,7 +168,7 @@ else
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Motivationnelle, e.Value?.ToString())"
+                    <textarea class="candidat-textarea" @bind="_grille.MotivationnelleNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.Motivationnelle, e.Value?.ToString())"
                               placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
@@ -162,24 +185,36 @@ else
                             </label>
                         }
                     </div>
-                    <textarea @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.PointsVigilance, e.Value?.ToString())"
+                    <textarea class="candidat-textarea" @bind="_grille.PointsVigilanceNotes" @bind:event="oninput" @onchange="e => SaveNotesAsync(CriteriaField.PointsVigilance, e.Value?.ToString())"
                               placeholder="@Localizer["NotesLibres"]" rows="2"></textarea>
                 </div>
 
-                <div class="actions">
-                    <button @onclick="PreviousAsync">&lt; @Localizer["Precedent"]</button>
-                    <button @onclick="() => _grilleSaved = true">@Localizer["Termine"]</button>
+                <div class="candidat-actions">
+                    <button type="button" class="candidat-btn-secondary" @onclick="PreviousAsync">
+                        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                        @Localizer["Precedent"]
+                    </button>
+                    <button type="button" class="candidat-btn-primary" @onclick="() => _grilleSaved = true">
+                        <i class="bi bi-check-lg" aria-hidden="true"></i>
+                        @Localizer["Termine"]
+                    </button>
                 </div>
                 @if (_grilleSaved)
                 {
-                    <p class="hint">@Localizer["GrilleEnregistree"]</p>
+                    <div class="candidat-alert candidat-alert-success" role="status">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["GrilleEnregistree"]
+                    </div>
                 }
             </section>
         }
 
-        <aside class="synthese">
-            <h3>@Localizer["SyntheseDuProfil"]</h3>
-            <p class="grille-statut">@(GrilleComplete ? "✅" : "◯") @Localizer["GrilleDeCompatibilite"] @(GrilleComplete ? Localizer["Complete"] : Localizer["Incomplete"])</p>
+        <aside class="candidat-card candidat-synthese">
+            <h2 class="candidat-section-title">@Localizer["SyntheseDuProfil"]</h2>
+            <p class="candidat-status @(GrilleComplete ? "is-complete" : "is-incomplete")">
+                <i class="bi @(GrilleComplete ? "bi-check-circle-fill" : "bi-circle")" aria-hidden="true"></i>
+                @Localizer["GrilleDeCompatibilite"] @(GrilleComplete ? Localizer["Complete"] : Localizer["Incomplete"])
+            </p>
             @if (_synthesis is not null)
             {
                 @foreach (var (category, tags) in _synthesis.TagsByCategory)
@@ -198,11 +233,12 @@ else
             }
             else
             {
-                <p class="hint">@Localizer["SyntheseHint"]</p>
+                <p class="candidat-hint">@Localizer["SyntheseHint"]</p>
             }
         </aside>
     </div>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

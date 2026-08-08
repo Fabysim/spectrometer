@@ -1,0 +1,268 @@
+@page "/entreprise/employes"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Identity
+@using Spectrometre.Core.Invitations
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Host.Resources
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICompanyProvisioningService CompanyProvisioningService
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["GestionManagers_Titre"]</PageTitle>
+
+<div class="managers-page">
+@if (_loading)
+{
+    <p class="managers-state">@Localizer["Chargement"]</p>
+}
+else if (_companies.Count == 0)
+{
+    <section class="managers-card">
+        <p class="managers-hint">@Localizer["AjouterModule_AucuneEntrepriseAssociee"]</p>
+        <a href="/entreprise/creer" class="managers-btn-primary">@Localizer["CreerUneEntreprise"]</a>
+    </section>
+}
+else
+{
+    <header class="managers-header">
+        <div>
+            <h1 class="managers-title">@Localizer["GestionManagers_Titre"]</h1>
+            <p class="managers-subtitle">
+                @if (_companies.Count == 1)
+                {
+                    @_companies[0].Name
+                }
+                else
+                {
+                    @Localizer["EntrepriseActive"]
+                }
+            </p>
+        </div>
+        @if (_companies.Count > 1)
+        {
+            <div class="managers-company-select">
+                <label for="managers-active">@Localizer["EntrepriseActive"]</label>
+                <select id="managers-active" value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+                    @foreach (var company in _companies)
+                    {
+                        <option value="@company.Id">@company.Name</option>
+                    }
+                </select>
+            </div>
+        }
+    </header>
+
+    @if (!_estProprietaire)
+    {
+        <section class="managers-card">
+            <div class="managers-empty-icon" aria-hidden="true">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <p class="managers-hint">@Localizer["GestionManagers_ReserveProprietaire"]</p>
+        </section>
+    }
+    else
+    {
+        <div class="managers-layout">
+            <section class="managers-card">
+                <div class="managers-card-icon" aria-hidden="true">
+                    <i class="bi bi-person-plus"></i>
+                </div>
+                <h2 class="managers-section-title">@Localizer["GestionManagers_Inviter"]</h2>
+                <div class="managers-form">
+                    <div class="managers-field">
+                        <label for="managers-email">@Localizer["Email"]</label>
+                        <input id="managers-email" class="managers-input" @bind="_emailInvitation" placeholder="nom@exemple.com" />
+                    </div>
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="managers-alert managers-alert-error" role="alert">@_error</div>
+                    }
+                    @if (!string.IsNullOrEmpty(_message))
+                    {
+                        <div class="managers-alert managers-alert-success" role="status">
+                            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                            @_message
+                        </div>
+                    }
+                    <div class="managers-actions">
+                        <button type="button" class="managers-btn-primary" @onclick="InviterAsync" disabled="@_envoiEnCours">
+                            <i class="bi bi-envelope" aria-hidden="true"></i>
+                            @Localizer["GestionManagers_Inviter"]
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="managers-card">
+                <h2 class="managers-section-title">@Localizer["GestionManagers_InvitationsEnCours"]</h2>
+                @if (_invitationsEnCours.Count == 0)
+                {
+                    <p class="managers-hint">@Localizer["GestionManagers_AucuneInvitation"]</p>
+                }
+                else
+                {
+                    <ul class="managers-list">
+                        @foreach (var invitation in _invitationsEnCours)
+                        {
+                            <li class="managers-list-item">
+                                <span class="managers-list-email">@invitation.EmailInvite</span>
+                                <button type="button" class="managers-btn-secondary" @onclick="() => RevoquerInvitationAsync(invitation.Id)">
+                                    @Localizer["GestionManagers_RevoquerInvitation"]
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+
+            <section class="managers-card">
+                <h2 class="managers-section-title">@Localizer["GestionManagers_ManagersRattaches"]</h2>
+                @if (_employes.Count == 0)
+                {
+                    <p class="managers-hint">@Localizer["GestionManagers_AucunManager"]</p>
+                }
+                else
+                {
+                    <ul class="managers-list">
+                        @foreach (var (userId, email) in _employes)
+                        {
+                            <li class="managers-list-item">
+                                <span class="managers-list-email">@email</span>
+                                <button type="button" class="managers-btn-secondary" @onclick="() => RevoquerEmployeAsync(userId)">
+                                    @Localizer["GestionManagers_RevoquerRattachement"]
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        </div>
+    }
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool _loading = true;
+    private bool _envoiEnCours;
+    private string? _userId;
+    private List<Company> _companies = [];
+    private int _selectedCompanyId;
+    private bool _estProprietaire;
+    private string _emailInvitation = "";
+    private string? _error;
+    private string? _message;
+    private List<Invitation> _invitationsEnCours = [];
+    private List<(string UserId, string Email)> _employes = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is not null)
+            _userId = (await AuthenticationStateTask).User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(_userId))
+        {
+            _companies = (await CompanyProvisioningService.GetCompaniesForUserAsync(_userId, CoreDb)).ToList();
+            if (_companies.Count > 0)
+            {
+                _selectedCompanyId = _companies[0].Id;
+                await RefreshAsync();
+            }
+        }
+
+        _loading = false;
+    }
+
+    private async Task OnCompanyChangedAsync(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var id))
+            return;
+
+        _selectedCompanyId = id;
+        _error = null;
+        _message = null;
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        // Rôle de l'utilisateur courant pour l'entreprise sélectionnée — seul le Propriétaire peut
+        // inviter/révoquer (voir la demande d'origine) ; un employé ne voit que le message d'accès restreint.
+        var lien = await CoreDb.UserCompanyLinks.AsNoTracking()
+            .FirstOrDefaultAsync(l => l.UserId == _userId && l.CompanyId == _selectedCompanyId);
+        _estProprietaire = lien?.Role == CompanyRole.Proprietaire;
+
+        if (!_estProprietaire)
+        {
+            _invitationsEnCours = [];
+            _employes = [];
+            return;
+        }
+
+        _invitationsEnCours = (await CompanyProvisioningService.GetInvitationsEmployeEnCoursAsync(_selectedCompanyId, CoreDb)).ToList();
+
+        var liensEmployes = await CompanyProvisioningService.GetEmployesAsync(_selectedCompanyId, CoreDb);
+        var employes = new List<(string, string)>();
+        foreach (var l in liensEmployes)
+        {
+            var user = await UserManager.FindByIdAsync(l.UserId);
+            employes.Add((l.UserId, user?.Email ?? l.UserId));
+        }
+        _employes = employes;
+    }
+
+    private async Task InviterAsync()
+    {
+        _error = null;
+        _message = null;
+
+        if (string.IsNullOrWhiteSpace(_emailInvitation))
+        {
+            _error = Localizer["GestionManagers_EmailRequis"];
+            return;
+        }
+
+        _envoiEnCours = true;
+        try
+        {
+            var invitation = await CompanyProvisioningService.InviterEmployeAsync(_userId!, _selectedCompanyId, _emailInvitation.Trim(), CoreDb);
+            if (invitation is null)
+            {
+                _error = Localizer["GestionManagers_ErreurInvitation"];
+                return;
+            }
+
+            _emailInvitation = "";
+            _message = Localizer["GestionManagers_InvitationEnvoyee"];
+            await RefreshAsync();
+        }
+        finally
+        {
+            _envoiEnCours = false;
+        }
+    }
+
+    private async Task RevoquerInvitationAsync(int invitationId)
+    {
+        await CompanyProvisioningService.RevokeInvitationEmployeAsync(_userId!, invitationId, CoreDb);
+        await RefreshAsync();
+    }
+
+    private async Task RevoquerEmployeAsync(string employeUserId)
+    {
+        await CompanyProvisioningService.RevokeEmployeAsync(_userId!, _selectedCompanyId, employeUserId, CoreDb);
+        await RefreshAsync();
+    }
+}

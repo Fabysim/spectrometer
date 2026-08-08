@@ -22,54 +22,75 @@
 
 <PageTitle>@Localizer["ResultatCompatibilite"]</PageTitle>
 
+<div class="compat-page">
 @if (!_resolu)
 {
-    <p>@Localizer["CalculEnCours"]</p>
+    <p class="compat-state">@Localizer["CalculEnCours"]</p>
 }
 else if (_result is null)
 {
     @* Réponse volontairement générique : ne jamais confirmer à un tiers qu'un résultat existe pour cet
        identifiant candidat s'il n'y a pas droit — voir CompatibiliteService.GetResultatAutorisePourUtilisateurAsync. *@
-    <p class="hint">@Localizer["ResultatIntrouvable"]</p>
+    <section class="compat-card compat-empty">
+        <p class="compat-hint">@Localizer["ResultatIntrouvable"]</p>
+    </section>
 }
 else
 {
-    <div class="resultat-compatibilite">
-        <div class="score-global">
+    <header class="compat-header">
+        <div>
+            <h1 class="compat-title">@Localizer["ResultatCompatibilite"]</h1>
+            <p class="compat-subtitle">@Localizer["ScoreGlobal"]</p>
+        </div>
+    </header>
+
+    <div class="compat-layout">
+        <section class="compat-card compat-score-card">
             @{
                 var circumference = 2 * Math.PI * 80;
                 var offset = circumference * (1 - _result.ScoreGlobal / 100.0);
             }
-            <svg viewBox="0 0 200 200" width="200" height="200">
-                <circle cx="100" cy="100" r="80" fill="none" stroke="#e6e6e6" stroke-width="20" />
-                <circle cx="100" cy="100" r="80" fill="none" stroke="#3a8a5a" stroke-width="20"
-                        stroke-dasharray="@circumference.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                        stroke-dashoffset="@offset.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                        stroke-linecap="round" transform="rotate(-90 100 100)" />
-                <text x="100" y="95" text-anchor="middle" font-size="34" font-weight="bold">@(_result.ScoreGlobal)%</text>
-                <text x="100" y="120" text-anchor="middle" font-size="12">@Localizer["Compatibilite"]</text>
-            </svg>
-            <p class="score-label">@Localizer["ScoreGlobal"]</p>
-        </div>
+            <div class="compat-score-ring" aria-hidden="true">
+                <svg viewBox="0 0 200 200" width="180" height="180">
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="#e2e8f0" stroke-width="18" />
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="url(#compatScoreGrad)" stroke-width="18"
+                            stroke-dasharray="@circumference.ToString(CultureInfo.InvariantCulture)"
+                            stroke-dashoffset="@offset.ToString(CultureInfo.InvariantCulture)"
+                            stroke-linecap="round" transform="rotate(-90 100 100)" />
+                    <defs>
+                        <linearGradient id="compatScoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#345f6d" />
+                            <stop offset="100%" stop-color="hsl(18, 80%, 54%)" />
+                        </linearGradient>
+                    </defs>
+                    <text x="100" y="96" text-anchor="middle" font-size="36" font-weight="800" fill="#0f172a">@(_result.ScoreGlobal)%</text>
+                    <text x="100" y="120" text-anchor="middle" font-size="12" font-weight="600" fill="#64748b">@Localizer["Compatibilite"]</text>
+                </svg>
+            </div>
+            <p class="compat-score-label">@Localizer["ScoreGlobal"]</p>
+        </section>
 
-        <div class="scores-par-axe">
-            <h3>@Localizer["CompatibilitesParAxe"]</h3>
+        <section class="compat-card compat-axes-card">
+            <h2 class="compat-bloc-title">@Localizer["CompatibilitesParAxe"]</h2>
             @foreach (var axisScore in _result.ScoresParAxe)
             {
-                <div class="axe-row">
-                    <span class="axe-nom">@CompatibilityAxisLabels.Label(axisScore.Axis, _english)</span>
-                    <div class="barre">
-                        <div class="barre-remplie" style="width:@(axisScore.Score)%"></div>
+                <div class="barre-ligne">
+                    <span class="barre-libelle">@CompatibilityAxisLabels.Label(axisScore.Axis, _english)</span>
+                    <div class="barre-piste">
+                        <div class="barre-remplissage" style="width:@(axisScore.Score)%"></div>
                     </div>
-                    <span class="axe-score">@(axisScore.Score)%</span>
+                    <span class="barre-valeur">@(axisScore.Score)%</span>
                 </div>
             }
 
             @if (_result.PointsDeVigilance.Count > 0)
             {
-                <div class="points-vigilance">
-                    <strong>@Localizer["PointsDeVigilance"]</strong>
-                    <ul>
+                <div class="compat-vigilance">
+                    <h3 class="compat-vigilance-title">
+                        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                        @Localizer["PointsDeVigilance"]
+                    </h3>
+                    <ul class="compat-vigilance-liste">
                         @foreach (var point in _result.PointsDeVigilance)
                         {
                             <li>@CompatibilityVocabulary.DisplayTag(point, _english)</li>
@@ -77,9 +98,10 @@ else
                     </ul>
                 </div>
             }
-        </div>
+        </section>
     </div>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

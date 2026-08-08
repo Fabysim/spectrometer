@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>b94728f0-d4c2-4db7-a8ff-9a2e71c44d03</UserSecretsId>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,6 +32,8 @@
     <ProjectReference Include="..\Spectrometre.Modules.SuiviEvolutif\Spectrometre.Modules.SuiviEvolutif.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.Analytics\Spectrometre.Modules.Analytics.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.GestionDuTemps\Spectrometre.Modules.GestionDuTemps.csproj" />
+    <!-- Admin est référencé UNIQUEMENT par Host — jamais par un autre module (voir sa ServiceCollectionExtensions). -->
+    <ProjectReference Include="..\Spectrometre.Modules.Admin\Spectrometre.Modules.Admin.csproj" />
   </ItemGroup>
 
 </Project>

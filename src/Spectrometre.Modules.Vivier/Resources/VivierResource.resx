@@ -69,4 +69,8 @@
   <data name="Statut_Entretien" xml:space="preserve"><value>Entretien</value></data>
   <data name="Statut_Rejetee" xml:space="preserve"><value>Rejetée</value></data>
   <data name="Statut_Embauchee" xml:space="preserve"><value>Embauchée</value></data>
+
+  <!-- VivierCandidatDetailPage.razor — section CV -->
+  <data name="Cv_SectionTitle" xml:space="preserve"><value>Curriculum vitæ</value></data>
+  <data name="Cv_NonRempli" xml:space="preserve"><value>Ce candidat n'a pas encore rempli son CV.</value></data>
 </root>

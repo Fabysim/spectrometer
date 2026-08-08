@@ -1,0 +1,72 @@
+@page "/admin/candidats"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminCandidatsTitle"]</PageTitle>
+
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["AdminNavCandidats"]</h1>
+            <p class="admin-subtitle">@Localizer["AdminCandidatsTitle"]</p>
+        </div>
+    </header>
+
+    @if (_candidats is null)
+    {
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else if (_candidats.Count == 0)
+    {
+        <section class="admin-card">
+            <p class="admin-hint">@Localizer["AucunCandidat"]</p>
+        </section>
+    }
+    else
+    {
+        <section class="admin-card admin-table-card">
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["ColEmail"]</th>
+                            <th>@Localizer["ColStatutAbonnement"]</th>
+                            <th>@Localizer["ColPlan"]</th>
+                            <th>@Localizer["ColModulesActifs"]</th>
+                            <th>@Localizer["ColDateCreation"]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in _candidats)
+                        {
+                            <tr>
+                                <td>@(c.Email ?? "—")</td>
+                                <td>@c.StatutAbonnement</td>
+                                <td>@(c.PlanCode ?? "—")</td>
+                                <td>@string.Join(", ", c.ModulesActifs)</td>
+                                <td>@c.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                <td><a href="@($"/admin/sujets/Candidate/{c.CandidateProfileId}/modules")">@Localizer["AdminModulesTitre"]</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private IReadOnlyList<AdminCandidateSummary>? _candidats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var caller = AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+        _candidats = await AdminService.GetCandidatsAsync(caller);
+    }
+}

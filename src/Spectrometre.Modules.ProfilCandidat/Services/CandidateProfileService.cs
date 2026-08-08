@@ -27,7 +27,21 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
 
         var profile = new CandidateProfile { UserId = userId };
         db.CandidateProfiles.Add(profile);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
+        {
+            // Même course que CoachProfileService.GetOrCreateProfileIdAsync (voir sa remarque) : Home.razor
+            // et MainLayout.razor résolvent chacun indépendamment le profil candidat dès le premier rendu,
+            // potentiellement en concurrence lors du pré-rendu SSR d'une même requête. Pas une vraie erreur :
+            // le profil existe désormais, il suffit de le relire — sur un DbContext frais, le précédent
+            // ayant sa transaction implicite avortée par l'échec de l'insertion.
+            await using var freshDb = await dbFactory.CreateDbContextAsync(cancellationToken);
+            return (await freshDb.CandidateProfiles.FirstAsync(p => p.UserId == userId, cancellationToken)).Id;
+        }
+
         return profile.Id;
     }
 

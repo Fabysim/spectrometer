@@ -1,68 +1,245 @@
+/* Profil entreprise – plein écran utile, avec marges */
+
+.entreprise-profil-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+}
+
+.entreprise-state {
+    color: #64748b;
+    margin: 1rem 0;
+}
+
+.entreprise-profil-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-shrink: 0;
+}
+
+.entreprise-profil-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.entreprise-profil-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.entreprise-company-select {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 220px;
+}
+
+.entreprise-company-select label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.entreprise-company-select select,
+.entreprise-select {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    background: white;
+    color: #0f172a;
+    box-sizing: border-box;
+}
+
+.entreprise-company-select select:focus,
+.entreprise-select:focus,
+.question textarea:focus,
+.grille-champ textarea:focus {
+    outline: none;
+    border-color: var(--bs-primary, #345f6d);
+    box-shadow: 0 0 0 3px rgba(52, 95, 109, 0.12);
+}
+
 .entreprise-tabs {
     display: flex;
     gap: 0.4rem;
-    margin: 1rem 0;
+    margin: 0 0 1.25rem;
     flex-wrap: wrap;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
 }
 
 .entreprise-tabs button {
-    padding: 0.4rem 0.8rem;
-    border: 1px solid #ccd6f6;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid #e2e8f0;
     background: white;
-    border-radius: 6px;
+    border-radius: 999px;
     cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.entreprise-tabs button:hover {
+    color: var(--bs-primary, #345f6d);
+    border-color: #cbd5e1;
 }
 
 .entreprise-tabs button.active {
-    background: #1a3d7c;
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    border-color: transparent;
     color: white;
 }
 
 .entreprise-body {
     display: grid;
-    grid-template-columns: 1fr 280px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.9fr);
     gap: 1.5rem;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
-.question {
-    margin-bottom: 1rem;
-}
-
-.question label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.question textarea {
-    width: 100%;
+.entreprise-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    min-height: 100%;
     box-sizing: border-box;
 }
 
-.grille-champ {
-    margin-bottom: 1.25rem;
+.entreprise-form {
+    min-height: 100%;
 }
 
-.grille-champ label {
-    display: block;
+.entreprise-section-title {
+    font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 0.2rem;
+    margin: 0 0 1rem;
+    color: var(--foreground, #0f172a);
+}
+
+.entreprise-hint {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0 0 1rem;
+    line-height: 1.5;
+}
+
+.entreprise-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.entreprise-status.is-complete {
+    color: var(--gscv-teal, hsl(178, 45%, 35%));
+}
+
+.entreprise-status.is-incomplete {
+    color: #64748b;
+}
+
+.entreprise-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: white !important;
+    border: none;
+    padding: 0.625rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none !important;
+    box-shadow: 0 4px 12px rgba(234, 119, 61, 0.3);
+    transition: all 0.2s;
+}
+
+.entreprise-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(234, 119, 61, 0.4);
+    color: white !important;
+}
+
+.question {
+    margin-bottom: 1.15rem;
+}
+
+.question label,
+.grille-champ > label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 0.4rem;
+}
+
+.question textarea,
+.grille-champ textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+    color: #0f172a;
+    background: #fff;
+    resize: vertical;
+    min-height: 4.5rem;
+    font-family: inherit;
+}
+
+.grille-champ {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.grille-champ:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .grille-champ .grille-question {
     font-size: 0.85rem;
-    color: #555;
-    margin: 0 0 0.35rem;
+    color: #64748b;
+    margin: 0 0 0.6rem;
+    line-height: 1.45;
 }
 
 .grille-champ textarea {
-    width: 100%;
-    box-sizing: border-box;
-    margin-top: 0.4rem;
+    margin-top: 0.65rem;
+    min-height: 3.5rem;
 }
 
-.grille-champ select {
+.grille-champ .entreprise-select {
     display: block;
+    max-width: 28rem;
 }
 
 .tag-checkboxes {
@@ -74,11 +251,72 @@
 .tag-checkbox {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    background: #f2f4f8;
+    gap: 0.4rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 999px;
-    padding: 0.25rem 0.7rem;
-    font-size: 0.85rem;
-    font-weight: normal;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #334155;
     cursor: pointer;
+    transition: all 0.15s ease;
+    margin: 0;
+}
+
+.tag-checkbox:hover {
+    border-color: var(--bs-primary, #345f6d);
+    background: white;
+}
+
+.tag-checkbox:has(input:checked) {
+    background: rgba(52, 95, 109, 0.08);
+    border-color: var(--bs-primary, #345f6d);
+    color: var(--bs-primary, #345f6d);
+}
+
+.tag-checkbox input {
+    accent-color: var(--bs-primary, #345f6d);
+    margin: 0;
+}
+
+.entreprise-synthese {
+    position: sticky;
+    top: 1rem;
+}
+
+@media (max-width: 900px) {
+    .entreprise-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .entreprise-synthese {
+        position: static;
+        min-height: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .entreprise-profil-page {
+        padding: 1rem;
+        min-height: calc(100dvh - 6.5rem);
+    }
+
+    .entreprise-profil-title {
+        font-size: 1.35rem;
+    }
+
+    .entreprise-card {
+        padding: 1.1rem 1.15rem 1.25rem;
+        border-radius: 14px;
+    }
+
+    .entreprise-company-select {
+        width: 100%;
+    }
+
+    .entreprise-tabs button {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.7rem;
+    }
 }

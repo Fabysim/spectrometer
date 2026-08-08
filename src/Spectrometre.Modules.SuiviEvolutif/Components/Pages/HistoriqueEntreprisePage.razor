@@ -20,59 +20,82 @@
 
 <PageTitle>@Localizer["HistoriqueDuProfilEntrepriseTitle"]</PageTitle>
 
-<h1>@Localizer["HistoriqueDuProfil"]</h1>
-<p class="hint">@Localizer["HistoriqueEntrepriseHint"]</p>
-
+<div class="historique-page">
 @if (_companies is null)
 {
-    <p>@Localizer["Chargement"]</p>
+    <p class="historique-state">@Localizer["Chargement"]</p>
 }
 else if (_companies.Count == 0)
 {
-    <p>@Localizer["AucuneEntrepriseAssociee"]</p>
+    <section class="historique-card historique-empty">
+        <p class="historique-hint">@Localizer["AucuneEntrepriseAssociee"]</p>
+    </section>
 }
 else
 {
-    <div class="entreprise-header">
+    <header class="historique-header">
+        <div>
+            <h1 class="historique-title">@Localizer["HistoriqueDuProfil"]</h1>
+            <p class="historique-subtitle">
+                @if (_companies.Count == 1)
+                {
+                    @_companies[0].Name
+                }
+                else
+                {
+                    @Localizer["EntrepriseActive"]
+                }
+            </p>
+        </div>
         @if (_companies.Count > 1)
         {
-            <label>
-                @Localizer["EntrepriseActive"]
-                <select value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
+            <div class="historique-company-select">
+                <label for="historique-active">@Localizer["EntrepriseActive"]</label>
+                <select id="historique-active" value="@_selectedCompanyId" @onchange="OnCompanyChangedAsync">
                     @foreach (var company in _companies)
                     {
                         <option value="@company.Id">@company.Name</option>
                     }
                 </select>
-            </label>
+            </div>
         }
-        else
-        {
-            <strong>@_companies[0].Name</strong>
-        }
-    </div>
+    </header>
+
+    <p class="historique-intro">@Localizer["HistoriqueEntrepriseHint"]</p>
 
     @if (_historique is null)
     {
-        <p>@Localizer["Chargement"]</p>
+        <p class="historique-state">@Localizer["Chargement"]</p>
     }
     else if (_historique.Count == 0)
     {
-        <p class="hint">@Localizer["AucuneModificationEnregistree"]</p>
+        <section class="historique-card historique-empty">
+            <div class="historique-empty-icon" aria-hidden="true">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <p class="historique-hint">@Localizer["AucuneModificationEnregistree"]</p>
+        </section>
     }
     else
     {
-        <ul class="historique-liste">
+        <ol class="historique-liste">
             @foreach (var entree in _historique)
             {
-                <li class="historique-entree">
-                    <span class="historique-date">@entree.Horodatage.LocalDateTime.ToString(Localizer["DateFormat"].Value, CultureInfo.CurrentUICulture)</span>
-                    <p>@Phrase(entree)</p>
+                <li class="historique-card historique-entree">
+                    <div class="historique-entree-marker" aria-hidden="true"></div>
+                    <div class="historique-entree-body">
+                        <time class="historique-date" datetime="@entree.Horodatage.UtcDateTime.ToString("o")">
+                            <i class="bi bi-calendar3" aria-hidden="true"></i>
+                            @entree.Horodatage.LocalDateTime.ToString(Localizer["DateFormat"].Value, CultureInfo.CurrentUICulture)
+                        </time>
+                        <p class="historique-phrase">@Phrase(entree)</p>
+                    </div>
                 </li>
             }
-        </ul>
+        </ol>
     }
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

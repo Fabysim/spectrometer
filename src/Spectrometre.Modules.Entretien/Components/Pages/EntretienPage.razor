@@ -17,35 +17,57 @@
 
 <PageTitle>@Localizer["PreparerLEntretien"]</PageTitle>
 
+<div class="entretien-page">
 @if (!_resolu)
 {
-    <p>@Localizer["GenerationEnCours"]</p>
+    <p class="entretien-state">@Localizer["GenerationEnCours"]</p>
 }
 else if (_grille is null)
 {
     @* Réponse volontairement générique — même principe que /compatibilite/resultat/{id} : ne jamais
        confirmer l'existence d'une ressource à un utilisateur qui n'y a pas droit. *@
-    <p class="hint">@Localizer["GrilleIntrouvable"]</p>
+    <section class="entretien-card entretien-empty">
+        <p class="entretien-hint">@Localizer["GrilleIntrouvable"]</p>
+    </section>
 }
 else if (_grille.Groupes.Count == 0)
 {
-    <h1>@Localizer["PreparerLEntretien"]</h1>
-    <p class="hint">@string.Format(Localizer["ScoreGlobalSansQuestion"].Value, _grille.ScoreGlobal)</p>
+    <header class="entretien-header">
+        <div>
+            <h1 class="entretien-title">@Localizer["PreparerLEntretien"]</h1>
+            <p class="entretien-subtitle">@string.Format(Localizer["ScoreGlobalSansQuestion"].Value, _grille.ScoreGlobal)</p>
+        </div>
+        <div class="entretien-score-badge" aria-hidden="true">
+            <span class="entretien-score-value">@_grille.ScoreGlobal%</span>
+        </div>
+    </header>
 }
 else
 {
-    <h1>@Localizer["PreparerLEntretien"]</h1>
-    <p class="hint">@string.Format(Localizer["ScoreGlobalAvecQuestions"].Value, _grille.ScoreGlobal)</p>
+    <header class="entretien-header">
+        <div>
+            <h1 class="entretien-title">@Localizer["PreparerLEntretien"]</h1>
+            <p class="entretien-subtitle">@string.Format(Localizer["ScoreGlobalAvecQuestions"].Value, _grille.ScoreGlobal)</p>
+        </div>
+        <div class="entretien-score-badge" aria-hidden="true">
+            <span class="entretien-score-value">@_grille.ScoreGlobal%</span>
+        </div>
+    </header>
 
     <div class="entretien-colonnes">
         <section class="entretien-colonne">
-            <h2>@Localizer["QuestionsPourCandidat"]</h2>
-            <p class="hint">@Localizer["QuestionsPourCandidatHint"]</p>
+            <div class="entretien-colonne-head">
+                <div class="entretien-colonne-icon tone-candidat" aria-hidden="true"><i class="bi bi-person"></i></div>
+                <div>
+                    <h2 class="entretien-colonne-title">@Localizer["QuestionsPourCandidat"]</h2>
+                    <p class="entretien-hint">@Localizer["QuestionsPourCandidatHint"]</p>
+                </div>
+            </div>
             @foreach (var groupe in _grille.Groupes)
             {
                 @if (groupe.QuestionsPourCandidat.Count > 0)
                 {
-                    <div class="groupe-questions">
+                    <article class="entretien-card groupe-questions">
                         <div class="groupe-entete">
                             <strong>@groupe.Titre</strong>
                         </div>
@@ -55,19 +77,24 @@ else
                                 <li>@question</li>
                             }
                         </ul>
-                    </div>
+                    </article>
                 }
             }
         </section>
 
         <section class="entretien-colonne">
-            <h2>@Localizer["QuestionsPourEntreprise"]</h2>
-            <p class="hint">@Localizer["QuestionsPourEntrepriseHint"]</p>
+            <div class="entretien-colonne-head">
+                <div class="entretien-colonne-icon tone-entreprise" aria-hidden="true"><i class="bi bi-building"></i></div>
+                <div>
+                    <h2 class="entretien-colonne-title">@Localizer["QuestionsPourEntreprise"]</h2>
+                    <p class="entretien-hint">@Localizer["QuestionsPourEntrepriseHint"]</p>
+                </div>
+            </div>
             @foreach (var groupe in _grille.Groupes)
             {
                 @if (groupe.QuestionsPourEntreprise.Count > 0)
                 {
-                    <div class="groupe-questions">
+                    <article class="entretien-card groupe-questions">
                         <div class="groupe-entete">
                             <strong>@groupe.Titre</strong>
                         </div>
@@ -77,12 +104,13 @@ else
                                 <li>@question</li>
                             }
                         </ul>
-                    </div>
+                    </article>
                 }
             }
         </section>
     </div>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }

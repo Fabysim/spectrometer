@@ -1,0 +1,200 @@
+/* /entreprise/donnees – formulaire admin (MVP CompanyDetail) */
+
+.donnees-entreprise-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+}
+
+.donnees-state,
+.donnees-hint {
+    color: #64748b;
+    margin: 0 0 1rem;
+}
+
+.donnees-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.donnees-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.donnees-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.donnees-company-select {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 220px;
+}
+
+.donnees-company-select label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.donnees-company-select select,
+.donnees-input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    background: white;
+    color: #0f172a;
+    box-sizing: border-box;
+}
+
+.donnees-company-select select:focus,
+.donnees-input:focus {
+    outline: none;
+    border-color: var(--bs-primary, #345f6d);
+    box-shadow: 0 0 0 3px rgba(52, 95, 109, 0.12);
+}
+
+.donnees-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.35rem 1.5rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    max-width: 640px;
+}
+
+.donnees-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--foreground, #0f172a);
+}
+
+.donnees-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.donnees-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.donnees-form-row .donnees-field {
+    flex: 1 1 0;
+    min-width: 140px;
+}
+
+.donnees-field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.3rem;
+}
+
+.donnees-optional {
+    font-weight: 400;
+    color: #94a3b8;
+}
+
+.donnees-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.donnees-btn-primary,
+.donnees-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.donnees-btn-primary {
+    background: var(--bs-primary, #345f6d);
+    color: #fff;
+}
+
+.donnees-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.05);
+}
+
+.donnees-btn-secondary {
+    background: #fff;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.donnees-btn-secondary:hover:not(:disabled) {
+    background: #f8fafc;
+}
+
+.donnees-btn-primary:disabled,
+.donnees-btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.donnees-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.875rem;
+}
+
+.donnees-alert-success {
+    background: rgba(22, 163, 74, 0.08);
+    color: #15803d;
+    border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.donnees-alert-error {
+    background: rgba(220, 38, 38, 0.06);
+    color: #b91c1c;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+@media (max-width: 640px) {
+    .donnees-entreprise-page {
+        padding: 1rem;
+    }
+
+    .donnees-actions {
+        flex-direction: column-reverse;
+    }
+
+    .donnees-btn-primary,
+    .donnees-btn-secondary {
+        width: 100%;
+    }
+}

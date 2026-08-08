@@ -1,0 +1,42 @@
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Host.Resources
+@inject IStringLocalizer<SharedResource> L
+@{
+    var currentYear = DateTime.Now.Year;
+}
+
+<div class="footer-vitrine container-fluid bg-dark text-light pt-5 pb-4">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4 col-md-6">
+                <h4 class="text-uppercase mb-4" style="color: var(--bs-primary);">@L["Footer_Brand_Title"]</h4>
+                <p class="mb-4">@L["Footer_Description"]</p>
+                <p class="mb-2"><i class="bi bi-geo-alt text-primary me-3"></i>@L["Footer_Location"]</p>
+                <p class="mb-2"><i class="bi bi-envelope text-primary me-3"></i>contact@spectrometre.com</p>
+                <p class="mb-0"><i class="bi bi-telephone text-primary me-3"></i>+33 (0)1 23 45 67 89</p>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <h4 class="text-uppercase mb-4" style="color: var(--bs-primary);">@L["Footer_Nav_Title"]</h4>
+                <div class="d-flex flex-column justify-content-start">
+                    <a class="text-light mb-2" href="/#home" target="_top"><i class="bi bi-chevron-right me-2"></i>@L["Nav_Public_Home"]</a>
+                    <a class="text-light mb-2" href="/#dimension-sociopro" target="_top"><i class="bi bi-chevron-right me-2"></i>@L["Nav_Public_Sociopro"]</a>
+                    <a class="text-light mb-2" href="/#dimension-psychosociale" target="_top"><i class="bi bi-chevron-right me-2"></i>@L["Nav_Public_Psychosociale"]</a>
+                    <a class="text-light mb-2" href="/#pourquoi-different" target="_top"><i class="bi bi-chevron-right me-2"></i>@L["Nav_Public_Approach"]</a>
+                    <a class="text-light" href="/#demarrer" target="_top"><i class="bi bi-chevron-right me-2"></i>@L["Footer_Nav_Start"]</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid bg-dark text-light border-top border-secondary py-3">
+    <div class="container">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-6 text-center text-md-start small">
+                @L["Footer_Copyright", currentYear]
+            </div>
+            <div class="col-md-6 text-center text-md-end small">
+                <a href="#" class="text-decoration-none text-light">@L["Footer_Legal"]</a>
+            </div>
+        </div>
+    </div>
+</div>

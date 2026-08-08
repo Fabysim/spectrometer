@@ -1,0 +1,74 @@
+@* Header vitrine – navbar fixe, transparente puis opaque au scroll *@
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Host.Resources
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> L
+
+<header class="navbar-vitrine @(IsOpaque ? "navbar-vitrine--scrolled" : "")" style="z-index: 1030;">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between py-3 py-lg-0" style="min-height: 4rem;">
+            <a href="/" class="navbar-vitrine__brand" target="_top">@L["Header_Brand_Title"]</a>
+
+            <nav class="d-none d-lg-flex align-items-center gap-4">
+                <a href="#home" class="nav-link-vitrine">@L["Nav_Public_Home"]</a>
+                <a href="#dimension-sociopro" class="nav-link-vitrine">@L["Nav_Public_Sociopro"]</a>
+                <a href="#dimension-psychosociale" class="nav-link-vitrine">@L["Nav_Public_Psychosociale"]</a>
+                <a href="#pourquoi-different" class="nav-link-vitrine">@L["Nav_Public_Approach"]</a>
+                <a href="/login" class="btn-demarrer" data-enhance-nav="false">@L["Nav_Public_Login"]</a>
+
+                <div class="d-flex align-items-center ms-3 gap-2">
+                    <a href="@CultureLink("fr")" class="nav-link-vitrine" data-enhance-nav="false">FR</a>
+                    <span class="text-white-50">|</span>
+                    <a href="@CultureLink("en")" class="nav-link-vitrine" data-enhance-nav="false">EN</a>
+                </div>
+            </nav>
+
+            <button type="button"
+                    id="navbarVitrineToggle"
+                    class="d-lg-none navbar-toggler border-0 py-2"
+                    aria-controls="navbarVitrineMenu"
+                    aria-expanded="false"
+                    aria-label="Menu"
+                    onclick="(function(){var m=document.getElementById('navbarVitrineMenu');var open=m.getAttribute('data-open')==='true';m.setAttribute('data-open',open?'false':'true');document.getElementById('navbarVitrineToggle').setAttribute('aria-expanded',open?'false':'true');})()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="navbar-vitrine-hamburger-icon">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="d-lg-none navbar-vitrine-mobile-menu border-top" id="navbarVitrineMenu" data-open="false" style="border-color: rgba(255,255,255,0.1);">
+        <div class="container py-3 d-flex flex-column gap-2">
+            <a href="#home" class="nav-link-vitrine py-2" onclick="document.getElementById('navbarVitrineMenu').setAttribute('data-open','false')">@L["Nav_Public_Home"]</a>
+            <a href="#dimension-sociopro" class="nav-link-vitrine py-2" onclick="document.getElementById('navbarVitrineMenu').setAttribute('data-open','false')">@L["Nav_Public_Sociopro"]</a>
+            <a href="#dimension-psychosociale" class="nav-link-vitrine py-2" onclick="document.getElementById('navbarVitrineMenu').setAttribute('data-open','false')">@L["Nav_Public_Psychosociale"]</a>
+            <a href="#pourquoi-different" class="nav-link-vitrine py-2" onclick="document.getElementById('navbarVitrineMenu').setAttribute('data-open','false')">@L["Nav_Public_Approach"]</a>
+            <a href="/login" class="btn-demarrer text-center py-2" data-enhance-nav="false">@L["Nav_Public_Login"]</a>
+
+            <div class="d-flex gap-2 mt-2">
+                <a href="@CultureLink("fr")" class="nav-link-vitrine flex-fill text-center py-2" data-enhance-nav="false">FR</a>
+                <a href="@CultureLink("en")" class="nav-link-vitrine flex-fill text-center py-2" data-enhance-nav="false">EN</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+@code {
+    private bool IsOpaque
+    {
+        get
+        {
+            var path = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).TrimStart('/');
+            return path.StartsWith("login", StringComparison.OrdinalIgnoreCase)
+                || path.StartsWith("inscription", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private string CultureLink(string culture)
+    {
+        var returnUrl = "/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        return $"/culture/set?culture={culture}&redirectUri={Uri.EscapeDataString(returnUrl)}";
+    }
+}

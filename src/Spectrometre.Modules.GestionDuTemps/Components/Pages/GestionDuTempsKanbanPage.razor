@@ -2,9 +2,9 @@
 @page "/gestion-du-temps/kanban/{Suivi}"
 @attribute [Authorize]
 @rendermode InteractiveServer
-@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Modules
 @using Spectrometre.Modules.GestionDuTemps.Entities
@@ -16,111 +16,157 @@
 @inject IGestionDuTempsAccessService AccessService
 @inject ICoachingAccessChecker CoachingAccessChecker
 @inject IStringLocalizer<GestionDuTempsResource> Localizer
+@inject NavigationManager NavigationManager
 
 <PageTitle>@Localizer["KanbanTitle"]</PageTitle>
 
-<h1>@Localizer["KanbanDuCycleActif"]</h1>
-<p class="hint">
-    @Localizer["KanbanHint1"] <a href="@Href("/gestion-du-temps")">@Localizer["NavRetourAuxRituels"]</a>.
-</p>
+<div class="gdt-page plan-page">
+    <h1 class="gdt-title">@Localizer["KanbanDuCycleActif"]</h1>
+    <p class="hint">
+        @Localizer["KanbanHint1"] <a href="@Href("/gestion-du-temps")">@Localizer["NavRetourAuxRituels"]</a>.
+    </p>
 
-@if (_userId is null)
+@if (_loading)
 {
-    <p>@Localizer["Chargement"]</p>
+    <div class="p-4 text-muted small">@Localizer["Chargement"]</div>
 }
 else if (!_hasAccess)
 {
     <p class="hint">@Localizer["ModuleNonActive"]</p>
 }
-else if (_cycle is null || _cartes is null)
-{
-    <p>@Localizer["Chargement"]</p>
-}
 else
 {
-    <div class="gdt-cycle-bandeau">
-        <span>@string.Format(Localizer["CycleBandeau"].Value, _cycle.NumeroCycle, _cycle.DemarreLe.ToLocalTime().ToString("dd/MM/yyyy"))</span>
-        @if (!_readOnly)
-        {
-            <button @onclick="ClotureCycleAsync" disabled="@_clotureEnCours">@Localizer["ClotureCycleBouton"]</button>
-        }
-    </div>
-    <p class="hint">@Localizer["ClotureCycleHint"]</p>
-
-    @if (!string.IsNullOrEmpty(_erreur))
+    @if (_cycle is not null)
     {
-        <p class="erreur">@_erreur</p>
-    }
-
-    @if (_cartes.Count == 0)
-    {
-        <p class="hint">@Localizer["AucunRappelDansCeCycle"] <a href="@Href("/gestion-du-temps")">@Localizer["NavRituels"]</a>.</p>
-    }
-    else
-    {
-        <div class="gdt-kanban">
-            @foreach (var colonne in Colonnes)
+        <div class="gdt-cycle-bandeau">
+            <span>@string.Format(Localizer["CycleBandeau"].Value, _cycle.NumeroCycle, _cycle.DemarreLe.ToLocalTime().ToString("dd/MM/yyyy"))</span>
+            @if (!_readOnly)
             {
-                <div class="gdt-kanban-colonne">
-                    <div class="gdt-kanban-entete">
-                        <span>@Localizer[colonne.LabelKey]</span>
-                        <span class="gdt-kanban-compte">@CartesDe(colonne.Statut).Count()</span>
-                    </div>
-                    @foreach (var carte in CartesDe(colonne.Statut))
+                <button type="button" @onclick="ClotureCycleAsync" disabled="@(_busy || _clotureEnCours)">
+                    @Localizer["ClotureCycleBouton"]
+                </button>
+            }
+        </div>
+        <p class="hint gdt-cycle-hint">@Localizer["ClotureCycleHint"]</p>
+    }
+
+    @if (!Cards.Any())
+    {
+        <div class="plan-empty">
+            @Localizer["AucunRappelDansCeCycle"] <a href="@Href("/gestion-du-temps/organisation")">@Localizer["NavOrganisation"]</a>.
+        </div>
+    }
+
+    <div class="plan-kanban">
+        @foreach (var col in Columns)
+        {
+            <div class="plan-column">
+                <div class="plan-column__head">
+                    <span>@col.Label</span>
+                    <span class="plan-column__count">@GetCards(col.Statut).Count()</span>
+                </div>
+                    <div class="plan-column__body @(_dragOverColumn == col.Statut ? "plan-column__body--drag" : "")"
+                     @ondragover="() => OnDragOver(col.Statut)"
+                     @ondragover:preventDefault="true"
+                     @ondragleave="OnDragLeave"
+                     @ondrop="() => OnDropAsync(col.Statut)"
+                     @ondrop:preventDefault="true">
+                    @foreach (var card in GetCards(col.Statut))
                     {
-                        <div class="gdt-kanban-carte @(carte.EnDepassement ? "gdt-depassement" : "")">
-                            <span class="gdt-couleur" style="background:@carte.TypeCouleur"></span>
-                            <strong>@carte.Nom</strong>
-                            <div class="gdt-kanban-meta">@carte.TypeLibelle · @string.Format(Localizer["Planifie"].Value, carte.DureeMinutes)</div>
-                            <div class="gdt-kanban-minuteur">
-                                @KanbanTimer.Format(TempsAffiche(carte))
-                                @if (carte.EnDepassement)
-                                {
-                                    <span class="gdt-tag-depassement">@Localizer["Depassement"]</span>
-                                }
+                        <div class="plan-card @(card.EnDepassement ? "plan-card--over" : "")"
+                             draggable="@(!_readOnly)"
+                             @ondragstart="() => OnDragStart(card.ActiviteId)"
+                             @ondragend="OnDragEnd">
+                            <h3 class="plan-card__title">@card.Nom</h3>
+                            <div class="plan-card__meta">
+                                <span class="plan-card__dot" style="background:@card.TypeCouleur"></span>
+                                <span>@card.TypeLibelle · @card.DureeMinutes min</span>
                             </div>
+                            @if (card.ShowTimer)
+                            {
+                                var elapsed = GetElapsedMs(card);
+                                <div class="plan-card__timer @(card.EnDepassement ? "plan-card__timer--over" : "plan-card__timer--ok")">
+                                    @KanbanTimer.Format(elapsed)
+                                </div>
+                            }
+                            @* Boutons de déplacement — mobile uniquement (touch), comme MVP *@
                             @if (!_readOnly)
                             {
-                                <div class="gdt-kanban-actions">
-                                    @foreach (var cible in Colonnes.Where(c => c.Statut != colonne.Statut))
+                                <div class="plan-card__quick-move d-flex d-md-none gap-1 flex-wrap mt-2">
+                                    @foreach (var targetCol in Columns.Where(c => c.Statut != col.Statut))
                                     {
-                                        <button @onclick="() => DeplacerAsync(carte.ActiviteId, cible.Statut)">@Localizer[cible.LabelKey]</button>
+                                        <button type="button"
+                                                class="plan-card__move-btn"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => MoveCardToColumnAsync(card.ActiviteId, targetCol.Statut)">
+                                            @targetCol.Label <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                                        </button>
                                     }
                                 </div>
                             }
                         </div>
                     }
                 </div>
-            }
-        </div>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-warning mt-3 py-2 small" role="alert">@_error</div>
     }
+
+    <div class="plan-footer">
+        <button type="button" class="btn-prev-section" @onclick="GoOrganisation">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> @Localizer["NavOrganisation"]
+        </button>
+        <button type="button" class="btn-next-section" disabled="@_busy" @onclick="GoMoniteur">
+            @Localizer["NavRetourAuxRituels"] <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </button>
+    </div>
 }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
     [Parameter] public string? Suivi { get; set; }
     private bool _readOnly => !string.IsNullOrEmpty(Suivi);
-
-    /// <summary>Ajoute le segment Suivi aux liens croisés vers les autres écrans du module, pour qu'un coach en mode lecture seule reste sur les données de la personne suivie en naviguant.</summary>
     private string Href(string basePath) => _readOnly ? $"{basePath}/{Suivi}" : basePath;
 
-    private sealed record Colonne(string Statut, string LabelKey);
+    private bool _loading = true;
+    private bool _hasAccess;
+    private bool _busy;
+    private bool _clotureEnCours;
+    private string? _error;
+    private string? _userId;
+    private CycleView? _cycle;
+    private int? _draggedActiviteId;
+    private string? _dragOverColumn;
+    private Timer? _uiTimer;
+    private DateTimeOffset _derniereActualisation = DateTimeOffset.UtcNow;
 
-    private static readonly Colonne[] Colonnes =
+    private sealed record KanbanColumn(string Statut, string Label);
+
+    private sealed record KanbanCardVm(
+        int ActiviteId,
+        string Nom,
+        int DureeMinutes,
+        string TypeLibelle,
+        string TypeCouleur,
+        string Statut,
+        long TempsReelMs,
+        bool EnDepassement,
+        bool ShowTimer);
+
+    private List<KanbanColumn> Columns =>
     [
-        new(KanbanColonnes.AFaire, "ColonneAFaire"),
-        new(KanbanColonnes.EnCours, "ColonneEnCours"),
-        new(KanbanColonnes.Termine, "ColonneTermine"),
+        new(KanbanColonnes.AFaire, Localizer["ColonneAFaire"]),
+        new(KanbanColonnes.EnCours, Localizer["ColonneEnCours"]),
+        new(KanbanColonnes.Termine, Localizer["ColonneTermine"]),
     ];
 
-    private string? _userId;
-    private bool _hasAccess;
-    private CycleView? _cycle;
-    private List<KanbanCarteView>? _cartes;
-    private bool _clotureEnCours;
-    private string? _erreur;
-    private Timer? _timerAffichage;
+    private List<KanbanCardVm> Cards { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,37 +189,100 @@ else
             _hasAccess = await AccessService.HasAccessAsync(userId);
         }
 
-        if (!_hasAccess)
-            return;
+        if (_hasAccess)
+        {
+            await RefreshAsync();
+            _uiTimer = new Timer(_ =>
+            {
+                if (_busy || _draggedActiviteId is not null) return;
+                _ = InvokeAsync(StateHasChanged);
+            }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        }
 
-        _cycle = await GdtService.GetOrCreateCycleActifAsync(_userId);
-        await RefreshCartesAsync();
-
-        // Rafraîchit l'affichage du minuteur chaque seconde pour la carte "En cours" — le temps réel lui-même
-        // est calculé côté serveur (KanbanTimer.GetElapsedMs), ce timer ne fait que redessiner l'écran.
-        _timerAffichage = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        _loading = false;
     }
 
-    private async Task RefreshCartesAsync() =>
-        _cartes = (await GdtService.GetKanbanAsync(_userId!)).ToList();
-
-    private IEnumerable<KanbanCarteView> CartesDe(string statut) =>
-        _cartes!.Where(c => c.Statut == statut);
-
-    /// <summary>Le temps affiché avance en direct pour une carte "En cours" entre deux rafraîchissements serveur (voir <see cref="_timerAffichage"/>) : on ajoute l'écart écoulé depuis le dernier <see cref="RefreshCartesAsync"/> à la valeur déjà connue.</summary>
-    private long TempsAffiche(KanbanCarteView carte) =>
-        carte.Statut == KanbanColonnes.EnCours
-            ? carte.TempsReelMs + (long)(DateTimeOffset.UtcNow - _derniereActualisation).TotalMilliseconds
-            : carte.TempsReelMs;
-
-    private DateTimeOffset _derniereActualisation = DateTimeOffset.UtcNow;
-
-    private async Task DeplacerAsync(int activiteId, string statutCible)
+    private async Task RefreshAsync()
     {
-        _erreur = null;
         try
         {
-            switch (statutCible)
+            if (!_readOnly)
+                await GdtService.GetOrCreateCycleActifAsync(_userId!);
+
+            _cycle = await GdtService.GetCycleActifAsync(_userId!);
+            var cartes = await GdtService.GetKanbanAsync(_userId!);
+            _derniereActualisation = DateTimeOffset.UtcNow;
+
+            Cards = cartes.Select(c => new KanbanCardVm(
+                c.ActiviteId,
+                c.Nom,
+                c.DureeMinutes,
+                c.TypeLibelle,
+                c.TypeCouleur,
+                c.Statut,
+                c.TempsReelMs,
+                c.EnDepassement,
+                c.Statut is KanbanColonnes.EnCours or KanbanColonnes.Termine)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private IEnumerable<KanbanCardVm> GetCards(string statut) =>
+        Cards.Where(c => c.Statut == statut);
+
+    private long GetElapsedMs(KanbanCardVm card) =>
+        card.Statut == KanbanColonnes.EnCours
+            ? card.TempsReelMs + (long)(DateTimeOffset.UtcNow - _derniereActualisation).TotalMilliseconds
+            : card.TempsReelMs;
+
+    private void OnDragStart(int activiteId)
+    {
+        if (_readOnly) return;
+        _draggedActiviteId = activiteId;
+    }
+
+    private void OnDragEnd()
+    {
+        _draggedActiviteId = null;
+        _dragOverColumn = null;
+    }
+
+    private void OnDragOver(string statut)
+    {
+        if (_readOnly) return;
+        _dragOverColumn = statut;
+    }
+
+    private void OnDragLeave() => _dragOverColumn = null;
+
+    /// <summary>Déplace une carte vers une colonne — utilisé par les boutons mobiles (MVP).</summary>
+    private async Task MoveCardToColumnAsync(int activiteId, string targetStatut)
+    {
+        _draggedActiviteId = activiteId;
+        await OnDropAsync(targetStatut);
+    }
+
+    private async Task OnDropAsync(string targetStatut)
+    {
+        _dragOverColumn = null;
+        if (_readOnly || _draggedActiviteId is not int activiteId)
+            return;
+
+        var card = Cards.FirstOrDefault(c => c.ActiviteId == activiteId);
+        if (card is null || card.Statut == targetStatut)
+        {
+            _draggedActiviteId = null;
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        try
+        {
+            switch (targetStatut)
             {
                 case KanbanColonnes.AFaire:
                     await GdtService.MarquerPauseAsync(_userId!, activiteId);
@@ -186,28 +295,32 @@ else
                     break;
             }
 
-            _derniereActualisation = DateTimeOffset.UtcNow;
-            await RefreshCartesAsync();
+            await RefreshAsync();
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+            _draggedActiviteId = null;
         }
     }
 
     private async Task ClotureCycleAsync()
     {
+        if (_readOnly) return;
         _clotureEnCours = true;
-        _erreur = null;
+        _error = null;
         try
         {
             _cycle = await GdtService.ClotureEtDemarrerNouveauCycleAsync(_userId!);
-            _derniereActualisation = DateTimeOffset.UtcNow;
-            await RefreshCartesAsync();
+            await RefreshAsync();
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _error = ex.Message;
         }
         finally
         {
@@ -215,5 +328,8 @@ else
         }
     }
 
-    public void Dispose() => _timerAffichage?.Dispose();
+    private void GoOrganisation() => NavigationManager.NavigateTo(Href("/gestion-du-temps/organisation"));
+    private void GoMoniteur() => NavigationManager.NavigateTo(Href("/gestion-du-temps"));
+
+    public void Dispose() => _uiTimer?.Dispose();
 }

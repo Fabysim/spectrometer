@@ -34,4 +34,12 @@ public sealed class GestionDuTempsAccessService(
 
         return false;
     }
+
+    public async Task<bool> HasCandidateAccessAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        await using var coreDb = await coreDbFactory.CreateDbContextAsync(cancellationToken);
+
+        var candidateProfileId = await candidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId, cancellationToken);
+        return await moduleRegistry.IsActiveForCandidateAsync(candidateProfileId, ServiceCollectionExtensions.Manifest.Code, coreDb, cancellationToken);
+    }
 }

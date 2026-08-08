@@ -1,62 +1,325 @@
-.gdt-type-carte, .gdt-activite-carte {
+/* /gestion-du-temps — Moniteur (tableau de bord), plein écran utile */
+
+.gdt-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
     display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 0.6rem 0.9rem;
-    margin-bottom: 0.5rem;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 0.25rem;
 }
 
-.gdt-activite-carte.gdt-fait {
-    opacity: 0.6;
-}
-
-.gdt-couleur {
-    width: 0.8rem;
-    height: 0.8rem;
-    border-radius: 999px;
-    display: inline-block;
+.gdt-page .gdt-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.85rem;
+    color: var(--foreground, #0f172a);
     flex-shrink: 0;
 }
 
-.gdt-horaire, .gdt-recurrence, .gdt-date, .gdt-type-libelle {
-    color: #555;
-    font-size: 0.9rem;
+.gdt-page .hint {
+    color: #64748b;
+    margin: 0 0 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
-.gdt-tag-entreprise {
-    background: #eef2ff;
-    color: #3d4f8a;
-    border-radius: 999px;
-    padding: 0.1rem 0.6rem;
-    font-size: 0.8rem;
-}
+/* Tableau de bord — accent rust (--ru) */
 
-.gdt-form {
-    border: 1px solid #ccd6f6;
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 1rem 0;
-    max-width: 500px;
-}
-
-.gdt-form .champ {
-    margin-bottom: 0.75rem;
-}
-
-.gdt-form .champ label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.2rem;
-}
-
-.gdt-form .champ input, .gdt-form .champ select {
+.tdb-page {
+    --ru: #7a3f2d;
+    --ru-dark: #4a1f12;
+    --ru-bg: #faf6f4;
     width: 100%;
-    box-sizing: border-box;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
 }
 
-.erreur {
-    color: #b3261e;
+.tdb-panel {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    margin-bottom: 1rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.tdb-charts {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 1rem;
+    min-height: 320px;
+}
+
+@media (max-width: 992px) {
+    .tdb-charts {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tdb-chart-box {
+    position: relative;
+    height: 300px;
+    min-height: 300px;
+    background: var(--ru-bg);
+    border-radius: 12px;
+    padding: 0.75rem;
+    border: 1px solid #efe6e1;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.tdb-chart-box canvas {
+    display: block;
+    max-width: 100%;
+}
+
+.tdb-legend {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.tdb-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.tdb-legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.tdb-legend-swatch--alloc {
+    background: rgba(100, 116, 139, 0.27);
+    border: 1px solid rgba(100, 116, 139, 0.45);
+}
+
+.tdb-legend-swatch--used {
+    background: rgba(100, 116, 139, 0.8);
+}
+
+.tdb-type-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.tdb-type-row:last-child {
+    border-bottom: none;
+}
+
+.tdb-type-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    min-width: 140px;
+}
+
+.tdb-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+}
+
+.tdb-progress-track {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.tdb-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.35s ease;
+}
+
+.tdb-ratio {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    min-width: 110px;
+    text-align: right;
+}
+
+.tdb-ratio--good { color: #3d6b62; }
+.tdb-ratio--warn { color: #b45309; }
+.tdb-ratio--bad { color: #c44440; }
+
+.tdb-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 767.98px) {
+    .tdb-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tdb-stat {
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid;
+}
+
+.tdb-stat--done {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #15803d;
+}
+
+.tdb-stat--progress {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
+}
+
+.tdb-stat--todo {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+.tdb-stat__value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.tdb-stat__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.tdb-reco {
+    background: #faf6f4;
+    border: 1px solid #efe6e1;
+    border-radius: 12px;
+    padding: 1rem 1.125rem;
+    font-size: 0.9375rem;
+    color: #475569;
+    line-height: 1.55;
+    margin-bottom: 1rem;
+}
+
+.tdb-cycle-progress__label {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.tdb-cycle-bar {
+    height: 10px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+}
+
+.tdb-cycle-bar__fill {
+    height: 100%;
+    background: linear-gradient(90deg, #345f6d 0%, var(--ru) 100%);
+    border-radius: 999px;
+}
+
+.tdb-cycle-progress__ends {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.tdb-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-top: 0.5rem;
+}
+
+.tdb-footer .btn-prev-section,
+.tdb-footer .btn-next-section {
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.tdb-footer .btn-prev-section {
+    background: white;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+}
+
+.tdb-footer .btn-next-section {
+    background: linear-gradient(135deg, var(--ru-dark) 0%, var(--ru) 100%);
+    color: white;
+    margin-left: auto;
+}
+
+.tdb-footer .btn-next-section:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.tdb-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ru);
+    margin: 0 0 1rem;
+}
+
+.tdb-period-header {
+    font-size: 0.8125rem;
+}
+
+@media (max-width: 575.98px) {
+    .tdb-chart-box {
+        height: 210px;
+        min-height: 210px;
+    }
+}
+
+@media (max-width: 640px) {
+    .gdt-page {
+        padding: 1rem;
+    }
+
+    .gdt-page .gdt-title {
+        font-size: 1.4rem;
+    }
 }

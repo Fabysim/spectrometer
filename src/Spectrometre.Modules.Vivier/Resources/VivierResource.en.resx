@@ -68,4 +68,7 @@
   <data name="Statut_Entretien" xml:space="preserve"><value>Interview</value></data>
   <data name="Statut_Rejetee" xml:space="preserve"><value>Rejected</value></data>
   <data name="Statut_Embauchee" xml:space="preserve"><value>Hired</value></data>
+
+  <data name="Cv_SectionTitle" xml:space="preserve"><value>Curriculum vitae</value></data>
+  <data name="Cv_NonRempli" xml:space="preserve"><value>This candidate has not filled in their CV yet.</value></data>
 </root>

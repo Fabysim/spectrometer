@@ -1,0 +1,1135 @@
+@page "/gestion-du-temps/organisation"
+@page "/gestion-du-temps/organisation/{Suivi}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.Logging
+@using Microsoft.JSInterop
+@using Spectrometre.Core.Modules
+@using Spectrometre.Modules.GestionDuTemps.Entities
+@using Spectrometre.Modules.GestionDuTemps.Helpers
+@using Spectrometre.Modules.GestionDuTemps.Resources
+@using Spectrometre.Modules.GestionDuTemps.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@implements IAsyncDisposable
+@inject IGestionDuTempsService GdtService
+@inject IGestionDuTempsAccessService AccessService
+@inject ICoachingAccessChecker CoachingAccessChecker
+@inject IStringLocalizer<GestionDuTempsResource> Localizer
+@inject IJSRuntime JS
+@inject ILogger<GestionDuTempsOrganisationPage> Logger
+
+<PageTitle>@Localizer["OrganisationTitle"]</PageTitle>
+
+@if (_userId is null)
+{
+    <div class="p-4 text-muted small">@Localizer["Chargement"]</div>
+}
+else if (!_hasAccess)
+{
+    <div class="org-page">
+        <p class="hint">@Localizer["ModuleNonActive"]</p>
+    </div>
+}
+else if (_loading)
+{
+    <div class="p-4 text-muted small">@Localizer["Chargement"]</div>
+}
+else
+{
+<div class="org-page">
+    <h1 class="gdt-title">@Localizer["OrganisationDeLaSemaine"]</h1>
+    <p class="hint">
+        @Localizer["OrganisationHint"]
+        @if (!_readOnly)
+        {
+            <text> · </text><a href="@Href("/gestion-du-temps")">@Localizer["NavMoniteur"]</a>
+        }
+    </p>
+    <p class="hint org-subtitle">@Localizer["GdtOrg_Subtitle"]</p>
+
+    <div class="org-cal-toolbar">
+        <div class="org-cal-toolbar-start">
+            <button type="button"
+                    class="org-cal-today-btn @(_viewingCurrentWeek ? "org-cal-today-btn--active" : "")"
+                    @onclick="GoToTodayWeek">
+                @Localizer["Calendrier_Today"]
+            </button>
+            <div class="org-cal-arrows" role="group" aria-label="@Localizer["GdtOrg_WeekNavigation"]">
+                <button type="button" class="org-cal-arrow-btn" @onclick="PreviousWeek" aria-label="@Localizer["GdtOrg_PreviousWeek"]">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="org-cal-arrow-btn" @onclick="NextWeek" aria-label="@Localizer["GdtOrg_NextWeek"]">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="org-cal-period-wrap">
+                <button type="button" class="org-cal-period-btn" @onclick="TogglePeriodPicker" aria-expanded="@_showPeriodPicker" aria-haspopup="dialog">
+                    <span class="org-cal-period-title">@GetMonthYearTitle()</span>
+                    <i class="bi bi-caret-down-fill org-cal-period-caret" aria-hidden="true"></i>
+                </button>
+                @if (_showPeriodPicker)
+                {
+                    <div class="org-cal-period-popover" @onclick:stopPropagation="true">
+                        <label class="org-cal-period-field">
+                            <span class="org-cal-period-field-label">@Localizer["GdtOrg_PickMonth"]</span>
+                            <input type="month"
+                                   class="org-cal-period-input"
+                                   value="@_monthPickerValue"
+                                   @onchange="OnMonthPickerChanged" />
+                        </label>
+                        <label class="org-cal-period-field">
+                            <span class="org-cal-period-field-label">@Localizer["GdtOrg_JumpToDate"]</span>
+                            <input type="date"
+                                   class="org-cal-period-input"
+                                   value="@_jumpDateString"
+                                   @onchange="OnJumpDateChanged" />
+                        </label>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="org-cal-toolbar-end">
+            <a href="@Href("/gestion-du-temps")" class="org-cal-types-btn">
+                <i class="bi bi-speedometer2" aria-hidden="true"></i>
+                @Localizer["NavMoniteur"]
+            </a>
+            <span class="org-cal-view-badge">@Localizer["GdtOrg_WeekView"]</span>
+        </div>
+    </div>
+    @if (_showPeriodPicker)
+    {
+        <button type="button" class="org-cal-period-backdrop" aria-label="@Localizer["Annuler"]" @onclick="ClosePeriodPicker"></button>
+    }
+    <div class="org-cal-wrap">
+        <div class="org-cal-header">
+            <div class="org-cal-tz">@_tzLabel</div>
+            @{
+                DateOnly? prevColDate = null;
+            }
+            @foreach (var col in _weekColumns)
+            {
+                var showMonth = prevColDate is null || col.Date.Month != prevColDate.Value.Month || col.Date.Year != prevColDate.Value.Year;
+                prevColDate = col.Date;
+                <div class="org-cal-dh @(col.IsToday ? "org-cal-dh--today" : "")">
+                    <div class="org-cal-dn">@col.ShortLabel</div>
+                    <div class="org-cal-dd">@col.Date.Day</div>
+                    @if (showMonth)
+                    {
+                        <div class="org-cal-dm">@col.Date.ToString("MMM", _culture)</div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="org-cal-body" style="@($"height:{GridHeightPx}px;--org-grid-height:{GridHeightPx}px")" @onclick="OnCalendarClickAsync">
+            <div class="org-cal-tc">
+                @for (var h = GridStartHour; h < GridEndHour; h++)
+                {
+                    var isCurrentHour = _viewingCurrentWeek && _todayDayIndex >= 0 && DateTime.Now.Hour == h;
+                    <div class="org-cal-ts @(isCurrentHour ? "org-cal-ts--now" : "")">
+                        <span>@FormatHourLabel(h)</span>
+                    </div>
+                }
+            </div>
+
+            @foreach (var col in _weekColumns)
+            {
+                var jour = col.JourSemaine;
+                <div class="org-cal-dc" data-jour="@jour">
+
+                    @for (var h = GridStartHour; h < GridEndHour; h++)
+                    {
+                        <div class="org-cal-hl"></div>
+                    }
+
+                    @foreach (var type in (_types ?? []).OrderBy(t => t.OrdreAffichage))
+                    {
+                        if (!TypeAppliesOnDay(type, jour))
+                            continue;
+                        var isSommeil = IsSommeilType(type);
+                        var couleur = CouleurCategorie(type.Cle);
+                        foreach (var band in GetTypeBands(type))
+                        {
+                            var fg = ColorHelper.Darken(couleur, 20);
+                            var bg = ColorHelper.Lighten(couleur, 0.55);
+                            <div class="org-tb @(isSommeil ? "org-tb--sommeil" : "")"
+                                 style="@GetTypeBandStyle(band.Top, band.Height, bg)"
+                                 @onclick="@(e => OnTypeBandClickAsync(e, type))"
+                                 @onclick:stopPropagation="true"
+                                 title="@(isSommeil ? Localizer["GdtOrg_SleepNoActivities"].Value : Localizer["GdtOrg_ClickToAdd"].Value)">
+                                <div class="org-tb-name" style="@($"color:{fg}")">@DefaultCategoryLabels.Display(type.Cle, type.Libelle, _english)</div>
+                                <div class="org-tb-time" style="@($"color:{fg}")">@FormatPlage(type)</div>
+                            </div>
+                        }
+                    }
+
+                    @foreach (var act in GetActivitiesForDate(col.Date))
+                    {
+                        if (!TryGetActivityRect(act, out var actTop, out var actHeight))
+                            continue;
+
+                        var couleur = string.IsNullOrEmpty(act.TypeCouleur) ? CouleurCategorie(act.TypeCle) : act.TypeCouleur;
+                        var dk = ColorHelper.Darken(couleur, 25);
+                        @if (_readOnly)
+                        {
+                            <div class="org-ab"
+                                 @key="act.Id"
+                                 data-act-id="@act.Id"
+                                 style="@GetActivityBlockStyle(actTop, actHeight, dk)">
+                                <div class="org-ab-name" style="@($"color:{dk}")">@act.Nom</div>
+                                <div class="org-ab-meta" style="@($"color:{dk}")">@FormatActMeta(act)</div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="org-ab"
+                                 @key="act.Id"
+                                 draggable="true"
+                                 data-act-id="@act.Id"
+                                 style="@GetActivityBlockStyle(actTop, actHeight, dk)"
+                                 @onclick="@(() => OpenEditModal(act))"
+                                 @onclick:stopPropagation="true">
+                                <div class="org-ab-name" style="@($"color:{dk}")">@act.Nom</div>
+                                <div class="org-ab-meta" style="@($"color:{dk}")">@FormatActMeta(act)</div>
+                            </div>
+                        }
+                    }
+
+                </div>
+            }
+
+            @if (_nowTopPx.HasValue && _todayDayIndex >= 0 && _viewingCurrentWeek)
+            {
+                <div class="org-now-overlay" aria-hidden="true">
+                    <div class="org-now-line-today" style="@GetNowLineTodayStyle()">
+                        <span class="org-now-dot"></span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_toast))
+    {
+        <div class="org-toast" role="status">@_toast</div>
+    }
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="org-alert @(_messageOk ? "org-alert--success" : "org-alert--error")" role="status">@_message</div>
+    }
+
+    <div class="org-footer">
+        <a href="@Href("/gestion-du-temps/reflexion")" class="btn-prev-section">
+            <i class="bi bi-arrow-left"></i> @Localizer["NavReflexionConsciente"]
+        </a>
+        <a href="@Href("/gestion-du-temps/kanban")" class="btn-next-section">
+            @Localizer["NavKanban"] <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    @if (!_readOnly && _showQuickCreate)
+    {
+        <div class="org-ov" @onclick="CloseQuickCreate">
+            <div class="org-mbox" @onclick:stopPropagation="true">
+                <div class="org-mhd">
+                    <div class="org-mhd-l">
+                        <span class="org-qc-dot" style="@($"background:{_qcCouleur}")"></span>
+                        <span class="org-mhd-title">@Localizer["GdtOrg_NewActivity"]</span>
+                    </div>
+                    <button type="button" class="org-mclose" @onclick="CloseQuickCreate">✕</button>
+                </div>
+                <div class="org-qc-ctx">@_qcContext</div>
+                @if (!string.IsNullOrEmpty(_qcError))
+                {
+                    <div class="org-alert org-alert--error" role="alert">@_qcError</div>
+                }
+                <div class="org-field">
+                    <label>@Localizer["GdtOrg_Label_Name"]</label>
+                    <input class="org-fi" @bind="_qcNom" @bind:event="oninput" placeholder="@Localizer["GdtOrg_Placeholder_ActivityShort"]" @onkeydown="OnQcKeyDown" />
+                </div>
+                <div class="org-field">
+                    <label>@Localizer["GdtOrg_Label_Duration"]</label>
+                    <div class="org-dur-group">
+                        <select class="org-fi" @bind="_qcDurH">
+                            @for (var h = 0; h <= 12; h++)
+                            {
+                                <option value="@h">@h h</option>
+                            }
+                        </select>
+                        <span>:</span>
+                        <select class="org-fi" @bind="_qcDurM">
+                            @foreach (var m in new[] { 0, 5, 10, 15, 20, 25, 30, 45 })
+                            {
+                                <option value="@m">@m.ToString("00")</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="org-field">
+                    <label>@Localizer["GdtOrg_Label_StartTime"]</label>
+                    <div class="org-dur-group">
+                        <select class="org-fi org-dur-group__h" @bind="_qcHeureH">
+                            @for (var h = 0; h < 24; h++)
+                            {
+                                <option value="@h">@h.ToString("00")</option>
+                            }
+                        </select>
+                        <span>:</span>
+                        <select class="org-fi org-dur-group__m" @bind="_qcHeureM">
+                            @for (var m = 0; m < 60; m++)
+                            {
+                                <option value="@m">@m.ToString("00")</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="org-mbtns" @onclick:stopPropagation="true">
+                    <button type="button" class="org-btn-ghost" @onclick="CloseQuickCreate">@Localizer["Annuler"]</button>
+                    <button type="button" class="org-btn-primary" disabled="@_busy" @onclick="SaveQuickCreateAsync">@Localizer["GdtOrg_AddButton"]</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!_readOnly && _showEditModal)
+    {
+        <div class="org-ov" @onclick="CloseEditModal">
+            <div class="org-mbox" @onclick:stopPropagation="true">
+                <div class="org-mhd">
+                    <span class="org-mhd-title">@Localizer["GdtOrg_EditActivity"]</span>
+                    <button type="button" class="org-mclose" @onclick="CloseEditModal">✕</button>
+                </div>
+                <div class="org-field">
+                    <label>@Localizer["GdtOrg_Label_Name"]</label>
+                    <input class="org-fi" @bind="_formNom" />
+                </div>
+                <div class="org-form-row">
+                    <div class="org-field">
+                        <label>@Localizer["GdtOrg_Label_Duration"]</label>
+                        <div class="org-dur-group">
+                            <select class="org-fi" @bind="_formDurH">
+                                @for (var h = 0; h <= 12; h++)
+                                {
+                                    <option value="@h">@h h</option>
+                                }
+                            </select>
+                            <span>:</span>
+                            <select class="org-fi" @bind="_formDurM">
+                                @foreach (var m in new[] { 0, 5, 10, 15, 20, 25, 30, 45 })
+                                {
+                                    <option value="@m">@m.ToString("00")</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="org-field">
+                        <label>@Localizer["GdtOrg_Label_TimeType"]</label>
+                        <select class="org-fi" @bind="_formTypeId">
+                            @foreach (var t in (_types ?? []).OrderBy(x => x.OrdreAffichage))
+                            {
+                                <option value="@t.Id">@DefaultCategoryLabels.Display(t.Cle, t.Libelle, _english)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="org-form-row">
+                    <div class="org-field">
+                        <label>@Localizer["GdtOrg_Label_Day"]</label>
+                        <select class="org-fi" @bind="_formJour">
+                            @foreach (var col in _weekColumns)
+                            {
+                                <option value="@col.JourSemaine">@GetDayOptionLabel(col)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="org-field">
+                        <label>@Localizer["GdtOrg_Label_StartTime"]</label>
+                        <div class="org-dur-group">
+                            <select class="org-fi org-dur-group__h" @bind="_formHeureH">
+                                @for (var h = 0; h < 24; h++)
+                                {
+                                    <option value="@h">@h.ToString("00")</option>
+                                }
+                            </select>
+                            <span>:</span>
+                            <select class="org-fi org-dur-group__m" @bind="_formHeureM">
+                                @for (var m = 0; m < 60; m++)
+                                {
+                                    <option value="@m">@m.ToString("00")</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="org-mbtns org-mbtns--3">
+                    <button type="button" class="org-btn-danger" disabled="@_busy" @onclick="DeleteActivityAsync">@Localizer["GdtOrg_Delete"]</button>
+                    <button type="button" class="org-btn-ghost" @onclick="CloseEditModal">@Localizer["Annuler"]</button>
+                    <button type="button" class="org-btn-primary" disabled="@_busy" @onclick="SaveEditModalAsync">@Localizer["GdtOrg_Save"]</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+}
+
+@code {
+    private const int GridStartHour = 0;
+    private const int GridEndHour = 24;
+    private const double SlotPx = 44;
+    private static readonly double GridHeightPx = (GridEndHour - GridStartHour) * SlotPx;
+
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public string? Suivi { get; set; }
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+
+    private string Href(string basePath) => _readOnly ? $"{basePath}/{Suivi}" : basePath;
+
+    private string? _userId;
+    private bool _hasAccess;
+    private bool _loading = true;
+    private bool _busy;
+    private string? _message;
+    private bool _messageOk;
+    private string? _toast;
+    private string _tzLabel = "GMT+1";
+    private double? _nowTopPx;
+    private int _todayDayIndex = -1;
+    private bool _viewingCurrentWeek = true;
+    private DateOnly _weekAnchor;
+    private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+    private static readonly CultureInfo _culture = CultureInfo.CurrentCulture;
+
+    private List<TypeDeTempsView>? _types;
+    private List<ActiviteView>? _activites;
+    private List<DayColumn> _weekColumns = new();
+
+    private DotNetObjectReference<GestionDuTempsOrganisationPage>? _dotNetRef;
+    private bool _jsDragDropReady;
+    private bool _showPeriodPicker;
+
+    private bool _showQuickCreate;
+    private int _qcTypeId;
+    private int _qcJour;
+    private string _qcNom = "";
+    private int _qcHeureH = 9;
+    private int _qcHeureM;
+    private string _qcCouleur = "#345f6d";
+    private string _qcContext = "";
+    private string? _qcError;
+    private int _qcDurH = 1;
+    private int _qcDurM;
+    private DateOnly _qcDate;
+    private int? _qcCompanyId;
+
+    private bool _showEditModal;
+    private int _editId;
+    private int? _editCompanyId;
+    private string _formNom = "";
+    private int _formTypeId;
+    private int _formJour = 1;
+    private int _formHeureH;
+    private int _formHeureM;
+    private int _formDurH = 1;
+    private int _formDurM;
+
+    private CancellationTokenSource? _toastCts;
+    private Timer? _nowTimer;
+    private readonly SemaphoreSlim _refreshGate = new(1, 1);
+
+    private sealed record DayColumn(int JourSemaine, string ShortLabel, string ShortLabelFull, DateOnly Date, bool IsToday);
+
+    protected override async Task OnInitializedAsync()
+    {
+        BuildWeekColumns();
+        UpdateNowLine();
+        StartNowTimer();
+        _tzLabel = FormatTzLabel();
+
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, userId);
+            _userId = autorise ?? userId;
+            _hasAccess = autorise is not null;
+        }
+        else
+        {
+            _userId = userId;
+            _hasAccess = await AccessService.HasAccessAsync(userId);
+        }
+
+        if (!_hasAccess)
+        {
+            _loading = false;
+            return;
+        }
+
+        await RefreshAsync();
+        _loading = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _toastCts?.Cancel();
+        _nowTimer?.Dispose();
+        _refreshGate.Dispose();
+        await DisposeDragDropJsAsync();
+        _dotNetRef?.Dispose();
+        _dotNetRef = null;
+    }
+
+    private async Task DisposeDragDropJsAsync()
+    {
+        if (!_jsDragDropReady)
+            return;
+
+        _jsDragDropReady = false;
+        try
+        {
+            await JS.InvokeVoidAsync("gdtOrg.disposeDragDrop");
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_loading || !_hasAccess || _readOnly)
+            return;
+
+        try
+        {
+            if (!_jsDragDropReady)
+            {
+                _dotNetRef ??= DotNetObjectReference.Create(this);
+                await JS.InvokeVoidAsync("gdtOrg.installDragDrop", _dotNetRef, SlotPx, GridStartHour, GridEndHour);
+                _jsDragDropReady = true;
+            }
+
+            await JS.InvokeVoidAsync("gdtOrg.setSommeilBlock", BuildSommeilDragBlock());
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
+    private void StartNowTimer()
+    {
+        _nowTimer?.Dispose();
+        _nowTimer = new Timer(_ => _ = InvokeAsync(() =>
+        {
+            UpdateNowLine();
+            StateHasChanged();
+        }), null, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
+    }
+
+    private void BuildWeekColumns()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        if (_weekAnchor == default)
+            _weekAnchor = today.AddDays(-(int)today.DayOfWeek);
+
+        var sunday = _weekAnchor;
+        var fmt = _culture.DateTimeFormat;
+        var shorts = Enumerable.Range(0, 7)
+            .Select(i => fmt.GetAbbreviatedDayName((DayOfWeek)i))
+            .ToArray();
+        var fulls = Enumerable.Range(0, 7)
+            .Select(i => fmt.GetDayName((DayOfWeek)i))
+            .ToArray();
+        _weekColumns = Enumerable.Range(0, 7)
+            .Select(i =>
+            {
+                var d = sunday.AddDays(i);
+                return new DayColumn((int)d.DayOfWeek, shorts[i], fulls[i], d, d == today);
+            })
+            .ToList();
+
+        _todayDayIndex = _weekColumns.FindIndex(c => c.IsToday);
+        _viewingCurrentWeek = _todayDayIndex >= 0;
+    }
+
+    private string _jumpDateString => _weekAnchor.AddDays(3).ToString("yyyy-MM-dd");
+
+    private string _monthPickerValue => _weekAnchor.AddDays(3).ToString("yyyy-MM");
+
+    private string GetMonthYearTitle()
+    {
+        var mid = _weekAnchor == default
+            ? DateOnly.FromDateTime(DateTime.Today)
+            : _weekAnchor.AddDays(3);
+        var text = mid.ToString("MMMM yyyy", _culture);
+        return char.ToUpper(text[0], _culture) + text[1..];
+    }
+
+    private void TogglePeriodPicker() => _showPeriodPicker = !_showPeriodPicker;
+
+    private void ClosePeriodPicker() => _showPeriodPicker = false;
+
+    private static string GetDayOptionLabel(DayColumn col) =>
+        $"{col.ShortLabel} {col.Date.Day} {col.Date.ToString("MMM", _culture)}";
+
+    private void PreviousWeek() => ShiftWeek(-7);
+
+    private void NextWeek() => ShiftWeek(7);
+
+    private void GoToTodayWeek()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        _weekAnchor = today.AddDays(-(int)today.DayOfWeek);
+        BuildWeekColumns();
+        ClosePeriodPicker();
+    }
+
+    private void ShiftWeek(int days)
+    {
+        _weekAnchor = _weekAnchor.AddDays(days);
+        BuildWeekColumns();
+    }
+
+    private void OnMonthPickerChanged(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+        if (string.IsNullOrEmpty(raw) || raw.Length < 7)
+            return;
+
+        if (!int.TryParse(raw.AsSpan(0, 4), out var year) || !int.TryParse(raw.AsSpan(5, 2), out var month))
+            return;
+
+        JumpToMonthStart(new DateOnly(year, month, 1));
+    }
+
+    private void OnJumpDateChanged(ChangeEventArgs e)
+    {
+        if (!DateOnly.TryParse(e.Value?.ToString(), out var date))
+            return;
+
+        _weekAnchor = date.AddDays(-(int)date.DayOfWeek);
+        BuildWeekColumns();
+        ClosePeriodPicker();
+    }
+
+    private void JumpToMonthStart(DateOnly firstOfMonth)
+    {
+        _weekAnchor = firstOfMonth.AddDays(-(int)firstOfMonth.DayOfWeek);
+        BuildWeekColumns();
+        ClosePeriodPicker();
+    }
+
+    private void UpdateNowLine()
+    {
+        var now = DateTime.Now;
+        var curH = now.Hour + now.Minute / 60.0 + now.Second / 3600.0;
+        _nowTopPx = curH >= GridStartHour && curH < GridEndHour
+            ? (curH - GridStartHour) * SlotPx
+            : null;
+    }
+
+    private string GetNowLineTodayStyle()
+    {
+        if (!_nowTopPx.HasValue || _todayDayIndex < 0 || !_viewingCurrentWeek)
+            return "display:none";
+
+        return FormattableString.Invariant(
+            $"top:{_nowTopPx.Value:F2}px;left:calc(44px + (100% - 44px) * {_todayDayIndex} / 7);width:calc((100% - 44px) / 7)");
+    }
+
+    private static string FormatTzLabel()
+    {
+        var offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.Now);
+        var h = (int)offset.TotalHours;
+        return h >= 0 ? $"GMT+{h}" : $"GMT{h}";
+    }
+
+    private async Task RefreshAsync()
+    {
+        await _refreshGate.WaitAsync();
+        try
+        {
+            if (!_readOnly)
+                await GdtService.GetOrCreateCycleActifAsync(_userId!);
+
+            _types = (await GdtService.GetTypesDeTempsAsync(_userId!)).ToList();
+            _activites = (await GdtService.GetActivitesAsync(_userId!, null, false)).ToList();
+
+            if (_formTypeId == 0 && _types.Count > 0)
+                _formTypeId = _types[0].Id;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Échec du chargement du calendrier Gestion du temps");
+            _message = Localizer["GdtOrg_LoadError"].Value;
+            _messageOk = false;
+        }
+        finally
+        {
+            _refreshGate.Release();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static bool IsSommeilType(TypeDeTempsView type) =>
+        string.Equals(type.Cle, "sommeil", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(type.Libelle, "Sommeil", StringComparison.OrdinalIgnoreCase);
+
+    private bool IsSommeilHour(int jour, double hour)
+    {
+        var type = FindTypeForHour(jour, hour);
+        return type is not null && IsSommeilType(type);
+    }
+
+    private SommeilDragBlockConfig? BuildSommeilDragBlock()
+    {
+        var sommeil = (_types ?? []).FirstOrDefault(IsSommeilType);
+        if (sommeil is null)
+            return null;
+
+        var jours = Enumerable.Range(0, 7).Where(j => TypeAppliesOnDay(sommeil, j)).ToArray();
+        if (jours.Length == 0)
+            return null;
+
+        return new SommeilDragBlockConfig
+        {
+            startHour = sommeil.HeureDebut.Hour + sommeil.HeureDebut.Minute / 60.0,
+            endHour = sommeil.HeureFin.Hour + sommeil.HeureFin.Minute / 60.0,
+            jours = jours
+        };
+    }
+
+    private sealed class SommeilDragBlockConfig
+    {
+        public double startHour { get; set; }
+        public double endHour { get; set; }
+        public int[] jours { get; set; } = Array.Empty<int>();
+    }
+
+    private IEnumerable<ActiviteView> GetActivitiesForDate(DateOnly date) =>
+        (_activites ?? [])
+            .Where(a => a.DateActivite == date)
+            .OrderBy(a => a.HeureDebut);
+
+    private static string GetActivityBlockStyle(double topPx, double heightPx, string borderColor) =>
+        FormattableString.Invariant(
+            $"top:{topPx:F2}px;height:{heightPx:F2}px;border-left-color:{borderColor}");
+
+    private static string GetTypeBandStyle(double topPx, double heightPx, string background) =>
+        FormattableString.Invariant($"top:{topPx:F2}px;height:{heightPx:F2}px;background:{background}");
+
+    private DateOnly ResolveDateForJour(int jour) =>
+        _weekColumns.FirstOrDefault(c => c.JourSemaine == jour)?.Date
+        ?? DateOnly.FromDateTime(DateTime.Today);
+
+    private TypeDeTempsView? GetType(int typeId) =>
+        (_types ?? []).FirstOrDefault(t => t.Id == typeId);
+
+    private static string CouleurCategorie(string cle) => cle switch
+    {
+        "sommeil" => "#4a3f6b",
+        "perso" => "#345f6d",
+        "pro" => "#1e6b4a",
+        "admin" => "#7a5c1e",
+        "famille" => "#7a3f2d",
+        "social" => "#3d4f8a",
+        _ => "#6b5248",
+    };
+
+    private static bool TypeAppliesOnDay(TypeDeTempsView type, int jourSemaine)
+    {
+        if (string.IsNullOrWhiteSpace(type.RecurrenceJours))
+            return true;
+
+        var code = jourSemaine switch
+        {
+            0 => "D",
+            1 => "L",
+            2 => "M",
+            3 => "Me",
+            4 => "J",
+            5 => "V",
+            6 => "S",
+            _ => ""
+        };
+
+        return type.RecurrenceJours
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Any(d => d.Equals(code, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static IEnumerable<(double Top, double Height)> GetTypeBands(TypeDeTempsView type)
+    {
+        var start = type.HeureDebut.Hour + type.HeureDebut.Minute / 60.0;
+        var end = type.HeureFin.Hour + type.HeureFin.Minute / 60.0;
+        if (end <= start)
+            end += 24;
+
+        var topH = Math.Max(start, GridStartHour);
+        var botH = Math.Min(end, GridEndHour);
+        if (topH < botH)
+            yield return ((topH - GridStartHour) * SlotPx, (botH - topH) * SlotPx);
+
+        if (end > GridEndHour)
+        {
+            var morningEnd = end - 24;
+            topH = GridStartHour;
+            botH = Math.Min(morningEnd, GridEndHour);
+            if (topH < botH)
+                yield return ((topH - GridStartHour) * SlotPx, (botH - topH) * SlotPx);
+        }
+    }
+
+    private static string FormatHourLabel(int h) => $"{h}h";
+
+    private static string FormatPlage(TypeDeTempsView type) =>
+        $"{type.HeureDebut:HH:mm}–{type.HeureFin:HH:mm}";
+
+    private string FormatActMeta(ActiviteView act) =>
+        $"{act.HeureDebut:HH}h{act.HeureDebut:mm} · {act.DureeMinutes} min";
+
+    private static int ToDurationMinutes(int hours, int minutes) =>
+        Math.Clamp(Math.Max(5, hours * 60 + minutes), 5, 720);
+
+    private static void SplitDuration(int totalMinutes, out int h, out int m)
+    {
+        h = totalMinutes / 60;
+        m = totalMinutes % 60;
+    }
+
+    private sealed class CalendarClickResult
+    {
+        public int jour { get; set; }
+        public double offsetY { get; set; }
+    }
+
+    private async Task OnTypeBandClickAsync(MouseEventArgs e, TypeDeTempsView type)
+    {
+        if (_readOnly || IsSommeilType(type))
+            return;
+
+        await OnCalendarClickAsync(e);
+    }
+
+    private async Task OnCalendarClickAsync(MouseEventArgs e)
+    {
+        if (_readOnly)
+            return;
+
+        var hit = await JS.InvokeAsync<CalendarClickResult?>("gdtOrg.resolveCalendarClick", e.ClientX, e.ClientY);
+        if (hit is null)
+            return;
+
+        var startHour = SnapHourFromColumnY(hit.offsetY);
+        var type = FindTypeForHour(hit.jour, startHour);
+        if (type is null || IsSommeilType(type))
+            return;
+
+        OpenQuickCreate(type, hit.jour, startHour);
+    }
+
+    private static double SnapHourFromColumnY(double yPx)
+    {
+        var rawH = yPx / SlotPx + GridStartHour;
+        var snapped = Math.Round(rawH * 2) / 2.0;
+        return Math.Clamp(snapped, GridStartHour, GridEndHour - 0.5);
+    }
+
+    private void OpenQuickCreate(TypeDeTempsView type, int jour, double startHour)
+    {
+        _qcTypeId = type.Id;
+        _qcJour = jour;
+        _qcDate = ResolveDateForJour(jour);
+        _qcCompanyId = type.CompanyId;
+        _qcCouleur = CouleurCategorie(type.Cle);
+        _qcNom = "";
+        _qcError = null;
+
+        var hh = (int)startHour;
+        var mm = (int)Math.Round((startHour - hh) * 60);
+        _qcDurH = 1;
+        _qcDurM = 0;
+        _qcHeureH = hh;
+        _qcHeureM = Math.Clamp(mm, 0, 59);
+        var libelle = DefaultCategoryLabels.Display(type.Cle, type.Libelle, _english);
+        _qcContext = $"{libelle} · {DayLabel(jour)} · {hh}h{mm:D2}";
+        _showQuickCreate = true;
+    }
+
+    private TypeDeTempsView? FindTypeForHour(int jour, double hour)
+    {
+        foreach (var type in (_types ?? []).OrderBy(t => t.OrdreAffichage))
+        {
+            if (!TypeAppliesOnDay(type, jour))
+                continue;
+            if (HourInTypeRange(type, hour))
+                return type;
+        }
+
+        return null;
+    }
+
+    private static bool HourInTypeRange(TypeDeTempsView type, double hour)
+    {
+        var typeStart = type.HeureDebut.Hour + type.HeureDebut.Minute / 60.0;
+        var typeEnd = type.HeureFin.Hour + type.HeureFin.Minute / 60.0;
+        if (typeEnd <= typeStart)
+            typeEnd += 24;
+
+        if (hour >= typeStart && hour < typeEnd)
+            return true;
+
+        if (typeEnd > 24)
+        {
+            var morningEnd = typeEnd - 24;
+            if (hour >= GridStartHour && hour < morningEnd)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetActivityRect(ActiviteView act, out double topPx, out double heightPx)
+    {
+        topPx = 0;
+        heightPx = 0;
+
+        var startMin = act.HeureDebut.Hour * 60 + act.HeureDebut.Minute;
+        var endMin = startMin + act.DureeMinutes;
+        var gridStartMin = GridStartHour * 60;
+        var gridEndMin = GridEndHour * 60;
+
+        if (endMin <= gridStartMin || startMin >= gridEndMin)
+            return false;
+
+        var visibleStartMin = Math.Max(startMin, gridStartMin);
+        var visibleEndMin = Math.Min(endMin, gridEndMin);
+        topPx = (visibleStartMin - gridStartMin) * SlotPx / 60.0;
+        heightPx = (visibleEndMin - visibleStartMin) * SlotPx / 60.0;
+        heightPx = Math.Max(22, heightPx);
+        heightPx = Math.Min(heightPx, GridHeightPx - topPx);
+        return heightPx >= 8;
+    }
+
+    private void CloseQuickCreate() => _showQuickCreate = false;
+
+    private void OnQcKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            _ = SaveQuickCreateAsync();
+    }
+
+    private async Task SaveQuickCreateAsync()
+    {
+        if (_readOnly)
+            return;
+
+        _qcError = null;
+
+        if (string.IsNullOrWhiteSpace(_qcNom))
+        {
+            _qcError = Localizer["GdtOrg_Err_NameRequired"].Value;
+            return;
+        }
+
+        var heure = new TimeOnly(_qcHeureH, _qcHeureM);
+
+        if (GetType(_qcTypeId) is { } qcType && IsSommeilType(qcType))
+        {
+            _qcError = Localizer["GdtOrg_Err_SleepBlocked"].Value;
+            return;
+        }
+
+        if (IsSommeilHour(_qcJour, heure.Hour + heure.Minute / 60.0))
+        {
+            _qcError = Localizer["GdtOrg_Err_SleepBlocked"].Value;
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var duree = ToDurationMinutes(_qcDurH, _qcDurM);
+            await GdtService.CreateActiviteAsync(_userId!, _qcTypeId, _qcNom.Trim(), _qcDate, heure, duree, _qcCompanyId);
+
+            await RefreshAsync();
+            CloseQuickCreate();
+            ShowToast($"{_qcNom.Trim()} · {DayLabel(_qcJour)} {heure:HH}h{heure:mm}");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            _qcError = ex.Message;
+            _message = ex.Message;
+            _messageOk = false;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void OpenEditModal(ActiviteView act)
+    {
+        if (_readOnly)
+            return;
+
+        _editId = act.Id;
+        _editCompanyId = act.CompanyId;
+        _formNom = act.Nom;
+        _formTypeId = act.TypeDeTempsId;
+        _formJour = (int)act.DateActivite.DayOfWeek;
+        _formHeureH = act.HeureDebut.Hour;
+        _formHeureM = act.HeureDebut.Minute;
+        SplitDuration(act.DureeMinutes, out _formDurH, out _formDurM);
+        _showEditModal = true;
+    }
+
+    private void CloseEditModal() => _showEditModal = false;
+
+    private async Task SaveEditModalAsync()
+    {
+        if (_readOnly || string.IsNullOrWhiteSpace(_formNom))
+            return;
+
+        var heure = new TimeOnly(_formHeureH, _formHeureM);
+        var date = ResolveDateForJour(_formJour);
+
+        _busy = true;
+        try
+        {
+            await GdtService.UpdateActiviteAsync(
+                _userId!,
+                _editId,
+                _formNom.Trim(),
+                date,
+                heure,
+                ToDurationMinutes(_formDurH, _formDurM),
+                _editCompanyId,
+                _formTypeId);
+
+            await RefreshAsync();
+            CloseEditModal();
+            ShowToast($"{_formNom.Trim()} · {DayLabel(_formJour)} {heure:HH}h{heure:mm}");
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _messageOk = false;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DeleteActivityAsync()
+    {
+        if (_readOnly || _editId == 0)
+            return;
+
+        _busy = true;
+        try
+        {
+            await GdtService.DeleteActiviteAsync(_userId!, _editId);
+            await RefreshAsync();
+            CloseEditModal();
+            _message = Localizer["GdtOrg_ActivityDeleted"].Value;
+            _messageOk = true;
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _messageOk = false;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnColumnDropFromJs(int actId, int jour, double offsetY)
+    {
+        if (_readOnly)
+            return;
+
+        var act = (_activites ?? []).FirstOrDefault(a => a.Id == actId);
+        if (act is null)
+            return;
+
+        var snapped = SnapHourFromColumnY(offsetY);
+        if (IsSommeilHour(jour, snapped))
+        {
+            _message = Localizer["GdtOrg_Err_SleepPlacement"].Value;
+            _messageOk = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        var hh = (int)snapped;
+        var mm = (int)Math.Round((snapped - hh) * 60);
+        var heure = new TimeOnly(hh, mm);
+        var date = ResolveDateForJour(jour);
+
+        _busy = true;
+        try
+        {
+            await GdtService.UpdateActiviteAsync(_userId!, act.Id, act.Nom, date, heure, act.DureeMinutes, act.CompanyId);
+            await RefreshAsync();
+            ShowToast($"{act.Nom} · {DayLabel(jour)} {heure:HH}h{heure:mm}");
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _messageOk = false;
+        }
+        finally
+        {
+            _busy = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string DayLabel(int jour) =>
+        _weekColumns.FirstOrDefault(c => c.JourSemaine == jour)?.ShortLabel ?? jour.ToString();
+
+    private void ShowToast(string text)
+    {
+        _toastCts?.Cancel();
+        _toastCts = new CancellationTokenSource();
+        var token = _toastCts.Token;
+        _toast = text;
+        _ = ClearToastAfterDelayAsync(token);
+    }
+
+    private async Task ClearToastAfterDelayAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(2200, token);
+            _toast = null;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore
+        }
+    }
+}
