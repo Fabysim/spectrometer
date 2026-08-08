@@ -315,6 +315,31 @@ public sealed class PosteService(
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<CritereEvaluationView>> GetCriteresPosteOuvertAsync(
+        int companyId,
+        int posteId,
+        CancellationToken cancellationToken = default)
+    {
+        var company = await coreDb.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == companyId, cancellationToken);
+        if (company is null)
+            return [];
+
+        await using var db = await CreateDbForSchemaAsync(company.SchemaName, cancellationToken);
+        var posteOuvert = await db.Postes.AsNoTracking()
+            .AnyAsync(p => p.Id == posteId && p.Statut == PosteStatut.Ouvert, cancellationToken);
+        if (!posteOuvert)
+            return [];
+
+        return await db.CriteresEvaluation
+            .AsNoTracking()
+            .Where(c => c.PosteId == posteId)
+            .OrderBy(c => c.OrdreAffichage)
+            .ThenBy(c => c.Categorie)
+            .ThenBy(c => c.Libelle)
+            .Select(c => new CritereEvaluationView(c.Id, c.PosteId, c.Categorie, c.Libelle, c.NiveauRequis, c.OrdreAffichage))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task UpsertCritereAsync(int posteId, int? id, string categorie, string libelle, int niveauRequis, int ordreAffichage, CancellationToken cancellationToken = default)
     {
         categorie = (categorie ?? string.Empty).Trim();
@@ -381,18 +406,23 @@ public sealed class PosteService(
             .ThenBy(c => c.Libelle)
             .ToListAsync(cancellationToken);
 
-        var finals = await db.EvaluationsCriteresCandidature.AsNoTracking()
+        var evaluations = await db.EvaluationsCriteresCandidature.AsNoTracking()
             .Where(e => e.CandidatureId == candidatureId)
-            .ToDictionaryAsync(e => e.CritereId, e => e.NiveauFinal, cancellationToken);
+            .ToDictionaryAsync(e => e.CritereId, cancellationToken);
 
         return criteres
-            .Select(c => new EvaluationCritereView(
-                c.Id,
-                c.Categorie,
-                c.Libelle,
-                c.NiveauRequis,
-                finals.TryGetValue(c.Id, out var niveau) ? niveau : null,
-                c.OrdreAffichage))
+            .Select(c =>
+            {
+                evaluations.TryGetValue(c.Id, out var eval);
+                return new EvaluationCritereView(
+                    c.Id,
+                    c.Categorie,
+                    c.Libelle,
+                    c.NiveauRequis,
+                    eval?.NiveauDeclare,
+                    eval?.NiveauFinal,
+                    c.OrdreAffichage);
+            })
             .ToList();
     }
 
@@ -605,6 +635,39 @@ public sealed class PosteService(
             .ToList();
     }
 
+    public async Task<PosteDetailCandidatView?> GetPosteOuvertDetailAsync(
+        int companyId,
+        int posteId,
+        int candidateProfileId,
+        CancellationToken cancellationToken = default)
+    {
+        var company = await coreDb.Companies.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == companyId, cancellationToken);
+        if (company is null)
+            return null;
+
+        await using var db = await CreateDbForSchemaAsync(company.SchemaName, cancellationToken);
+        // Ouvert uniquement — fermé ou absent → null uniforme (pas de fuite d'existence).
+        var poste = await db.Postes.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == posteId && p.Statut == PosteStatut.Ouvert, cancellationToken);
+        if (poste is null)
+            return null;
+
+        var dejaPostule = await db.Candidatures.AsNoTracking()
+            .AnyAsync(c => c.PosteId == posteId && c.CandidateProfileId == candidateProfileId, cancellationToken);
+
+        return new PosteDetailCandidatView(
+            company.Id,
+            company.Name,
+            poste.Id,
+            poste.Titre,
+            poste.Departement,
+            poste.OffreTexte,
+            poste.OffreGenereeLe,
+            poste.OffreGenereeParIa,
+            dejaPostule);
+    }
+
     public async Task PostulerAsync(int companyId, int posteId, int candidateProfileId, CancellationToken cancellationToken = default)
     {
         var company = await coreDb.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == companyId, cancellationToken)
@@ -634,6 +697,85 @@ public sealed class PosteService(
             companyId, posteId, poste.Titre, candidateProfileId,
             candidature.Statut.ToString(), scoreCompatibilite: null, tagsCles: [],
             axisScores: null, pointsVigilanceTags: [], grilleCandidatComplete: EstGrilleComplete(candidateCriteria), cancellationToken);
+    }
+
+    public async Task<(bool Succes, string? Erreur)> PostulerAvecGrilleAsync(
+        int companyId,
+        int posteId,
+        int candidateProfileId,
+        IReadOnlyDictionary<int, NiveauEvaluation> niveauxDeclares,
+        CancellationToken cancellationToken = default)
+    {
+        niveauxDeclares ??= new Dictionary<int, NiveauEvaluation>();
+
+        var company = await coreDb.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == companyId, cancellationToken);
+        if (company is null)
+            return (false, "Entreprise introuvable.");
+
+        await using var db = await CreateDbForSchemaAsync(company.SchemaName, cancellationToken);
+
+        var dejaPostule = await db.Candidatures.AnyAsync(
+            c => c.PosteId == posteId && c.CandidateProfileId == candidateProfileId,
+            cancellationToken);
+        if (dejaPostule)
+            return (true, null);
+
+        var poste = await db.Postes.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == posteId && p.Statut == PosteStatut.Ouvert, cancellationToken);
+        if (poste is null)
+            return (false, "Poste introuvable ou fermé.");
+
+        var criteres = await db.CriteresEvaluation.AsNoTracking()
+            .Where(c => c.PosteId == posteId)
+            .Select(c => c.Id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var critereId in criteres)
+        {
+            if (!niveauxDeclares.ContainsKey(critereId))
+                return (false, "Grille d'évaluation incomplète : chaque critère doit avoir un niveau déclaré.");
+        }
+
+        // Rejeter des IDs de critères étrangers au poste (évite d'accepter une grille « complète » bidon).
+        if (niveauxDeclares.Keys.Any(id => !criteres.Contains(id)))
+            return (false, "Grille d'évaluation invalide : critère inconnu pour ce poste.");
+
+        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var candidature = new Candidature { PosteId = posteId, CandidateProfileId = candidateProfileId };
+            db.Candidatures.Add(candidature);
+            await db.SaveChangesAsync(cancellationToken);
+
+            var now = DateTimeOffset.UtcNow;
+            foreach (var critereId in criteres)
+            {
+                db.EvaluationsCriteresCandidature.Add(new EvaluationCritereCandidature
+                {
+                    CandidatureId = candidature.Id,
+                    CritereId = critereId,
+                    NiveauDeclare = niveauxDeclares[critereId],
+                    NiveauFinal = null,
+                    UpdatedAt = now,
+                });
+            }
+
+            await db.SaveChangesAsync(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
+
+            var candidateCriteria = await candidateProfileService.GetCompatibilityCriteriaAsync(candidateProfileId, cancellationToken);
+            await recruitmentIndex.UpsertCandidatureAsync(
+                companyId, posteId, poste.Titre, candidateProfileId,
+                candidature.Statut.ToString(), scoreCompatibilite: null, tagsCles: [],
+                axisScores: null, pointsVigilanceTags: [], grilleCandidatComplete: EstGrilleComplete(candidateCriteria), cancellationToken);
+
+            return (true, null);
+        }
+        catch
+        {
+            await tx.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     public async Task<Invitation> InviterCandidatAsync(int posteId, string email, string emetteurUserId, CancellationToken cancellationToken = default)

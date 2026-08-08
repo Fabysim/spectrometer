@@ -11,11 +11,13 @@
 @using Spectrometre.Modules.ProfilEntreprise.Resources
 @using Spectrometre.Modules.ProfilEntreprise.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Microsoft.JSInterop
 @inject IPosteService PosteService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @inject IStringLocalizer<ProfilEntrepriseResource> Localizer
 
 <PageTitle>@Localizer["Recrutement"]</PageTitle>
@@ -159,6 +161,10 @@ else
                                     @Localizer["OffreDefinirProfilDabord"]
                                     <a href="@($"/entreprise/postes/{poste.Id}/profil")">@Localizer["ProfilDuPoste"]</a>
                                 </p>
+                            }
+                            @if (_offreErreurPosteId == poste.Id && !string.IsNullOrEmpty(_offreErreur))
+                            {
+                                <p class="postes-offre-warning" role="alert">@_offreErreur</p>
                             }
                             @if (!string.IsNullOrWhiteSpace(poste.Departement))
                             {
@@ -333,6 +339,8 @@ else
     private PosteView? _posteASupprimer;
     private int? _offreWarningPosteId;
     private int? _offreEnCoursPosteId;
+    private int? _offreErreurPosteId;
+    private string? _offreErreur;
     private bool _english => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
 
     private IEnumerable<PosteView> PostesFiltres
@@ -371,6 +379,8 @@ else
         _recherche = "";
         _offreWarningPosteId = null;
         _offreEnCoursPosteId = null;
+        _offreErreurPosteId = null;
+        _offreErreur = null;
         TenantContext.SetActiveCompany(company.Id, company.SchemaName);
         _postes = (await PosteService.GetPostesAsync()).ToList();
     }
@@ -381,6 +391,9 @@ else
             return;
 
         _offreWarningPosteId = null;
+        _offreErreurPosteId = null;
+        _offreErreur = null;
+
         var criteres = await PosteService.GetCriteresAsync(poste.Id);
         if (criteres.Count == 0)
         {
@@ -389,8 +402,25 @@ else
         }
 
         _offreEnCoursPosteId = poste.Id;
-        // GET direct — le navigateur télécharge le .docx (même idée que analyse-ia/pdf).
-        Navigation.NavigateTo($"/entreprise/postes/{poste.Id}/offre/docx", forceLoad: true);
+        try
+        {
+            // Fetch + blob (pas NavigateTo) : un GET forceLoad vers Content-Disposition:attachment
+            // ne remonte pas le composant Blazor → le spinner resterait bloqué.
+            var url = Navigation.ToAbsoluteUri($"/entreprise/postes/{poste.Id}/offre/docx").ToString();
+            await JS.InvokeVoidAsync("downloadFileFromUrl", url, null);
+        }
+        catch (JSException ex)
+        {
+            _offreErreurPosteId = poste.Id;
+            var msg = ex.Message?.Trim();
+            _offreErreur = string.IsNullOrEmpty(msg) || msg.StartsWith("JSException", StringComparison.Ordinal)
+                ? Localizer["OffreErreurGeneration"].Value
+                : msg;
+        }
+        finally
+        {
+            _offreEnCoursPosteId = null;
+        }
     }
 
     private void OnRechercheChanged(ChangeEventArgs e)

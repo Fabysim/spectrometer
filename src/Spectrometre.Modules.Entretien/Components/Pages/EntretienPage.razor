@@ -1,9 +1,13 @@
 @page "/entretien/{CandidateProfileId:int}"
 @attribute [Authorize]
 @rendermode InteractiveServer
+@implements IAsyncDisposable
+@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
 @using Microsoft.Extensions.Localization
+@using Microsoft.JSInterop
 @using Spectrometre.Core.Data
 @using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
@@ -11,10 +15,12 @@
 @using Spectrometre.Modules.Entretien.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IEntretienService EntretienService
+@inject IBibliothequeQuestionsService BibliothequeQuestions
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject IModuleRegistry ModuleRegistry
 @inject CoreDbContext CoreDb
+@inject IJSRuntime JS
 @inject IStringLocalizer<EntretienResource> Localizer
 
 <PageTitle>@Localizer["PreparerLEntretien"]</PageTitle>
@@ -36,60 +42,193 @@ else if (_recrutementVerrouille)
 }
 else if (_grille is null)
 {
-    @* Réponse volontairement générique — même principe que /compatibilite/resultat/{id} : ne jamais
-       confirmer l'existence d'une ressource à un utilisateur qui n'y a pas droit. *@
     <section class="entretien-card entretien-empty">
         <p class="entretien-hint">@Localizer["GrilleIntrouvable"]</p>
     </section>
-}
-else if (_grille.Groupes.Count == 0)
-{
-    <header class="entretien-header">
-        <div>
-            <h1 class="entretien-title">@Localizer["PreparerLEntretien"]</h1>
-            <p class="entretien-subtitle">@string.Format(Localizer["ScoreGlobalSansQuestion"].Value, _grille.ScoreGlobal)</p>
-        </div>
-        <div class="entretien-score-badge" aria-hidden="true">
-            <span class="entretien-score-value">@_grille.ScoreGlobal%</span>
-        </div>
-    </header>
 }
 else
 {
     <header class="entretien-header">
         <div>
             <h1 class="entretien-title">@Localizer["PreparerLEntretien"]</h1>
-            <p class="entretien-subtitle">@string.Format(Localizer["ScoreGlobalAvecQuestions"].Value, _grille.ScoreGlobal)</p>
+            <p class="entretien-subtitle">
+                @(_grille.Groupes.Count == 0
+                    ? string.Format(Localizer["ScoreGlobalSansQuestion"].Value, _grille.ScoreGlobal)
+                    : string.Format(Localizer["ScoreGlobalAvecQuestions"].Value, _grille.ScoreGlobal))
+            </p>
         </div>
         <div class="entretien-score-badge" aria-hidden="true">
             <span class="entretien-score-value">@_grille.ScoreGlobal%</span>
         </div>
     </header>
 
-    <section class="entretien-questions">
-        <div class="entretien-questions-head">
-            <div class="entretien-questions-icon" aria-hidden="true"><i class="bi bi-chat-dots"></i></div>
-            <div>
-                <h2 class="entretien-questions-title">@Localizer["QuestionsPourCandidat"]</h2>
-                <p class="entretien-hint">@Localizer["QuestionsPourCandidatHint"]</p>
+    @if (_grille.Groupes.Count > 0)
+    {
+        <section class="entretien-questions">
+            <div class="entretien-questions-head">
+                <div class="entretien-questions-icon" aria-hidden="true"><i class="bi bi-chat-dots"></i></div>
+                <div>
+                    <h2 class="entretien-questions-title">@Localizer["QuestionsPourCandidat"]</h2>
+                    <p class="entretien-hint">@Localizer["QuestionsPourCandidatHint"]</p>
+                </div>
             </div>
-        </div>
-        @foreach (var groupe in _grille.Groupes)
-        {
-            @if (groupe.QuestionsPourCandidat.Count > 0)
+            @foreach (var groupe in _grille.Groupes)
             {
-                <article class="entretien-card groupe-questions">
-                    <div class="groupe-entete">
-                        <strong>@groupe.Titre</strong>
-                    </div>
-                    <ul>
-                        @foreach (var question in groupe.QuestionsPourCandidat)
-                        {
-                            <li>@question</li>
-                        }
-                    </ul>
-                </article>
+                @if (groupe.QuestionsPourCandidat.Count > 0)
+                {
+                    <article class="entretien-card groupe-questions">
+                        <div class="groupe-entete">
+                            <strong>@groupe.Titre</strong>
+                        </div>
+                        <ul>
+                            @foreach (var question in groupe.QuestionsPourCandidat)
+                            {
+                                <li>@question</li>
+                            }
+                        </ul>
+                    </article>
+                }
             }
+        </section>
+    }
+
+    <section class="entretien-bibliotheque" aria-label="@Localizer["BibliothequeQuestions"]">
+        <div class="entretien-questions-head">
+            <div class="entretien-questions-icon" aria-hidden="true"><i class="bi bi-journal-bookmark"></i></div>
+            <div>
+                <h2 class="entretien-questions-title">@Localizer["BibliothequeQuestions"]</h2>
+                <p class="entretien-hint">@Localizer["BibliothequeQuestionsHint"]</p>
+            </div>
+            <button type="button"
+                    class="entretien-btn-primary"
+                    disabled="@_savingAnswers"
+                    @onclick="SaveAnswersAsync">
+                @if (_savingAnswers)
+                {
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                }
+                else
+                {
+                    <i class="bi bi-save" aria-hidden="true"></i>
+                }
+                @Localizer["EnregistrerLesReponses"]
+            </button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_saveMessage))
+        {
+            <p class="@(_saveOk ? "entretien-save-ok" : "entretien-save-error")" role="status">@_saveMessage</p>
+        }
+
+        @if (_catalogue.Count == 0)
+        {
+            <div class="entretien-card">
+                <p class="entretien-hint">@Localizer["BibliothequeAucuneQuestion"]</p>
+            </div>
+        }
+        else
+        {
+            <div class="entretien-biblio-layout">
+                <div class="entretien-biblio-questions">
+                    @foreach (var category in _catalogue)
+                    {
+                        <article class="entretien-card biblio-category">
+                            <h3 class="biblio-category-title">@category.Name</h3>
+                            @foreach (var sub in category.SubCategories)
+                            {
+                                <div class="biblio-sub">
+                                    <div class="biblio-sub-title">@sub.Name</div>
+                                    @foreach (var question in sub.Questions)
+                                    {
+                                        <div class="biblio-question">
+                                            <label class="biblio-question-label" for="@($"iq-{question.Id}")">@question.Text</label>
+                                            @if (!string.IsNullOrEmpty(question.ExpectedElements))
+                                            {
+                                                <div class="biblio-expected">→ @question.ExpectedElements</div>
+                                            }
+                                            <textarea id="@($"iq-{question.Id}")"
+                                                      class="entretien-textarea"
+                                                      rows="3"
+                                                      placeholder="@Localizer["ReponsePlaceholder"]"
+                                                      value="@GetResponseText(question.Id)"
+                                                      @oninput="e => SetResponseText(question.Id, e.Value?.ToString())">
+                                            </textarea>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </article>
+                    }
+                </div>
+
+                <aside class="entretien-card entretien-transcript-card" aria-label="@Localizer["LiveTranscriptLabel"]">
+                    <h3 class="biblio-transcript-title">
+                        <i class="bi bi-mic" aria-hidden="true"></i>
+                        @Localizer["LiveTranscriptLabel"]
+                    </h3>
+
+                    <div class="entretien-transcript-controls">
+                        @if (!_recording)
+                        {
+                            <button type="button" class="entretien-btn-secondary" @onclick="StartInterviewAsync">
+                                <i class="bi bi-mic-fill" aria-hidden="true"></i>
+                                @Localizer["DemarrerEntrevue"]
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="entretien-btn-danger"
+                                    disabled="@(_classifying || _interviewEnding)"
+                                    @onclick="EndInterviewAsync">
+                                @Localizer["TerminerEntrevue"]
+                            </button>
+                            <span class="entretien-recording-badge">
+                                <span class="spinner-grow spinner-grow-sm text-danger" aria-hidden="true"></span>
+                                @Localizer["EnregistrementEnCours"]
+                            </span>
+                        }
+                        @if (_transcribingSegment)
+                        {
+                            <span class="entretien-hint">@Localizer["TranscriptionEnCours"]</span>
+                        }
+                        @if (_classifying)
+                        {
+                            <span class="entretien-hint">
+                                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                @Localizer["ClassificationEnCours"]
+                            </span>
+                        }
+                    </div>
+
+                    @if (_recording || !string.IsNullOrEmpty(_liveTranscript))
+                    {
+                        <div class="entretien-transcript-body">
+                            @if (!string.IsNullOrEmpty(_liveTranscript))
+                            {
+                                @_liveTranscript
+                            }
+                            else if (_transcribingSegment)
+                            {
+                                <span class="entretien-hint fst-italic">@Localizer["TranscriptionEnCours"]</span>
+                            }
+                            else if (_recording)
+                            {
+                                <span class="entretien-hint fst-italic">@Localizer["EnAttenteTranscription"]</span>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(_transcribeError))
+                    {
+                        <div class="entretien-save-error" role="alert">@_transcribeError</div>
+                    }
+                    @if (!string.IsNullOrEmpty(_classifyError))
+                    {
+                        <div class="entretien-save-warn" role="status">@_classifyError</div>
+                    }
+                </aside>
+            </div>
         }
     </section>
 }
@@ -103,6 +242,24 @@ else
     private bool _recrutementVerrouille;
     private GrilleEntretienView? _grille;
 
+    private List<InterviewQuestionCategoryDto> _catalogue = [];
+    private readonly Dictionary<int, string?> _responses = new();
+    private bool _savingAnswers;
+    private bool _saveOk;
+    private string? _saveMessage;
+
+    private bool _recording;
+    private bool _transcribingSegment;
+    private bool _classifying;
+    private string? _liveTranscript;
+    private string? _classifyError;
+    private string? _transcribeError;
+    private DotNetObjectReference<EntretienPage>? _dotNetRef;
+    private CancellationTokenSource? _segmentCts;
+    private bool _interviewEnding;
+    private int _lastAppliedBatchSeq;
+    private readonly SemaphoreSlim _transcriptionLock = new(1, 1);
+
     protected override async Task OnInitializedAsync()
     {
         var userId = AuthenticationStateTask is not null
@@ -115,9 +272,6 @@ else
             return;
         }
 
-        // Même confort de navigation que ResultatCompatibilite.razor — la décision d'autorisation elle-même
-        // est prise par CompatibiliteService (via IEntretienService.GenererGrilleAsync), qui cherche au
-        // besoin parmi toutes les entreprises gérées par l'utilisateur, pas seulement celle-ci.
         if (TenantContext.ActiveCompanyId is null)
         {
             var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
@@ -125,8 +279,6 @@ else
                 TenantContext.SetActiveCompany(companies[0].Id, companies[0].SchemaName);
         }
 
-        // Garde défensive Recrutement : sans le module, pas de grille (ni d'appel GenererGrilleAsync).
-        // Pas de paramètre coach sur cette page — uniquement AuthenticationState + tenant ambiant.
         if (TenantContext.ActiveCompanyId is int companyId
             && !await ModuleRegistry.IsActiveAsync(companyId, "Recrutement", CoreDb))
         {
@@ -136,6 +288,251 @@ else
         }
 
         _grille = await EntretienService.GenererGrilleAsync(CandidateProfileId, userId);
+        if (_grille is not null)
+            await LoadBibliothequeAsync();
+
         _resolu = true;
+    }
+
+    private async Task LoadBibliothequeAsync()
+    {
+        _catalogue = (await BibliothequeQuestions.GetCatalogueAsync()).ToList();
+        var existing = await BibliothequeQuestions.GetReponsesAsync(CandidateProfileId);
+        foreach (var cat in _catalogue)
+        {
+            foreach (var sub in cat.SubCategories)
+            {
+                foreach (var q in sub.Questions)
+                {
+                    var row = existing.FirstOrDefault(a => a.InterviewQuestionId == q.Id);
+                    _responses[q.Id] = row?.Response;
+                }
+            }
+        }
+    }
+
+    private string GetResponseText(int questionId) =>
+        _responses.TryGetValue(questionId, out var v) ? v ?? "" : "";
+
+    private void SetResponseText(int questionId, string? text)
+    {
+        _responses[questionId] = text;
+        if (!string.IsNullOrEmpty(_saveMessage))
+            _saveMessage = null;
+    }
+
+    private async Task SaveAnswersAsync()
+    {
+        _saveMessage = null;
+        _savingAnswers = true;
+        try
+        {
+            var inputs = _responses
+                .Select(kv => new InterviewAnswerInputDto(kv.Key, kv.Value))
+                .ToList();
+            await BibliothequeQuestions.SaveReponsesAsync(CandidateProfileId, inputs);
+            _saveOk = true;
+            _saveMessage = Localizer["ReponsesEnregistrees"].Value;
+        }
+        catch
+        {
+            _saveOk = false;
+            _saveMessage = Localizer["ReponsesErreurEnregistrement"].Value;
+        }
+        finally
+        {
+            _savingAnswers = false;
+        }
+    }
+
+    private async Task StartInterviewAsync()
+    {
+        _classifyError = null;
+        _transcribeError = null;
+        _liveTranscript = null;
+        _interviewEnding = false;
+        _lastAppliedBatchSeq = 0;
+        _segmentCts?.Cancel();
+        _segmentCts?.Dispose();
+        _segmentCts = new CancellationTokenSource();
+        _dotNetRef = DotNetObjectReference.Create(this);
+        try
+        {
+            await JS.InvokeVoidAsync("interviewRecorder.start", _dotNetRef, 8);
+            _recording = true;
+        }
+        catch (JSException ex)
+        {
+            _transcribeError = string.Format(
+                CultureInfo.CurrentUICulture,
+                Localizer["MicroIndisponible"].Value,
+                ex.Message);
+            _dotNetRef.Dispose();
+            _dotNetRef = null;
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnRecorderError(string message)
+    {
+        if (_interviewEnding) return;
+        _transcribeError = message;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task OnAudioSegmentReady(IJSStreamReference audioStreamRef, string mimeType, int batchSeq)
+    {
+        if (_interviewEnding) return;
+
+        await _transcriptionLock.WaitAsync();
+        try
+        {
+            if (_interviewEnding) return;
+
+            _transcribingSegment = true;
+            _transcribeError = null;
+            await InvokeAsync(StateHasChanged);
+
+            var bytes = await ReadStreamAsync(audioStreamRef);
+            if (bytes.Length == 0)
+            {
+                _transcribeError = Localizer["AucunAudioCapture"].Value;
+                return;
+            }
+
+            var ct = _segmentCts?.Token ?? CancellationToken.None;
+            var (transcript, error) = await BibliothequeQuestions.TranscrireSegmentAsync(bytes, mimeType, ct);
+
+            if (_interviewEnding || ct.IsCancellationRequested)
+                return;
+
+            if (batchSeq <= _lastAppliedBatchSeq)
+                return;
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                _transcribeError = error;
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(transcript))
+            {
+                _liveTranscript = transcript;
+                _lastAppliedBatchSeq = batchSeq;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Segment annulé (fin d'entrevue)
+        }
+        catch (Exception ex)
+        {
+            if (!_interviewEnding)
+                _transcribeError = ex.Message;
+        }
+        finally
+        {
+            _transcribingSegment = false;
+            _transcriptionLock.Release();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task EndInterviewAsync()
+    {
+        if (_dotNetRef is null || _interviewEnding) return;
+        _interviewEnding = true;
+        _segmentCts?.Cancel();
+        await JS.InvokeVoidAsync("interviewRecorder.stop");
+    }
+
+    [JSInvokable]
+    public async Task OnFinalAudioReady(IJSStreamReference audioStreamRef, string mimeType, int batchSeq)
+    {
+        _interviewEnding = true;
+        _segmentCts?.Cancel();
+        _recording = false;
+
+        await _transcriptionLock.WaitAsync();
+        try
+        {
+            _transcribingSegment = true;
+            _transcribeError = null;
+            await InvokeAsync(StateHasChanged);
+
+            var bytes = await ReadStreamAsync(audioStreamRef);
+            if (bytes.Length > 0)
+            {
+                using var finalCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+                var (transcript, error) = await BibliothequeQuestions.TranscrireSegmentAsync(bytes, mimeType, finalCts.Token);
+                if (!string.IsNullOrEmpty(error))
+                    _transcribeError = error;
+                else if (!string.IsNullOrWhiteSpace(transcript))
+                {
+                    _liveTranscript = transcript;
+                    _lastAppliedBatchSeq = batchSeq;
+                }
+            }
+
+            _transcribingSegment = false;
+
+            if (string.IsNullOrEmpty(_liveTranscript))
+            {
+                if (string.IsNullOrEmpty(_transcribeError))
+                    _classifyError = Localizer["ErreurClassification"].Value;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            _classifying = true;
+            await InvokeAsync(StateHasChanged);
+
+            var classified = await BibliothequeQuestions.ClassifierTranscriptionAsync(_liveTranscript, _catalogue);
+            foreach (var kv in classified)
+                _responses[kv.Key] = kv.Value;
+
+            _classifying = false;
+            if (classified.Count == 0)
+                _classifyError = Localizer["ErreurClassification"].Value;
+            else
+                await SaveAnswersAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            _transcribeError = Localizer["TranscriptionFinaleAnnulee"].Value;
+        }
+        catch (Exception ex)
+        {
+            _transcribeError = ex.Message;
+        }
+        finally
+        {
+            _transcribingSegment = false;
+            _classifying = false;
+            _transcriptionLock.Release();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static async Task<byte[]> ReadStreamAsync(IJSStreamReference streamRef)
+    {
+        await using var stream = await streamRef.OpenReadStreamAsync(maxAllowedSize: 50_000_000);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        return ms.ToArray();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _interviewEnding = true;
+        _segmentCts?.Cancel();
+        if (_recording)
+        {
+            try { await JS.InvokeVoidAsync("interviewRecorder.cancel"); } catch { /* ignore */ }
+        }
+        _segmentCts?.Dispose();
+        _transcriptionLock.Dispose();
+        _dotNetRef?.Dispose();
     }
 }

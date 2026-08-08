@@ -45,4 +45,12 @@ public sealed class Poste
 
     public PosteStatut Statut { get; set; } = PosteStatut.Ouvert;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    /// <summary>Texte d'offre d'emploi généré (IA ou repli local) — écrasé à chaque régénération.</summary>
+    public string? OffreTexte { get; set; }
+
+    public DateTimeOffset? OffreGenereeLe { get; set; }
+
+    /// <summary><c>true</c> si le dernier texte vient de Claude ; <c>false</c> pour le repli déterministe.</summary>
+    public bool OffreGenereeParIa { get; set; }
 }

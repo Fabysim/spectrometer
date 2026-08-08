@@ -208,6 +208,10 @@ public sealed class ServiceFixture : IAsyncLifetime
         await using var entretienDb = await Services.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync();
         await entretienDb.Database.MigrateAsync();
 
+        await using var entretienCatalogDb = await Services.GetRequiredService<IDbContextFactory<EntretienCatalogDbContext>>().CreateDbContextAsync();
+        await entretienCatalogDb.Database.MigrateAsync();
+        await InterviewQuestionLibrarySeed.EnsureSeededAsync(entretienCatalogDb);
+
         await using var suiviCandidatDb = await Services.GetRequiredService<IDbContextFactory<SuiviEvolutifCandidatDbContext>>().CreateDbContextAsync();
         await suiviCandidatDb.Database.MigrateAsync();
 

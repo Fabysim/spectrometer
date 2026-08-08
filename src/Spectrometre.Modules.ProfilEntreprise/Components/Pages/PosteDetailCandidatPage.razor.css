@@ -1,0 +1,110 @@
+/* /candidat/postes/{companyId}/{posteId} */
+
+.postes-page.poste-detail-candidat {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+.poste-detail-candidat .postes-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.poste-detail-candidat .postes-breadcrumb a {
+    color: var(--bs-primary, #345f6d);
+    text-decoration: none;
+}
+
+.poste-detail-candidat .postes-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.poste-detail-sep {
+    margin: 0 0.35rem;
+    opacity: 0.6;
+}
+
+.poste-offre-card .postes-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--foreground, #0f172a);
+}
+
+.poste-offre-corps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.poste-offre-heading {
+    margin: 1rem 0 0.4rem;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #fff;
+    background: #2e5b8a;
+    border-radius: 8px;
+}
+
+.poste-offre-heading:first-child {
+    margin-top: 0;
+}
+
+.poste-offre-para {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #0f172a;
+}
+
+.poste-offre-list {
+    margin: 0.15rem 0;
+    padding-left: 1.35rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #0f172a;
+}
+
+.poste-offre-list li + li {
+    margin-top: 0.2rem;
+}
+
+.poste-offre-spacer {
+    height: 0.55rem;
+}
+
+.poste-offre-meta {
+    margin: 1.25rem 0 0;
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.poste-detail-candidat .deja-postule {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #15803d;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.poste-detail-candidat .postes-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}

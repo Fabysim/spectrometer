@@ -1,0 +1,175 @@
+@using System.Globalization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.ProfilEntreprise.Entities
+@using Spectrometre.Modules.ProfilEntreprise.Resources
+@using Spectrometre.Modules.ProfilEntreprise.Services
+@inject IPosteService PosteService
+@inject IStringLocalizer<ProfilEntrepriseResource> Localizer
+
+@if (_loading)
+{
+    <p class="postes-hint">@Localizer["Chargement"]</p>
+}
+else if (_criteres.Count == 0)
+{
+    <div class="postulation-grille">
+        <p class="postes-hint">@Localizer["PostulationGrilleSansCritere"]</p>
+        @if (!string.IsNullOrEmpty(_erreur))
+        {
+            <p class="postes-alert" role="alert">@_erreur</p>
+        }
+        <div class="postulation-grille-actions">
+            <button type="button" class="postes-btn-ghost" @onclick="AnnulerAsync" disabled="@_enCours">@Localizer["Annuler"]</button>
+            <button type="button" class="postes-btn-primary" @onclick="ConfirmerAsync" disabled="@_enCours">
+                @if (_enCours)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                }
+                @Localizer["ConfirmerMaCandidature"]
+            </button>
+        </div>
+    </div>
+}
+else
+{
+    <div class="postulation-grille">
+        <h3 class="postulation-grille-title">@Localizer["PostulationGrilleTitre"]</h3>
+        <p class="postes-hint">@Localizer["PostulationGrilleHint"]</p>
+        <div class="postulation-grille-table-wrap">
+            <table class="postulation-grille-table">
+                <thead>
+                    <tr>
+                        <th>@Localizer["Categorie"]</th>
+                        <th>@Localizer["Libelle"]</th>
+                        <th>@Localizer["NiveauRequis"]</th>
+                        <th>@Localizer["VotreNiveau"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var critere in _criteres)
+                    {
+                        <tr>
+                            <td>@critere.Categorie</td>
+                            <td>@critere.Libelle</td>
+                            <td>
+                                <span class="postes-eval-badge">@NiveauEvaluationLabels.Label(critere.NiveauRequis, _english)</span>
+                            </td>
+                            <td>
+                                <select class="postes-select"
+                                        value="@SelectValue(critere.Id)"
+                                        @onchange="e => OnNiveauChanged(critere.Id, e)">
+                                    <option value="">@Localizer["ChoisirNiveau"]</option>
+                                    @foreach (var niveau in Enum.GetValues<NiveauEvaluation>())
+                                    {
+                                        <option value="@((int)niveau)">@NiveauEvaluationLabels.Label(niveau, _english)</option>
+                                    }
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (!string.IsNullOrEmpty(_erreur))
+        {
+            <p class="postes-alert" role="alert">@_erreur</p>
+        }
+        <div class="postulation-grille-actions">
+            <button type="button" class="postes-btn-ghost" @onclick="AnnulerAsync" disabled="@_enCours">@Localizer["Annuler"]</button>
+            <button type="button"
+                    class="postes-btn-primary"
+                    disabled="@(!PeutConfirmer || _enCours)"
+                    @onclick="ConfirmerAsync">
+                @if (_enCours)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                }
+                @Localizer["ConfirmerMaCandidature"]
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int CompanyId { get; set; }
+    [Parameter] public int PosteId { get; set; }
+    [Parameter] public int CandidateProfileId { get; set; }
+    [Parameter] public EventCallback OnSucces { get; set; }
+    [Parameter] public EventCallback OnAnnuler { get; set; }
+
+    private bool _loading = true;
+    private bool _enCours;
+    private string? _erreur;
+    private List<CritereEvaluationView> _criteres = [];
+    private readonly Dictionary<int, NiveauEvaluation?> _niveaux = new();
+    private bool _english;
+
+    private bool PeutConfirmer =>
+        _criteres.Count == 0 || _criteres.All(c => _niveaux.TryGetValue(c.Id, out var n) && n is not null);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+        _loading = true;
+        _erreur = null;
+        _criteres = (await PosteService.GetCriteresPosteOuvertAsync(CompanyId, PosteId)).ToList();
+        _niveaux.Clear();
+        foreach (var c in _criteres)
+            _niveaux[c.Id] = null;
+        _loading = false;
+    }
+
+    private string SelectValue(int critereId) =>
+        _niveaux.TryGetValue(critereId, out var n) && n is NiveauEvaluation niveau
+            ? ((int)niveau).ToString()
+            : "";
+
+    private void OnNiveauChanged(int critereId, ChangeEventArgs e)
+    {
+        _erreur = null;
+        if (string.IsNullOrWhiteSpace(e.Value?.ToString()))
+            _niveaux[critereId] = null;
+        else if (int.TryParse(e.Value.ToString(), out var v) && Enum.IsDefined(typeof(NiveauEvaluation), v))
+            _niveaux[critereId] = (NiveauEvaluation)v;
+    }
+
+    private async Task AnnulerAsync() => await OnAnnuler.InvokeAsync();
+
+    private async Task ConfirmerAsync()
+    {
+        if (_enCours)
+            return;
+
+        if (!PeutConfirmer)
+        {
+            _erreur = Localizer["PostulationGrilleIncomplete"].Value;
+            return;
+        }
+
+        _enCours = true;
+        _erreur = null;
+        try
+        {
+            var declares = _niveaux
+                .Where(kv => kv.Value is not null)
+                .ToDictionary(kv => kv.Key, kv => kv.Value!.Value);
+
+            var (succes, erreur) = await PosteService.PostulerAvecGrilleAsync(
+                CompanyId, PosteId, CandidateProfileId, declares);
+
+            if (!succes)
+            {
+                _erreur = string.IsNullOrWhiteSpace(erreur)
+                    ? Localizer["PostulationGrilleIncomplete"].Value
+                    : erreur;
+                return;
+            }
+
+            await OnSucces.InvokeAsync();
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

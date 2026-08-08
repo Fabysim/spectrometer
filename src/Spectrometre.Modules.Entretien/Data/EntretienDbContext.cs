@@ -17,6 +17,7 @@ public sealed class EntretienDbContext(DbContextOptions<EntretienDbContext> opti
 
     public DbSet<QuestionTemplate> QuestionTemplates => Set<QuestionTemplate>();
     public DbSet<InterviewGenerationSettings> InterviewGenerationSettings => Set<InterviewGenerationSettings>();
+    public DbSet<InterviewAnswer> InterviewAnswers => Set<InterviewAnswer>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -32,6 +33,12 @@ public sealed class EntretienDbContext(DbContextOptions<EntretienDbContext> opti
         {
             e.HasIndex(q => new { q.Type, q.Axis, q.Sens, q.DisplayOrder });
             e.HasData(SeedQuestionTemplates());
+        });
+
+        builder.Entity<InterviewAnswer>(e =>
+        {
+            e.HasIndex(a => new { a.InterviewQuestionId, a.CandidateProfileId }).IsUnique();
+            e.Property(a => a.Response);
         });
     }
 

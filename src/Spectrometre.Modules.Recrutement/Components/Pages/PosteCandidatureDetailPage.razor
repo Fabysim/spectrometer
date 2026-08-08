@@ -167,7 +167,16 @@ else
                                 <td>
                                     <span class="postes-eval-badge">@NiveauEvaluationLabels.Label(row.NiveauRequis, _english)</span>
                                 </td>
-                                <td class="score-empty" title="@Localizer["NiveauDeclareIndisponible"].Value">—</td>
+                                <td>
+                                    @if (row.NiveauDeclare is NiveauEvaluation declare)
+                                    {
+                                        <span class="postes-eval-badge">@NiveauEvaluationLabels.Label(declare, _english)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="score-empty">—</span>
+                                    }
+                                </td>
                                 <td>
                                     <select class="postes-select"
                                             value="@(row.NiveauFinal is NiveauEvaluation nf ? (int)nf : "")"
@@ -404,12 +413,17 @@ else
         _evaluations = (await PosteService.GetEvaluationCriteresAsync(CandidatureId)).ToList();
     }
 
+    /// <summary>
+    /// Écart vs niveau requis : privilégie le niveau final (jugement entreprise) s'il est renseigné ;
+    /// sinon compare le niveau déclaré candidat au requis (auto-évaluation en attendant l'ajustement).
+    /// </summary>
     private MarkupString EcartMarkup(EvaluationCritereView row)
     {
-        if (row.NiveauFinal is not NiveauEvaluation final)
+        NiveauEvaluation? compare = row.NiveauFinal ?? row.NiveauDeclare;
+        if (compare is not NiveauEvaluation niveau)
             return new MarkupString("<span class=\"score-empty\">—</span>");
 
-        var cmp = ((int)final).CompareTo((int)row.NiveauRequis);
+        var cmp = ((int)niveau).CompareTo((int)row.NiveauRequis);
         var (css, symbol, key) = cmp switch
         {
             < 0 => ("postes-ecart postes-ecart--below", "▼", "EcartEnDessous"),

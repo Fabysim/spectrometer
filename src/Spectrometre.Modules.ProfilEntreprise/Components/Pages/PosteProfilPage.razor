@@ -12,6 +12,7 @@
 @using Spectrometre.Modules.ProfilEntreprise.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IPosteService PosteService
+@inject IJobOfferDraftService JobOfferDraftService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ITenantContext TenantContext
 @inject CoreDbContext CoreDb
@@ -53,6 +54,13 @@ else
             </nav>
             <h1 class="postes-title">@Localizer["ProfilDuPoste"]</h1>
             <p class="postes-subtitle">@_poste.Titre — @Localizer["ProfilDuPosteHint"]</p>
+            @if (_offreEnCours)
+            {
+                <p class="postes-hint postes-offre-gen-status" role="status">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    @Localizer["OffreGenerationEnCours"]
+                </p>
+            }
         </div>
         <div class="postes-header-actions">
             <button type="button"
@@ -284,6 +292,7 @@ else
     private readonly HashSet<string> _categoriesCochees = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _suggestionsCochees = new(StringComparer.OrdinalIgnoreCase);
     private bool _iaEnCours;
+    private bool _offreEnCours;
     private string? _iaMessage;
     private bool _iaEchec;
     private List<Company> _companies = [];
@@ -531,6 +540,27 @@ else
         _criteres = (await PosteService.GetCriteresAsync(PosteId)).ToList();
         AnnulerEdition();
         _formulaireVisible = false;
+
+        // Régénération offre : ne bloque jamais la sauvegarde (échec IA → repli local côté service).
+        await RegenererOffreAsync();
+    }
+
+    private async Task RegenererOffreAsync()
+    {
+        if (_offreEnCours)
+            return;
+
+        _offreEnCours = true;
+        // Afficher le spinner / fermer le formulaire avant l'attente IA (sinon le rendu attend la fin).
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            await JobOfferDraftService.GenererEtEnregistrerOffreAsync(PosteId);
+        }
+        finally
+        {
+            _offreEnCours = false;
+        }
     }
 
     private void Editer(CritereEvaluationView critere)

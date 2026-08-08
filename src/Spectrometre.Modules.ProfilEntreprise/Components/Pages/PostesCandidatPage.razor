@@ -52,7 +52,11 @@ else
                 <article class="postes-card poste-carte @(poste.DejaPostule ? "is-applied" : "")">
                     <div class="poste-entete">
                         <div class="poste-entete-main">
-                            <h3 class="poste-titre">@poste.Titre</h3>
+                            <h3 class="poste-titre">
+                                <a href="@($"/candidat/postes/{poste.CompanyId}/{poste.PosteId}")" class="poste-titre-link">
+                                    @poste.Titre
+                                </a>
+                            </h3>
                             <div class="poste-meta-entreprise">
                                 <span class="poste-entreprise">
                                     <i class="bi bi-building" aria-hidden="true"></i>
@@ -82,10 +86,16 @@ else
                         }
                         else
                         {
-                            <button type="button" class="postes-btn-primary" @onclick="() => PostulerAsync(poste)">
-                                <i class="bi bi-send" aria-hidden="true"></i>
-                                @Localizer["Postuler"]
-                            </button>
+                            <div class="poste-actions-applique">
+                                <a href="@($"/candidat/postes/{poste.CompanyId}/{poste.PosteId}")" class="postes-btn-ghost">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                    @Localizer["VoirLeDetail"]
+                                </a>
+                                <button type="button" class="postes-btn-primary" @onclick="() => OuvrirGrille(poste)" @onclick:stopPropagation="true">
+                                    <i class="bi bi-send" aria-hidden="true"></i>
+                                    @Localizer["Postuler"]
+                                </button>
+                            </div>
                         }
                     </div>
                     @if (!string.IsNullOrWhiteSpace(poste.Departement))
@@ -98,6 +108,16 @@ else
                     @if (!string.IsNullOrWhiteSpace(poste.Description))
                     {
                         <p class="poste-description">@poste.Description</p>
+                    }
+                    @if (_grilleOuverte is not null
+                         && _grilleOuverte.CompanyId == poste.CompanyId
+                         && _grilleOuverte.PosteId == poste.PosteId)
+                    {
+                        <PostulationGrilleInline CompanyId="poste.CompanyId"
+                                                 PosteId="poste.PosteId"
+                                                 CandidateProfileId="_candidateProfileId"
+                                                 OnSucces="() => OnGrilleSuccesAsync(poste)"
+                                                 OnAnnuler="FermerGrille" />
                     }
                 </article>
             }
@@ -113,6 +133,7 @@ else
     private int _candidateProfileId;
     private readonly Dictionary<int, int> _scoresParEntreprise = new();
     private bool _enrichissementLance;
+    private PosteOuvertView? _grilleOuverte;
 
     protected override async Task OnInitializedAsync()
     {
@@ -138,12 +159,15 @@ else
         await EnrichirScoresCompatibiliteAsync();
     }
 
-    private async Task PostulerAsync(PosteOuvertView poste)
+    private void OuvrirGrille(PosteOuvertView poste) => _grilleOuverte = poste;
+
+    private void FermerGrille() => _grilleOuverte = null;
+
+    private async Task OnGrilleSuccesAsync(PosteOuvertView poste)
     {
-        await PosteService.PostulerAsync(poste.CompanyId, poste.PosteId, _candidateProfileId);
+        _grilleOuverte = null;
         _postes = (await PosteService.GetPostesOuvertsAsync(_candidateProfileId)).ToList();
         AppliquerScoresConnus();
-        // Une seule entreprise à (re)évaluer après candidature — pas toute la liste.
         await EnrichirScoresCompatibiliteAsync(companyIds: [poste.CompanyId]);
     }
 

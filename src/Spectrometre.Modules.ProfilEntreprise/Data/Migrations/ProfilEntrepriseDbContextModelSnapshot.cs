@@ -701,7 +701,10 @@ namespace Spectrometre.Modules.ProfilEntreprise.Data.Migrations
                     b.Property<int>("CritereId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("NiveauFinal")
+                    b.Property<int?>("NiveauDeclare")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("NiveauFinal")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
@@ -768,6 +771,15 @@ namespace Spectrometre.Modules.ProfilEntreprise.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("OffreGenereeLe")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("OffreGenereeParIa")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OffreTexte")
                         .HasColumnType("text");
 
                     b.Property<string>("Salaire")

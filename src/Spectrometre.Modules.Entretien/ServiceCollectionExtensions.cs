@@ -36,7 +36,15 @@ public static class ServiceCollectionExtensions
             options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Entretien", "public"));
         });
 
+        // Catalogue partagé (public) — séparé du DbContext tenant pour ne pas recopier les tables
+        // de questions dans chaque schéma co_* via ITenantSchemaProvisioner.
+        services.AddDbContextFactory<EntretienCatalogDbContext>(options =>
+        {
+            options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_EntretienCatalog", "public"));
+        });
+
         services.AddScoped<IEntretienService, EntretienService>();
+        services.AddScoped<IBibliothequeQuestionsService, BibliothequeQuestionsService>();
 
         return services;
     }

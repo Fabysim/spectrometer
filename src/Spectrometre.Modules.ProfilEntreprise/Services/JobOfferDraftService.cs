@@ -1,10 +1,12 @@
 using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Ai;
+using Spectrometre.Core.Tenancy;
+using Spectrometre.Modules.ProfilEntreprise.Data;
 using Spectrometre.Modules.ProfilEntreprise.Entities;
 
 namespace Spectrometre.Modules.ProfilEntreprise.Services;
@@ -16,7 +18,9 @@ namespace Spectrometre.Modules.ProfilEntreprise.Services;
 /// </summary>
 public sealed class JobOfferDraftService(
     IPosteService posteService,
-    IReplicateService replicate) : IJobOfferDraftService
+    IReplicateService replicate,
+    IDbContextFactory<ProfilEntrepriseDbContext> dbFactory,
+    ITenantContext tenantContext) : IJobOfferDraftService
 {
     private const string ColorPrimary = "1B3A6B";
     private const string ColorSecondary = "2E5B8A";
@@ -60,9 +64,138 @@ public sealed class JobOfferDraftService(
         }
     }
 
+    public async Task<(string? Texte, string? Erreur)> GenererEtEnregistrerOffreAsync(
+        int posteId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var postes = await posteService.GetPostesAsync(cancellationToken);
+            var poste = postes.FirstOrDefault(p => p.Id == posteId);
+            if (poste is null)
+                return (null, ErreurPosteIntrouvable);
+
+            var criteres = await posteService.GetCriteresAsync(posteId, cancellationToken);
+            var english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+
+            string texte;
+            var parIa = false;
+
+            var systemPrompt = BuildSystemPrompt(english);
+            var userPrompt = BuildUserPrompt(poste, criteres, english);
+            var (outputText, error) = await replicate.RunClaudeAsync(systemPrompt, userPrompt, cancellationToken);
+            if (error is null && !string.IsNullOrWhiteSpace(outputText))
+            {
+                texte = outputText.Trim();
+                parIa = true;
+            }
+            else
+            {
+                texte = BuildFallbackOffreTexte(poste, criteres, english);
+            }
+
+            await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+            db.TenantSchema = tenantContext.SchemaName
+                ?? throw new InvalidOperationException("Aucune entreprise active — génération d'offre hors tenant.");
+
+            var entity = await db.Postes.FirstOrDefaultAsync(p => p.Id == posteId, cancellationToken);
+            if (entity is null)
+                return (null, ErreurPosteIntrouvable);
+
+            entity.OffreTexte = texte;
+            entity.OffreGenereeLe = DateTimeOffset.UtcNow;
+            entity.OffreGenereeParIa = parIa;
+            await db.SaveChangesAsync(cancellationToken);
+
+            return (texte, null);
+        }
+        catch (Exception)
+        {
+            // Dernier filet : jamais d'exception vers l'UI ; tente un repli si le poste est lisible.
+            try
+            {
+                var postes = await posteService.GetPostesAsync(cancellationToken);
+                var poste = postes.FirstOrDefault(p => p.Id == posteId);
+                if (poste is null)
+                    return (null, ErreurPosteIntrouvable);
+
+                var criteres = await posteService.GetCriteresAsync(posteId, cancellationToken);
+                var english = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "fr";
+                var texte = BuildFallbackOffreTexte(poste, criteres, english);
+
+                await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+                db.TenantSchema = tenantContext.SchemaName!;
+                var entity = await db.Postes.FirstOrDefaultAsync(p => p.Id == posteId, cancellationToken);
+                if (entity is null)
+                    return (null, ErreurPosteIntrouvable);
+
+                entity.OffreTexte = texte;
+                entity.OffreGenereeLe = DateTimeOffset.UtcNow;
+                entity.OffreGenereeParIa = false;
+                await db.SaveChangesAsync(cancellationToken);
+                return (texte, null);
+            }
+            catch
+            {
+                return (null, ErreurPosteIntrouvable);
+            }
+        }
+    }
+
     /// <summary>Construit un .docx à partir d'un texte déjà généré — exposé pour les tests (signature ZIP).</summary>
     public static byte[] BuildDocx(string title, string bodyText, bool english) =>
         BuildDocxInternal(title, bodyText, ColorPrimary, ColorSecondary, ColorBackground, english);
+
+    /// <summary>Repli déterministe (même contenu que le user prompt, formaté pour lecture humaine).</summary>
+    public static string BuildFallbackOffreTexte(
+        PosteView poste,
+        IReadOnlyList<CritereEvaluationView> criteres,
+        bool english)
+    {
+        var culture = CultureInfo.CurrentUICulture;
+        string Pt(string fr, string en) => english ? en : fr;
+        string NotProvided() => english ? "(not provided)" : "(non fourni)";
+
+        var sb = new StringBuilder();
+        sb.AppendLine(poste.Titre.ToUpperInvariant());
+        sb.AppendLine();
+        sb.AppendLine(Pt("PRÉSENTATION", "OVERVIEW"));
+        sb.AppendLine(string.IsNullOrWhiteSpace(poste.Description) ? NotProvided() : poste.Description.Trim());
+        sb.AppendLine();
+        sb.AppendLine(Pt("MISSIONS", "RESPONSIBILITIES"));
+        if (string.IsNullOrWhiteSpace(poste.TachesDescription))
+            sb.AppendLine(NotProvided());
+        else
+        {
+            foreach (var line in poste.TachesDescription.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                sb.AppendLine(line.StartsWith('-') || line.StartsWith('•') || line.StartsWith('*') ? line : "- " + line);
+        }
+
+        sb.AppendLine();
+        sb.AppendLine(Pt("CONDITIONS", "CONDITIONS"));
+        sb.AppendLine($"- {Pt("Rémunération", "Compensation")} : {(string.IsNullOrWhiteSpace(poste.Salaire) ? NotProvided() : poste.Salaire.Trim())}");
+        sb.AppendLine($"- {Pt("Avantages", "Benefits")} : {(string.IsNullOrWhiteSpace(poste.Avantages) ? NotProvided() : poste.Avantages.Trim())}");
+        sb.AppendLine($"- {Pt("Date de clôture", "Closing date")} : {(poste.DateCloture is DateTimeOffset d ? d.ToLocalTime().ToString("d MMMM yyyy", culture) : NotProvided())}");
+
+        if (criteres.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine(Pt("PROFIL RECHERCHÉ", "REQUIRED PROFILE"));
+            foreach (var c in criteres.OrderBy(x => x.Categorie).ThenBy(x => x.Libelle))
+            {
+                var level = NiveauEvaluationLabels.Label(c.NiveauRequis, english);
+                sb.AppendLine($"- {c.Libelle} ({c.Categorie}) : {level}");
+            }
+        }
+
+        sb.AppendLine();
+        sb.AppendLine(Pt("CANDIDATURE", "HOW TO APPLY"));
+        sb.AppendLine(Pt(
+            "Postulez depuis votre espace candidat Spectromètre.",
+            "Apply from your Spectromètre candidate space."));
+
+        return sb.ToString().Trim();
+    }
 
     private static string BuildSystemPrompt(bool english) => english
         ? """
@@ -195,46 +328,23 @@ public sealed class JobOfferDraftService(
 
             body.AppendChild(MakeSpacerParagraph());
 
-            var lines = bodyText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-            var skipFirstHeading = true;
-
-            foreach (var raw in lines)
+            foreach (var block in JobOfferTextParser.Parse(bodyText, skipFirstHeading: true))
             {
-                var line = StripMarkdown(raw.Trim());
-
-                if (string.IsNullOrEmpty(line) || line == "---")
+                switch (block.Kind)
                 {
-                    body.AppendChild(MakeSpacerParagraph());
-                    continue;
+                    case JobOfferBlockKind.Spacer:
+                        body.AppendChild(MakeSpacerParagraph());
+                        break;
+                    case JobOfferBlockKind.Heading:
+                        body.AppendChild(MakeSectionHeading(block.Text, colorSecondary));
+                        break;
+                    case JobOfferBlockKind.Bullet:
+                        body.AppendChild(MakeBulletParagraph(block.Text));
+                        break;
+                    default:
+                        body.AppendChild(MakeBodyParagraph(block.Text));
+                        break;
                 }
-
-                var isHeading = line == line.ToUpperInvariant()
-                    && line.Length > 3
-                    && !line.StartsWith('•')
-                    && !line.StartsWith('-')
-                    && Regex.IsMatch(line, @"[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜ]");
-
-                if (isHeading)
-                {
-                    if (skipFirstHeading)
-                    {
-                        skipFirstHeading = false;
-                        continue;
-                    }
-
-                    body.AppendChild(MakeSectionHeading(line, colorSecondary));
-                    continue;
-                }
-
-                if (line.StartsWith("• ", StringComparison.Ordinal)
-                    || line.StartsWith("- ", StringComparison.Ordinal)
-                    || line.StartsWith("* ", StringComparison.Ordinal))
-                {
-                    body.AppendChild(MakeBulletParagraph(line[2..].Trim()));
-                    continue;
-                }
-
-                body.AppendChild(MakeBodyParagraph(line));
             }
 
             body.AppendChild(MakeSpacerParagraph());
@@ -333,11 +443,6 @@ public sealed class JobOfferDraftService(
         p.AppendChild(pPr);
         return p;
     }
-
-    private static string StripMarkdown(string text) =>
-        Regex.Replace(text, @"\*\*(.+?)\*\*", "$1")
-            .Replace("**", "", StringComparison.Ordinal)
-            .Replace("__", "", StringComparison.Ordinal);
 
     private static string EscapeForXml(string? s)
     {

@@ -1,4 +1,4 @@
-/* /entreprise/postes/{id}/guide-entrevue – cohérent avec postes-* */
+/* /entreprise/postes/{id}/guide-entrevue – plein écran utile, cohérent avec postes-* */
 
 .postes-page {
     width: 100%;
@@ -7,10 +7,12 @@
     margin: 0;
     padding: 1.25rem 1.5rem 1.5rem;
     min-height: calc(100dvh - 3.5rem);
+    height: 100%;
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
-    gap: 1.25rem;
+    gap: 1rem;
+    min-width: 0;
 }
 
 .postes-state,
@@ -80,18 +82,23 @@
     background: #ffffff;
     border-radius: 16px;
     border: 1px solid #e2e8f0;
-    padding: 1.35rem 1.4rem 1.5rem;
+    padding: 1.25rem 1.4rem 1.35rem;
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    box-sizing: border-box;
 }
 
 .postes-empty {
     width: 100%;
 }
 
+/* Carte formulaire : occupe tout l’espace restant sous le header */
 .postes-form-card {
     width: 100%;
     max-width: none;
     flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .postes-card-icon {
@@ -103,7 +110,8 @@
     justify-content: center;
     color: white;
     font-size: 1.2rem;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
 }
 
 .postes-card-icon.tone-primary {
@@ -115,13 +123,31 @@
     font-weight: 600;
     margin: 0 0 1rem;
     color: var(--foreground, #0f172a);
+    flex-shrink: 0;
 }
 
+/* Grille de champs étirée sur toute la largeur et la hauteur restantes */
 .postes-guide-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 0.85rem 1.25rem;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-content: stretch;
+}
+
+.postes-field {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    width: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Dernier champ (Autorité) sur toute la largeur */
+.postes-field:last-child {
+    grid-column: 1 / -1;
 }
 
 .postes-field label {
@@ -130,11 +156,13 @@
     font-weight: 600;
     color: #64748b;
     margin-bottom: 0.3rem;
+    flex-shrink: 0;
 }
 
 .postes-input,
 .postes-textarea {
     width: 100%;
+    max-width: none;
     border-radius: 10px;
     border: 1px solid #e2e8f0;
     padding: 0.55rem 0.75rem;
@@ -147,7 +175,9 @@
 
 .postes-textarea {
     resize: vertical;
-    min-height: 4.5rem;
+    flex: 1 1 auto;
+    min-height: 5.5rem;
+    height: 100%;
     line-height: 1.45;
 }
 
@@ -208,6 +238,7 @@
     color: #15803d;
     font-size: 0.875rem;
     font-weight: 600;
+    flex-shrink: 0;
 }
 
 .postes-save-error {
@@ -218,14 +249,37 @@
     color: #dc2626;
     font-size: 0.875rem;
     font-weight: 600;
+    flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+    .postes-guide-form {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+    }
+
+    .postes-field:last-child {
+        grid-column: auto;
+    }
+
+    .postes-textarea {
+        height: auto;
+        min-height: 5rem;
+    }
 }
 
 @media (max-width: 720px) {
     .postes-page {
         padding: 1rem;
+        min-height: 0;
+        height: auto;
     }
 
     .postes-title {
         font-size: 1.4rem;
+    }
+
+    .postes-form-card {
+        flex: 0 1 auto;
     }
 }

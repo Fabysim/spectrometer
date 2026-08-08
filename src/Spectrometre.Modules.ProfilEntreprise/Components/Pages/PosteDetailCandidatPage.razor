@@ -1,0 +1,182 @@
+@page "/candidat/postes/{CompanyId:int}/{PosteId:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.ProfilEntreprise.Resources
+@using Spectrometre.Modules.ProfilEntreprise.Services
+@using Spectrometre.Modules.ProfilCandidat.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IPosteService PosteService
+@inject ICandidateProfileService CandidateProfileService
+@inject IStringLocalizer<ProfilEntrepriseResource> Localizer
+
+<PageTitle>@(_detail?.Titre ?? Localizer["DetailDuPoste"].Value)</PageTitle>
+
+<div class="postes-page poste-detail-candidat">
+@if (_loading)
+{
+    <p class="postes-state">@Localizer["Chargement"]</p>
+}
+else if (_detail is null)
+{
+    <section class="postes-card postes-empty">
+        <p class="postes-hint">@Localizer["PosteIntrouvable"]</p>
+        <a href="/candidat/postes" class="postes-btn-ghost">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["RetourAuxPostes"]
+        </a>
+    </section>
+}
+else
+{
+    <header class="postes-header">
+        <div>
+            <nav class="postes-breadcrumb" aria-label="breadcrumb">
+                <a href="/candidat/postes">@Localizer["RetourAuxPostes"]</a>
+                <span class="postes-breadcrumb-sep" aria-hidden="true">/</span>
+                <span>@_detail.Titre</span>
+            </nav>
+            <h1 class="postes-title">@_detail.Titre</h1>
+            <p class="postes-subtitle">
+                <i class="bi bi-building" aria-hidden="true"></i>
+                @_detail.CompanyName
+                @if (!string.IsNullOrWhiteSpace(_detail.Departement))
+                {
+                    <span class="poste-detail-sep">·</span>
+                    @_detail.Departement
+                }
+            </p>
+        </div>
+        <div class="postes-header-actions">
+            @if (_detail.DejaPostule)
+            {
+                <span class="deja-postule">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    @Localizer["CandidatureEnvoyee"]
+                </span>
+                <a href="@($"/candidat/entretien/{CompanyId}")" class="postes-btn-ghost">
+                    <i class="bi bi-chat-dots" aria-hidden="true"></i>
+                    @Localizer["PreparerMonEntretien"]
+                </a>
+            }
+            else if (_grilleOuverte)
+            {
+                <span class="postes-hint">@Localizer["PostulationGrilleTitre"]</span>
+            }
+            else
+            {
+                <button type="button"
+                        class="postes-btn-primary"
+                        @onclick="OuvrirGrille">
+                    <i class="bi bi-send" aria-hidden="true"></i>
+                    @Localizer["Postuler"]
+                </button>
+            }
+        </div>
+    </header>
+
+    <section class="postes-card poste-offre-card">
+        <h2 class="postes-section-title">@Localizer["OffreDEmploi"]</h2>
+        @if (_grilleOuverte)
+        {
+            <PostulationGrilleInline CompanyId="CompanyId"
+                                     PosteId="PosteId"
+                                     CandidateProfileId="_candidateProfileId"
+                                     OnSucces="OnGrilleSuccesAsync"
+                                     OnAnnuler="FermerGrille" />
+        }
+        else if (string.IsNullOrWhiteSpace(_detail.OffreTexte))
+        {
+            <p class="postes-hint">@Localizer["OffreEnPreparation"]</p>
+        }
+        else
+        {
+            <div class="poste-offre-corps">
+                @{
+                    var blocks = JobOfferTextParser.Parse(_detail.OffreTexte, skipFirstHeading: true);
+                    var i = 0;
+                }
+                @while (i < blocks.Count)
+                {
+                    var block = blocks[i];
+                    if (block.Kind == JobOfferBlockKind.Bullet)
+                    {
+                        <ul class="poste-offre-list">
+                            @while (i < blocks.Count && blocks[i].Kind == JobOfferBlockKind.Bullet)
+                            {
+                                <li>@blocks[i].Text</li>
+                                i++;
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        @switch (block.Kind)
+                        {
+                            case JobOfferBlockKind.Heading:
+                                <h3 class="poste-offre-heading">@block.Text</h3>
+                                break;
+                            case JobOfferBlockKind.Spacer:
+                                <div class="poste-offre-spacer" aria-hidden="true"></div>
+                                break;
+                            default:
+                                <p class="poste-offre-para">@block.Text</p>
+                                break;
+                        }
+                        i++;
+                    }
+                }
+            </div>
+            @if (_detail.OffreGenereeLe is DateTimeOffset genereeLe)
+            {
+                <p class="poste-offre-meta">
+                    @Localizer["OffreMiseAJourLe"]
+                    @genereeLe.ToLocalTime().ToString("g")
+                    @if (!_detail.OffreGenereeParIa)
+                    {
+                        <span> · @Localizer["OffreVersionLocale"]</span>
+                    }
+                </p>
+            }
+        }
+    </section>
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public int CompanyId { get; set; }
+    [Parameter] public int PosteId { get; set; }
+
+    private bool _loading = true;
+    private bool _grilleOuverte;
+    private int _candidateProfileId;
+    private PosteDetailCandidatView? _detail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _candidateProfileId = await CandidateProfileService.GetOrCreateProfileIdAsync(userId);
+        _detail = await PosteService.GetPosteOuvertDetailAsync(CompanyId, PosteId, _candidateProfileId);
+        _loading = false;
+    }
+
+    private void OuvrirGrille() => _grilleOuverte = true;
+
+    private void FermerGrille() => _grilleOuverte = false;
+
+    private async Task OnGrilleSuccesAsync()
+    {
+        _grilleOuverte = false;
+        _detail = await PosteService.GetPosteOuvertDetailAsync(CompanyId, PosteId, _candidateProfileId);
+    }
+}

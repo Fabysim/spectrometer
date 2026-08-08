@@ -204,6 +204,15 @@ using (var startupScope = app.Services.CreateScope())
         adminDb.Database.Migrate();
     }
 
+    // Catalogue partagé questions d'entrevue (schéma public) + seed idempotent (contenu MVP).
+    using (var entretienCatalogDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<Spectrometre.Modules.Entretien.Data.EntretienCatalogDbContext>>()
+               .CreateDbContext())
+    {
+        entretienCatalogDb.Database.Migrate();
+        await Spectrometre.Modules.Entretien.Data.InterviewQuestionLibrarySeed.EnsureSeededAsync(entretienCatalogDb);
+    }
+
     // Comble rétroactivement l'abonnement des entreprises créées avant le gating par plan introduit dans ce
     // cycle — sans ça, elles perdraient l'accès à tous leurs modules déjà activés (échec fermé, voir
     // ModuleRegistry.IsActiveAsync). Exécuté tôt, avant tout ce qui pourrait lire IsActiveAsync.
@@ -212,6 +221,12 @@ using (var startupScope = app.Services.CreateScope())
     // Rétroactif : dédoublonne puis contraint à un seul CompanyProfile par schéma tenant déjà provisionné —
     // voir CompanyProfileUniquenessBackfill. Exécuté avant tout accès pouvant résoudre/créer un profil.
     await CompanyProfileUniquenessBackfill.RunAsync(startupScope.ServiceProvider);
+
+    // Colonnes OffreTexte sur Postes (tenants déjà provisionnés) — SyncAll ne gère que les tables manquantes.
+    await PosteOffreColumnsBackfill.RunAsync(startupScope.ServiceProvider);
+
+    // NiveauDeclare + NiveauFinal nullable sur EvaluationsCriteresCandidature (tenants existants).
+    await EvaluationCritereNiveauDeclareBackfill.RunAsync(startupScope.ServiceProvider);
 
     // Comble rétroactivement le schéma de tout module tenant-scopé marqué actif pour une entreprise
     // existante mais pas encore provisionné (ex. une entreprise créée avant l'ajout d'un module) — voir

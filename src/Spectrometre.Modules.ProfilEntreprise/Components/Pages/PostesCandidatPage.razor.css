@@ -126,6 +126,16 @@
     color: #0f172a;
 }
 
+.poste-titre-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.poste-titre-link:hover {
+    color: var(--bs-primary, #345f6d);
+    text-decoration: underline;
+}
+
 .poste-entreprise {
     display: inline-flex;
     align-items: center;

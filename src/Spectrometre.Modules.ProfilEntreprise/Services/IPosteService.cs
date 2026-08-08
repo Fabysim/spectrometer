@@ -20,6 +20,21 @@ public sealed record PosteView(
 public sealed record PosteOuvertView(int CompanyId, string CompanyName, int PosteId, string Titre, string? Description, string? Departement, bool DejaPostule, int? ScoreCompatibilite = null);
 
 /// <summary>
+/// Détail d'un poste ouvert pour un candidat — <see cref="OffreTexte"/> peut être null si jamais généré.
+/// Retourné uniquement si le poste est ouvert ; fermé/inexistant → null uniforme.
+/// </summary>
+public sealed record PosteDetailCandidatView(
+    int CompanyId,
+    string CompanyName,
+    int PosteId,
+    string Titre,
+    string? Departement,
+    string? OffreTexte,
+    DateTimeOffset? OffreGenereeLe,
+    bool OffreGenereeParIa,
+    bool DejaPostule);
+
+/// <summary>
 /// <see cref="ScoreCompatibilite"/> n'est renseigné que si le module Compatibilité est actif pour ce
 /// tenant (intégration légère, sans dépendance dure au manifeste — voir <c>ServiceCollectionExtensions</c>).
 /// </summary>
@@ -35,15 +50,16 @@ public sealed record CritereEvaluationView(
     int OrdreAffichage);
 
 /// <summary>
-/// Ligne d'évaluation d'un critère pour une candidature. <see cref="NiveauFinal"/> est null tant que
-/// l'entreprise n'a pas encore ajusté le niveau. Pas de niveau déclaré candidat dans ce module
-/// (pas de formulaire de candidature publique équivalent au MVP).
+/// Ligne d'évaluation d'un critère pour une candidature.
+/// <see cref="NiveauDeclare"/> vient de l'auto-évaluation candidat à la postulation ;
+/// <see cref="NiveauFinal"/> est null tant que l'entreprise n'a pas ajusté le niveau.
 /// </summary>
 public sealed record EvaluationCritereView(
     int CritereId,
     string Categorie,
     string Libelle,
     NiveauEvaluation NiveauRequis,
+    NiveauEvaluation? NiveauDeclare,
     NiveauEvaluation? NiveauFinal,
     int OrdreAffichage);
 
@@ -96,6 +112,16 @@ public interface IPosteService
 
     /// <summary>Critères d'évaluation du poste dans le tenant actif (vide si le poste n'existe pas dans ce schéma).</summary>
     Task<IReadOnlyList<CritereEvaluationView>> GetCriteresAsync(int posteId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Critères d'un poste ouvert pour un candidat (schéma de l'entreprise <paramref name="companyId"/>).
+    /// Vide si le poste est introuvable ou fermé — même politique d'uniformité que
+    /// <see cref="GetPosteOuvertDetailAsync"/>.
+    /// </summary>
+    Task<IReadOnlyList<CritereEvaluationView>> GetCriteresPosteOuvertAsync(
+        int companyId,
+        int posteId,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Crée ou met à jour un critère du poste. <paramref name="niveauRequis"/> est clampé sur 0–4
@@ -160,7 +186,37 @@ public interface IPosteService
 
     // --- Côté candidat (traverse tous les tenants) ---
     Task<IReadOnlyList<PosteOuvertView>> GetPostesOuvertsAsync(int candidateProfileId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Détail d'un poste ouvert pour un candidat (paire CompanyId+PosteId). Retourne <c>null</c> de façon
+    /// uniforme si le poste n'existe pas OU s'il est fermé — jamais de distinction qui confirmerait
+    /// l'existence d'un poste fermé.
+    /// </summary>
+    Task<PosteDetailCandidatView?> GetPosteOuvertDetailAsync(
+        int companyId,
+        int posteId,
+        int candidateProfileId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Crée une candidature sans grille déclarée (invitation acceptée, rattachement vivier, tests).
+    /// Le parcours UI « Postuler » doit utiliser <see cref="PostulerAvecGrilleAsync"/>.
+    /// </summary>
     Task PostulerAsync(int companyId, int posteId, int candidateProfileId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Postulation atomique avec grille complète : refuse si un critère du poste manque dans
+    /// <paramref name="niveauxDeclares"/> ; sinon crée la candidature et une ligne
+    /// <c>EvaluationCritereCandidature</c> par critère (<see cref="EvaluationCritereCandidature.NiveauDeclare"/>
+    /// renseigné, <see cref="EvaluationCritereCandidature.NiveauFinal"/> null).
+    /// Idempotent si déjà postulé (succès sans erreur).
+    /// </summary>
+    Task<(bool Succes, string? Erreur)> PostulerAvecGrilleAsync(
+        int companyId,
+        int posteId,
+        int candidateProfileId,
+        IReadOnlyDictionary<int, NiveauEvaluation> niveauxDeclares,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>Invitation candidat en cours (affichage côté entreprise).</summary>

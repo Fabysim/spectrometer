@@ -318,6 +318,27 @@
   <data name="OffreDefinirProfilDabord" xml:space="preserve">
     <value>Define the job profile first (at least one criterion) before drafting the offer.</value>
   </data>
+  <data name="OffreErreurGeneration" xml:space="preserve">
+    <value>Could not generate the offer. Please try again in a moment.</value>
+  </data>
+  <data name="OffreEnPreparation" xml:space="preserve">
+    <value>This job offer is being prepared. Check back after the company updates the job profile.</value>
+  </data>
+  <data name="OffreDEmploi" xml:space="preserve">
+    <value>Job offer</value>
+  </data>
+  <data name="OffreGenerationEnCours" xml:space="preserve">
+    <value>Updating the job offer…</value>
+  </data>
+  <data name="OffreMiseAJourLe" xml:space="preserve">
+    <value>Updated on</value>
+  </data>
+  <data name="OffreVersionLocale" xml:space="preserve">
+    <value>local version</value>
+  </data>
+  <data name="DetailDuPoste" xml:space="preserve">
+    <value>Job details</value>
+  </data>
   <data name="OrdreAffichage" xml:space="preserve">
     <value>Display order</value>
   </data>
@@ -335,6 +356,27 @@
   </data>
   <data name="Postuler" xml:space="preserve">
     <value>Apply</value>
+  </data>
+  <data name="PostulationGrilleTitre" xml:space="preserve">
+    <value>Rate your skills for this job</value>
+  </data>
+  <data name="PostulationGrilleHint" xml:space="preserve">
+    <value>Indicate your level for each required criterion. Your application is only submitted once the grid is complete.</value>
+  </data>
+  <data name="PostulationGrilleIncomplete" xml:space="preserve">
+    <value>Incomplete evaluation grid: every criterion must have a declared level.</value>
+  </data>
+  <data name="PostulationGrilleSansCritere" xml:space="preserve">
+    <value>This job has no evaluation criteria yet. You can confirm your application directly.</value>
+  </data>
+  <data name="ConfirmerMaCandidature" xml:space="preserve">
+    <value>Confirm my application</value>
+  </data>
+  <data name="VotreNiveau" xml:space="preserve">
+    <value>Your level</value>
+  </data>
+  <data name="ChoisirNiveau" xml:space="preserve">
+    <value>Choose…</value>
   </data>
   <data name="PremiereEntrevue" xml:space="preserve">
     <value>First interview</value>

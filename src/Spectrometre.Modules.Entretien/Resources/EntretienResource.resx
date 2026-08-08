@@ -51,4 +51,22 @@
   <data name="ModuleRecrutementRequis" xml:space="preserve"><value>Nécessite le module Recrutement</value></data>
   <data name="ModuleRecrutementRequisHint" xml:space="preserve"><value>La préparation d'entretien côté entreprise nécessite le module Recrutement. Activez-le pour cette entreprise afin d'accéder à la grille de questions.</value></data>
   <data name="ActiverLeModule" xml:space="preserve"><value>Activer le module</value></data>
+  <data name="BibliothequeQuestions" xml:space="preserve"><value>Bibliothèque de questions d'entrevue</value></data>
+  <data name="BibliothequeQuestionsHint" xml:space="preserve"><value>Guide de la première entrevue — bibliothèque de questions et prise de notes.</value></data>
+  <data name="BibliothequeAucuneQuestion" xml:space="preserve"><value>La bibliothèque de questions n'est pas encore disponible.</value></data>
+  <data name="EnregistrerLesReponses" xml:space="preserve"><value>Enregistrer les réponses</value></data>
+  <data name="ReponsesEnregistrees" xml:space="preserve"><value>Enregistrement effectué.</value></data>
+  <data name="ReponsesErreurEnregistrement" xml:space="preserve"><value>L'enregistrement des réponses a échoué.</value></data>
+  <data name="LiveTranscriptLabel" xml:space="preserve"><value>Transcription en direct</value></data>
+  <data name="DemarrerEntrevue" xml:space="preserve"><value>Démarrer l'entrevue</value></data>
+  <data name="TerminerEntrevue" xml:space="preserve"><value>Terminer l'entrevue</value></data>
+  <data name="EnregistrementEnCours" xml:space="preserve"><value>Enregistrement…</value></data>
+  <data name="TranscriptionEnCours" xml:space="preserve"><value>Transcription…</value></data>
+  <data name="ClassificationEnCours" xml:space="preserve"><value>Classification des réponses…</value></data>
+  <data name="EnAttenteTranscription" xml:space="preserve"><value>En attente de transcription…</value></data>
+  <data name="ReponsePlaceholder" xml:space="preserve"><value>Notes / réponse du candidat…</value></data>
+  <data name="MicroIndisponible" xml:space="preserve"><value>Micro indisponible : {0}</value></data>
+  <data name="AucunAudioCapture" xml:space="preserve"><value>Aucun audio capturé.</value></data>
+  <data name="ErreurClassification" xml:space="preserve"><value>Impossible de classer automatiquement la transcription. Vous pouvez saisir les réponses manuellement.</value></data>
+  <data name="TranscriptionFinaleAnnulee" xml:space="preserve"><value>Transcription finale annulée.</value></data>
 </root>

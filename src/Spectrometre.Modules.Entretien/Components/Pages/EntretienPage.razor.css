@@ -168,6 +168,240 @@
     margin-bottom: 0;
 }
 
+/* Bibliothèque de questions + transcription (porté MVP CandidateSecondEvaluation) */
+
+.entretien-bibliotheque {
+    margin-top: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+}
+
+.entretien-bibliotheque .entretien-questions-head {
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.entretien-bibliotheque .entretien-questions-head > div:nth-child(2) {
+    flex: 1 1 12rem;
+    min-width: 0;
+}
+
+.entretien-biblio-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.9fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.entretien-biblio-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+.biblio-category-title {
+    margin: 0 0 0.85rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.biblio-sub {
+    margin-bottom: 1rem;
+}
+
+.biblio-sub:last-child {
+    margin-bottom: 0;
+}
+
+.biblio-sub-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--bs-primary, #345f6d);
+    margin-bottom: 0.55rem;
+}
+
+.biblio-question {
+    margin-bottom: 0.85rem;
+}
+
+.biblio-question:last-child {
+    margin-bottom: 0;
+}
+
+.biblio-question-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.25rem;
+}
+
+.biblio-expected {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #64748b;
+    margin-bottom: 0.35rem;
+}
+
+.entretien-textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    font-family: inherit;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 4rem;
+    color: #0f172a;
+    background: #fff;
+}
+
+.entretien-textarea:focus {
+    outline: none;
+    border-color: var(--bs-primary, #345f6d);
+    box-shadow: 0 0 0 3px rgba(52, 95, 109, 0.12);
+}
+
+.entretien-transcript-card {
+    position: sticky;
+    top: 1rem;
+}
+
+.biblio-transcript-title {
+    margin: 0 0 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.entretien-transcript-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.75rem;
+}
+
+.entretien-transcript-body {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #334155;
+    max-height: 22rem;
+    overflow-y: auto;
+    background: #f8fafc;
+    white-space: pre-wrap;
+}
+
+.entretien-recording-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #b91c1c;
+    background: rgba(220, 38, 38, 0.08);
+    border-radius: 999px;
+    padding: 0.3rem 0.65rem;
+}
+
+.entretien-btn-primary,
+.entretien-btn-secondary,
+.entretien-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+}
+
+.entretien-btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+}
+
+.entretien-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.entretien-btn-secondary {
+    background: rgba(52, 95, 109, 0.1);
+    color: var(--bs-primary, #345f6d);
+}
+
+.entretien-btn-danger {
+    background: #dc2626;
+    color: #fff;
+}
+
+.entretien-btn-danger:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.entretien-save-ok {
+    margin: 0;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    background: rgba(21, 128, 61, 0.1);
+    color: #15803d;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.entretien-save-error {
+    margin: 0.5rem 0 0;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.entretien-save-warn {
+    margin: 0.5rem 0 0;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    background: rgba(217, 119, 6, 0.12);
+    color: #b45309;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.fst-italic {
+    font-style: italic;
+}
+
+@media (max-width: 960px) {
+    .entretien-biblio-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .entretien-transcript-card {
+        position: static;
+        order: -1;
+    }
+}
+
 @media (max-width: 640px) {
     .entretien-page {
         padding: 1rem;

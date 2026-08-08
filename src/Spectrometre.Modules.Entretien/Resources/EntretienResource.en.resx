@@ -53,4 +53,22 @@
   <data name="ModuleRecrutementRequis" xml:space="preserve"><value>Requires the Recruitment module</value></data>
   <data name="ModuleRecrutementRequisHint" xml:space="preserve"><value>Company-side interview preparation requires the Recruitment module. Activate it for this company to access the question grid.</value></data>
   <data name="ActiverLeModule" xml:space="preserve"><value>Activate the module</value></data>
+  <data name="BibliothequeQuestions" xml:space="preserve"><value>Interview question library</value></data>
+  <data name="BibliothequeQuestionsHint" xml:space="preserve"><value>First interview guide — question library and note-taking.</value></data>
+  <data name="BibliothequeAucuneQuestion" xml:space="preserve"><value>The question library is not available yet.</value></data>
+  <data name="EnregistrerLesReponses" xml:space="preserve"><value>Save answers</value></data>
+  <data name="ReponsesEnregistrees" xml:space="preserve"><value>Saved successfully.</value></data>
+  <data name="ReponsesErreurEnregistrement" xml:space="preserve"><value>Could not save the answers.</value></data>
+  <data name="LiveTranscriptLabel" xml:space="preserve"><value>Live transcript</value></data>
+  <data name="DemarrerEntrevue" xml:space="preserve"><value>Start interview</value></data>
+  <data name="TerminerEntrevue" xml:space="preserve"><value>End interview</value></data>
+  <data name="EnregistrementEnCours" xml:space="preserve"><value>Recording…</value></data>
+  <data name="TranscriptionEnCours" xml:space="preserve"><value>Transcribing…</value></data>
+  <data name="ClassificationEnCours" xml:space="preserve"><value>Classifying answers…</value></data>
+  <data name="EnAttenteTranscription" xml:space="preserve"><value>Waiting for transcript…</value></data>
+  <data name="ReponsePlaceholder" xml:space="preserve"><value>Notes / candidate answer…</value></data>
+  <data name="MicroIndisponible" xml:space="preserve"><value>Microphone unavailable: {0}</value></data>
+  <data name="AucunAudioCapture" xml:space="preserve"><value>No audio captured.</value></data>
+  <data name="ErreurClassification" xml:space="preserve"><value>Could not classify the transcript automatically. You can fill in the answers manually.</value></data>
+  <data name="TranscriptionFinaleAnnulee" xml:space="preserve"><value>Final transcription cancelled.</value></data>
 </root>
