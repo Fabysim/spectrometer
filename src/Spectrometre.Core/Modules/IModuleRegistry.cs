@@ -15,17 +15,12 @@ namespace Spectrometre.Core.Modules;
 /// <item><description><c>GetActiveModuleCodesAsync</c>/<c>CanActivate</c>/<c>Activate*Async</c> raisonnent
 /// sur le seul indicateur d'activation (<see cref="ModuleActivation.IsActive"/>) — "qu'est-ce qui a été
 /// activé", utilisé par <c>TenantSchemaSynchronizer</c>/<c>CompanyOnboardingService</c> pour la chaîne de
-/// dépendances et le provisionnement de schéma. Comportement INCHANGÉ par le gating par plan.</description></item>
+/// dépendances et le provisionnement de schéma.</description></item>
 /// <item><description><c>IsActiveAsync</c> (et ses enveloppes) est la vérification "effective" — activé ET
-/// inclus dans le plan souscrit (voir <see cref="PlanModuleEntitlement"/>) — c'est CETTE méthode que
-/// <c>PosteService</c>/<c>CandidatureExistenceChecker</c>/<c>ProfileChangeRecorder</c> appellent déjà, donc
-/// le gating par plan s'y applique automatiquement, sans toucher leur code.</description></item>
+/// abonnement du sujet en statut Essai/Active. C'est CETTE méthode que
+/// <c>PosteService</c>/<c>CandidatureExistenceChecker</c>/<c>ProfileChangeRecorder</c> appellent déjà.
+/// Un abonnement Suspendue/Résiliée (impayé) coupe donc l'accès sans toucher aux lignes d'activation.</description></item>
 /// </list>
-/// Règle exacte du gating : un module est effectivement actif pour un sujet SEULEMENT SI (1) une ligne
-/// <see cref="ModuleActivation"/> active existe ET (2) le sujet a un abonnement de statut Essai ou Active
-/// ET (3) le plan de cet abonnement inclut ce module (<see cref="PlanModuleEntitlement"/>). Un module activé
-/// mais absent du plan reste explicitement activé en base (l'indicateur n'est jamais modifié) — il
-/// redevient effectif dès que le plan change, sans ré-activation manuelle.
 /// </remarks>
 public interface IModuleRegistry
 {
@@ -36,17 +31,17 @@ public interface IModuleRegistry
 
     ModuleManifest? Find(string moduleCode);
 
-    /// <summary>Un module ne peut être activé que si tous les modules qu'il requiert le sont déjà (sur l'indicateur d'activation, pas le plan — voir la remarque sur l'interface).</summary>
+    /// <summary>Un module ne peut être activé que si tous les modules qu'il requiert le sont déjà (sur l'indicateur d'activation, pas l'abonnement — voir la remarque sur l'interface).</summary>
     bool CanActivate(string moduleCode, IReadOnlyCollection<string> currentlyActiveCodes, out IReadOnlyList<string> missingDependencies);
 
     // --- API généralisée par sujet ---
 
     Task<IReadOnlyList<string>> GetActiveModuleCodesAsync(ModuleActivationSubjectType subjectType, int subjectId, CoreDbContext db, CancellationToken cancellationToken = default);
 
-    /// <summary>Vérification EFFECTIVE (activation + plan) — voir la remarque sur l'interface pour la règle exacte.</summary>
+    /// <summary>Vérification EFFECTIVE (activation + abonnement Essai/Active) — voir la remarque sur l'interface.</summary>
     Task<bool> IsActiveAsync(ModuleActivationSubjectType subjectType, int subjectId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 
-    /// <summary>Active un module pour un sujet. Lève si une dépendance requise n'est pas déjà active (indicateur, pas plan).</summary>
+    /// <summary>Active un module pour un sujet. Lève si une dépendance requise n'est pas déjà active (indicateur).</summary>
     Task ActivateAsync(ModuleActivationSubjectType subjectType, int subjectId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -78,7 +73,7 @@ public interface IModuleRegistry
 
     Task ActivateForCandidateAsync(int candidateProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 
-    // --- Équivalents côté coach (nouveaux ce cycle) ---
+    // --- Équivalents côté coach ---
 
     Task<IReadOnlyList<string>> GetActiveModuleCodesForCoachAsync(int coachProfileId, CoreDbContext db, CancellationToken cancellationToken = default);
 
@@ -124,34 +119,25 @@ public sealed class ModuleRegistry : IModuleRegistry
         if (!active.Contains(moduleCode))
             return false;
 
-        var planCode = await GetPlanCodeAsync(subjectType, subjectId, db, cancellationToken);
-        if (planCode is null)
-            return false; // Échec fermé : aucun abonnement (ou statut Suspendue/Résiliée) => aucun module payant actif.
-
-        return await db.PlanModuleEntitlements
-            .AsNoTracking()
-            .AnyAsync(e => e.PlanCode == planCode && e.ModuleCode == moduleCode, cancellationToken);
+        // Enforcement paiement : Suspendue/Résiliée (ou absence d'abonnement) coupe l'accès effectif.
+        return await EstAbonnementEnCoursAsync(subjectType, subjectId, db, cancellationToken);
     }
 
-    private static async Task<string?> GetPlanCodeAsync(ModuleActivationSubjectType subjectType, int subjectId, CoreDbContext db, CancellationToken cancellationToken)
+    private static async Task<bool> EstAbonnementEnCoursAsync(ModuleActivationSubjectType subjectType, int subjectId, CoreDbContext db, CancellationToken cancellationToken)
     {
-        // Seuls Essai et Active valent une entente en cours — Suspendue/Résiliée équivaut à pas d'abonnement.
         switch (subjectType)
         {
             case ModuleActivationSubjectType.Company:
-                var tenantSub = await db.TenantSubscriptions.AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.CompanyId == subjectId, cancellationToken);
-                return tenantSub is { Status: SubscriptionStatus.Essai or SubscriptionStatus.Active } ? tenantSub.PlanCode : null;
+                return await db.TenantSubscriptions.AsNoTracking()
+                    .AnyAsync(s => s.CompanyId == subjectId && (s.Status == SubscriptionStatus.Essai || s.Status == SubscriptionStatus.Active), cancellationToken);
 
             case ModuleActivationSubjectType.Candidate:
-                var candidateSub = await db.CandidateSubscriptions.AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.CandidateProfileId == subjectId, cancellationToken);
-                return candidateSub is { Status: SubscriptionStatus.Essai or SubscriptionStatus.Active } ? candidateSub.PlanCode : null;
+                return await db.CandidateSubscriptions.AsNoTracking()
+                    .AnyAsync(s => s.CandidateProfileId == subjectId && (s.Status == SubscriptionStatus.Essai || s.Status == SubscriptionStatus.Active), cancellationToken);
 
             case ModuleActivationSubjectType.Coach:
-                var coachSub = await db.CoachSubscriptions.AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.CoachProfileId == subjectId, cancellationToken);
-                return coachSub is { Status: SubscriptionStatus.Essai or SubscriptionStatus.Active } ? coachSub.PlanCode : null;
+                return await db.CoachSubscriptions.AsNoTracking()
+                    .AnyAsync(s => s.CoachProfileId == subjectId && (s.Status == SubscriptionStatus.Essai || s.Status == SubscriptionStatus.Active), cancellationToken);
 
             default:
                 throw new NotSupportedException($"Type de sujet d'activation non pris en charge : {subjectType}");

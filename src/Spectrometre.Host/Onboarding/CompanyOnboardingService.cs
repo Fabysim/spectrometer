@@ -99,28 +99,13 @@ public sealed class CompanyOnboardingService(
     public Task ActivateRecruitmentBundleAsync(int companyId, CoreDbContext coreDb, CancellationToken cancellationToken = default) =>
         ActivateModulesInOrderAsync(companyId, RecruitmentBundleModuleCodes, coreDb, cancellationToken);
 
-    /// <summary>Active Gestion du temps (écran Ajouter un module) — nécessite de faire passer le plan à <see cref="PlanCodes.StandardPlusTemps"/> (le seul qui l'inclut) avant d'activer.</summary>
-    public async Task ActivateGestionDuTempsAsync(int companyId, CoreDbContext coreDb, CancellationToken cancellationToken = default)
-    {
-        await UpgradeToStandardPlusTempsAsync(companyId, coreDb, cancellationToken);
-        await ActivateModulesInOrderAsync(companyId, [GestionDuTempsModule.Manifest.Code], coreDb, cancellationToken);
-    }
+    /// <summary>Active Gestion du temps (écran Ajouter un module).</summary>
+    public Task ActivateGestionDuTempsAsync(int companyId, CoreDbContext coreDb, CancellationToken cancellationToken = default) =>
+        ActivateModulesInOrderAsync(companyId, [GestionDuTempsModule.Manifest.Code], coreDb, cancellationToken);
 
-    /// <summary>Active Suivi employés (écran Ajouter un module) — inclus dans <see cref="PlanCodes.Standard"/>.</summary>
+    /// <summary>Active Suivi employés (écran Ajouter un module).</summary>
     public Task ActivateSuiviEmployesAsync(int companyId, CoreDbContext coreDb, CancellationToken cancellationToken = default) =>
         ActivateModulesInOrderAsync(companyId, [SuiviEmployesModule.Manifest.Code], coreDb, cancellationToken);
-
-    private static async Task UpgradeToStandardPlusTempsAsync(int companyId, CoreDbContext coreDb, CancellationToken cancellationToken)
-    {
-        var subscription = await coreDb.TenantSubscriptions.FirstOrDefaultAsync(s => s.CompanyId == companyId, cancellationToken)
-            ?? throw new InvalidOperationException($"Aucun abonnement pour l'entreprise {companyId}.");
-
-        if (subscription.PlanCode != PlanCodes.StandardPlusTemps)
-        {
-            subscription.PlanCode = PlanCodes.StandardPlusTemps;
-            await coreDb.SaveChangesAsync(cancellationToken);
-        }
-    }
 
     /// <summary>
     /// Boucle d'activation partagée (dans l'ordre de dépendance des manifestes, ignore ce qui est déjà

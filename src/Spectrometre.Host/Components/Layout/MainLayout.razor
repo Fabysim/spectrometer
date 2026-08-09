@@ -283,10 +283,6 @@
                                 <span class="nav-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
                                 <span>@AdminLocalizer["AdminNavAdministrateurs"]</span>
                             </a>
-                            <a href="/admin/plans" class="nav-item-auth nav-sub-item @ActiveClass("/admin/plans")">
-                                <span class="nav-icon"><i class="bi bi-card-list" aria-hidden="true"></i></span>
-                                <span>@AdminLocalizer["AdminNavPlans"]</span>
-                            </a>
                             <a href="/admin/tarifs-modules" class="nav-item-auth nav-sub-item @ActiveClass("/admin/tarifs-modules")">
                                 <span class="nav-icon"><i class="bi bi-currency-dollar" aria-hidden="true"></i></span>
                                 <span>@AdminLocalizer["AdminNavTarifsModules"]</span>
@@ -368,7 +364,7 @@
     /// <summary>
     /// Menu entièrement dynamique : chaque lien de module (hors Gestion du temps, voir plus bas) n'apparaît
     /// que si <see cref="IModuleRegistry.IsActiveAsync"/>/<see cref="IModuleRegistry.IsActiveForCandidateAsync"/>
-    /// le confirme — jamais <c>GetActiveModuleCodesAsync</c>, qui n'applique pas le gating par plan (règle du
+    /// le confirme — jamais <c>GetActiveModuleCodesAsync</c>, qui ignore le statut d'abonnement (règle du
     /// projet). Recalculé à chaque rendu du layout (pas de mise en cache inter-navigation) — coût négligeable,
     /// une poignée de requêtes simples sur le schéma core.
     /// </summary>

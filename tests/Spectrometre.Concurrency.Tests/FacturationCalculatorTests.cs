@@ -25,9 +25,8 @@ public sealed class FacturationCalculatorTests(ServiceFixture fixture)
         await registry.SetActiveAsync(ModuleActivationSubjectType.Company, company.Id, "GestionDuTemps", true, core);
         await registry.SetActiveAsync(ModuleActivationSubjectType.Company, company.Id, "SuiviEmployes", true, core);
 
-        // Plan StandardPlusTemps pour que GestionDuTemps soit EFFECTIF (IsActiveAsync).
+        // Statut Active pour que les modules activés soient EFFECTIFS (IsActiveAsync).
         var sub = await core.TenantSubscriptions.FirstAsync(s => s.CompanyId == company.Id);
-        sub.PlanCode = PlanCodes.StandardPlusTemps;
         sub.Status = SubscriptionStatus.Active;
         await core.SaveChangesAsync();
 

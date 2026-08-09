@@ -9,9 +9,8 @@ namespace Spectrometre.Concurrency.Tests;
 
 /// <summary>
 /// Actions d'écriture de la zone Admin au-delà de la promotion/rétrogradation : activer/désactiver un
-/// module pour un client, éditer un plan, traçabilité. Réutilisent exclusivement <see cref="IModuleRegistry"/>
-/// (voir <c>IModuleRegistry.SetActiveAsync</c>, ajouté pour ce cycle — jamais de logique d'activation
-/// parallèle) et <c>PlanModuleEntitlement</c> — mêmes tables que le reste de l'application.
+/// module pour un client, traçabilité. Réutilisent exclusivement <see cref="IModuleRegistry"/>
+/// (voir <c>IModuleRegistry.SetActiveAsync</c> — jamais de logique d'activation parallèle).
 /// </summary>
 [Collection("Base de données partagée")]
 public sealed class AdminWriteActionsTests(ServiceFixture fixture)
@@ -47,53 +46,21 @@ public sealed class AdminWriteActionsTests(ServiceFixture fixture)
     }
 
     [Fact]
-    public async Task AjouterPuisRetirerUnModuleDUnPlan_EstEffectifPourLesSujetsSurCePlan()
-    {
-        var suffix = Guid.NewGuid();
-        var planCode = $"plan-test-{suffix}";
-
-        using var scope = fixture.Services.CreateScope();
-        var adminService = scope.ServiceProvider.GetRequiredService<IAdminService>();
-        var caller = AdminCaller();
-
-        await adminService.AjouterModuleAuPlanAsync(caller, planCode, "Analytics");
-        var plans = await adminService.GetPlansAsync(caller);
-        var plan = Assert.Single(plans, p => p.PlanCode == planCode);
-        Assert.Contains("Analytics", plan.ModulesInclus);
-
-        // Idempotent à l'ajout.
-        await adminService.AjouterModuleAuPlanAsync(caller, planCode, "Analytics");
-        plans = await adminService.GetPlansAsync(caller);
-        plan = Assert.Single(plans, p => p.PlanCode == planCode);
-        Assert.Single(plan.ModulesInclus, m => m == "Analytics");
-
-        await adminService.RetirerModuleDuPlanAsync(caller, planCode, "Analytics");
-        plans = await adminService.GetPlansAsync(caller);
-        Assert.DoesNotContain(plans, p => p.PlanCode == planCode);
-    }
-
-    [Fact]
     public async Task ChaqueActionDEcriture_EstHistorisee()
     {
         var suffix = Guid.NewGuid();
         var company = await fixture.CreateCompanyAsync($"Entreprise Admin Historique {suffix}", $"admin-hist-owner-{suffix}");
-        var planCode = $"plan-histo-{suffix}";
 
         using var scope = fixture.Services.CreateScope();
         var adminService = scope.ServiceProvider.GetRequiredService<IAdminService>();
         var caller = AdminCaller();
 
         await adminService.DefinirActivationModuleAsync(caller, ModuleActivationSubjectType.Company, company.Id, "Analytics", true);
-        await adminService.AjouterModuleAuPlanAsync(caller, planCode, "Analytics");
+        await adminService.DefinirActivationModuleAsync(caller, ModuleActivationSubjectType.Company, company.Id, "Analytics", false);
 
         var historique = await adminService.GetHistoriqueAsync(caller, page: 1, pageSize: 50);
         Assert.Contains(historique.Items, h => h.Action == "ActivationModule" && h.Cible.Contains($"Company #{company.Id}") && h.Cible.Contains("Analytics"));
-        Assert.Contains(historique.Items, h => h.Action == "AjoutModuleAuPlan" && h.Cible.Contains(planCode) && h.Cible.Contains("Analytics"));
-
-        // Ne pas laisser de plan-histo-* en base partagée.
-        await adminService.RetirerModuleDuPlanAsync(caller, planCode, "Analytics");
-        var plans = await adminService.GetPlansAsync(caller);
-        Assert.DoesNotContain(plans, p => p.PlanCode == planCode);
+        Assert.Contains(historique.Items, h => h.Action == "DesactivationModule" && h.Cible.Contains($"Company #{company.Id}") && h.Cible.Contains("Analytics"));
     }
 
     [Fact]
@@ -107,11 +74,6 @@ public sealed class AdminWriteActionsTests(ServiceFixture fixture)
             adminService.DefinirActivationModuleAsync(caller, ModuleActivationSubjectType.Company, 1, "Analytics", true));
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             adminService.GetModulesPourSujetAsync(caller, ModuleActivationSubjectType.Company, 1));
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => adminService.GetPlansAsync(caller));
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            adminService.AjouterModuleAuPlanAsync(caller, "Standard", "Analytics"));
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            adminService.RetirerModuleDuPlanAsync(caller, "Standard", "Analytics"));
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => adminService.GetHistoriqueAsync(caller));
     }
 }

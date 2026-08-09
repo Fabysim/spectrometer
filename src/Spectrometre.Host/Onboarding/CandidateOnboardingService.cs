@@ -45,17 +45,11 @@ public sealed class CandidateOnboardingService(
         return candidateProfileId;
     }
 
-    /// <summary>Active Gestion du temps pour ce candidat (écran Ajouter un module) — nécessite de faire passer le plan à <see cref="PlanCodes.StandardPlusTemps"/> (le seul qui l'inclut) avant d'activer.</summary>
+    /// <summary>Active Gestion du temps pour ce candidat (écran Ajouter un module).</summary>
     public async Task ActivateGestionDuTempsAsync(int candidateProfileId, CoreDbContext coreDb, CancellationToken cancellationToken = default)
     {
-        var subscription = await coreDb.CandidateSubscriptions.FirstOrDefaultAsync(s => s.CandidateProfileId == candidateProfileId, cancellationToken)
+        _ = await coreDb.CandidateSubscriptions.FirstOrDefaultAsync(s => s.CandidateProfileId == candidateProfileId, cancellationToken)
             ?? throw new InvalidOperationException($"Aucun abonnement pour le candidat {candidateProfileId}.");
-
-        if (subscription.PlanCode != PlanCodes.StandardPlusTemps)
-        {
-            subscription.PlanCode = PlanCodes.StandardPlusTemps;
-            await coreDb.SaveChangesAsync(cancellationToken);
-        }
 
         await ActivateModulesInOrderAsync(candidateProfileId, [GestionDuTempsModule.Manifest.Code], coreDb, cancellationToken);
     }

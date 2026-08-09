@@ -12,8 +12,8 @@ namespace Spectrometre.Concurrency.Tests;
 
 /// <summary>
 /// Vérifie la généralisation du registre d'activation (voir <see cref="ModuleActivationSubjectType"/>) et
-/// le gating par plan tarifaire (voir <see cref="PlanModuleEntitlement"/>) introduits pour que Gestion du
-/// temps (et un futur profil indépendant) puissent être vendus sans être couplés à la notion d'entreprise.
+/// l'enforcement par statut d'abonnement (Essai/Active vs Suspendue/Résiliée) — un module effectif exige
+/// activation ET abonnement en cours, sans gating par PlanCode.
 /// </summary>
 [Collection("Base de données partagée")]
 public sealed class ModuleActivationTests(ServiceFixture fixture)
@@ -65,7 +65,7 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
 
         Assert.True(await moduleRegistry.IsActiveForCandidateAsync(candidateProfileId, GestionDuTemps, coreDb));
 
-        // Désactivation : repasser IsActive à false doit redevenir inactif malgré un plan qui l'inclut.
+        // Désactivation : repasser IsActive à false doit redevenir inactif malgré un abo Active.
         var activation = await coreDb.ModuleActivations.FirstAsync(a =>
             a.SubjectType == ModuleActivationSubjectType.Candidate && a.SubjectId == candidateProfileId && a.ModuleCode == GestionDuTemps);
         activation.IsActive = false;
@@ -75,32 +75,33 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
     }
 
     [Fact]
-    public async Task ActivationEntreprise_AvecPlanStandard_NInclutPasGestionDuTemps_MemeSiActivee()
+    public async Task ActivationEntreprise_AbonnementSuspendue_CoupeIsActive_MemeSiModuleActive()
     {
         var suffix = Guid.NewGuid();
-        var company = await fixture.CreateCompanyAsync($"Entreprise Gating Standard {suffix}", $"gating-owner-{suffix}");
+        var company = await fixture.CreateCompanyAsync($"Entreprise Suspendue {suffix}", $"suspendue-owner-{suffix}");
 
         using var scope = fixture.Services.CreateScope();
         var moduleRegistry = scope.ServiceProvider.GetRequiredService<IModuleRegistry>();
         var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
 
-        // CreateCompanyAsync (voir ServiceFixture) assigne déjà le plan Standard — activer explicitement
-        // GestionDuTemps ne doit RIEN changer : Standard ne l'inclut pas.
         await moduleRegistry.ActivateForCompanyAsync(company.Id, GestionDuTemps, coreDb);
+        Assert.True(await moduleRegistry.IsActiveAsync(company.Id, GestionDuTemps, coreDb));
+        Assert.True(await moduleRegistry.IsActiveAsync(company.Id, "Compatibilite", coreDb));
 
-        Assert.False(await moduleRegistry.IsActiveAsync(company.Id, GestionDuTemps, coreDb));
-
-        // Cas autorisé : passage au plan StandardPlusTemps pour CETTE entreprise — devient effectif
-        // immédiatement, sans ré-activation (voir la règle documentée sur ModuleRegistry.IsActiveAsync).
         var subscription = await coreDb.TenantSubscriptions.FirstAsync(s => s.CompanyId == company.Id);
-        subscription.PlanCode = PlanCodes.StandardPlusTemps;
+        subscription.Status = SubscriptionStatus.Suspendue;
         await coreDb.SaveChangesAsync();
 
-        Assert.True(await moduleRegistry.IsActiveAsync(company.Id, GestionDuTemps, coreDb));
+        Assert.False(await moduleRegistry.IsActiveAsync(company.Id, GestionDuTemps, coreDb));
+        Assert.False(await moduleRegistry.IsActiveAsync(company.Id, "Compatibilite", coreDb));
 
-        // Les modules Matching Emploi déjà actifs pour cette entreprise ne sont pas affectés par ce
-        // changement de plan (StandardPlusTemps est un sur-ensemble de Standard).
-        Assert.True(await moduleRegistry.IsActiveAsync(company.Id, "Compatibilite", coreDb));
+        // L'indicateur d'activation reste vrai — seule la vérif effective coupe l'accès.
+        var codesActives = await moduleRegistry.GetActiveModuleCodesAsync(company.Id, coreDb);
+        Assert.Contains(GestionDuTemps, codesActives);
+
+        subscription.Status = SubscriptionStatus.Active;
+        await coreDb.SaveChangesAsync();
+        Assert.True(await moduleRegistry.IsActiveAsync(company.Id, GestionDuTemps, coreDb));
     }
 
     [Fact]
@@ -108,11 +109,11 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
     {
         var accessService = fixture.Services.GetRequiredService<IGestionDuTempsAccessService>();
 
-        // Cas refusé : ni abonnement candidat, ni entreprise abonnée à un plan incluant le module.
+        // Cas refusé : ni abonnement candidat, ni entreprise avec le module actif.
         var userSansAcces = $"gdt-access-refuse-{Guid.NewGuid()}";
         Assert.False(await accessService.HasAccessAsync(userSansAcces));
 
-        // Cas autorisé (candidat) : abonnement StandardPlusTemps + activation explicite pour ce candidat.
+        // Cas autorisé (candidat) : abonnement Active + activation explicite.
         var userCandidat = $"gdt-access-candidat-{Guid.NewGuid()}";
         using (var scope = fixture.Services.CreateScope())
         {
@@ -124,7 +125,7 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
             coreDb.CandidateSubscriptions.Add(new Spectrometre.Core.Billing.CandidateSubscription
             {
                 CandidateProfileId = candidateProfileId,
-                PlanCode = PlanCodes.StandardPlusTemps,
+                PlanCode = PlanCodes.Standard,
                 Status = SubscriptionStatus.Active,
             });
             await coreDb.SaveChangesAsync();
@@ -133,8 +134,7 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
         Assert.True(await accessService.HasAccessAsync(userCandidat));
         Assert.True(await accessService.HasCandidateAccessAsync(userCandidat));
 
-        // Cas autorisé (entreprise) : le gestionnaire d'une entreprise passée au plan StandardPlusTemps et
-        // activée obtient l'accès, sans le moindre abonnement candidat personnel.
+        // Cas autorisé (entreprise) : activation GDT + abo Active (PlanCode n'entre plus en jeu).
         var suffix = Guid.NewGuid();
         var userManager = $"gdt-access-manager-{suffix}";
         var company = await fixture.CreateCompanyAsync($"Entreprise Access GDT {suffix}", userManager);
@@ -142,9 +142,6 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
         {
             var moduleRegistry = scope.ServiceProvider.GetRequiredService<IModuleRegistry>();
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
-            var subscription = await coreDb.TenantSubscriptions.FirstAsync(s => s.CompanyId == company.Id);
-            subscription.PlanCode = PlanCodes.StandardPlusTemps;
-            await coreDb.SaveChangesAsync();
             await moduleRegistry.ActivateForCompanyAsync(company.Id, GestionDuTemps, coreDb);
         }
         Assert.True(await accessService.HasAccessAsync(userManager));
@@ -156,7 +153,7 @@ public sealed class ModuleActivationTests(ServiceFixture fixture)
     }
 
     [Fact]
-    public async Task TenantSubscriptionBackfill_RestaureLAccesDUneEntrepriseCreeeAvantLeGatingParPlan_SansPerte()
+    public async Task TenantSubscriptionBackfill_RestaureLAccesDUneEntrepriseSansAbonnement_SansPerte()
     {
         using var scope = fixture.Services.CreateScope();
         var provisioning = scope.ServiceProvider.GetRequiredService<ICompanyProvisioningService>();

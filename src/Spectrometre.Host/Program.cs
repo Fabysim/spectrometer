@@ -217,8 +217,8 @@ using (var startupScope = app.Services.CreateScope())
         await Spectrometre.Modules.Entretien.Data.InterviewQuestionLibrarySeed.EnsureSeededAsync(entretienCatalogDb);
     }
 
-    // Comble rétroactivement l'abonnement des entreprises créées avant le gating par plan introduit dans ce
-    // cycle — sans ça, elles perdraient l'accès à tous leurs modules déjà activés (échec fermé, voir
+    // Comble rétroactivement l'abonnement des entreprises créées avant l'exigence d'abonnement pour
+    // l'accès effectif — sans ça, elles perdraient l'accès à tous leurs modules déjà activés (échec fermé, voir
     // ModuleRegistry.IsActiveAsync). Exécuté tôt, avant tout ce qui pourrait lire IsActiveAsync.
     await TenantSubscriptionBackfill.RunAsync(startupScope.ServiceProvider.GetRequiredService<CoreDbContext>());
 

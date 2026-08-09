@@ -162,7 +162,7 @@
         if (_company is null) return;
 
         // « Activé » si TOUS les modules du paquet sont effectivement actifs (voir IsActiveAsync,
-        // jamais GetActiveModuleCodesAsync — gating par plan applicable, cohérent avec la règle du projet).
+        // jamais GetActiveModuleCodesAsync — statut d'abonnement Essai/Active requis).
         _recrutementActif = true;
         foreach (var code in CompanyOnboardingService.RecruitmentBundleModuleCodes)
         {

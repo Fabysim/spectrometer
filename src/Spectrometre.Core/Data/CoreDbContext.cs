@@ -23,8 +23,6 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
     public DbSet<CandidateSubscription> CandidateSubscriptions => Set<CandidateSubscription>();
     public DbSet<CoachSubscription> CoachSubscriptions => Set<CoachSubscription>();
-    public DbSet<PlanModuleEntitlement> PlanModuleEntitlements => Set<PlanModuleEntitlement>();
-    public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<ModulePrix> ModulePrix => Set<ModulePrix>();
     public DbSet<PaiementEnregistre> PaiementsEnregistres => Set<PaiementEnregistre>();
     public DbSet<PosteIndexEntry> PosteIndexEntries => Set<PosteIndexEntry>();
@@ -73,20 +71,6 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
             e.HasIndex(s => s.CoachProfileId).IsUnique();
         });
 
-        builder.Entity<PlanModuleEntitlement>(e =>
-        {
-            e.HasIndex(x => new { x.PlanCode, x.ModuleCode }).IsUnique();
-        });
-
-        builder.Entity<Plan>(e =>
-        {
-            e.HasIndex(p => p.Code).IsUnique();
-            e.Property(p => p.Code).HasMaxLength(100);
-            e.Property(p => p.Nom).HasMaxLength(200);
-            e.Property(p => p.PrixDevise).HasMaxLength(10);
-            e.Property(p => p.PrixMontant).HasPrecision(18, 2);
-        });
-
         builder.Entity<PaiementEnregistre>(e =>
         {
             e.HasIndex(p => new { p.SubjectType, p.SubjectId, p.CreatedAt });
@@ -106,8 +90,6 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
             e.Property(p => p.PrixMensuel).HasPrecision(18, 2);
         });
 
-        SeedPlanModuleEntitlements(builder);
-        SeedPlans(builder);
         SeedModulePrix(builder);
 
         builder.Entity<PosteIndexEntry>(e =>
@@ -144,104 +126,6 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
             e.HasIndex(p => new { p.UserId, p.CategorieCode }).IsUnique();
             e.Property(p => p.CategorieCode).HasMaxLength(100);
         });
-    }
-
-    /// <summary>
-    /// Codes de module en toutes lettres (le noyau ne référence aucun type de module, voir la contrainte
-    /// d'architecture — même raison que les chaînes littérales déjà utilisées dans <c>PosteService</c>/
-    /// <c>ProfileChangeRecorder</c>). <see cref="PlanCodes.Standard"/> reprend exactement les 8 modules du
-    /// domaine Matching Emploi déjà activés par défaut pour toute entreprise (voir
-    /// <c>CompanyOnboardingService</c>) — sans GestionDuTemps, vendu séparément.
-    /// <see cref="PlanCodes.StandardPlusTemps"/> ajoute GestionDuTemps, pour tester le gating.
-    /// </summary>
-    private static void SeedPlanModuleEntitlements(ModelBuilder builder)
-    {
-        // Liste historique (ids 1–8 Standard, 9–17 StandardPlusTemps, 18 Coach) — ne PAS y intercaler
-        // de nouveaux codes : ça renuméroterait les seeds existants. Les ajouts Matching Emploi
-        // s'appendent après avec les prochains Id libres (voir SuiviEmployes ci-dessous).
-        string[] modulesMatchingEmploi =
-        [
-            "ProfilCandidat", "ProfilEntreprise", "Compatibilite", "Recrutement",
-            "Vivier", "Entretien", "SuiviEvolutif", "Analytics",
-        ];
-
-        var entitlements = new List<PlanModuleEntitlement>();
-        var id = 1;
-
-        foreach (var moduleCode in modulesMatchingEmploi)
-            entitlements.Add(new PlanModuleEntitlement { Id = id++, PlanCode = PlanCodes.Standard, ModuleCode = moduleCode });
-
-        foreach (var moduleCode in modulesMatchingEmploi.Append("GestionDuTemps"))
-            entitlements.Add(new PlanModuleEntitlement { Id = id++, PlanCode = PlanCodes.StandardPlusTemps, ModuleCode = moduleCode });
-
-        // Plan Coach : gratuit, un seul module inclus (ProfilCoach — voir CoachOnboardingService).
-        entitlements.Add(new PlanModuleEntitlement { Id = id++, PlanCode = PlanCodes.Coach, ModuleCode = "ProfilCoach" });
-
-        // SuiviEmployes (Matching Emploi) — Ids 1000/1001 : la plage 19+ est déjà polluée en base
-        // de dév par des PlanCode « plan-histo-* » créés par les tests (PK collision sinon).
-        entitlements.Add(new PlanModuleEntitlement { Id = 1000, PlanCode = PlanCodes.Standard, ModuleCode = "SuiviEmployes" });
-        entitlements.Add(new PlanModuleEntitlement { Id = 1001, PlanCode = PlanCodes.StandardPlusTemps, ModuleCode = "SuiviEmployes" });
-
-        // Coach + Gestion du temps (usage personnel) — Ids 2000/2001 : 1002+ déjà pollué par des
-        // PlanCode « plan-histo-* » créés par les tests (même problème que SuiviEmployes à 1000).
-        entitlements.Add(new PlanModuleEntitlement { Id = 2000, PlanCode = PlanCodes.CoachPlusTemps, ModuleCode = "ProfilCoach" });
-        entitlements.Add(new PlanModuleEntitlement { Id = 2001, PlanCode = PlanCodes.CoachPlusTemps, ModuleCode = "GestionDuTemps" });
-
-        builder.Entity<PlanModuleEntitlement>().HasData(entitlements);
-    }
-
-    /// <summary>
-    /// PLACEHOLDER — montants inventés pour le seed initial, à ajuster manuellement depuis
-    /// <c>/admin/plans</c> (pas des prix définitifs de production).
-    /// </summary>
-    private static void SeedPlans(ModelBuilder builder)
-    {
-        var createdAt = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero);
-        builder.Entity<Plan>().HasData(
-            new Plan
-            {
-                Id = 1,
-                Code = PlanCodes.Standard,
-                Nom = "Standard",
-                PrixMontant = 49m,
-                PrixDevise = "EUR",
-                Periodicite = PeriodicitePlan.Mensuel,
-                Actif = true,
-                CreatedAt = createdAt,
-            },
-            new Plan
-            {
-                Id = 2,
-                Code = PlanCodes.StandardPlusTemps,
-                Nom = "Standard + Temps",
-                PrixMontant = 79m,
-                PrixDevise = "EUR",
-                Periodicite = PeriodicitePlan.Mensuel,
-                Actif = true,
-                CreatedAt = createdAt,
-            },
-            new Plan
-            {
-                Id = 3,
-                Code = PlanCodes.Coach,
-                Nom = "Coach (gratuit)",
-                PrixMontant = 0m,
-                PrixDevise = "EUR",
-                Periodicite = PeriodicitePlan.Mensuel,
-                Actif = true,
-                CreatedAt = createdAt,
-            },
-            new Plan
-            {
-                Id = 4,
-                Code = PlanCodes.CoachPlusTemps,
-                Nom = "Coach + Temps",
-                PrixMontant = 19m,
-                PrixDevise = "EUR",
-                Periodicite = PeriodicitePlan.Mensuel,
-                Actif = true,
-                CreatedAt = createdAt,
-            });
     }
 
     /// <summary>

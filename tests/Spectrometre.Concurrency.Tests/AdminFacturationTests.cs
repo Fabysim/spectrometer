@@ -19,39 +19,6 @@ public sealed class AdminFacturationTests(ServiceFixture fixture)
             "Test"));
 
     [Fact]
-    public async Task SetPrixPlanAsync_PersisteEtGetPlansAvecPrixLeRenvoie()
-    {
-        using var scope = fixture.Services.CreateScope();
-        var admin = scope.ServiceProvider.GetRequiredService<IAdminService>();
-        var caller = AdminCaller();
-
-        await admin.SetPrixPlanAsync(caller, PlanCodes.Standard, 55.5m, "EUR", PeriodicitePlan.Mensuel);
-        var plans = await admin.GetPlansAvecPrixAsync(caller);
-        var standard = Assert.Single(plans, p => p.PlanCode == PlanCodes.Standard);
-        Assert.Equal(55.5m, standard.PrixMontant);
-        Assert.Equal("EUR", standard.PrixDevise);
-        Assert.Equal(PeriodicitePlan.Mensuel, standard.Periodicite);
-    }
-
-    [Fact]
-    public async Task GetPlansAsync_TotalMensuel_SommeDesModulesFacturables()
-    {
-        using var scope = fixture.Services.CreateScope();
-        var admin = scope.ServiceProvider.GetRequiredService<IAdminService>();
-        var caller = AdminCaller();
-
-        var plans = await admin.GetPlansAsync(caller);
-        var coach = Assert.Single(plans, p => p.PlanCode == PlanCodes.Coach);
-        Assert.Contains(coach.DetailTarifs, l => l.ModuleCode == "ProfilCoach");
-        Assert.Equal(
-            coach.DetailTarifs.Where(l => l.TarifDefini && l.Facturable).Sum(l => l.PrixMensuel),
-            coach.TotalMensuel);
-
-        var filtrés = await admin.GetPlansAsync(caller, recherche: "CoachPlus");
-        Assert.All(filtrés, p => Assert.Contains("CoachPlus", p.PlanCode, StringComparison.OrdinalIgnoreCase));
-    }
-
-    [Fact]
     public async Task EnregistrerPaiementAsync_PasseStatutActiveEtMetAJourRenewalDate()
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];

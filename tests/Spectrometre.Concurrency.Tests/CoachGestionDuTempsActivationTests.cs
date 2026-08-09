@@ -46,15 +46,12 @@ public sealed class CoachGestionDuTempsActivationTests(ServiceFixture fixture)
         }
 
         // Même logique que CoachOnboardingService.ActivateGestionDuTempsAsync (Host) —
-        // testée ici sans référence Host : upgrade plan + ActivateForCoach.
+        // testée ici sans référence Host : ActivateForCoach uniquement (plus d'upgrade PlanCode).
         using (var scope = NewScope())
         {
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
             var registry = scope.ServiceProvider.GetRequiredService<IModuleRegistry>();
 
-            var sub = await coreDb.CoachSubscriptions.FirstAsync(s => s.CoachProfileId == coachProfileId);
-            sub.PlanCode = PlanCodes.CoachPlusTemps;
-            await coreDb.SaveChangesAsync();
             await registry.ActivateForCoachAsync(coachProfileId, "GestionDuTemps", coreDb);
 
             Assert.True(await registry.IsActiveForCoachAsync(coachProfileId, "GestionDuTemps", coreDb));

@@ -4,12 +4,11 @@ using Spectrometre.Core.Data;
 namespace Spectrometre.Core.Billing;
 
 /// <summary>
-/// Comble rétroactivement l'abonnement des entreprises créées AVANT l'introduction du gating par plan dans
-/// ce cycle — sans ce backfill, ces entreprises perdraient l'accès à tous leurs modules déjà activés dès le
-/// démarrage (voir <c>ModuleRegistry.IsActiveAsync</c> : échec fermé si aucun abonnement). Assigne le plan
-/// <see cref="PlanCodes.Standard"/> (tous les modules Matching Emploi existants, sans Gestion du temps —
-/// c'est exactement ce qu'elles avaient avant, aucune de ces entreprises n'a jamais pu activer Gestion du
-/// temps, absent du mécanisme jusqu'à ce cycle). Idempotent : une entreprise déjà abonnée est ignorée.
+/// Comble rétroactivement l'abonnement des entreprises créées AVANT l'exigence d'un abonnement pour
+/// l'accès effectif aux modules — sans ce backfill, ces entreprises perdraient l'accès à tous leurs
+/// modules déjà activés dès le démarrage (voir <c>ModuleRegistry.IsActiveAsync</c> : échec fermé si aucun
+/// abonnement Essai/Active). Assigne le libellé <see cref="PlanCodes.Standard"/> (étiquette informative).
+/// Idempotent : une entreprise déjà abonnée est ignorée.
 /// </summary>
 /// <remarks>
 /// Vit dans le noyau (pas dans <c>Spectrometre.Host</c>) car il ne touche que des données <c>core</c>

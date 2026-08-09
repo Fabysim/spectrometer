@@ -34,25 +34,6 @@ public enum AdminActionOutcome
     DernierAdminRestant,
 }
 
-public sealed record AdminPlanModuleLigne(
-    string ModuleCode,
-    decimal PrixMensuel,
-    string Devise,
-    bool Facturable,
-    bool TarifDefini);
-
-public sealed record AdminPlanView(
-    string PlanCode,
-    string Nom,
-    decimal PrixMontant,
-    string PrixDevise,
-    PeriodicitePlan Periodicite,
-    bool Actif,
-    IReadOnlyList<string> ModulesInclus,
-    IReadOnlyList<AdminPlanModuleLigne> DetailTarifs,
-    decimal TotalMensuel,
-    string DeviseTotale);
-
 public sealed record AdminPaiementView(
     int Id,
     string PlanCode,
@@ -121,38 +102,17 @@ public interface IAdminService
     /// <summary>Refuse (<see cref="AdminActionOutcome.DernierAdminRestant"/>) si <paramref name="targetUserId"/> est le dernier administrateur restant — la plateforme ne doit jamais se retrouver sans aucun admin.</summary>
     Task<AdminActionOutcome> RetrograderAsync(ClaimsPrincipal caller, string targetUserId, CancellationToken cancellationToken = default);
 
-    // ── Actions d'écriture sur l'activation/les plans (nouveau ce cycle) ────────────────────────────────
+    // ── Actions d'écriture sur l'activation modules (nouveau ce cycle) ────────────────────────────────
     //
-    // Réutilisent EXCLUSIVEMENT IModuleRegistry (activation) et PlanModuleEntitlement (plans) — mêmes
-    // mécanismes que l'inscription/« Ajouter un module », jamais de logique parallèle. Chaque action est
-    // historisée (voir GetHistoriqueAsync).
+    // Réutilisent EXCLUSIVEMENT IModuleRegistry (activation) — mêmes mécanismes que l'inscription/
+    // « Ajouter un module », jamais de logique parallèle. Chaque action est historisée
+    // (voir GetHistoriqueAsync).
 
     /// <summary>Active OU désactive <paramref name="moduleCode"/> pour ce sujet — voir <c>IModuleRegistry.SetActiveAsync</c>.</summary>
     Task DefinirActivationModuleAsync(ClaimsPrincipal caller, Core.Modules.ModuleActivationSubjectType subjectType, int subjectId, string moduleCode, bool actif, CancellationToken cancellationToken = default);
 
     /// <summary>Catalogue complet des modules connus (<c>IModuleRegistry.AllModules</c>) avec l'ensemble de ceux actifs pour ce sujet — support de l'écran de bascule module par module.</summary>
     Task<(IReadOnlyList<string> Tous, IReadOnlyList<string> Actifs)> GetModulesPourSujetAsync(ClaimsPrincipal caller, Core.Modules.ModuleActivationSubjectType subjectType, int subjectId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Plans connus (union <c>Plan</c> + codes présents dans <c>PlanModuleEntitlement</c>) avec modules
-    /// et prix. <see cref="AdminPlanView"/> fusionne modules + tarif (pas de vue prix séparée) pour
-    /// un seul écran <c>/admin/plans</c>.
-    /// </summary>
-    Task<IReadOnlyList<AdminPlanView>> GetPlansAsync(ClaimsPrincipal caller, string? recherche = null, CancellationToken cancellationToken = default);
-
-    /// <summary>Alias explicite de <see cref="GetPlansAsync"/> — même payload enrichi prix modules.</summary>
-    Task<IReadOnlyList<AdminPlanView>> GetPlansAvecPrixAsync(ClaimsPrincipal caller, string? recherche = null, CancellationToken cancellationToken = default);
-
-    /// <summary>Upsert du tarif d'un plan (crée la ligne <c>Plan</c> si absente).</summary>
-    Task SetPrixPlanAsync(ClaimsPrincipal caller, string planCode, decimal prixMontant, string prixDevise, PeriodicitePlan periodicite, CancellationToken cancellationToken = default);
-
-    Task SetPlanActifAsync(ClaimsPrincipal caller, string planCode, bool actif, CancellationToken cancellationToken = default);
-
-    /// <summary>Ajoute un module à un plan — no-op silencieux s'il y est déjà.</summary>
-    Task AjouterModuleAuPlanAsync(ClaimsPrincipal caller, string planCode, string moduleCode, CancellationToken cancellationToken = default);
-
-    /// <summary>Retire un module d'un plan — no-op silencieux s'il n'y est pas.</summary>
-    Task RetirerModuleDuPlanAsync(ClaimsPrincipal caller, string planCode, string moduleCode, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Liste paginée des abonnements facturables. <c>CalculerMontantDuAsync</c> n'est invoqué

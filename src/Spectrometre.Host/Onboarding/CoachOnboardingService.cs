@@ -45,20 +45,12 @@ public sealed class CoachOnboardingService(
     }
 
     /// <summary>
-    /// Active Gestion du temps pour ce coach (écran Ajouter un module) — nécessite de faire passer le plan à
-    /// <see cref="PlanCodes.CoachPlusTemps"/> (le seul plan coach qui l'inclut) avant d'activer.
-    /// Même pattern que <see cref="CandidateOnboardingService.ActivateGestionDuTempsAsync"/>.
+    /// Active Gestion du temps pour ce coach (écran Ajouter un module).
     /// </summary>
     public async Task ActivateGestionDuTempsAsync(int coachProfileId, CoreDbContext coreDb, CancellationToken cancellationToken = default)
     {
-        var subscription = await coreDb.CoachSubscriptions.FirstOrDefaultAsync(s => s.CoachProfileId == coachProfileId, cancellationToken)
+        _ = await coreDb.CoachSubscriptions.FirstOrDefaultAsync(s => s.CoachProfileId == coachProfileId, cancellationToken)
             ?? throw new InvalidOperationException($"Aucun abonnement pour le coach {coachProfileId}.");
-
-        if (subscription.PlanCode != PlanCodes.CoachPlusTemps)
-        {
-            subscription.PlanCode = PlanCodes.CoachPlusTemps;
-            await coreDb.SaveChangesAsync(cancellationToken);
-        }
 
         await ActivateModulesInOrderAsync(coachProfileId, [GestionDuTempsModule.Manifest.Code], coreDb, cancellationToken);
     }

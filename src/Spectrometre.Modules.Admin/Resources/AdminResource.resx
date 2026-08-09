@@ -119,8 +119,7 @@
   <data name="Outcome_PasAdmin" xml:space="preserve"><value>Ce compte n'est pas administrateur.</value></data>
   <data name="Outcome_DernierAdminRestant" xml:space="preserve"><value>Impossible : ce compte est le dernier administrateur restant. La plateforme doit toujours conserver au moins un administrateur.</value></data>
 
-  <!-- Actions d'écriture (modules/plans/historique) -->
-  <data name="AdminNavPlans" xml:space="preserve"><value>Plans</value></data>
+  <!-- Actions d'écriture (modules/historique) -->
   <data name="AdminNavTarifsModules" xml:space="preserve"><value>Tarifs modules</value></data>
   <data name="AdminNavFacturation" xml:space="preserve"><value>Facturation</value></data>
   <data name="AdminNavHistorique" xml:space="preserve"><value>Historique</value></data>
@@ -132,36 +131,10 @@
   <data name="AdminModulesStatut" xml:space="preserve"><value>Actif</value></data>
   <data name="AdminModulesActiver" xml:space="preserve"><value>Activer</value></data>
   <data name="AdminModulesDesactiver" xml:space="preserve"><value>Désactiver</value></data>
-  <data name="AdminPlansTitre" xml:space="preserve"><value>Plans tarifaires</value></data>
-  <data name="AdminPlansLead" xml:space="preserve"><value>Modules inclus par plan (référence gating). Les prix affichés et le total dû/mois viennent exclusivement de</value></data>
-  <data name="AdminPlansLeadTarifs" xml:space="preserve"><value>définissez-y chaque module inclus.</value></data>
-  <data name="AdminPlansAucun" xml:space="preserve"><value>Aucun plan configuré.</value></data>
-  <data name="AdminPlansAucunModule" xml:space="preserve"><value>Aucun module inclus pour le moment.</value></data>
-  <data name="AdminPlansRetirer" xml:space="preserve"><value>Retirer</value></data>
-  <data name="AdminPlansAjouter" xml:space="preserve"><value>Ajouter</value></data>
-  <data name="AdminPlansCodeModule" xml:space="preserve"><value>Modules à ajouter</value></data>
-  <data name="AdminPlansTotalDuMois" xml:space="preserve"><value>Total dû/mois</value></data>
-  <data name="AdminPlansGratuit" xml:space="preserve"><value>Gratuit</value></data>
-  <data name="AdminPlansTarifADefinir" xml:space="preserve"><value>À définir</value></data>
-  <data name="AdminPlansMultiSelectHint" xml:space="preserve"><value>Cochez un ou plusieurs modules, puis ajoutez-les au plan.</value></data>
-  <data name="AdminPlansSelectionnes" xml:space="preserve"><value>sélectionnés</value></data>
-  <data name="AdminPlansEffacerSelection" xml:space="preserve"><value>Effacer</value></data>
-  <data name="AdminPlansPrix" xml:space="preserve"><value>Prix</value></data>
-  <data name="AdminPlansPrixNoteFacturation" xml:space="preserve"><value>Non utilisé pour la facturation — voir</value></data>
-  <data name="AdminPlansDevise" xml:space="preserve"><value>Devise</value></data>
-  <data name="AdminPlansPeriodicite" xml:space="preserve"><value>Périodicité</value></data>
-  <data name="AdminPlansMensuel" xml:space="preserve"><value>Mensuel</value></data>
-  <data name="AdminPlansAnnuel" xml:space="preserve"><value>Annuel</value></data>
-  <data name="AdminPlansSauverPrix" xml:space="preserve"><value>Enregistrer le prix</value></data>
-  <data name="AdminPlansActif" xml:space="preserve"><value>Actif</value></data>
-  <data name="AdminPlansInactif" xml:space="preserve"><value>Inactif</value></data>
-  <data name="AdminPlansActiver" xml:space="preserve"><value>Activer</value></data>
-  <data name="AdminPlansDesactiver" xml:space="preserve"><value>Désactiver</value></data>
-  <data name="AdminPlansModules" xml:space="preserve"><value>Modules inclus</value></data>
   <data name="AdminFacturationTitre" xml:space="preserve"><value>Facturation</value></data>
   <data name="AdminFacturationLead" xml:space="preserve"><value>Montant dû calculé à la carte selon les modules effectivement actifs (pas le prix du plan).</value></data>
   <data name="AdminFacturationMontantDu" xml:space="preserve"><value>Montant dû / mois</value></data>
-  <data name="AdminFacturationPlanInfo" xml:space="preserve"><value>PlanCode informatif (gating) — plus la source du montant</value></data>
+  <data name="AdminFacturationPlanInfo" xml:space="preserve"><value>PlanCode informatif (étiquette de bundle) — plus la source du montant</value></data>
   <data name="AdminFacturationAucunModule" xml:space="preserve"><value>Aucun module facturable actif</value></data>
   <data name="AdminFacturationMontantHint" xml:space="preserve"><value>Prérempli avec le calcul à la carte — ajustable manuellement.</value></data>
   <data name="AdminFacturationEnRetard" xml:space="preserve"><value>En retard</value></data>
@@ -184,7 +157,7 @@
   <data name="AdminFacturationAnnuler" xml:space="preserve"><value>Annuler</value></data>
   <data name="AdminFacturationHistorique" xml:space="preserve"><value>Historique des paiements</value></data>
   <data name="AdminTarifsModulesTitre" xml:space="preserve"><value>Tarifs à la carte</value></data>
-  <data name="AdminTarifsModulesLead" xml:space="preserve"><value>Source de vérité des prix à la carte (consommés par la facturation et /admin/plans). Modules non facturables (socle) à 0. Voir aussi</value></data>
+  <data name="AdminTarifsModulesLead" xml:space="preserve"><value>Source de vérité des prix à la carte (consommés exclusivement par la facturation). Modules non facturables (socle) à 0.</value></data>
   <data name="AdminTarifsModule" xml:space="preserve"><value>Module</value></data>
   <data name="AdminTarifsPrix" xml:space="preserve"><value>Prix mensuel</value></data>
   <data name="AdminTarifsDevise" xml:space="preserve"><value>Devise</value></data>
