@@ -214,6 +214,303 @@ namespace Spectrometre.Core.Migrations
                     b.ToTable("CoachSubscriptions", "core");
                 });
 
+            modelBuilder.Entity("Spectrometre.Core.Billing.ModulePrix", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Devise")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<bool>("Facturable")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("PrixMensuel")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModuleCode")
+                        .IsUnique();
+
+                    b.ToTable("ModulePrix", "core");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = false,
+                            ModuleCode = "ProfilCandidat",
+                            PrixMensuel = 0m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = false,
+                            ModuleCode = "ProfilEntreprise",
+                            PrixMensuel = 0m
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = false,
+                            ModuleCode = "ProfilCoach",
+                            PrixMensuel = 0m
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = false,
+                            ModuleCode = "Admin",
+                            PrixMensuel = 0m
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = true,
+                            ModuleCode = "Compatibilite",
+                            PrixMensuel = 15m
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = true,
+                            ModuleCode = "Recrutement",
+                            PrixMensuel = 25m
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = true,
+                            ModuleCode = "Vivier",
+                            PrixMensuel = 10m
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = true,
+                            ModuleCode = "Entretien",
+                            PrixMensuel = 15m
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = true,
+                            ModuleCode = "Analytics",
+                            PrixMensuel = 15m
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = true,
+                            ModuleCode = "SuiviEvolutif",
+                            PrixMensuel = 20m
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = true,
+                            ModuleCode = "SuiviEmployes",
+                            PrixMensuel = 30m
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Devise = "EUR",
+                            Facturable = true,
+                            ModuleCode = "GestionDuTemps",
+                            PrixMensuel = 25m
+                        });
+                });
+
+            modelBuilder.Entity("Spectrometre.Core.Billing.PaiementEnregistre", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("DateReception")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Devise")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("ModulesFactures")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<decimal>("Montant")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Moyen")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NotePar")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateOnly>("PeriodeCouverteDebut")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("PeriodeCouverteFin")
+                        .HasColumnType("date");
+
+                    b.Property<string>("PlanCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SubjectType")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectType", "SubjectId", "CreatedAt");
+
+                    b.ToTable("PaiementsEnregistres", "core");
+                });
+
+            modelBuilder.Entity("Spectrometre.Core.Billing.Plan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Periodicite")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PrixDevise")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<decimal>("PrixMontant")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Plans", "core");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Actif = true,
+                            Code = "Standard",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Nom = "Standard",
+                            Periodicite = 0,
+                            PrixDevise = "EUR",
+                            PrixMontant = 49m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Actif = true,
+                            Code = "StandardPlusTemps",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Nom = "Standard + Temps",
+                            Periodicite = 0,
+                            PrixDevise = "EUR",
+                            PrixMontant = 79m
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Actif = true,
+                            Code = "Coach",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Nom = "Coach (gratuit)",
+                            Periodicite = 0,
+                            PrixDevise = "EUR",
+                            PrixMontant = 0m
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Actif = true,
+                            Code = "CoachPlusTemps",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Nom = "Coach + Temps",
+                            Periodicite = 0,
+                            PrixDevise = "EUR",
+                            PrixMontant = 19m
+                        });
+                });
+
             modelBuilder.Entity("Spectrometre.Core.Billing.PlanModuleEntitlement", b =>
                 {
                     b.Property<int>("Id")

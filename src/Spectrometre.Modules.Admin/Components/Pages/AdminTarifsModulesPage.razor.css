@@ -1,0 +1,212 @@
+/* Admin tarifs modules – aligné Administrateurs / Entreprises */
+
+.admin-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+}
+
+.admin-state,
+.admin-hint {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.admin-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.admin-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+    max-width: 42rem;
+}
+
+.admin-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.35rem 1.4rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    margin-bottom: 1.25rem;
+}
+
+.admin-table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+    border-radius: 16px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.admin-table th,
+.admin-table td {
+    text-align: left;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.admin-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+    background: rgba(52, 95, 109, 0.03);
+}
+
+.admin-table tbody tr.is-non-billable {
+    background: #fafafa;
+}
+
+.admin-table tbody tr.is-non-billable:hover {
+    background: #f3f4f6;
+}
+
+.admin-module-code {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #0f172a;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.admin-input {
+    width: 100%;
+    max-width: 9rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.875rem;
+    background: white;
+    color: #0f172a;
+    box-sizing: border-box;
+}
+
+.admin-input:focus {
+    outline: none;
+    border-color: var(--bs-primary, #345f6d);
+    box-shadow: 0 0 0 3px rgba(52, 95, 109, 0.12);
+}
+
+.admin-input-currency {
+    max-width: 5.5rem;
+    text-transform: uppercase;
+}
+
+.admin-check {
+    position: relative;
+    display: inline-flex;
+    width: 1.15rem;
+    height: 1.15rem;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.admin-check input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+}
+
+.admin-check-ui {
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 6px;
+    border: 1.5px solid #cbd5e1;
+    background: #fff;
+    display: inline-block;
+    pointer-events: none;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-check input:checked + .admin-check-ui {
+    background: var(--bs-primary, #345f6d);
+    border-color: var(--bs-primary, #345f6d);
+    box-shadow: inset 0 0 0 2px #fff;
+}
+
+.admin-check input:focus-visible + .admin-check-ui {
+    box-shadow: 0 0 0 3px rgba(52, 95, 109, 0.2);
+}
+
+.admin-table-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.admin-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(234, 119, 61, 0.28);
+    transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-btn-primary:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 6px 16px rgba(234, 119, 61, 0.35);
+}
+
+@media (max-width: 720px) {
+    .admin-page {
+        padding: 1rem;
+    }
+
+    .admin-title {
+        font-size: 1.4rem;
+    }
+
+    .admin-table-actions .admin-btn-primary {
+        width: 100%;
+    }
+}

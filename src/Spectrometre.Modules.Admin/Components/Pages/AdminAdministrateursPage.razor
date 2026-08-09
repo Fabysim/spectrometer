@@ -38,11 +38,13 @@
         }
     </section>
 
+    <AdminListSearch Barre="@_recherche" OnSearch="OnSearchAsync" />
+
     @if (_administrateurs is null)
     {
         <p class="admin-state">@Localizer["Chargement"]</p>
     }
-    else if (_administrateurs.Count == 0)
+    else if (_totalCount == 0)
     {
         <section class="admin-card">
             <p class="admin-hint">@Localizer["AucunAdministrateur"]</p>
@@ -75,6 +77,7 @@
                     </tbody>
                 </table>
             </div>
+            <PaginationControls Page="_page" PageSize="_pageSize" TotalCount="_totalCount" OnChange="OnPagingChanged" />
         </section>
     }
 </div>
@@ -84,12 +87,13 @@
 
     private string _emailAPromouvoir = "";
     private string? _message;
+    private int _page = 1;
+    private int _pageSize = AdminPaging.DefaultPageSize;
+    private int _totalCount;
+    private string? _recherche;
     private IReadOnlyList<AdminAccountSummary>? _administrateurs;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await RefreshAsync();
-    }
+    protected override async Task OnInitializedAsync() => await RefreshAsync();
 
     private async Task<ClaimsPrincipal> CallerAsync() =>
         AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
@@ -97,7 +101,25 @@
     private async Task RefreshAsync()
     {
         var caller = await CallerAsync();
-        _administrateurs = await AdminService.GetAdministrateursAsync(caller);
+        var result = await AdminService.GetAdministrateursAsync(caller, _page, _pageSize, _recherche);
+        _administrateurs = result.Items;
+        _totalCount = result.TotalCount;
+        _page = result.Page;
+        _pageSize = result.PageSize;
+    }
+
+    private async Task OnSearchAsync(string? term)
+    {
+        _recherche = term;
+        _page = 1;
+        await RefreshAsync();
+    }
+
+    private async Task OnPagingChanged((int page, int pageSize) args)
+    {
+        _page = args.page;
+        _pageSize = args.pageSize;
+        await RefreshAsync();
     }
 
     private async Task PromouvoirAsync()

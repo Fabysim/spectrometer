@@ -12,21 +12,24 @@ using Spectrometre.Core.Identity;
 // PlatformAdmin, indispensable pour que ce compte puisse ensuite en promouvoir d'autres depuis /admin
 // (voir IAdminService.PromouvoirAsync, qui exige déjà d'être administrateur pour agir).
 //
-// Usage : dotnet run --project tools/Spectrometre.AdminBootstrap -- <email> <mot-de-passe>
+// Usage : dotnet run --project tools/Spectrometre.AdminBootstrap -- <email> <mot-de-passe> [--ConnectionStrings:DefaultConnection=...]
 //   - Si le compte n'existe pas encore : il est créé (email confirmé d'office — ce chemin de création est
 //     lui-même la preuve de propriété, comme pour une invitation acceptée) puis promu.
-//   - Si le compte existe déjà : son mot de passe n'est jamais modifié, il est simplement promu.
-// La chaîne de connexion vient d'appsettings.json (placeholder committé, voir sa remarque), surchargeable
-// par la variable d'environnement ConnectionStrings__DefaultConnection ou par --ConnectionStrings:DefaultConnection=...
-if (args.Length < 2 || args[0].StartsWith('-'))
+//   - Si le compte existe déjà : le mot de passe fourni est appliqué (reset), puis le compte est promu.
+// La chaîne de connexion vient d'appsettings.json (placeholder committé), surchargeable
+// par ConnectionStrings__DefaultConnection ou --ConnectionStrings:DefaultConnection=...
+// Préférer tools/create-platform-admin.ps1 en local (mot de passe Postgres + defaults).
+var positional = args.Where(a => !a.StartsWith('-') && !a.Contains('=')).ToArray();
+if (positional.Length < 2)
 {
     Console.Error.WriteLine("Usage : dotnet run --project tools/Spectrometre.AdminBootstrap -- <email> <mot-de-passe>");
     Console.Error.WriteLine("        (chaîne de connexion : appsettings.json, ou ConnectionStrings__DefaultConnection, ou --ConnectionStrings:DefaultConnection=...)");
+    Console.Error.WriteLine("        Ou : powershell -File tools/create-platform-admin.ps1");
     return 1;
 }
 
-var email = args[0];
-var password = args[1];
+var email = positional[0];
+var password = positional[1];
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -71,12 +74,27 @@ if (user is null)
 }
 else
 {
-    Console.WriteLine($"Compte existant réutilisé : {email} (mot de passe inchangé)");
+    var token = await userManager.GeneratePasswordResetTokenAsync(user);
+    var resetResult = await userManager.ResetPasswordAsync(user, token, password);
+    if (!resetResult.Succeeded)
+    {
+        foreach (var error in resetResult.Errors)
+            Console.Error.WriteLine($"Erreur reset mot de passe : {error.Description}");
+        return 1;
+    }
+
+    if (!user.EmailConfirmed)
+    {
+        user.EmailConfirmed = true;
+        await userManager.UpdateAsync(user);
+    }
+
+    Console.WriteLine($"Compte existant réutilisé : {email} (mot de passe mis à jour)");
 }
 
 if (await userManager.IsInRoleAsync(user, PlatformRoles.Admin))
 {
-    Console.WriteLine("Ce compte est déjà administrateur (PlatformAdmin) — rien à faire.");
+    Console.WriteLine("Ce compte est déjà administrateur (PlatformAdmin).");
     return 0;
 }
 

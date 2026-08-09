@@ -1,0 +1,417 @@
+@page "/admin/facturation"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Spectrometre.Core.Billing
+@using Spectrometre.Core.Modules
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminFacturationTitre"]</PageTitle>
+
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["AdminFacturationTitre"]</h1>
+            <p class="admin-subtitle">@Localizer["AdminFacturationLead"]</p>
+        </div>
+        @if (_enRetardTotal >= 0 && _abonnements is not null)
+        {
+            <div class="admin-header-stat @(_enRetardTotal > 0 ? "is-alert" : "")">
+                <span class="admin-header-stat-value">@_enRetardTotal</span>
+                <span class="admin-header-stat-label">@Localizer["AdminFacturationEnRetard"]</span>
+            </div>
+        }
+    </header>
+
+    <AdminListSearch Barre="@_recherche" OnSearch="OnSearchAsync" />
+
+    @if (_abonnements is null || _enRetard is null)
+    {
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else
+    {
+        <section class="admin-card">
+            <div class="admin-section-head">
+                <div class="admin-card-icon tone-alert" aria-hidden="true">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h2 class="admin-section-title">@Localizer["AdminFacturationEnRetard"]</h2>
+            </div>
+
+            @if (_enRetardTotal == 0)
+            {
+                <p class="admin-hint">@Localizer["AdminFacturationAucunRetard"]</p>
+            }
+            else
+            {
+                <div class="admin-table-wrap admin-table-flush">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>@Localizer["AdminFacturationType"]</th>
+                                <th>@Localizer["AdminFacturationSujet"]</th>
+                                <th>@Localizer["AdminFacturationMontantDu"]</th>
+                                <th>@Localizer["AdminFacturationRenouvellement"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in _enRetard)
+                            {
+                                <tr class="is-overdue">
+                                    <td><span class="admin-type-pill">@a.SubjectType</span></td>
+                                    <td class="admin-sujet">@a.Libelle</td>
+                                    <td class="admin-amount" title="@DetailTitle(a)">@a.MontantDu.ToString("0.##") @a.Devise</td>
+                                    <td>@(a.RenewalDate?.ToString("d") ?? "—")</td>
+                                    <td class="admin-table-actions">
+                                        <button type="button" class="admin-btn-danger" @onclick="() => SuspendreAsync(a)">
+                                            <i class="bi bi-pause-circle" aria-hidden="true"></i>
+                                            @Localizer["AdminFacturationSuspendre"]
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <PaginationControls Page="_enRetardPage" PageSize="_enRetardPageSize" TotalCount="_enRetardTotal" OnChange="OnEnRetardPagingChanged" />
+            }
+        </section>
+
+        <section class="admin-card admin-table-card">
+            <div class="admin-section-head admin-section-head-pad">
+                <div class="admin-card-icon tone-primary" aria-hidden="true">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <h2 class="admin-section-title">@Localizer["AdminFacturationTous"]</h2>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["AdminFacturationType"]</th>
+                            <th>@Localizer["AdminFacturationSujet"]</th>
+                            <th>@Localizer["AdminFacturationPlan"]</th>
+                            <th>@Localizer["AdminFacturationMontantDu"]</th>
+                            <th>@Localizer["AdminFacturationStatut"]</th>
+                            <th>@Localizer["AdminFacturationRenouvellement"]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _abonnements)
+                        {
+                            <tr class="@(EstLigneEnRetard(a) ? "is-overdue" : null)">
+                                <td><span class="admin-type-pill">@a.SubjectType</span></td>
+                                <td class="admin-sujet">@a.Libelle</td>
+                                <td>
+                                    <span class="admin-plan-code" title="@Localizer["AdminFacturationPlanInfo"]">@a.PlanCode</span>
+                                </td>
+                                <td>
+                                    <details class="admin-amount-details">
+                                        <summary>@a.MontantDu.ToString("0.##") @a.Devise</summary>
+                                        @if (a.DetailModules.Count == 0)
+                                        {
+                                            <p class="admin-hint">@Localizer["AdminFacturationAucunModule"]</p>
+                                        }
+                                        else
+                                        {
+                                            <ul class="admin-module-breakdown">
+                                                @foreach (var l in a.DetailModules)
+                                                {
+                                                    <li>
+                                                        <span>@l.ModuleCode</span>
+                                                        <span>@l.PrixMensuel.ToString("0.##")</span>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                    </details>
+                                </td>
+                                <td>
+                                    <span class="admin-badge @StatusClass(a.Status)">@a.Status</span>
+                                </td>
+                                <td>@(a.RenewalDate?.ToString("d") ?? "—")</td>
+                                <td class="admin-table-actions">
+                                    <button type="button" class="admin-btn-primary" @onclick="() => OuvrirFormulaireAsync(a)">
+                                        <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                                        @Localizer["AdminFacturationEnregistrer"]
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <PaginationControls Page="_aboPage" PageSize="_aboPageSize" TotalCount="_aboTotal" OnChange="OnAboPagingChanged" />
+        </section>
+
+        @if (_formulaire is not null)
+        {
+            <div class="admin-drawer-backdrop" @onclick="FermerFormulaire"></div>
+            <aside class="admin-drawer" role="dialog" aria-modal="true" aria-labelledby="admin-paiement-titre">
+                <div class="admin-drawer-header">
+                    <div>
+                        <h3 id="admin-paiement-titre" class="admin-drawer-title">@Localizer["AdminFacturationEnregistrer"]</h3>
+                        <p class="admin-drawer-subtitle">@_formulaire.Libelle</p>
+                    </div>
+                    <button type="button" class="admin-btn-ghost" @onclick="FermerFormulaire" aria-label="@Localizer["AdminFacturationAnnuler"]">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <p class="admin-hint">@Localizer["AdminFacturationMontantHint"]</p>
+
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="fact-montant">@Localizer["AdminFacturationMontant"]</label>
+                        <input id="fact-montant" class="admin-input" type="number" step="0.01" @bind="_montant" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="fact-devise">@Localizer["AdminFacturationDevise"]</label>
+                        <input id="fact-devise" class="admin-input admin-input-currency" @bind="_devise" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="fact-date">@Localizer["AdminFacturationDate"]</label>
+                        <input id="fact-date" class="admin-input" type="date" @bind="_dateReception" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="fact-moyen">@Localizer["AdminFacturationMoyen"]</label>
+                        <select id="fact-moyen" class="admin-input" @bind="_moyenChoix" @bind:after="OnMoyenChoixChanged">
+                            <option value="Virement">@Localizer["AdminFacturationMoyenVirement"]</option>
+                            <option value="Chèque">@Localizer["AdminFacturationMoyenCheque"]</option>
+                            <option value="Carte bancaire">@Localizer["AdminFacturationMoyenCarte"]</option>
+                            <option value="Espèces">@Localizer["AdminFacturationMoyenEspeces"]</option>
+                            <option value="Prélèvement automatique">@Localizer["AdminFacturationMoyenPrelevement"]</option>
+                            <option value="Autre">@Localizer["AdminFacturationMoyenAutre"]</option>
+                        </select>
+                    </div>
+                    @if (_moyenChoix == "Autre")
+                    {
+                        <div class="admin-field">
+                            <label for="fact-moyen-autre">@Localizer["AdminFacturationMoyenAutrePreciser"]</label>
+                            <input id="fact-moyen-autre" class="admin-input" @bind="_moyenAutre" />
+                        </div>
+                    }
+                    <div class="admin-field">
+                        <label for="fact-debut">@Localizer["AdminFacturationPeriodeDebut"]</label>
+                        <input id="fact-debut" class="admin-input" type="date" @bind="_periodeDebut" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="fact-fin">@Localizer["AdminFacturationPeriodeFin"]</label>
+                        <input id="fact-fin" class="admin-input" type="date" @bind="_periodeFin" />
+                    </div>
+                </div>
+
+                <div class="admin-form-actions">
+                    <button type="button" class="admin-btn-secondary" @onclick="FermerFormulaire">@Localizer["AdminFacturationAnnuler"]</button>
+                    <button type="button" class="admin-btn-primary" @onclick="SoumettrePaiementAsync">
+                        <i class="bi bi-check-lg" aria-hidden="true"></i>
+                        @Localizer["AdminFacturationConfirmer"]
+                    </button>
+                </div>
+
+                @if (_historiqueTotal > 0)
+                {
+                    <div class="admin-history">
+                        <h4 class="admin-history-title">@Localizer["AdminFacturationHistorique"]</h4>
+                        <ul class="admin-history-list">
+                            @foreach (var p in _historique)
+                            {
+                                <li>
+                                    <div class="admin-history-main">
+                                        <strong>@p.DateReception.ToString("d")</strong>
+                                        <span>@p.Montant.ToString("0.##") @p.Devise</span>
+                                        <span class="admin-history-moyen">@p.Moyen</span>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(p.ModulesFactures))
+                                    {
+                                        <div class="admin-history-modules">@p.ModulesFactures</div>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                        <PaginationControls Page="_histoPage" PageSize="_histoPageSize" TotalCount="_historiqueTotal" OnChange="OnHistoPagingChanged" />
+                    </div>
+                }
+            </aside>
+        }
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private IReadOnlyList<AdminAbonnementFacturationView>? _abonnements;
+    private IReadOnlyList<AdminAbonnementFacturationView>? _enRetard;
+    private int _aboPage = 1;
+    private int _aboPageSize = AdminPaging.DefaultPageSize;
+    private int _aboTotal;
+    private int _enRetardPage = 1;
+    private int _enRetardPageSize = AdminPaging.DefaultPageSize;
+    private int _enRetardTotal = -1;
+    private AdminAbonnementFacturationView? _formulaire;
+    private IReadOnlyList<AdminPaiementView> _historique = [];
+    private int _histoPage = 1;
+    private int _histoPageSize = AdminPaging.DefaultPageSize;
+    private int _historiqueTotal;
+    private string? _recherche;
+    private decimal _montant;
+    private string _devise = "EUR";
+    private DateOnly _dateReception = DateOnly.FromDateTime(DateTime.Today);
+    private string _moyenChoix = "Virement";
+    private string _moyenAutre = "";
+    private DateOnly _periodeDebut = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly _periodeFin = DateOnly.FromDateTime(DateTime.Today.AddMonths(1));
+
+    private string MoyenEffectif =>
+        _moyenChoix == "Autre"
+            ? (string.IsNullOrWhiteSpace(_moyenAutre) ? "Autre" : _moyenAutre.Trim())
+            : _moyenChoix;
+
+    protected override async Task OnInitializedAsync() => await RefreshAsync();
+
+    private async Task<ClaimsPrincipal> CallerAsync() =>
+        AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+
+    private async Task RefreshAsync()
+    {
+        var caller = await CallerAsync();
+        var abo = await AdminService.GetAbonnementsFacturationAsync(caller, _aboPage, _aboPageSize, _recherche);
+        _abonnements = abo.Items;
+        _aboTotal = abo.TotalCount;
+        _aboPage = abo.Page;
+        _aboPageSize = abo.PageSize;
+
+        var retard = await AdminService.GetAbonnementsEnRetardAsync(caller, _enRetardPage, _enRetardPageSize, _recherche);
+        _enRetard = retard.Items;
+        _enRetardTotal = retard.TotalCount;
+        _enRetardPage = retard.Page;
+        _enRetardPageSize = retard.PageSize;
+    }
+
+    private async Task OnSearchAsync(string? term)
+    {
+        _recherche = term;
+        _aboPage = 1;
+        _enRetardPage = 1;
+        await RefreshAsync();
+    }
+
+    private async Task OnAboPagingChanged((int page, int pageSize) args)
+    {
+        _aboPage = args.page;
+        _aboPageSize = args.pageSize;
+        var caller = await CallerAsync();
+        var abo = await AdminService.GetAbonnementsFacturationAsync(caller, _aboPage, _aboPageSize, _recherche);
+        _abonnements = abo.Items;
+        _aboTotal = abo.TotalCount;
+        _aboPage = abo.Page;
+        _aboPageSize = abo.PageSize;
+    }
+
+    private async Task OnEnRetardPagingChanged((int page, int pageSize) args)
+    {
+        _enRetardPage = args.page;
+        _enRetardPageSize = args.pageSize;
+        var caller = await CallerAsync();
+        var retard = await AdminService.GetAbonnementsEnRetardAsync(caller, _enRetardPage, _enRetardPageSize, _recherche);
+        _enRetard = retard.Items;
+        _enRetardTotal = retard.TotalCount;
+        _enRetardPage = retard.Page;
+        _enRetardPageSize = retard.PageSize;
+    }
+
+    private async Task OnHistoPagingChanged((int page, int pageSize) args)
+    {
+        if (_formulaire is null) return;
+        _histoPage = args.page;
+        _histoPageSize = args.pageSize;
+        await ChargerHistoriqueAsync(_formulaire);
+    }
+
+    private static bool EstLigneEnRetard(AdminAbonnementFacturationView a)
+    {
+        if (a.Status != SubscriptionStatus.Active || a.RenewalDate is not DateTimeOffset r)
+            return false;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        return DateOnly.FromDateTime(r.UtcDateTime) < today;
+    }
+
+    private static string DetailTitle(AdminAbonnementFacturationView a) =>
+        a.DetailModules.Count == 0
+            ? "—"
+            : string.Join(", ", a.DetailModules.Select(l => $"{l.ModuleCode}={l.PrixMensuel}"));
+
+    private static string StatusClass(SubscriptionStatus status) => status switch
+    {
+        SubscriptionStatus.Active => "is-active",
+        SubscriptionStatus.Suspendue => "is-suspended",
+        SubscriptionStatus.Essai => "is-neutral",
+        SubscriptionStatus.Resiliee => "is-suspended",
+        _ => "is-neutral"
+    };
+
+    private async Task OuvrirFormulaireAsync(AdminAbonnementFacturationView a)
+    {
+        _formulaire = a;
+        _montant = a.MontantDu;
+        _devise = a.Devise;
+        _dateReception = DateOnly.FromDateTime(DateTime.Today);
+        _moyenChoix = "Virement";
+        _moyenAutre = "";
+        _periodeDebut = DateOnly.FromDateTime(DateTime.Today);
+        _periodeFin = DateOnly.FromDateTime(DateTime.Today.AddMonths(1));
+        _histoPage = 1;
+        await ChargerHistoriqueAsync(a);
+    }
+
+    private async Task ChargerHistoriqueAsync(AdminAbonnementFacturationView a)
+    {
+        var caller = await CallerAsync();
+        var histo = await AdminService.GetHistoriquePaiementsAsync(caller, a.SubjectType, a.SubjectId, _histoPage, _histoPageSize);
+        _historique = histo.Items;
+        _historiqueTotal = histo.TotalCount;
+        _histoPage = histo.Page;
+        _histoPageSize = histo.PageSize;
+    }
+
+    private void OnMoyenChoixChanged()
+    {
+        if (_moyenChoix != "Autre")
+            _moyenAutre = "";
+    }
+
+    private void FermerFormulaire() => _formulaire = null;
+
+    private async Task SoumettrePaiementAsync()
+    {
+        if (_formulaire is null)
+            return;
+
+        var caller = await CallerAsync();
+        await AdminService.EnregistrerPaiementAsync(
+            caller,
+            _formulaire.SubjectType,
+            _formulaire.SubjectId,
+            _formulaire.PlanCode,
+            _montant,
+            _devise,
+            _dateReception,
+            MoyenEffectif,
+            _periodeDebut,
+            _periodeFin);
+
+        _formulaire = null;
+        await RefreshAsync();
+    }
+
+    private async Task SuspendreAsync(AdminAbonnementFacturationView a)
+    {
+        var caller = await CallerAsync();
+        await AdminService.SuspendreAbonnementAsync(caller, a.SubjectType, a.SubjectId);
+        await RefreshAsync();
+    }
+}

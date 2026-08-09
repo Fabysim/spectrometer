@@ -24,6 +24,9 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     public DbSet<CandidateSubscription> CandidateSubscriptions => Set<CandidateSubscription>();
     public DbSet<CoachSubscription> CoachSubscriptions => Set<CoachSubscription>();
     public DbSet<PlanModuleEntitlement> PlanModuleEntitlements => Set<PlanModuleEntitlement>();
+    public DbSet<Plan> Plans => Set<Plan>();
+    public DbSet<ModulePrix> ModulePrix => Set<ModulePrix>();
+    public DbSet<PaiementEnregistre> PaiementsEnregistres => Set<PaiementEnregistre>();
     public DbSet<PosteIndexEntry> PosteIndexEntries => Set<PosteIndexEntry>();
     public DbSet<CandidatureIndexEntry> CandidatureIndexEntries => Set<CandidatureIndexEntry>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
@@ -75,7 +78,37 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
             e.HasIndex(x => new { x.PlanCode, x.ModuleCode }).IsUnique();
         });
 
+        builder.Entity<Plan>(e =>
+        {
+            e.HasIndex(p => p.Code).IsUnique();
+            e.Property(p => p.Code).HasMaxLength(100);
+            e.Property(p => p.Nom).HasMaxLength(200);
+            e.Property(p => p.PrixDevise).HasMaxLength(10);
+            e.Property(p => p.PrixMontant).HasPrecision(18, 2);
+        });
+
+        builder.Entity<PaiementEnregistre>(e =>
+        {
+            e.HasIndex(p => new { p.SubjectType, p.SubjectId, p.CreatedAt });
+            e.Property(p => p.PlanCode).HasMaxLength(100);
+            e.Property(p => p.Devise).HasMaxLength(10);
+            e.Property(p => p.Moyen).HasMaxLength(200);
+            e.Property(p => p.NotePar).HasMaxLength(256);
+            e.Property(p => p.ModulesFactures).HasMaxLength(1000);
+            e.Property(p => p.Montant).HasPrecision(18, 2);
+        });
+
+        builder.Entity<ModulePrix>(e =>
+        {
+            e.HasIndex(p => p.ModuleCode).IsUnique();
+            e.Property(p => p.ModuleCode).HasMaxLength(100);
+            e.Property(p => p.Devise).HasMaxLength(10);
+            e.Property(p => p.PrixMensuel).HasPrecision(18, 2);
+        });
+
         SeedPlanModuleEntitlements(builder);
+        SeedPlans(builder);
+        SeedModulePrix(builder);
 
         builder.Entity<PosteIndexEntry>(e =>
         {
@@ -155,5 +188,97 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
         entitlements.Add(new PlanModuleEntitlement { Id = 2001, PlanCode = PlanCodes.CoachPlusTemps, ModuleCode = "GestionDuTemps" });
 
         builder.Entity<PlanModuleEntitlement>().HasData(entitlements);
+    }
+
+    /// <summary>
+    /// PLACEHOLDER — montants inventés pour le seed initial, à ajuster manuellement depuis
+    /// <c>/admin/plans</c> (pas des prix définitifs de production).
+    /// </summary>
+    private static void SeedPlans(ModelBuilder builder)
+    {
+        var createdAt = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero);
+        builder.Entity<Plan>().HasData(
+            new Plan
+            {
+                Id = 1,
+                Code = PlanCodes.Standard,
+                Nom = "Standard",
+                PrixMontant = 49m,
+                PrixDevise = "EUR",
+                Periodicite = PeriodicitePlan.Mensuel,
+                Actif = true,
+                CreatedAt = createdAt,
+            },
+            new Plan
+            {
+                Id = 2,
+                Code = PlanCodes.StandardPlusTemps,
+                Nom = "Standard + Temps",
+                PrixMontant = 79m,
+                PrixDevise = "EUR",
+                Periodicite = PeriodicitePlan.Mensuel,
+                Actif = true,
+                CreatedAt = createdAt,
+            },
+            new Plan
+            {
+                Id = 3,
+                Code = PlanCodes.Coach,
+                Nom = "Coach (gratuit)",
+                PrixMontant = 0m,
+                PrixDevise = "EUR",
+                Periodicite = PeriodicitePlan.Mensuel,
+                Actif = true,
+                CreatedAt = createdAt,
+            },
+            new Plan
+            {
+                Id = 4,
+                Code = PlanCodes.CoachPlusTemps,
+                Nom = "Coach + Temps",
+                PrixMontant = 19m,
+                PrixDevise = "EUR",
+                Periodicite = PeriodicitePlan.Mensuel,
+                Actif = true,
+                CreatedAt = createdAt,
+            });
+    }
+
+    /// <summary>
+    /// PLACEHOLDER — tarifs à la carte (pas définitifs). Modules enregistrés dans Host
+    /// (<c>Program.cs</c> → <c>moduleRegistry.Register</c>) + <c>Admin</c> (hors registre, toujours gratuit).
+    /// Bundle recrutement (Compatibilite/Recrutement/Vivier/Entretien/Analytics) = activations séparées
+    /// donc prix séparés ici ; l'admin peut mettre 0 sur certains s'il veut un forfait groupé.
+    /// Ajuster depuis <c>/admin/tarifs-modules</c>.
+    /// </summary>
+    private static void SeedModulePrix(ModelBuilder builder)
+    {
+        var createdAt = new DateTimeOffset(2026, 8, 9, 0, 0, 0, TimeSpan.Zero);
+
+        ModulePrix Row(int id, string code, decimal prix, bool facturable) => new()
+        {
+            Id = id,
+            ModuleCode = code,
+            PrixMensuel = prix,
+            Devise = "EUR",
+            Facturable = facturable,
+            CreatedAt = createdAt,
+        };
+
+        builder.Entity<ModulePrix>().HasData(
+            // Socle — jamais facturés
+            Row(1, "ProfilCandidat", 0m, false),
+            Row(2, "ProfilEntreprise", 0m, false),
+            Row(3, "ProfilCoach", 0m, false),
+            Row(4, "Admin", 0m, false),
+            // Add-ons (placeholders)
+            Row(5, "Compatibilite", 15m, true),
+            Row(6, "Recrutement", 25m, true),
+            Row(7, "Vivier", 10m, true),
+            Row(8, "Entretien", 15m, true),
+            Row(9, "Analytics", 15m, true),
+            Row(10, "SuiviEvolutif", 20m, true),
+            Row(11, "SuiviEmployes", 30m, true),
+            Row(12, "GestionDuTemps", 25m, true));
     }
 }

@@ -2,9 +2,10 @@ namespace Spectrometre.Core.Billing;
 
 /// <summary>
 /// Codes de plan connus, pour les seeds et les tests — <see cref="TenantSubscription.PlanCode"/>/
-/// <see cref="CandidateSubscription.PlanCode"/> restent des chaînes libres (même simplicité que
-/// <c>ModuleCode</c> ailleurs, pas de table <c>Plan</c> séparée pour ce cycle) ; ces constantes évitent
-/// seulement de disperser les mêmes littéraux entre le seed et les tests.
+/// <see cref="CandidateSubscription.PlanCode"/>/<see cref="CoachSubscription.PlanCode"/> restent des
+/// chaînes libres (référence molle vers <see cref="Plan.Code"/>, pas de FK) ; ces constantes évitent
+/// seulement de disperser les mêmes littéraux entre le seed et les tests. Les prix vivent dans
+/// <see cref="Plan"/> (éditables via <c>/admin/plans</c>).
 /// </summary>
 public static class PlanCodes
 {

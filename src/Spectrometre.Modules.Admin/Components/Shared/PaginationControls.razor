@@ -1,0 +1,55 @@
+@namespace Spectrometre.Modules.Admin.Components.Shared
+@using Spectrometre.Modules.Admin.Services
+@inject IStringLocalizer<AdminResource> Localizer
+
+@if (TotalCount > 0)
+{
+    <div class="admin-pagination">
+        <div class="admin-pagination-range">
+            @FromIndex–@ToIndex @Localizer["AdminPaginationSur"] @TotalCount
+        </div>
+        <div class="admin-pagination-controls">
+            <label class="admin-pagination-size">
+                <span>@Localizer["AdminPaginationPageTaille"]</span>
+                <select value="@PageSize" @onchange="OnPageSizeChanged">
+                    @foreach (var size in AdminPaging.AllowedPageSizes)
+                    {
+                        <option value="@size">@size</option>
+                    }
+                </select>
+            </label>
+            <button type="button" class="admin-btn-secondary" disabled="@(Page <= 1)" @onclick="() => ChangePageAsync(Page - 1)">
+                @Localizer["AdminPaginationPrecedent"]
+            </button>
+            <span class="admin-pagination-page">@Page / @Math.Max(1, TotalPages)</span>
+            <button type="button" class="admin-btn-secondary" disabled="@(Page >= TotalPages)" @onclick="() => ChangePageAsync(Page + 1)">
+                @Localizer["AdminPaginationSuivant"]
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Page { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = AdminPaging.DefaultPageSize;
+    [Parameter] public int TotalCount { get; set; }
+    [Parameter] public EventCallback<(int Page, int PageSize)> OnChange { get; set; }
+
+    private int TotalPages => PageSize <= 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
+    private int FromIndex => TotalCount == 0 ? 0 : ((Page - 1) * PageSize) + 1;
+    private int ToIndex => Math.Min(Page * PageSize, TotalCount);
+
+    private async Task ChangePageAsync(int page)
+    {
+        if (page < 1 || (TotalPages > 0 && page > TotalPages))
+            return;
+        await OnChange.InvokeAsync((page, PageSize));
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var size))
+            return;
+        await OnChange.InvokeAsync((1, size));
+    }
+}

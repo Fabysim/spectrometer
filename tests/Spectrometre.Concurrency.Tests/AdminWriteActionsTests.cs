@@ -86,9 +86,14 @@ public sealed class AdminWriteActionsTests(ServiceFixture fixture)
         await adminService.DefinirActivationModuleAsync(caller, ModuleActivationSubjectType.Company, company.Id, "Analytics", true);
         await adminService.AjouterModuleAuPlanAsync(caller, planCode, "Analytics");
 
-        var historique = await adminService.GetHistoriqueAsync(caller, take: 200);
-        Assert.Contains(historique, h => h.Action == "ActivationModule" && h.Cible.Contains($"Company #{company.Id}") && h.Cible.Contains("Analytics"));
-        Assert.Contains(historique, h => h.Action == "AjoutModuleAuPlan" && h.Cible.Contains(planCode) && h.Cible.Contains("Analytics"));
+        var historique = await adminService.GetHistoriqueAsync(caller, page: 1, pageSize: 50);
+        Assert.Contains(historique.Items, h => h.Action == "ActivationModule" && h.Cible.Contains($"Company #{company.Id}") && h.Cible.Contains("Analytics"));
+        Assert.Contains(historique.Items, h => h.Action == "AjoutModuleAuPlan" && h.Cible.Contains(planCode) && h.Cible.Contains("Analytics"));
+
+        // Ne pas laisser de plan-histo-* en base partagée.
+        await adminService.RetirerModuleDuPlanAsync(caller, planCode, "Analytics");
+        var plans = await adminService.GetPlansAsync(caller);
+        Assert.DoesNotContain(plans, p => p.PlanCode == planCode);
     }
 
     [Fact]

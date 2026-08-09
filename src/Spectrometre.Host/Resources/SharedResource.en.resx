@@ -262,6 +262,48 @@
   <data name="Home_MesPersonnesSuivies" xml:space="preserve">
     <value>My clients</value>
   </data>
+  <data name="Home_AdminBienvenue" xml:space="preserve">
+    <value>Platform overview.</value>
+  </data>
+  <data name="Home_AdminCompteurs" xml:space="preserve">
+    <value>Activity</value>
+  </data>
+  <data name="Home_AdminEntreprises" xml:space="preserve">
+    <value>Companies</value>
+  </data>
+  <data name="Home_AdminCandidats" xml:space="preserve">
+    <value>Candidates</value>
+  </data>
+  <data name="Home_AdminCoachs" xml:space="preserve">
+    <value>Coaches</value>
+  </data>
+  <data name="Home_AdminEnRetard" xml:space="preserve">
+    <value>Overdue invoices</value>
+  </data>
+  <data name="Home_AdminAucunRetard" xml:space="preserve">
+    <value>No overdue subscriptions.</value>
+  </data>
+  <data name="Home_AdminEcheancesBientot" xml:space="preserve">
+    <value>Due within 14 days</value>
+  </data>
+  <data name="Home_AdminAucuneEcheance" xml:space="preserve">
+    <value>No renewals due in the next 14 days.</value>
+  </data>
+  <data name="Home_AdminMontant" xml:space="preserve">
+    <value>Amount / month</value>
+  </data>
+  <data name="Home_AdminEcheance" xml:space="preserve">
+    <value>Due date</value>
+  </data>
+  <data name="Home_AdminSujet" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Home_AdminVoirFacturation" xml:space="preserve">
+    <value>Billing</value>
+  </data>
+  <data name="Home_AdminVoirTout" xml:space="preserve">
+    <value>View all</value>
+  </data>
   <data name="Nav_MonCoach" xml:space="preserve">
     <value>My coach</value>
   </data>

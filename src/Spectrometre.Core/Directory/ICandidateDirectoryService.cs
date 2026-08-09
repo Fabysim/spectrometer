@@ -15,11 +15,42 @@ public sealed record CandidateDirectoryEntry(int CandidateProfileId, string User
 public interface ICandidateDirectoryService
 {
     Task<IReadOnlyList<CandidateDirectoryEntry>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Compte les profils. Si <paramref name="matchingUserIds"/> et <paramref name="matchingProfileIds"/>
+    /// sont tous deux <c>null</c>, aucun filtre. Sinon : UserId dans la liste OU Id dans la liste
+    /// (listes vides = aucun résultat). Pas de recherche texte locale — les candidats n'ont pas de nom affiché.
+    /// </summary>
+    Task<int> CountAsync(
+        IReadOnlyCollection<string>? matchingUserIds = null,
+        IReadOnlyCollection<int>? matchingProfileIds = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Page ordonnée par <c>CreatedAt</c> croissant puis Id. Même filtre que <see cref="CountAsync"/>.</summary>
+    Task<IReadOnlyList<CandidateDirectoryEntry>> GetPageAsync(
+        int skip,
+        int take,
+        IReadOnlyCollection<string>? matchingUserIds = null,
+        IReadOnlyCollection<int>? matchingProfileIds = null,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>Filet de sécurité : voir la remarque sur <see cref="ICandidateDirectoryService"/> — tant que ProfilCandidat n'est pas enregistré (ex. tests ne le chargeant pas), la zone Admin voit une liste vide plutôt que de lever.</summary>
 public sealed class NoOpCandidateDirectoryService : ICandidateDirectoryService
 {
     public Task<IReadOnlyList<CandidateDirectoryEntry>> GetAllAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<CandidateDirectoryEntry>>([]);
+
+    public Task<int> CountAsync(
+        IReadOnlyCollection<string>? matchingUserIds = null,
+        IReadOnlyCollection<int>? matchingProfileIds = null,
+        CancellationToken cancellationToken = default) => Task.FromResult(0);
+
+    public Task<IReadOnlyList<CandidateDirectoryEntry>> GetPageAsync(
+        int skip,
+        int take,
+        IReadOnlyCollection<string>? matchingUserIds = null,
+        IReadOnlyCollection<int>? matchingProfileIds = null,
+        CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<CandidateDirectoryEntry>>([]);
 }

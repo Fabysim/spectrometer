@@ -8,39 +8,97 @@
 
 <PageTitle>@Localizer["AdminModulesTitre"]</PageTitle>
 
-<h1>@Localizer["AdminModulesTitre"] — @SubjectType #@SubjectId</h1>
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <p class="admin-breadcrumb">
+                <a href="@RetourHref">@RetourLibelle</a>
+                <span aria-hidden="true">/</span>
+                <span>@Localizer["AdminModulesTitre"]</span>
+            </p>
+            <h1 class="admin-title">@Localizer["AdminModulesTitre"]</h1>
+            <p class="admin-subtitle">
+                <span class="admin-type-pill @TypePillClass">@SubjectType</span>
+                <span class="admin-subject-id">#@SubjectId</span>
+                — @Localizer["AdminModulesLead"]
+            </p>
+        </div>
+        <a href="@RetourHref" class="admin-btn-secondary">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["AdminModulesRetour"]
+        </a>
+    </header>
 
-@if (_tous is null)
-{
-    <p>@Localizer["Chargement"]</p>
-}
-else
-{
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>@Localizer["ColModulesActifs"]</th>
-                <th>@Localizer["AdminModulesStatut"]</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var moduleCode in _tous)
-            {
-                var actif = _actifs.Contains(moduleCode);
-                <tr>
-                    <td>@moduleCode</td>
-                    <td>@(actif ? Localizer["Oui"] : Localizer["Non"])</td>
-                    <td>
-                        <button @onclick="() => BasculerAsync(moduleCode, !actif)">
-                            @(actif ? Localizer["AdminModulesDesactiver"] : Localizer["AdminModulesActiver"])
-                        </button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    @if (_tous is null)
+    {
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else if (_tous.Count == 0)
+    {
+        <section class="admin-card">
+            <p class="admin-hint">@Localizer["AdminModulesAucun"]</p>
+        </section>
+    }
+    else
+    {
+        <section class="admin-card admin-table-card">
+            <div class="admin-section-head admin-section-head-pad">
+                <div class="admin-card-icon @IconTone" aria-hidden="true">
+                    <i class="bi @IconClass"></i>
+                </div>
+                <div>
+                    <h2 class="admin-section-title">@Localizer["AdminModulesTitre"]</h2>
+                    <p class="admin-section-meta">
+                        @_actifs.Count / @_tous.Count @Localizer["AdminModulesActifsSur"]
+                    </p>
+                </div>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["ColModulesActifs"]</th>
+                            <th>@Localizer["AdminModulesStatut"]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var moduleCode in _tous)
+                        {
+                            var actif = _actifs.Contains(moduleCode);
+                            <tr class="@(actif ? "is-active-row" : "is-inactive-row")">
+                                <td>
+                                    <span class="admin-module-code">@moduleCode</span>
+                                </td>
+                                <td>
+                                    <span class="admin-badge @(actif ? "is-active" : "is-inactive")">
+                                        @(actif ? Localizer["Oui"] : Localizer["Non"])
+                                    </span>
+                                </td>
+                                <td class="admin-table-actions">
+                                    @if (actif)
+                                    {
+                                        <button type="button" class="admin-btn-danger" @onclick="() => BasculerAsync(moduleCode, false)">
+                                            <i class="bi bi-pause-circle" aria-hidden="true"></i>
+                                            @Localizer["AdminModulesDesactiver"]
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="admin-btn-primary" @onclick="() => BasculerAsync(moduleCode, true)">
+                                            <i class="bi bi-play-circle" aria-hidden="true"></i>
+                                            @Localizer["AdminModulesActiver"]
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
@@ -51,6 +109,46 @@ else
     private IReadOnlyList<string> _actifs = [];
 
     private ModuleActivationSubjectType Type => Enum.Parse<ModuleActivationSubjectType>(SubjectType, ignoreCase: true);
+
+    private string RetourHref => Type switch
+    {
+        ModuleActivationSubjectType.Company => "/admin/entreprises",
+        ModuleActivationSubjectType.Candidate => "/admin/candidats",
+        ModuleActivationSubjectType.Coach => "/admin/coachs",
+        _ => "/admin"
+    };
+
+    private string RetourLibelle => Type switch
+    {
+        ModuleActivationSubjectType.Company => Localizer["AdminNavEntreprises"],
+        ModuleActivationSubjectType.Candidate => Localizer["AdminNavCandidats"],
+        ModuleActivationSubjectType.Coach => Localizer["AdminNavCoachs"],
+        _ => Localizer["Administration"]
+    };
+
+    private string TypePillClass => Type switch
+    {
+        ModuleActivationSubjectType.Company => "is-company",
+        ModuleActivationSubjectType.Candidate => "is-candidate",
+        ModuleActivationSubjectType.Coach => "is-coach",
+        _ => ""
+    };
+
+    private string IconTone => Type switch
+    {
+        ModuleActivationSubjectType.Company => "tone-company",
+        ModuleActivationSubjectType.Candidate => "tone-candidate",
+        ModuleActivationSubjectType.Coach => "tone-coach",
+        _ => "tone-primary"
+    };
+
+    private string IconClass => Type switch
+    {
+        ModuleActivationSubjectType.Company => "bi-building",
+        ModuleActivationSubjectType.Candidate => "bi-person",
+        ModuleActivationSubjectType.Coach => "bi-person-badge",
+        _ => "bi-grid-1x2"
+    };
 
     protected override async Task OnInitializedAsync() => await RefreshAsync();
 

@@ -1,0 +1,308 @@
+/* Admin modules par sujet — aligné Facturation / Tarifs / Entreprises */
+
+.admin-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+}
+
+.admin-state,
+.admin-hint {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.admin-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 0 0.45rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.admin-breadcrumb a {
+    color: var(--bs-primary, #345f6d);
+    text-decoration: none;
+}
+
+.admin-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.admin-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.admin-subtitle {
+    margin: 0.35rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.admin-subject-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 700;
+    color: #475569;
+}
+
+.admin-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.35rem 1.4rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    margin-bottom: 1.25rem;
+}
+
+.admin-table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.admin-section-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-section-head-pad {
+    padding: 1.25rem 1.4rem 0.85rem;
+}
+
+.admin-card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.admin-card-icon.tone-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+}
+
+.admin-card-icon.tone-company {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, #4a7c89 100%);
+}
+
+.admin-card-icon.tone-candidate {
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.admin-card-icon.tone-coach {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+}
+
+.admin-type-pill.is-company {
+    background: #e8f2f4;
+    color: #345f6d;
+}
+
+.admin-type-pill.is-candidate {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.admin-type-pill.is-coach {
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.admin-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+}
+
+.admin-section-meta {
+    margin: 0.15rem 0 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.admin-table th,
+.admin-table td {
+    text-align: left;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.admin-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+    background: rgba(52, 95, 109, 0.03);
+}
+
+.admin-table tbody tr.is-inactive-row {
+    background: #fafafa;
+}
+
+.admin-table tbody tr.is-inactive-row:hover {
+    background: #f3f4f6;
+}
+
+.admin-module-code {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #0f172a;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.admin-type-pill {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.admin-badge.is-active {
+    background: #ecfdf5;
+    color: #166534;
+}
+
+.admin-badge.is-inactive {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.admin-table-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.admin-btn-primary,
+.admin-btn-secondary,
+.admin-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary, #345f6d) 0%, var(--gscv-orange, hsl(18, 80%, 54%)) 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(234, 119, 61, 0.28);
+}
+
+.admin-btn-primary:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 6px 16px rgba(234, 119, 61, 0.35);
+    color: #fff;
+}
+
+.admin-btn-secondary {
+    background: #fff;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.admin-btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.admin-btn-danger {
+    background: #fff;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.admin-btn-danger:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+}
+
+@media (max-width: 720px) {
+    .admin-page {
+        padding: 1rem;
+    }
+
+    .admin-title {
+        font-size: 1.4rem;
+    }
+
+    .admin-header .admin-btn-secondary,
+    .admin-table-actions .admin-btn-primary,
+    .admin-table-actions .admin-btn-danger {
+        width: 100%;
+    }
+
+    .admin-table-actions {
+        text-align: left;
+    }
+}

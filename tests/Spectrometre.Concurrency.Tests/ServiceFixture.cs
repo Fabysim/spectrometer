@@ -140,6 +140,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IPreferenceNotificationService, PreferenceNotificationService>();
+        services.AddScoped<IFacturationCalculatorService, FacturationCalculatorService>();
 
         services.AddScoped<ITenantContext, TenantContext>();
         services.AddProfilCandidatModule(config);

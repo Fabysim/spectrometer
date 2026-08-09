@@ -2,65 +2,257 @@
 @attribute [Authorize(Roles = PlatformRoles.Admin)]
 @rendermode InteractiveServer
 @using System.Security.Claims
+@using Spectrometre.Core.Modules
 @inject IAdminService AdminService
+@inject IModuleRegistry ModuleRegistry
 @inject IStringLocalizer<AdminResource> Localizer
 
 <PageTitle>@Localizer["AdminPlansTitre"]</PageTitle>
 
-<h1>@Localizer["AdminPlansTitre"]</h1>
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["AdminPlansTitre"]</h1>
+            <p class="admin-subtitle">
+                @Localizer["AdminPlansLead"]
+                <a href="/admin/tarifs-modules">/admin/tarifs-modules</a>
+                — @Localizer["AdminPlansLeadTarifs"]
+            </p>
+        </div>
+    </header>
 
-@if (_plans is null)
-{
-    <p>@Localizer["Chargement"]</p>
-}
-else
-{
-    @foreach (var plan in _plans)
+    <AdminListSearch Barre="@_recherche" OnSearch="OnSearchAsync" PlaceholderKey="AdminListeRecherchePlaceholder" />
+
+    @if (_plans is null)
     {
-        <section style="margin-bottom: 1.5rem;">
-            <h2>@plan.PlanCode</h2>
-            <ul>
-                @foreach (var moduleCode in plan.ModulesInclus)
-                {
-                    <li>
-                        @moduleCode
-                        <button @onclick="() => RetirerAsync(plan.PlanCode, moduleCode)">@Localizer["AdminPlansRetirer"]</button>
-                    </li>
-                }
-            </ul>
-            <input @bind="_nouveauModuleParPlan[plan.PlanCode]" placeholder="@Localizer["AdminPlansCodeModule"]" />
-            <button @onclick="() => AjouterAsync(plan.PlanCode)">@Localizer["AdminPlansAjouter"]</button>
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else if (_plans.Count == 0)
+    {
+        <section class="admin-card">
+            <p class="admin-hint">@Localizer["AdminPlansAucun"]</p>
         </section>
     }
-}
+    else
+    {
+        <div class="admin-plans-grid">
+            @foreach (var plan in _plans)
+            {
+                var disponibles = ModulesDisponibles(plan);
+                var selection = GetSelection(plan.PlanCode);
+                <section class="admin-card admin-plan-card @(plan.Actif ? "" : "is-inactive")">
+                    <div class="admin-plan-header">
+                        <div class="admin-plan-heading">
+                            <div class="admin-card-icon tone-primary" aria-hidden="true">
+                                <i class="bi bi-card-list"></i>
+                            </div>
+                            <div>
+                                <h2 class="admin-plan-name">@plan.Nom</h2>
+                                <p class="admin-plan-code">@plan.PlanCode</p>
+                            </div>
+                        </div>
+                        <div class="admin-plan-status-row">
+                            <span class="admin-badge @(plan.Actif ? "is-active" : "is-inactive")">
+                                @(plan.Actif ? Localizer["AdminPlansActif"] : Localizer["AdminPlansInactif"])
+                            </span>
+                            <button type="button" class="admin-btn-secondary" @onclick="() => ToggleActifAsync(plan)">
+                                <i class="bi @(plan.Actif ? "bi-pause-circle" : "bi-play-circle")" aria-hidden="true"></i>
+                                @(plan.Actif ? Localizer["AdminPlansDesactiver"] : Localizer["AdminPlansActiver"])
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="admin-plan-pricing-breakdown">
+                        @if (plan.DetailTarifs.Count == 0)
+                        {
+                            <p class="admin-hint">@Localizer["AdminPlansAucunModule"]</p>
+                        }
+                        else
+                        {
+                            <ul class="admin-plan-tarif-list">
+                                @foreach (var ligne in plan.DetailTarifs)
+                                {
+                                    <li class="@(!ligne.TarifDefini ? "is-undefined" : null)">
+                                        <span class="admin-plan-tarif-code">@ligne.ModuleCode</span>
+                                        <span class="admin-plan-tarif-prix">
+                                            @if (!ligne.TarifDefini)
+                                            {
+                                                <a class="admin-plan-tarif-missing" href="/admin/tarifs-modules">@Localizer["AdminPlansTarifADefinir"]</a>
+                                            }
+                                            else if (ligne.Facturable)
+                                            {
+                                                @($"{ligne.PrixMensuel.ToString("0.##")} {ligne.Devise}")
+                                            }
+                                            else
+                                            {
+                                                @Localizer["AdminPlansGratuit"]
+                                            }
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                            <div class="admin-plan-tarif-total">
+                                <span>@Localizer["AdminPlansTotalDuMois"]</span>
+                                <strong>@plan.TotalMensuel.ToString("0.##") @plan.DeviseTotale</strong>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="admin-plan-modules">
+                        <h3 class="admin-section-title">@Localizer["AdminPlansModules"]</h3>
+                        @if (plan.ModulesInclus.Count == 0)
+                        {
+                            <p class="admin-hint">@Localizer["AdminPlansAucunModule"]</p>
+                        }
+                        else
+                        {
+                            <ul class="admin-module-list">
+                                @foreach (var moduleCode in plan.ModulesInclus)
+                                {
+                                    <li class="admin-module-chip">
+                                        <span class="admin-module-code">@moduleCode</span>
+                                        <button type="button" class="admin-btn-ghost" title="@Localizer["AdminPlansRetirer"]" @onclick="() => RetirerAsync(plan.PlanCode, moduleCode)">
+                                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                            <span class="visually-hidden">@Localizer["AdminPlansRetirer"]</span>
+                                        </button>
+                                    </li>
+                                }
+                            </ul>
+                        }
+
+                        @if (disponibles.Count > 0)
+                        {
+                            <div class="admin-module-picker">
+                                <div class="admin-module-picker-head">
+                                    <span class="admin-field-label">@Localizer["AdminPlansCodeModule"]</span>
+                                    <span class="admin-module-picker-count">
+                                        @selection.Count / @disponibles.Count @Localizer["AdminPlansSelectionnes"]
+                                    </span>
+                                </div>
+                                <p class="admin-module-picker-hint">@Localizer["AdminPlansMultiSelectHint"]</p>
+                                <div class="admin-module-picker-list" role="group" aria-label="@Localizer["AdminPlansCodeModule"]">
+                                    @foreach (var moduleOption in disponibles)
+                                    {
+                                        var selected = selection.Contains(moduleOption);
+                                        <label class="admin-module-option @(selected ? "is-selected" : null)">
+                                            <input type="checkbox"
+                                                   checked="@selected"
+                                                   @onchange="() => ToggleModule(plan.PlanCode, moduleOption)" />
+                                            <span class="admin-module-option-check" aria-hidden="true">
+                                                <i class="bi bi-check-lg"></i>
+                                            </span>
+                                            <span class="admin-module-option-code">@moduleOption</span>
+                                        </label>
+                                    }
+                                </div>
+                                <div class="admin-module-picker-actions">
+                                    <button type="button"
+                                            class="admin-btn-ghost-text"
+                                            disabled="@(selection.Count == 0)"
+                                            @onclick="() => ClearSelection(plan.PlanCode)">
+                                        @Localizer["AdminPlansEffacerSelection"]
+                                    </button>
+                                    <button type="button"
+                                            class="admin-btn-secondary"
+                                            disabled="@(selection.Count == 0)"
+                                            @onclick="() => AjouterAsync(plan.PlanCode)">
+                                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                        @Localizer["AdminPlansAjouter"]
+                                        @if (selection.Count > 0)
+                                        {
+                                            <span class="admin-module-picker-badge">@selection.Count</span>
+                                        }
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    }
+</div>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
     private IReadOnlyList<AdminPlanView>? _plans;
-    private readonly Dictionary<string, string> _nouveauModuleParPlan = [];
+    private string? _recherche;
+    private readonly Dictionary<string, HashSet<string>> _selectionParPlan = new(StringComparer.Ordinal);
 
     protected override async Task OnInitializedAsync() => await RefreshAsync();
 
     private async Task<ClaimsPrincipal> CallerAsync() =>
         AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
 
+    private IReadOnlyList<string> ModulesDisponibles(AdminPlanView plan)
+    {
+        var inclus = plan.ModulesInclus.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return ModuleRegistry.AllModules
+            .Select(m => m.Code)
+            .Where(c => !inclus.Contains(c))
+            .OrderBy(c => c, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private HashSet<string> GetSelection(string planCode)
+    {
+        if (!_selectionParPlan.TryGetValue(planCode, out var set))
+        {
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _selectionParPlan[planCode] = set;
+        }
+
+        return set;
+    }
+
+    private void ToggleModule(string planCode, string moduleCode)
+    {
+        var set = GetSelection(planCode);
+        if (!set.Add(moduleCode))
+            set.Remove(moduleCode);
+    }
+
+    private void ClearSelection(string planCode) => GetSelection(planCode).Clear();
+
     private async Task RefreshAsync()
     {
         var caller = await CallerAsync();
-        _plans = await AdminService.GetPlansAsync(caller);
+        _plans = await AdminService.GetPlansAvecPrixAsync(caller, _recherche);
+
+        // Retirer de la sélection les modules déjà inclus (ou disparus).
         foreach (var plan in _plans)
-            _nouveauModuleParPlan.TryAdd(plan.PlanCode, "");
+        {
+            var disponibles = ModulesDisponibles(plan).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var set = GetSelection(plan.PlanCode);
+            set.RemoveWhere(m => !disponibles.Contains(m));
+        }
+    }
+
+    private async Task OnSearchAsync(string? term)
+    {
+        _recherche = term;
+        await RefreshAsync();
+    }
+
+    private async Task ToggleActifAsync(AdminPlanView plan)
+    {
+        var caller = await CallerAsync();
+        await AdminService.SetPlanActifAsync(caller, plan.PlanCode, !plan.Actif);
+        await RefreshAsync();
     }
 
     private async Task AjouterAsync(string planCode)
     {
-        if (!_nouveauModuleParPlan.TryGetValue(planCode, out var moduleCode) || string.IsNullOrWhiteSpace(moduleCode))
+        var selected = GetSelection(planCode).ToList();
+        if (selected.Count == 0)
             return;
 
         var caller = await CallerAsync();
-        await AdminService.AjouterModuleAuPlanAsync(caller, planCode, moduleCode.Trim());
-        _nouveauModuleParPlan[planCode] = "";
+        foreach (var moduleCode in selected)
+            await AdminService.AjouterModuleAuPlanAsync(caller, planCode, moduleCode);
+
+        ClearSelection(planCode);
         await RefreshAsync();
     }
 

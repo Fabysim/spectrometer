@@ -1,0 +1,165 @@
+@page "/admin/tarifs-modules"
+@attribute [Authorize(Roles = PlatformRoles.Admin)]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@inject IAdminService AdminService
+@inject IStringLocalizer<AdminResource> Localizer
+
+<PageTitle>@Localizer["AdminTarifsModulesTitre"]</PageTitle>
+
+<div class="admin-page">
+    <header class="admin-header">
+        <div>
+            <h1 class="admin-title">@Localizer["AdminTarifsModulesTitre"]</h1>
+            <p class="admin-subtitle">
+                @Localizer["AdminTarifsModulesLead"]
+                <a href="/admin/plans">/admin/plans</a>
+            </p>
+        </div>
+    </header>
+
+    @if (_rows is null)
+    {
+        <p class="admin-state">@Localizer["Chargement"]</p>
+    }
+    else if (_rows.Count == 0)
+    {
+        <section class="admin-card">
+            <p class="admin-hint">@Localizer["AdminTarifsAucun"]</p>
+        </section>
+    }
+    else
+    {
+        <section class="admin-card admin-table-card">
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["AdminTarifsModule"]</th>
+                            <th>@Localizer["AdminTarifsPrix"]</th>
+                            <th>@Localizer["AdminTarifsDevise"]</th>
+                            <th>@Localizer["AdminTarifsFacturable"]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in _rows)
+                        {
+                            <tr class="@(!_facturable[row.ModuleCode] ? "is-non-billable" : null)">
+                                <td>
+                                    <span class="admin-module-code">@row.ModuleCode</span>
+                                </td>
+                                <td>
+                                    <input class="admin-input admin-input-price"
+                                           type="number"
+                                           step="0.01"
+                                           min="0"
+                                           value="@FormatPrix(_prix[row.ModuleCode])"
+                                           @onchange="e => OnPrixChanged(row.ModuleCode, e.Value)" />
+                                </td>
+                                <td>
+                                    <input class="admin-input admin-input-currency"
+                                           value="@_devise[row.ModuleCode]"
+                                           @onchange="e => OnDeviseChanged(row.ModuleCode, e.Value)" />
+                                </td>
+                                <td>
+                                    <label class="admin-check">
+                                        <input type="checkbox"
+                                               checked="@_facturable[row.ModuleCode]"
+                                               @onchange="e => OnFacturableChanged(row.ModuleCode, e.Value)" />
+                                        <span class="admin-check-ui" aria-hidden="true"></span>
+                                    </label>
+                                </td>
+                                <td class="admin-table-actions">
+                                    <button type="button" class="admin-btn-primary" @onclick="() => SauverAsync(row.ModuleCode)">
+                                        <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                        @Localizer["AdminTarifsSauver"]
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private IReadOnlyList<AdminModulePrixView>? _rows;
+    private readonly Dictionary<string, decimal> _prix = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> _devise = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, bool> _facturable = new(StringComparer.OrdinalIgnoreCase);
+
+    protected override async Task OnInitializedAsync() => await RefreshAsync();
+
+    private async Task<ClaimsPrincipal> CallerAsync() =>
+        AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
+
+    private async Task RefreshAsync()
+    {
+        var caller = await CallerAsync();
+        _rows = await AdminService.GetModulePrixAsync(caller);
+        foreach (var row in _rows)
+        {
+            _prix[row.ModuleCode] = row.PrixMensuel;
+            _devise[row.ModuleCode] = string.IsNullOrWhiteSpace(row.Devise) ? "EUR" : row.Devise;
+            _facturable[row.ModuleCode] = row.Facturable;
+        }
+    }
+
+    /// <summary>type=number exige un point décimal (invariant) — sinon le champ apparaît vide en culture FR.</summary>
+    private static string FormatPrix(decimal value) =>
+        value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private void OnPrixChanged(string moduleCode, object? value)
+    {
+        _prix[moduleCode] = ParseDec(value);
+    }
+
+    private void OnDeviseChanged(string moduleCode, object? value)
+    {
+        var text = value?.ToString()?.Trim();
+        _devise[moduleCode] = string.IsNullOrEmpty(text) ? "EUR" : text.ToUpperInvariant();
+    }
+
+    private void OnFacturableChanged(string moduleCode, object? value)
+    {
+        _facturable[moduleCode] = value switch
+        {
+            bool b => b,
+            string s when bool.TryParse(s, out var parsed) => parsed,
+            _ => false
+        };
+    }
+
+    private static decimal ParseDec(object? value)
+    {
+        var text = value?.ToString()?.Trim();
+        if (string.IsNullOrEmpty(text))
+            return 0m;
+
+        if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var inv))
+            return inv;
+
+        if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.CurrentCulture, out var cur))
+            return cur;
+
+        return 0m;
+    }
+
+    private async Task SauverAsync(string moduleCode)
+    {
+        var caller = await CallerAsync();
+        await AdminService.SetModulePrixAsync(
+            caller,
+            moduleCode,
+            _prix.GetValueOrDefault(moduleCode),
+            _devise.GetValueOrDefault(moduleCode, "EUR"),
+            _facturable.GetValueOrDefault(moduleCode, true));
+        await RefreshAsync();
+    }
+}

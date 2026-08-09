@@ -1,0 +1,101 @@
+@namespace Spectrometre.Modules.Admin.Components.Shared
+@implements IDisposable
+@inject IStringLocalizer<AdminResource> Localizer
+
+<div class="admin-search-bar">
+    <div class="admin-search-field">
+        <label class="visually-hidden" for="@_inputId">@Localizer["AdminListeRecherche"]</label>
+        <i class="bi bi-search admin-search-icon" aria-hidden="true"></i>
+        <input id="@_inputId"
+               class="admin-search-input"
+               value="@_draft"
+               placeholder="@(string.IsNullOrEmpty(PlaceholderKey) ? Localizer["AdminListeRecherchePlaceholder"] : Localizer[PlaceholderKey])"
+               autocomplete="off"
+               spellcheck="false"
+               @oninput="OnInputAsync" />
+        @if (!string.IsNullOrWhiteSpace(_draft))
+        {
+            <button type="button"
+                    class="admin-search-clear"
+                    title="@Localizer["AdminListeRechercheEffacer"]"
+                    aria-label="@Localizer["AdminListeRechercheEffacer"]"
+                    @onclick="ClearAsync">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Filtrage au fur et à mesure (debounce 300 ms) — pas de bouton Rechercher.
+    /// </summary>
+    [Parameter] public string? Barre { get; set; }
+    [Parameter] public EventCallback<string?> OnSearch { get; set; }
+    [Parameter] public string PlaceholderKey { get; set; } = "AdminListeRecherchePlaceholder";
+
+    private string _draft = "";
+    private string? _applied;
+    private readonly string _inputId = $"admin-search-{Guid.NewGuid():N}";
+    private CancellationTokenSource? _debounceCts;
+    private const int DebounceMs = 300;
+
+    protected override void OnParametersSet()
+    {
+        // Synchronise l'affichage si le parent réinitialise la barre (sans écraser une frappe en cours).
+        if (Barre != _applied)
+        {
+            _draft = Barre ?? "";
+            _applied = Barre;
+        }
+    }
+
+    private async Task OnInputAsync(ChangeEventArgs e)
+    {
+        _draft = e.Value?.ToString() ?? "";
+        await ScheduleSearchAsync();
+    }
+
+    private async Task ScheduleSearchAsync()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        try
+        {
+            await Task.Delay(DebounceMs, token);
+            if (token.IsCancellationRequested)
+                return;
+
+            var term = string.IsNullOrWhiteSpace(_draft) ? null : _draft.Trim();
+            if (term == _applied)
+                return;
+
+            _applied = term;
+            await OnSearch.InvokeAsync(term);
+        }
+        catch (TaskCanceledException)
+        {
+            // Nouvelle frappe avant la fin du debounce.
+        }
+    }
+
+    private async Task ClearAsync()
+    {
+        _debounceCts?.Cancel();
+        _draft = "";
+        if (_applied is null)
+            return;
+
+        _applied = null;
+        await OnSearch.InvokeAsync(null);
+    }
+
+    public void Dispose()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+    }
+}

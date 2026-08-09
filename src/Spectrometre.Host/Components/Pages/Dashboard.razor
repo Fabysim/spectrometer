@@ -2,15 +2,19 @@
 @using System.Globalization
 @using System.Security.Claims
 @using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Billing
 @using Spectrometre.Core.Data
+@using Spectrometre.Core.Identity
 @using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
+@using Spectrometre.Modules.Admin.Services
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject ICoachSubjectResolver CoachSubjectResolver
+@inject IAdminService AdminService
 @inject CoreDbContext CoreDb
 @inject IStringLocalizer<SharedResource> Localizer
 
@@ -20,7 +24,7 @@
     <div class="header-bar-dashboard">
         <div class="welcome-section-dashboard">
             <h1>@Localizer["TableauDeBord"]</h1>
-            <p>@Localizer["Home_Bienvenue"]</p>
+            <p>@(_isPlatformAdmin ? Localizer["Home_AdminBienvenue"] : Localizer["Home_Bienvenue"])</p>
         </div>
         <div class="header-actions-dashboard">
             @if (!_isAuthenticated)
@@ -29,6 +33,13 @@
                 <a href="/inscription" class="btn-primary-modern-dashboard">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
                     @Localizer["CreerUnCompte"]
+                </a>
+            }
+            else if (_isPlatformAdmin)
+            {
+                <a href="/admin/facturation" class="btn-primary-modern-dashboard">
+                    <i class="bi bi-receipt" aria-hidden="true"></i>
+                    @Localizer["Home_AdminVoirFacturation"]
                 </a>
             }
             else if (_company is null && !_estCandidatOuCoach)
@@ -67,7 +78,129 @@
     else
     {
         <div class="content-grid-dashboard">
-            @if (_company is not null || !_estCandidatOuCoach)
+            @if (_isPlatformAdmin)
+            {
+                <section class="card-modern-dashboard">
+                    <div class="card-header-modern-dashboard">
+                        <h2 class="card-title-modern-dashboard">
+                            <i class="bi bi-speedometer2" aria-hidden="true"></i>
+                            <span>@Localizer["Home_AdminCompteurs"]</span>
+                        </h2>
+                        <a href="/admin" class="card-action-dashboard">
+                            @Localizer["Home_AdminVoirTout"]
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    <div class="dashboard-admin-stats">
+                        <a href="/admin/entreprises" class="dashboard-admin-stat">
+                            <span class="dashboard-admin-stat-value">@(_compteurs?.TotalEntreprises ?? 0)</span>
+                            <span class="dashboard-admin-stat-label">@Localizer["Home_AdminEntreprises"]</span>
+                        </a>
+                        <a href="/admin/candidats" class="dashboard-admin-stat">
+                            <span class="dashboard-admin-stat-value">@(_compteurs?.TotalCandidats ?? 0)</span>
+                            <span class="dashboard-admin-stat-label">@Localizer["Home_AdminCandidats"]</span>
+                        </a>
+                        <a href="/admin/coachs" class="dashboard-admin-stat">
+                            <span class="dashboard-admin-stat-value">@(_compteurs?.TotalCoachs ?? 0)</span>
+                            <span class="dashboard-admin-stat-label">@Localizer["Home_AdminCoachs"]</span>
+                        </a>
+                        <a href="/admin/facturation" class="dashboard-admin-stat @( (_enRetardTotal > 0) ? "is-alert" : "" )">
+                            <span class="dashboard-admin-stat-value">@_enRetardTotal</span>
+                            <span class="dashboard-admin-stat-label">@Localizer["Home_AdminEnRetard"]</span>
+                        </a>
+                    </div>
+                </section>
+
+                <section class="card-modern-dashboard">
+                    <div class="card-header-modern-dashboard">
+                        <h2 class="card-title-modern-dashboard">
+                            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                            <span>@Localizer["Home_AdminEnRetard"]</span>
+                        </h2>
+                        <a href="/admin/facturation" class="card-action-dashboard">
+                            @Localizer["Home_AdminVoirFacturation"]
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    @if (_enRetard.Count == 0)
+                    {
+                        <p class="dashboard-hint">@Localizer["Home_AdminAucunRetard"]</p>
+                    }
+                    else
+                    {
+                        <div class="dashboard-admin-table-wrap">
+                            <table class="dashboard-admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>@Localizer["Home_AdminSujet"]</th>
+                                        <th>@Localizer["Home_AdminMontant"]</th>
+                                        <th>@Localizer["Home_AdminEcheance"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var a in _enRetard.Take(8))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="dashboard-admin-type">@a.SubjectType</span>
+                                                @a.Libelle
+                                            </td>
+                                            <td>@a.MontantDu.ToString("0.##") @a.Devise</td>
+                                            <td>@(a.RenewalDate?.ToString("d") ?? "—")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+
+                <section class="card-modern-dashboard">
+                    <div class="card-header-modern-dashboard">
+                        <h2 class="card-title-modern-dashboard">
+                            <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                            <span>@Localizer["Home_AdminEcheancesBientot"]</span>
+                        </h2>
+                        <a href="/admin/facturation" class="card-action-dashboard">
+                            @Localizer["Home_AdminVoirFacturation"]
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    @if (_echeancesBientot.Count == 0)
+                    {
+                        <p class="dashboard-hint">@Localizer["Home_AdminAucuneEcheance"]</p>
+                    }
+                    else
+                    {
+                        <div class="dashboard-admin-table-wrap">
+                            <table class="dashboard-admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>@Localizer["Home_AdminSujet"]</th>
+                                        <th>@Localizer["Home_AdminMontant"]</th>
+                                        <th>@Localizer["Home_AdminEcheance"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var a in _echeancesBientot.Take(8))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="dashboard-admin-type">@a.SubjectType</span>
+                                                @a.Libelle
+                                            </td>
+                                            <td>@a.MontantDu.ToString("0.##") @a.Devise</td>
+                                            <td>@(a.RenewalDate?.ToString("d") ?? "—")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+            }
+
+            @if ((_company is not null || (!_estCandidatOuCoach && !_isPlatformAdmin)))
             {
             <section class="card-modern-dashboard">
                 <div class="card-header-modern-dashboard">
@@ -91,7 +224,7 @@
                     }
                 </div>
 
-                @if (_company is null && !_estCandidatOuCoach)
+                @if (_company is null && !_estCandidatOuCoach && !_isPlatformAdmin)
                 {
                     <p class="dashboard-hint">@Localizer["Home_AucuneEntreprise"]</p>
                     <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
@@ -190,11 +323,18 @@
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
     private bool _isAuthenticated;
+    private bool _isPlatformAdmin;
     private bool _estCandidatOuCoach;
     private Company? _company;
+    private AdminGlobalCounts? _compteurs;
+    private int _enRetardTotal;
+    private readonly List<AdminAbonnementFacturationView> _enRetard = [];
+    private readonly List<AdminAbonnementFacturationView> _echeancesBientot = [];
     private readonly List<DashboardLink> _companyLinks = [];
     private readonly List<DashboardLink> _candidateLinks = [];
     private readonly List<DashboardLink> _coachLinks = [];
+
+    private const int HorizonEcheanceJours = 14;
 
     private static readonly string[] IconTones = ["tone-primary", "tone-teal", "tone-blue", "tone-purple", "tone-orange"];
 
@@ -250,6 +390,8 @@
     /// <summary>
     /// Tableau de bord entièrement dynamique — mêmes vérifications que le menu principal (voir
     /// MainLayout) : IsActiveAsync/IsActiveForCandidateAsync module par module, jamais GetActiveModuleCodesAsync.
+    /// Pour un <see cref="PlatformRoles.Admin"/> : pas de CTA création d'entreprise ; vue facturation
+    /// (retards + échéances à 14 jours) et compteurs globaux via <see cref="IAdminService"/>.
     /// </summary>
     /// <remarks>
     /// Côté entreprise, <see cref="PersonalModuleCodes"/> est exclu de l'énumération — un module personnel
@@ -267,10 +409,34 @@
             return;
 
         _isAuthenticated = true;
+        _isPlatformAdmin = user.IsInRole(PlatformRoles.Admin);
 
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
             return;
+
+        if (_isPlatformAdmin)
+        {
+            _compteurs = await AdminService.GetCompteursGlobauxAsync(user);
+
+            // Widgets dashboard : page courte (montants calculés seulement pour ces lignes).
+            var enRetardPage = await AdminService.GetAbonnementsEnRetardAsync(user, page: 1, pageSize: 8);
+            _enRetardTotal = enRetardPage.TotalCount;
+            _enRetard.AddRange(enRetardPage.Items.OrderBy(a => a.RenewalDate));
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var horizon = today.AddDays(HorizonEcheanceJours);
+            // Fenêtre « bientôt » : on ne parcourt qu'une page élargie (50) — pas tout le catalogue.
+            var tous = await AdminService.GetAbonnementsFacturationAsync(user, page: 1, pageSize: 50);
+            _echeancesBientot.AddRange(tous.Items
+                .Where(a =>
+                    a.Status == SubscriptionStatus.Active
+                    && a.RenewalDate is DateTimeOffset r
+                    && DateOnly.FromDateTime(r.UtcDateTime) >= today
+                    && DateOnly.FromDateTime(r.UtcDateTime) <= horizon)
+                .OrderBy(a => a.RenewalDate)
+                .Take(8));
+        }
 
         var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
         if (companies.Count > 0)

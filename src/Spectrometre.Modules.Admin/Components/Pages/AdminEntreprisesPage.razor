@@ -15,11 +15,13 @@
         </div>
     </header>
 
+    <AdminListSearch Barre="@_recherche" OnSearch="OnSearchAsync" />
+
     @if (_entreprises is null)
     {
         <p class="admin-state">@Localizer["Chargement"]</p>
     }
-    else if (_entreprises.Count == 0)
+    else if (_totalCount == 0)
     {
         <section class="admin-card">
             <p class="admin-hint">@Localizer["AucuneEntreprise"]</p>
@@ -57,6 +59,7 @@
                     </tbody>
                 </table>
             </div>
+            <PaginationControls Page="_page" PageSize="_pageSize" TotalCount="_totalCount" OnChange="OnPagingChanged" />
         </section>
     }
 </div>
@@ -64,11 +67,35 @@
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
+    private int _page = 1;
+    private int _pageSize = AdminPaging.DefaultPageSize;
+    private int _totalCount;
+    private string? _recherche;
     private IReadOnlyList<AdminCompanySummary>? _entreprises;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
     {
         var caller = AuthenticationStateTask is null ? new ClaimsPrincipal() : (await AuthenticationStateTask).User;
-        _entreprises = await AdminService.GetEntreprisesAsync(caller);
+        var result = await AdminService.GetEntreprisesAsync(caller, _page, _pageSize, _recherche);
+        _entreprises = result.Items;
+        _totalCount = result.TotalCount;
+        _page = result.Page;
+        _pageSize = result.PageSize;
+    }
+
+    private async Task OnSearchAsync(string? term)
+    {
+        _recherche = term;
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private async Task OnPagingChanged((int page, int pageSize) args)
+    {
+        _page = args.page;
+        _pageSize = args.pageSize;
+        await LoadAsync();
     }
 }

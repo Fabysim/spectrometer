@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Resend;
 using Spectrometre.Core.Ai;
+using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Directory;
 using Spectrometre.Core.Email;
@@ -70,6 +71,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IPreferenceNotificationService, PreferenceNotificationService>();
+        services.AddScoped<IFacturationCalculatorService, FacturationCalculatorService>();
 
         // Resend : envoi d'email de confirmation d'inscription — mêmes clés de configuration que mvp
         // (Resend:ApiKey/Resend:From/Resend:AppName, variable d'environnement RESEND_API_KEY en repli).

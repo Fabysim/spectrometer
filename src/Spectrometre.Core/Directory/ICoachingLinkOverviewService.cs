@@ -7,11 +7,40 @@ public sealed record CoachingLinkSummary(int Id, string SuiviUserId, string Coac
 public interface ICoachingLinkOverviewService
 {
     Task<IReadOnlyList<CoachingLinkSummary>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Compte les liens. Si <paramref name="recherche"/> est <c>null</c>, aucun filtre.
+    /// Sinon : SuiviUserId/CoachUserId dans <paramref name="matchingUserIds"/> OU Statut contient le terme.
+    /// </summary>
+    Task<int> CountAsync(
+        string? recherche = null,
+        IReadOnlyCollection<string>? matchingUserIds = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CoachingLinkSummary>> GetPageAsync(
+        int skip,
+        int take,
+        string? recherche = null,
+        IReadOnlyCollection<string>? matchingUserIds = null,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>Filet de sécurité — voir <see cref="NoOpCandidateDirectoryService"/>.</summary>
 public sealed class NoOpCoachingLinkOverviewService : ICoachingLinkOverviewService
 {
     public Task<IReadOnlyList<CoachingLinkSummary>> GetAllAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<CoachingLinkSummary>>([]);
+
+    public Task<int> CountAsync(
+        string? recherche = null,
+        IReadOnlyCollection<string>? matchingUserIds = null,
+        CancellationToken cancellationToken = default) => Task.FromResult(0);
+
+    public Task<IReadOnlyList<CoachingLinkSummary>> GetPageAsync(
+        int skip,
+        int take,
+        string? recherche = null,
+        IReadOnlyCollection<string>? matchingUserIds = null,
+        CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<CoachingLinkSummary>>([]);
 }
