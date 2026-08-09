@@ -11,4 +11,7 @@ namespace Spectrometre.Core.Modules;
 public interface ICandidateSubjectResolver
 {
     Task<int> GetOrCreateCandidateProfileIdAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Profil candidat s'il existe déjà — <c>null</c> sinon, sans le créer.</summary>
+    Task<int?> TryGetCandidateProfileIdAsync(string userId, CancellationToken cancellationToken = default);
 }

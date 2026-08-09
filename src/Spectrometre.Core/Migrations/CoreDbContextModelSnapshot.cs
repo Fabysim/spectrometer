@@ -345,6 +345,30 @@ namespace Spectrometre.Core.Migrations
                             Id = 18,
                             ModuleCode = "ProfilCoach",
                             PlanCode = "Coach"
+                        },
+                        new
+                        {
+                            Id = 1000,
+                            ModuleCode = "SuiviEmployes",
+                            PlanCode = "Standard"
+                        },
+                        new
+                        {
+                            Id = 1001,
+                            ModuleCode = "SuiviEmployes",
+                            PlanCode = "StandardPlusTemps"
+                        },
+                        new
+                        {
+                            Id = 2000,
+                            ModuleCode = "ProfilCoach",
+                            PlanCode = "CoachPlusTemps"
+                        },
+                        new
+                        {
+                            Id = 2001,
+                            ModuleCode = "GestionDuTemps",
+                            PlanCode = "CoachPlusTemps"
                         });
                 });
 
@@ -529,6 +553,79 @@ namespace Spectrometre.Core.Migrations
                     b.ToTable("ModuleActivations", "core");
                 });
 
+            modelBuilder.Entity("Spectrometre.Core.Notifications.NotificationUtilisateur", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Lien")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("LueLe")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TypeCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("UserId", "LueLe");
+
+                    b.ToTable("NotificationsUtilisateur", "core");
+                });
+
+            modelBuilder.Entity("Spectrometre.Core.Notifications.PreferenceNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("CategorieCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CategorieCode")
+                        .IsUnique();
+
+                    b.ToTable("PreferencesNotification", "core");
+                });
+
             modelBuilder.Entity("Spectrometre.Core.Recruitment.CandidatureIndexEntry", b =>
                 {
                     b.Property<int>("Id")
@@ -696,6 +793,9 @@ namespace Spectrometre.Core.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("PosteId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");

@@ -17,13 +17,17 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
   </ItemGroup>
 
-  <ItemGroup>
+    <ItemGroup>
     <!-- Dépendances réelles (pas seulement déclarées au manifeste) : Coaching lit les données Gestion du
          temps de la personne suivie via IGestionDuTempsService, et résout/affiche l'annuaire via
-         ICoachProfileService — voir la remarque sur ICoachingAccessService. -->
+         ICoachProfileService — voir la remarque sur ICoachingAccessService.
+         SuiviEmployes : lecture seule de ISuiviEmployesService pour conditionner le bouton « Suivi employés »
+         sur /coach/suivis (jamais d'écriture, jamais d'entités SuiviEmployes). Sens unique — SuiviEmployes
+         ne référence jamais Coaching. -->
     <ProjectReference Include="..\Spectrometre.Core\Spectrometre.Core.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.GestionDuTemps\Spectrometre.Modules.GestionDuTemps.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.ProfilCoach\Spectrometre.Modules.ProfilCoach.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.SuiviEmployes\Spectrometre.Modules.SuiviEmployes.csproj" />
   </ItemGroup>
 
 </Project>

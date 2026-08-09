@@ -94,6 +94,87 @@ namespace Spectrometre.Modules.Coaching.Data.Migrations
 
                     b.ToTable("LiensCoaching", "coaching");
                 });
+
+            modelBuilder.Entity("Spectrometre.Modules.Coaching.Entities.ObjectifCoaching", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Atteinte")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Moyens")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Note")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observation")
+                        .HasColumnType("text");
+
+                    b.Property<int>("PeriodeObjectifsCoachingId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PeriodeObjectifsCoachingId");
+
+                    b.ToTable("ObjectifsCoaching", "coaching");
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.Coaching.Entities.PeriodeObjectifsCoaching", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Archivee")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly>("DateDebut")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("DateFin")
+                        .HasColumnType("date");
+
+                    b.Property<int>("LienCoachingId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LienCoachingId", "Archivee");
+
+                    b.ToTable("PeriodesObjectifsCoaching", "coaching");
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.Coaching.Entities.ObjectifCoaching", b =>
+                {
+                    b.HasOne("Spectrometre.Modules.Coaching.Entities.PeriodeObjectifsCoaching", "Periode")
+                        .WithMany("Objectifs")
+                        .HasForeignKey("PeriodeObjectifsCoachingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Periode");
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.Coaching.Entities.PeriodeObjectifsCoaching", b =>
+                {
+                    b.Navigation("Objectifs");
+                });
 #pragma warning restore 612, 618
         }
     }

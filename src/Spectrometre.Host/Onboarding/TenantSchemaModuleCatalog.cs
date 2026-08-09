@@ -6,11 +6,13 @@ using Spectrometre.Modules.Entretien.Data;
 using Spectrometre.Modules.Recrutement.Data;
 using Spectrometre.Modules.ProfilEntreprise.Data;
 using Spectrometre.Modules.SuiviEvolutif.Data;
+using Spectrometre.Modules.SuiviEmployes.Data;
 using ProfilEntrepriseModule = Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions;
 using CompatibiliteModule = Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions;
 using PostesRecrutementModule = Spectrometre.Modules.Recrutement.ServiceCollectionExtensions;
 using EntretienModule = Spectrometre.Modules.Entretien.ServiceCollectionExtensions;
 using SuiviEvolutifModule = Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions;
+using SuiviEmployesModule = Spectrometre.Modules.SuiviEmployes.ServiceCollectionExtensions;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -32,6 +34,7 @@ public static class TenantSchemaModuleCatalog
         // Le côté CANDIDAT de SuiviEvolutif est un schéma fixe (comme ProfilCandidat), migré globalement
         // dans Program.cs — seul le côté ENTREPRISE (tenant-scopé) figure dans ce catalogue.
         new(SuiviEvolutifModule.Manifest.Code, async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<SuiviEvolutifEntrepriseDbContext>>().CreateDbContextAsync(ct)),
+        new(SuiviEmployesModule.Manifest.Code, async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<SuiviEmployesDbContext>>().CreateDbContextAsync(ct)),
         // Vivier : pas de schéma propre (lecture seule sur l'index partagé du noyau) — volontairement absent.
     ];
 }

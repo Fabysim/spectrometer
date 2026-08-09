@@ -1,0 +1,505 @@
+@page "/entreprise/employes/{UserCompanyLinkId:int}/profil-professionnel"
+@page "/coach/suivi-employes/{Suivi}/lien/{UserCompanyLinkId:int}/profil-professionnel"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ISuiviEmployesService SuiviService
+@inject CoreDbContext CoreDb
+@inject ITenantContext TenantContext
+@inject ICoachingAccessChecker CoachingAccessChecker
+@inject IModuleRegistry ModuleRegistry
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SuiviEmployesResource> Localizer
+
+<PageTitle>@Localizer["NavProfilProfessionnel"]</PageTitle>
+
+<div class="suivi-page">
+@if (_loading)
+{
+    <p class="suivi-state">@Localizer["Chargement"]</p>
+}
+else if (_accesRefuse)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["AccesRefuse"]</p>
+    </section>
+}
+else if (_moduleInactif)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["ModuleInactif"]</p>
+    </section>
+}
+else if (_contexte is not null && _contexte.PosteId is null)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["PosteNonAssigneDetail"]</p>
+        @if (!_readOnly)
+        {
+            <div class="suivi-actions">
+                <a class="suivi-btn-primary" href="/entreprise/employes">@Localizer["AssignerPosteLien"]</a>
+            </div>
+        }
+    </section>
+}
+else if (_data is not null)
+{
+    <header class="suivi-header">
+        <div>
+            <h1 class="suivi-title">@Localizer["NavProfilProfessionnel"]</h1>
+            <p class="suivi-subtitle">
+                @_contexte!.Email · @_contexte.PosteTitre
+                @if (_readOnly)
+                {
+                    <span class="suivi-badge-ro" style="margin-left:0.5rem">@Localizer["ModeCoach"]</span>
+                }
+            </p>
+        </div>
+        <nav class="suivi-nav">
+            <a href="@Href()">@Localizer["RetourDetail"]</a>
+        </nav>
+    </header>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="suivi-alert suivi-alert-info" role="status">@_message</div>
+    }
+    @if (!string.IsNullOrEmpty(_erreur))
+    {
+        <div class="suivi-alert suivi-alert-error" role="alert">@_erreur</div>
+    }
+
+    <section class="suivi-card">
+        @if (_data.Criteres.Count == 0)
+        {
+            <p class="suivi-hint">@Localizer["AucunCritere"]</p>
+        }
+        else
+        {
+            <div class="suivi-table-wrap">
+                <table class="suivi-table">
+                    <thead>
+                        <tr>
+                            <th class="suivi-critere-sticky">@Localizer["Critere"]</th>
+                            @foreach (var bloc in _blocsFermes)
+                            {
+                                <th>
+                                    @bloc.EvaluationDate.ToString("dd/MM/yyyy")
+                                    @if (bloc.DaySequence > 1)
+                                    {
+                                        <text> #@bloc.DaySequence</text>
+                                    }
+                                </th>
+                            }
+                            @if (_blocOuvert is not null)
+                            {
+                                <th>@Localizer["BlocOuvert"]</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            string? lastCat = null;
+                        }
+                        @foreach (var critere in _data.Criteres)
+                        {
+                            if (!string.Equals(lastCat, critere.Categorie, StringComparison.Ordinal))
+                            {
+                                lastCat = critere.Categorie;
+                                <tr class="suivi-cat-row">
+                                    <td class="suivi-critere-sticky" colspan="@(_blocsFermes.Count + (_blocOuvert is null ? 1 : 2))">
+                                        <strong>@critere.Categorie</strong>
+                                    </td>
+                                </tr>
+                            }
+                            <tr>
+                                <td class="suivi-critere-sticky">@critere.Libelle</td>
+                                @foreach (var bloc in _blocsFermes)
+                                {
+                                    var score = bloc.Scores.FirstOrDefault(s => s.CritereId == critere.CritereId);
+                                    <td>
+                                        @if (score is not null)
+                                        {
+                                            <span class="suivi-badge suivi-badge-actuel" title="@Localizer["ScoreActuel"]">@score.ScoreActuel</span>
+                                            <span class="suivi-badge suivi-badge-souhaite" title="@Localizer["ScoreSouhaite"]">@score.ScoreSouhaite</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="suivi-hint">—</span>
+                                        }
+                                    </td>
+                                }
+                                @if (_blocOuvert is not null)
+                                {
+                                    var edit = _scoresOuverts.GetValueOrDefault(critere.CritereId) ?? new ScoreEdit();
+                                    <td>
+                                        @if (_readOnly)
+                                        {
+                                            <span class="suivi-badge suivi-badge-actuel">@edit.Actuel</span>
+                                            <span class="suivi-badge suivi-badge-souhaite">@edit.Souhaite</span>
+                                        }
+                                        else
+                                        {
+                                            <div class="suivi-score-inputs">
+                                                <label class="visually-hidden" for="act-@critere.CritereId">@Localizer["ScoreActuel"]</label>
+                                                <input id="act-@critere.CritereId" type="number" min="0" max="100"
+                                                       value="@edit.Actuel"
+                                                       @onchange="e => OnScoreChanged(critere.CritereId, actuel: true, e)" />
+                                                <label class="visually-hidden" for="sou-@critere.CritereId">@Localizer["ScoreSouhaite"]</label>
+                                                <input id="sou-@critere.CritereId" type="number" min="0" max="100"
+                                                       value="@edit.Souhaite"
+                                                       @onchange="e => OnScoreChanged(critere.CritereId, actuel: false, e)" />
+                                            </div>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (!_readOnly)
+        {
+            <div class="suivi-actions">
+                @if (!_data.ValidationInitialeFaite)
+                {
+                    <button type="button" class="suivi-btn-primary" disabled="@_busy" @onclick="ValiderProfilAsync">
+                        @Localizer["ValiderProfilInitial"]
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="suivi-btn-secondary" disabled="@(_busy || HasOpenBlock)" @onclick="NouvelleEvaluationAsync">
+                        @Localizer["NouvelleEvaluation"]
+                    </button>
+                    @if (_blocOuvert is not null && !_confirmCloture)
+                    {
+                        <button type="button" class="suivi-btn-primary" disabled="@_busy" @onclick="() => _confirmCloture = true">
+                            @Localizer["TerminerEvaluation"]
+                        </button>
+                    }
+                }
+            </div>
+
+            @if (_confirmCloture)
+            {
+                <div class="suivi-alert suivi-alert-warn" style="margin-top:1rem" role="alertdialog">
+                    <p class="suivi-hint" style="margin-bottom:0.75rem">@Localizer["ConfirmerTerminerEvaluation"]</p>
+                    <div class="suivi-actions" style="margin-top:0">
+                        <button type="button" class="suivi-btn-primary" disabled="@_busy" @onclick="TerminerEvaluationAsync">@Localizer["ConfirmerOui"]</button>
+                        <button type="button" class="suivi-btn-secondary" disabled="@_busy" @onclick="() => _confirmCloture = false">@Localizer["ConfirmerNon"]</button>
+                    </div>
+                </div>
+            }
+        }
+    </section>
+}
+</div>
+
+@code {
+    private sealed class ScoreEdit
+    {
+        public int Actuel { get; set; }
+        public int Souhaite { get; set; }
+    }
+
+    private sealed class BlocOuvertLocal
+    {
+        public DateOnly EvaluationDate { get; set; }
+        public int DaySequence { get; set; }
+        public bool FromDb { get; set; }
+    }
+
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public int UserCompanyLinkId { get; set; }
+    [Parameter] public string? Suivi { get; set; }
+
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+
+    private bool _loading = true;
+    private bool _accesRefuse;
+    private bool _moduleInactif;
+    private bool _busy;
+    private bool _confirmCloture;
+    private string? _erreur;
+    private string? _message;
+    private string? _currentUserId;
+    private EmployeContexte? _contexte;
+    private ProfilProfessionnelPageData? _data;
+    private List<BlocEvaluationView> _blocsFermes = [];
+    private BlocOuvertLocal? _blocOuvert;
+    private Dictionary<int, ScoreEdit> _scoresOuverts = new();
+
+    private bool HasOpenBlock => _blocOuvert is not null;
+
+    private string Href(string? suffix = null)
+    {
+        if (_readOnly)
+        {
+            var basePath = $"/coach/suivi-employes/{Suivi}/lien/{UserCompanyLinkId}";
+            return string.IsNullOrEmpty(suffix) ? basePath : $"{basePath}/{suffix}";
+        }
+
+        var entreprise = $"/entreprise/employes/{UserCompanyLinkId}";
+        return string.IsNullOrEmpty(suffix) ? entreprise : $"{entreprise}/{suffix}";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _accesRefuse = false;
+        _moduleInactif = false;
+        _erreur = null;
+        _message = null;
+        _confirmCloture = false;
+        await LoadAsync();
+        _loading = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        _currentUserId = await GetUserIdAsync();
+        if (string.IsNullOrEmpty(_currentUserId))
+        {
+            _accesRefuse = true;
+            return;
+        }
+
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, _currentUserId);
+            if (autorise is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            var contexteCoach = await SuiviService.GetContexteAsync(UserCompanyLinkId);
+            if (contexteCoach is null || !string.Equals(contexteCoach.UserId, autorise, StringComparison.Ordinal))
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _contexte = contexteCoach;
+        }
+        else
+        {
+            var contexte = await SuiviService.GetContexteAsync(UserCompanyLinkId);
+            if (contexte is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            var estProprietaire = await CoreDb.UserCompanyLinks.AsNoTracking()
+                .AnyAsync(l => l.UserId == _currentUserId
+                               && l.CompanyId == contexte.CompanyId
+                               && l.Role == CompanyRole.Proprietaire);
+            if (!estProprietaire)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _contexte = contexte;
+        }
+
+        TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+
+        if (!await ModuleRegistry.IsActiveAsync(_contexte.CompanyId, "SuiviEmployes", CoreDb))
+        {
+            _moduleInactif = true;
+            return;
+        }
+
+        if (_contexte.PosteId is null)
+        {
+            _data = null;
+            return;
+        }
+
+        _data = await SuiviService.GetProfilProfessionnelAsync(UserCompanyLinkId);
+        if (_data is null)
+        {
+            _accesRefuse = true;
+            return;
+        }
+
+        _contexte = _data.Contexte;
+        ApplyBlocsFromData();
+    }
+
+    private void ApplyBlocsFromData()
+    {
+        _blocsFermes = _data!.Blocs.Where(b => b.IsClosed).ToList();
+        var ouvertDb = _data.Blocs.FirstOrDefault(b => !b.IsClosed);
+        _scoresOuverts = new Dictionary<int, ScoreEdit>();
+
+        if (ouvertDb is not null)
+        {
+            _blocOuvert = new BlocOuvertLocal
+            {
+                EvaluationDate = ouvertDb.EvaluationDate,
+                DaySequence = ouvertDb.DaySequence,
+                FromDb = true,
+            };
+            foreach (var c in _data.Criteres)
+            {
+                var s = ouvertDb.Scores.FirstOrDefault(x => x.CritereId == c.CritereId);
+                _scoresOuverts[c.CritereId] = new ScoreEdit
+                {
+                    Actuel = s?.ScoreActuel ?? 0,
+                    Souhaite = s?.ScoreSouhaite ?? 0,
+                };
+            }
+        }
+        else if (!_data.ValidationInitialeFaite)
+        {
+            // Avant validation : colonne éditable « live » (pas encore de bloc DB).
+            _blocOuvert = new BlocOuvertLocal
+            {
+                EvaluationDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                DaySequence = 1,
+                FromDb = false,
+            };
+            foreach (var c in _data.Criteres)
+                _scoresOuverts[c.CritereId] = new ScoreEdit();
+        }
+        else
+        {
+            _blocOuvert = null;
+        }
+    }
+
+    private void OnScoreChanged(int critereId, bool actuel, ChangeEventArgs e)
+    {
+        if (!_scoresOuverts.TryGetValue(critereId, out var edit))
+        {
+            edit = new ScoreEdit();
+            _scoresOuverts[critereId] = edit;
+        }
+
+        if (!int.TryParse(e.Value?.ToString(), out var value))
+            value = 0;
+        value = Math.Clamp(value, 0, 100);
+
+        if (actuel)
+            edit.Actuel = value;
+        else
+            edit.Souhaite = value;
+    }
+
+    private IReadOnlyList<ScoreSaisieDto> CollectScores() =>
+        _data!.Criteres
+            .Select(c =>
+            {
+                var s = _scoresOuverts.GetValueOrDefault(c.CritereId) ?? new ScoreEdit();
+                return new ScoreSaisieDto(c.CritereId, s.Actuel, s.Souhaite);
+            })
+            .ToList();
+
+    private async Task ValiderProfilAsync()
+    {
+        if (_readOnly || _data is null || _contexte is null || _busy)
+            return;
+
+        _busy = true;
+        _erreur = null;
+        try
+        {
+            TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+            await SuiviService.ValiderProfilInitialAsync(UserCompanyLinkId, CollectScores());
+            _message = Localizer["ProfilValide"];
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = string.IsNullOrWhiteSpace(ex.Message) ? Localizer["ErreurGenerique"] : ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task NouvelleEvaluationAsync()
+    {
+        if (_readOnly || _data is null || _contexte is null || HasOpenBlock || _busy)
+            return;
+
+        _busy = true;
+        _erreur = null;
+        try
+        {
+            TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var seq = await SuiviService.GetNextDaySequenceAsync(UserCompanyLinkId, today);
+            _blocOuvert = new BlocOuvertLocal
+            {
+                EvaluationDate = today,
+                DaySequence = seq,
+                FromDb = false,
+            };
+            _scoresOuverts = _data.Criteres.ToDictionary(c => c.CritereId, _ => new ScoreEdit());
+        }
+        catch (Exception ex)
+        {
+            _erreur = string.IsNullOrWhiteSpace(ex.Message) ? Localizer["ErreurGenerique"] : ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task TerminerEvaluationAsync()
+    {
+        if (_readOnly || _data is null || _contexte is null || _blocOuvert is null || _busy)
+            return;
+
+        _busy = true;
+        _erreur = null;
+        try
+        {
+            TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+            var scores = CollectScores();
+            await SuiviService.SaveScoresBlocAsync(
+                UserCompanyLinkId,
+                _blocOuvert.EvaluationDate,
+                _blocOuvert.DaySequence,
+                scores);
+            await SuiviService.CloturerBlocAsync(
+                UserCompanyLinkId,
+                _blocOuvert.EvaluationDate,
+                _blocOuvert.DaySequence);
+            _confirmCloture = false;
+            _message = Localizer["EvaluationTerminee"];
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = string.IsNullOrWhiteSpace(ex.Message) ? Localizer["ErreurGenerique"] : ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task<string?> GetUserIdAsync()
+    {
+        if (AuthenticationStateTask is null)
+            return null;
+        var user = (await AuthenticationStateTask).User;
+        return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+}

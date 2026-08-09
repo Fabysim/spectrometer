@@ -10,9 +10,14 @@
 @using Spectrometre.Core.Identity
 @using Spectrometre.Core.Invitations
 @using Spectrometre.Core.Tenancy
+@using Spectrometre.Core.Modules
 @using Spectrometre.Host.Resources
+@using Spectrometre.Modules.ProfilEntreprise.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject ICompanyProvisioningService CompanyProvisioningService
+@inject IPosteService PosteService
+@inject ITenantContext TenantContext
+@inject IModuleRegistry ModuleRegistry
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 @inject CoreDbContext CoreDb
@@ -126,7 +131,7 @@ else
                 }
             </section>
 
-            <section class="managers-card">
+            <section class="managers-card managers-card-wide">
                 <h2 class="managers-section-title">@Localizer["GestionManagers_ManagersRattaches"]</h2>
                 @if (_employes.Count == 0)
                 {
@@ -135,11 +140,30 @@ else
                 else
                 {
                     <ul class="managers-list">
-                        @foreach (var (userId, email) in _employes)
+                        @foreach (var employe in _employes)
                         {
-                            <li class="managers-list-item">
-                                <span class="managers-list-email">@email</span>
-                                <button type="button" class="managers-btn-secondary" @onclick="() => RevoquerEmployeAsync(userId)">
+                            <li class="managers-list-item managers-list-item-poste">
+                                <span class="managers-list-email">@employe.Email</span>
+                                <div class="managers-poste-select">
+                                    <label class="visually-hidden" for="poste-@employe.LinkId">@Localizer["GestionManagers_PosteOccupe"]</label>
+                                    <select id="poste-@employe.LinkId"
+                                            class="managers-input"
+                                            value="@(employe.PosteId?.ToString() ?? "")"
+                                            @onchange="e => OnPosteChangedAsync(employe.LinkId, e)">
+                                        <option value="">@Localizer["GestionManagers_AucunPoste"]</option>
+                                        @foreach (var poste in _postes)
+                                        {
+                                            <option value="@poste.Id">@poste.Titre</option>
+                                        }
+                                    </select>
+                                </div>
+                                @if (_suiviEmployesActif)
+                                {
+                                    <a class="managers-btn-secondary" href="@($"/entreprise/employes/{employe.LinkId}")">
+                                        @Localizer["GestionManagers_OuvrirFiche"]
+                                    </a>
+                                }
+                                <button type="button" class="managers-btn-secondary" @onclick="() => RevoquerEmployeAsync(employe.UserId)">
                                     @Localizer["GestionManagers_RevoquerRattachement"]
                                 </button>
                             </li>
@@ -153,6 +177,8 @@ else
 </div>
 
 @code {
+    private sealed record EmployeRow(int LinkId, string UserId, string Email, int? PosteId);
+
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
     private bool _loading = true;
@@ -165,7 +191,9 @@ else
     private string? _error;
     private string? _message;
     private List<Invitation> _invitationsEnCours = [];
-    private List<(string UserId, string Email)> _employes = [];
+    private List<EmployeRow> _employes = [];
+    private List<PosteView> _postes = [];
+    private bool _suiviEmployesActif;
 
     protected override async Task OnInitializedAsync()
     {
@@ -198,8 +226,6 @@ else
 
     private async Task RefreshAsync()
     {
-        // Rôle de l'utilisateur courant pour l'entreprise sélectionnée — seul le Propriétaire peut
-        // inviter/révoquer (voir la demande d'origine) ; un employé ne voit que le message d'accès restreint.
         var lien = await CoreDb.UserCompanyLinks.AsNoTracking()
             .FirstOrDefaultAsync(l => l.UserId == _userId && l.CompanyId == _selectedCompanyId);
         _estProprietaire = lien?.Role == CompanyRole.Proprietaire;
@@ -208,19 +234,47 @@ else
         {
             _invitationsEnCours = [];
             _employes = [];
+            _postes = [];
+            _suiviEmployesActif = false;
             return;
         }
+
+        var company = _companies.First(c => c.Id == _selectedCompanyId);
+        TenantContext.SetActiveCompany(company.Id, company.SchemaName);
+        _postes = (await PosteService.GetPostesAsync()).ToList();
+        _suiviEmployesActif = await ModuleRegistry.IsActiveAsync(_selectedCompanyId, "SuiviEmployes", CoreDb);
 
         _invitationsEnCours = (await CompanyProvisioningService.GetInvitationsEmployeEnCoursAsync(_selectedCompanyId, CoreDb)).ToList();
 
         var liensEmployes = await CompanyProvisioningService.GetEmployesAsync(_selectedCompanyId, CoreDb);
-        var employes = new List<(string, string)>();
+        var employes = new List<EmployeRow>();
         foreach (var l in liensEmployes)
         {
             var user = await UserManager.FindByIdAsync(l.UserId);
-            employes.Add((l.UserId, user?.Email ?? l.UserId));
+            employes.Add(new EmployeRow(l.Id, l.UserId, user?.Email ?? l.UserId, l.PosteId));
         }
         _employes = employes;
+    }
+
+    private async Task OnPosteChangedAsync(int linkId, ChangeEventArgs e)
+    {
+        _error = null;
+        _message = null;
+
+        int? posteId = null;
+        var raw = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(raw) && int.TryParse(raw, out var parsed))
+            posteId = parsed;
+
+        var lien = await CoreDb.UserCompanyLinks
+            .FirstOrDefaultAsync(l => l.Id == linkId && l.CompanyId == _selectedCompanyId);
+        if (lien is null)
+            return;
+
+        lien.PosteId = posteId;
+        await CoreDb.SaveChangesAsync();
+        _message = Localizer["GestionManagers_PosteEnregistre"];
+        await RefreshAsync();
     }
 
     private async Task InviterAsync()

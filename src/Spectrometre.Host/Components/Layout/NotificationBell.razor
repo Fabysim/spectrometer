@@ -1,0 +1,123 @@
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Notifications
+@using Spectrometre.Host.Resources
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject INotificationService NotificationService
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> Localizer
+
+<div class="notif-bell" @onclick:stopPropagation="true">
+    <button type="button"
+            class="notif-bell-btn"
+            @onclick="TogglePanelAsync"
+            aria-expanded="@_open"
+            aria-label="@Localizer["Notifications_Aria"]">
+        <i class="bi bi-bell" aria-hidden="true"></i>
+        @if (_nonLues > 0)
+        {
+            <span class="notif-badge">@(_nonLues > 99 ? "99+" : _nonLues.ToString())</span>
+        }
+    </button>
+
+    @if (_open)
+    {
+        <div class="notif-panel" role="dialog" aria-label="@Localizer["Notifications_Title"]">
+            <div class="notif-panel-header">
+                <strong>@Localizer["Notifications_Title"]</strong>
+                @if (_nonLues > 0)
+                {
+                    <button type="button" class="notif-mark-all" @onclick="MarquerToutesAsync">
+                        @Localizer["Notifications_MarkAllRead"]
+                    </button>
+                }
+            </div>
+            @if (_items.Count == 0)
+            {
+                <p class="notif-empty">@Localizer["Notifications_Empty"]</p>
+            }
+            else
+            {
+                <ul class="notif-list">
+                    @foreach (var n in _items)
+                    {
+                        <li>
+                            <button type="button"
+                                    class="notif-item @(n.EstLue ? "is-read" : "is-unread")"
+                                    @onclick="() => OuvrirAsync(n)">
+                                <span class="notif-item-title">@n.Titre</span>
+                                <span class="notif-item-msg">@n.Message</span>
+                                <span class="notif-item-time">@n.CreatedAt.ToLocalTime().ToString("g")</span>
+                            </button>
+                        </li>
+                    }
+                </ul>
+            }
+            <div class="notif-panel-footer">
+                <a href="/notifications/preferences" @onclick="ClosePanel">@Localizer["Notifications_ManagePreferences"]</a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private bool _open;
+    private int _nonLues;
+    private IReadOnlyList<NotificationView> _items = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            _userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        if (!string.IsNullOrEmpty(_userId))
+            await RefreshAsync();
+    }
+
+    private async Task TogglePanelAsync()
+    {
+        _open = !_open;
+        if (_open)
+            await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (string.IsNullOrEmpty(_userId))
+            return;
+
+        _items = await NotificationService.GetRecentesAsync(_userId, 15);
+        _nonLues = _items.Count(n => !n.EstLue);
+    }
+
+    private async Task MarquerToutesAsync()
+    {
+        if (string.IsNullOrEmpty(_userId))
+            return;
+        await NotificationService.MarquerToutesLuesAsync(_userId);
+        await RefreshAsync();
+    }
+
+    private async Task OuvrirAsync(NotificationView n)
+    {
+        if (string.IsNullOrEmpty(_userId))
+            return;
+
+        await NotificationService.MarquerLueAsync(n.Id, _userId);
+        await RefreshAsync();
+        _open = false;
+
+        if (!string.IsNullOrWhiteSpace(n.Lien))
+            Navigation.NavigateTo(n.Lien);
+    }
+
+    private void ClosePanel() => _open = false;
+}

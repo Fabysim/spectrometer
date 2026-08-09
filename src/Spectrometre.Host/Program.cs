@@ -29,6 +29,7 @@ using Spectrometre.Modules.ProfilEntreprise;
 using Spectrometre.Modules.ProfilEntreprise.Services;
 using Spectrometre.Modules.SuiviEvolutif;
 using Spectrometre.Modules.SuiviEvolutif.Services;
+using Spectrometre.Modules.SuiviEmployes;
 using Spectrometre.Modules.Vivier;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -59,10 +60,12 @@ builder.Services.AddRecrutementModule(builder.Configuration);
 builder.Services.AddVivierModule();
 builder.Services.AddEntretienModule(builder.Configuration);
 builder.Services.AddSuiviEvolutifModule(builder.Configuration);
+builder.Services.AddSuiviEmployesModule(builder.Configuration);
 builder.Services.AddAnalyticsModule();
 // Indépendant du domaine Matching Emploi (voir son manifeste) — l'ordre par rapport aux autres AddXxxModule
 // n'a pas d'importance, aucune dépendance croisée.
 builder.Services.AddGestionDuTempsModule(builder.Configuration);
+builder.Services.AddHostedService<Spectrometre.Host.Workers.ActiviteNotificationWorker>();
 // Idem : profil de base d'un 4e type de sujet (Coach), aucune dépendance croisée avec les modules ci-dessus.
 builder.Services.AddProfilCoachModule(builder.Configuration);
 // Coaching a de vraies dépendances de projet vers GestionDuTemps/ProfilCoach (voir son .csproj) — doit donc
@@ -129,6 +132,7 @@ using (var startupScope = app.Services.CreateScope())
     moduleRegistry.Register(Spectrometre.Modules.Vivier.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.SuiviEmployes.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
     // Enregistré pour les DEUX types de sujet (Company et Candidate) — le registre n'est plus couplé à la
     // seule entreprise (voir ModuleActivationSubjectType). Ne signifie PAS qu'il est activé par défaut pour
@@ -429,6 +433,38 @@ app.MapGet("/entreprise/postes/{posteId:int}/offre/docx", async (
     return Results.NotFound();
 }).RequireAuthorization();
 
+// Liens de notification GDT : démarrer / terminer l'activité au clic, puis rediriger vers le Kanban.
+// Même pattern d'auth que /candidat/cv/pdf — jamais de confirmation d'existence à un tiers (404).
+app.MapGet("/gestion-du-temps/activite/{activiteId:int}/demarrer", async (
+    int activiteId,
+    HttpContext httpContext,
+    Spectrometre.Modules.GestionDuTemps.Services.IActiviteNotificationActionService actions) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    if (!await actions.DemarrerSiProprietaireAsync(userId, activiteId))
+        return Results.NotFound();
+
+    return Results.LocalRedirect("/gestion-du-temps/kanban?msg=activite-demarree");
+}).RequireAuthorization();
+
+app.MapGet("/gestion-du-temps/activite/{activiteId:int}/terminer", async (
+    int activiteId,
+    HttpContext httpContext,
+    Spectrometre.Modules.GestionDuTemps.Services.IActiviteNotificationActionService actions) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    if (!await actions.TerminerSiProprietaireAsync(userId, activiteId))
+        return Results.NotFound();
+
+    return Results.LocalRedirect("/gestion-du-temps/kanban?msg=activite-terminee");
+}).RequireAuthorization();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
@@ -442,6 +478,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Modules.Vivier.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Entretien.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.SuiviEmployes.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Analytics.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions).Assembly,

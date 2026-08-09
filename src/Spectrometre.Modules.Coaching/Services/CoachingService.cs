@@ -1,7 +1,9 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Ai;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Invitations;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Data;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.GestionDuTemps.Services;
@@ -18,7 +20,8 @@ public sealed class CoachingService(
     IDbContextFactory<CoreDbContext> coreDbFactory,
     IInvitationService invitationService,
     IGestionDuTempsService gestionDuTempsService,
-    IAiSynthesisService aiSynthesisService) : ICoachingService
+    IAiSynthesisService aiSynthesisService,
+    INotificationService notificationService) : ICoachingService
 {
     public async Task<string?> GetSuiviUserIdSiAutoriseAsync(string suiviUserId, string requestingCoachUserId, CancellationToken cancellationToken = default)
     {
@@ -52,6 +55,15 @@ public sealed class CoachingService(
 
         db.LiensCoaching.Add(new LienCoaching { SuiviUserId = suiviUserId, CoachUserId = coachUserId });
         await db.SaveChangesAsync(cancellationToken);
+
+        await notificationService.CreerAsync(
+            coachUserId,
+            "Nouvelle demande de coaching",
+            "Une personne souhaite être suivie par vous.",
+            "/coach/suivis",
+            "Coaching.DemandeRecue",
+            cancellationToken);
+
         return true;
     }
 

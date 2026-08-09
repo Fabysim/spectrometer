@@ -226,6 +226,12 @@
   <data name="Module_SuiviEvaluationEmployes" xml:space="preserve">
     <value>Employee tracking &amp; evaluation</value>
   </data>
+  <data name="Module_SuiviEvaluationEmployesDescription" xml:space="preserve">
+    <value>Professional profile, objectives, trend charts and AI analysis for employees in role.</value>
+  </data>
+  <data name="Module_SuiviEvaluationEmployesActiveMessage" xml:space="preserve">
+    <value>Employee tracking &amp; evaluation module activated.</value>
+  </data>
   <data name="Module_RecrutementActiveMessage" xml:space="preserve">
     <value>Recruitment module activated.</value>
   </data>
@@ -426,6 +432,18 @@
   </data>
   <data name="GestionManagers_InvitationEnvoyee" xml:space="preserve">
     <value>Invitation sent.</value>
+  </data>
+  <data name="GestionManagers_PosteOccupe" xml:space="preserve">
+    <value>Assigned job</value>
+  </data>
+  <data name="GestionManagers_AucunPoste" xml:space="preserve">
+    <value>No job</value>
+  </data>
+  <data name="GestionManagers_PosteEnregistre" xml:space="preserve">
+    <value>Job assignment saved.</value>
+  </data>
+  <data name="GestionManagers_OuvrirFiche" xml:space="preserve">
+    <value>Open profile</value>
   </data>
   <data name="InvitationCreerVotreCompte" xml:space="preserve">
     <value>Create your account</value>
@@ -721,4 +739,15 @@
   <data name="Login_RegisterColumnSubtitle" xml:space="preserve">
     <value>No account yet? Sign up to access your space.</value>
   </data>
+  <data name="Notifications_Title" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Notifications_Aria" xml:space="preserve"><value>Open notifications</value></data>
+  <data name="Notifications_Empty" xml:space="preserve"><value>No notifications yet.</value></data>
+  <data name="Notifications_MarkAllRead" xml:space="preserve"><value>Mark all as read</value></data>
+  <data name="Notifications_ManagePreferences" xml:space="preserve"><value>Manage my preferences</value></data>
+  <data name="Notifications_Preferences_Title" xml:space="preserve"><value>Notification preferences</value></data>
+  <data name="Notifications_Preferences_Lead" xml:space="preserve"><value>Choose which categories you want to receive. Changes are saved immediately.</value></data>
+  <data name="Notifications_Preferences_Empty" xml:space="preserve"><value>No relevant categories for your account yet.</value></data>
+  <data name="AjouterUnModuleCoach" xml:space="preserve"><value>Add a module (coach)</value></data>
+  <data name="Module_Calendrier" xml:space="preserve"><value>Calendar</value></data>
+  <data name="Module_GestionDuTempsCoachDescription" xml:space="preserve"><value>Organize your own time (coach personal use).</value></data>
 </root>

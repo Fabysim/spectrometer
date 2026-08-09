@@ -4,6 +4,7 @@ using Spectrometre.Core.Billing;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Tenancy;
 
@@ -26,6 +27,8 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     public DbSet<PosteIndexEntry> PosteIndexEntries => Set<PosteIndexEntry>();
     public DbSet<CandidatureIndexEntry> CandidatureIndexEntries => Set<CandidatureIndexEntry>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
+    public DbSet<NotificationUtilisateur> NotificationsUtilisateur => Set<NotificationUtilisateur>();
+    public DbSet<PreferenceNotification> PreferencesNotification => Set<PreferenceNotification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -93,6 +96,21 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
             e.HasIndex(i => new { i.EmailInvite, i.Type });
             e.HasIndex(i => i.EmetteurUserId);
         });
+
+        builder.Entity<NotificationUtilisateur>(e =>
+        {
+            e.HasIndex(n => new { n.UserId, n.LueLe });
+            e.HasIndex(n => n.CreatedAt);
+            e.Property(n => n.Titre).HasMaxLength(200);
+            e.Property(n => n.TypeCode).HasMaxLength(100);
+            e.Property(n => n.Lien).HasMaxLength(500);
+        });
+
+        builder.Entity<PreferenceNotification>(e =>
+        {
+            e.HasIndex(p => new { p.UserId, p.CategorieCode }).IsUnique();
+            e.Property(p => p.CategorieCode).HasMaxLength(100);
+        });
     }
 
     /// <summary>
@@ -105,6 +123,9 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     /// </summary>
     private static void SeedPlanModuleEntitlements(ModelBuilder builder)
     {
+        // Liste historique (ids 1–8 Standard, 9–17 StandardPlusTemps, 18 Coach) — ne PAS y intercaler
+        // de nouveaux codes : ça renuméroterait les seeds existants. Les ajouts Matching Emploi
+        // s'appendent après avec les prochains Id libres (voir SuiviEmployes ci-dessous).
         string[] modulesMatchingEmploi =
         [
             "ProfilCandidat", "ProfilEntreprise", "Compatibilite", "Recrutement",
@@ -122,6 +143,16 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
 
         // Plan Coach : gratuit, un seul module inclus (ProfilCoach — voir CoachOnboardingService).
         entitlements.Add(new PlanModuleEntitlement { Id = id++, PlanCode = PlanCodes.Coach, ModuleCode = "ProfilCoach" });
+
+        // SuiviEmployes (Matching Emploi) — Ids 1000/1001 : la plage 19+ est déjà polluée en base
+        // de dév par des PlanCode « plan-histo-* » créés par les tests (PK collision sinon).
+        entitlements.Add(new PlanModuleEntitlement { Id = 1000, PlanCode = PlanCodes.Standard, ModuleCode = "SuiviEmployes" });
+        entitlements.Add(new PlanModuleEntitlement { Id = 1001, PlanCode = PlanCodes.StandardPlusTemps, ModuleCode = "SuiviEmployes" });
+
+        // Coach + Gestion du temps (usage personnel) — Ids 2000/2001 : 1002+ déjà pollué par des
+        // PlanCode « plan-histo-* » créés par les tests (même problème que SuiviEmployes à 1000).
+        entitlements.Add(new PlanModuleEntitlement { Id = 2000, PlanCode = PlanCodes.CoachPlusTemps, ModuleCode = "ProfilCoach" });
+        entitlements.Add(new PlanModuleEntitlement { Id = 2001, PlanCode = PlanCodes.CoachPlusTemps, ModuleCode = "GestionDuTemps" });
 
         builder.Entity<PlanModuleEntitlement>().HasData(entitlements);
     }

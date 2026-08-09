@@ -16,4 +16,7 @@ public static class PlanCodes
 
     /// <summary>Plan unique, gratuit, du profil Coach — inclut uniquement ProfilCoach.</summary>
     public const string Coach = "Coach";
+
+    /// <summary>Coach + Gestion du temps (usage personnel du coach) — voir <c>CoachOnboardingService.ActivateGestionDuTempsAsync</c>.</summary>
+    public const string CoachPlusTemps = "CoachPlusTemps";
 }

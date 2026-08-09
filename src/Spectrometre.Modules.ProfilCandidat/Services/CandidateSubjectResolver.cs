@@ -15,4 +15,7 @@ public sealed class CandidateSubjectResolver(ICandidateProfileService candidateP
 {
     public Task<int> GetOrCreateCandidateProfileIdAsync(string userId, CancellationToken cancellationToken = default) =>
         candidateProfileService.GetOrCreateProfileIdAsync(userId, cancellationToken);
+
+    public Task<int?> TryGetCandidateProfileIdAsync(string userId, CancellationToken cancellationToken = default) =>
+        candidateProfileService.TryGetProfileIdAsync(userId, cancellationToken);
 }

@@ -33,4 +33,10 @@ public sealed class Activite
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    /// <summary>Évite les doublons du worker de notifications de début (Prompt E).</summary>
+    public bool NotificationDebutEnvoyee { get; set; }
+
+    /// <summary>Évite les doublons du worker de notifications de fin planifiée (Prompt E).</summary>
+    public bool NotificationFinEnvoyee { get; set; }
 }

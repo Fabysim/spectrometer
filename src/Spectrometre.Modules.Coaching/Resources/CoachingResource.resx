@@ -69,10 +69,47 @@
   <data name="LiensActifs" xml:space="preserve"><value>Personnes suivies actives</value></data>
   <data name="AucunLienActif" xml:space="preserve"><value>Aucune personne suivie pour le moment.</value></data>
   <data name="VoirLeSuivi" xml:space="preserve"><value>Voir le suivi</value></data>
+  <data name="VoirSuiviEmployes" xml:space="preserve"><value>Suivi employés</value></data>
   <data name="Anamnese" xml:space="preserve"><value>Anamnèse</value></data>
   <data name="AucuneAnamnese" xml:space="preserve"><value>Aucune anamnèse générée pour le moment.</value></data>
   <data name="GenererLAnamnese" xml:space="preserve"><value>Générer l'anamnèse</value></data>
   <data name="RegenererLAnamnese" xml:space="preserve"><value>Régénérer l'anamnèse</value></data>
   <data name="AnamneseGenereeParIa" xml:space="preserve"><value>Générée par IA.</value></data>
   <data name="AnamneseRepli" xml:space="preserve"><value>Générée localement (service IA non disponible pour le moment).</value></data>
+
+  <!-- Objectifs de coaching -->
+  <data name="Objectifs" xml:space="preserve"><value>Objectifs</value></data>
+  <data name="Calendrier" xml:space="preserve"><value>Calendrier</value></data>
+  <data name="ObjectifsCoachingTitle" xml:space="preserve"><value>Objectifs de coaching · Spectromètre</value></data>
+  <data name="ObjectifsCoaching" xml:space="preserve"><value>Objectifs de coaching</value></data>
+  <data name="AccesRefuse" xml:space="preserve"><value>Accès refusé. Ce lien n'est pas actif ou ne vous appartient pas.</value></data>
+  <data name="RetourSuivis" xml:space="preserve"><value>Retour aux suivis</value></data>
+  <data name="RetourObjectifs" xml:space="preserve"><value>Retour aux objectifs</value></data>
+  <data name="Periode" xml:space="preserve"><value>Période</value></data>
+  <data name="VoirArchives" xml:space="preserve"><value>Voir les archives</value></data>
+  <data name="ArchivesObjectifsTitle" xml:space="preserve"><value>Archives des objectifs · Spectromètre</value></data>
+  <data name="ArchivesObjectifs" xml:space="preserve"><value>Archives des objectifs</value></data>
+  <data name="AucuneArchive" xml:space="preserve"><value>Aucune période archivée pour le moment.</value></data>
+  <data name="AjouterObjectif" xml:space="preserve"><value>Ajouter un objectif</value></data>
+  <data name="ObjectifsCourants" xml:space="preserve"><value>Objectifs de la période</value></data>
+  <data name="AucunObjectif" xml:space="preserve"><value>Aucun objectif pour cette période.</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Titre" xml:space="preserve"><value>Titre</value></data>
+  <data name="Moyens" xml:space="preserve"><value>Moyens</value></data>
+  <data name="Atteinte" xml:space="preserve"><value>Atteinte</value></data>
+  <data name="Atteinte_NonDefini" xml:space="preserve"><value>Non défini</value></data>
+  <data name="Atteinte_Oui" xml:space="preserve"><value>Oui</value></data>
+  <data name="Atteinte_Non" xml:space="preserve"><value>Non</value></data>
+  <data name="Atteinte_NonImputable" xml:space="preserve"><value>Non imputable</value></data>
+  <data name="Note" xml:space="preserve"><value>Note</value></data>
+  <data name="Observation" xml:space="preserve"><value>Observation</value></data>
+  <data name="SupprimerObjectif" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Enregistrer" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="TerminerPeriode" xml:space="preserve"><value>Terminer la période</value></data>
+  <data name="ConfirmerTerminerPeriode" xml:space="preserve"><value>Archiver cette période et en ouvrir une nouvelle ?</value></data>
+  <data name="ConfirmerOui" xml:space="preserve"><value>Oui, terminer</value></data>
+  <data name="ConfirmerNon" xml:space="preserve"><value>Annuler</value></data>
+  <data name="TitreRequis" xml:space="preserve"><value>Le titre de l'objectif est requis.</value></data>
+  <data name="ObjectifsEnregistres" xml:space="preserve"><value>Objectifs enregistrés.</value></data>
+  <data name="PeriodeTerminee" xml:space="preserve"><value>Période archivée. Une nouvelle période a été ouverte.</value></data>
 </root>

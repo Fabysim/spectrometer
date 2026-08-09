@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<ICoachingService, CoachingService>();
+        services.AddScoped<IObjectifsCoachingService, ObjectifsCoachingService>();
 
         // Implémentation réelle par-dessus le NoOp enregistré par AddSpectrometreCore — voir la remarque
         // équivalente dans Spectrometre.Modules.ProfilCandidat.

@@ -11,4 +11,10 @@ public sealed class CoachSubjectResolver(ICoachProfileService coachProfileServic
 {
     public Task<int> GetOrCreateCoachProfileIdAsync(string userId, CancellationToken cancellationToken = default) =>
         coachProfileService.GetOrCreateProfileIdAsync(userId, cancellationToken);
+
+    public async Task<int?> TryGetCoachProfileIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var profil = await coachProfileService.GetProfilAsync(userId, cancellationToken);
+        return profil?.Id;
+    }
 }

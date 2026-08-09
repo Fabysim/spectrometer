@@ -15,5 +15,18 @@ public sealed class UserCompanyLink
 
     public CompanyRole Role { get; set; } = CompanyRole.Proprietaire;
 
+    /// <summary>
+    /// Poste actuellement occupé dans cette entreprise. Clé logique vers
+    /// <c>ProfilEntreprise.Poste.Id</c> du schéma tenant de <see cref="CompanyId"/> — pas de FK EF
+    /// cross-schéma (même pattern que Recrutement → PosteId).
+    /// </summary>
+    /// <remarks>
+    /// Choix : colonne nullable ici plutôt qu'une table d'historique — le besoin actuel est
+    /// l'affectation courante (un employé ↔ un poste à la fois), gérée depuis
+    /// <c>/entreprise/employes</c> indépendamment de l'activation du module SuiviEmployes.
+    /// Un historique de mutations pourra vivre plus tard dans le module SuiviEmployes si besoin.
+    /// </remarks>
+    public int? PosteId { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

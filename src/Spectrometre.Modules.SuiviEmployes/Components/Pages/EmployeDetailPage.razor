@@ -1,0 +1,285 @@
+@page "/entreprise/employes/{UserCompanyLinkId:int}"
+@page "/coach/suivi-employes/{Suivi}/lien/{UserCompanyLinkId:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using Spectrometre.Modules.SuiviEmployes.Components
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ISuiviEmployesService SuiviService
+@inject CoreDbContext CoreDb
+@inject ITenantContext TenantContext
+@inject ICoachingAccessChecker CoachingAccessChecker
+@inject IModuleRegistry ModuleRegistry
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SuiviEmployesResource> Localizer
+
+<PageTitle>@Localizer["PageTitreDetail"]</PageTitle>
+
+<div class="suivi-page">
+@if (_loading)
+{
+    <p class="suivi-state">@Localizer["Chargement"]</p>
+}
+else if (_accesRefuse)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["AccesRefuse"]</p>
+    </section>
+}
+else if (_moduleInactif)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["ModuleInactif"]</p>
+    </section>
+}
+else if (_contexte is not null)
+{
+    <header class="suivi-header">
+        <div>
+            <h1 class="suivi-title">@_contexte.Email</h1>
+            <p class="suivi-subtitle">
+                @_contexte.CompanyName
+                @if (!string.IsNullOrEmpty(_contexte.PosteTitre))
+                {
+                    <text> · @_contexte.PosteTitre</text>
+                }
+                else
+                {
+                    <text> · @Localizer["PosteNonAssigne"]</text>
+                }
+                @if (_readOnly)
+                {
+                    <span class="suivi-badge-ro" style="margin-left:0.5rem">@Localizer["ModeCoach"]</span>
+                }
+            </p>
+        </div>
+        <nav class="suivi-nav" aria-label="@Localizer["Module_Nom"]">
+            <a href="@Href("profil-professionnel")">@Localizer["NavProfilProfessionnel"]</a>
+            <a href="@Href("evaluation")">@Localizer["NavEvaluation"]</a>
+            <a href="@Href("evaluation/archives")">@Localizer["NavArchives"]</a>
+        </nav>
+    </header>
+
+    @if (_contexte.SeuilCritiqueAtteint)
+    {
+        <div class="suivi-alert suivi-alert-warn" role="alert">@Localizer["SeuilCritiqueBanner"]</div>
+    }
+
+    <div class="suivi-charts">
+        <section class="suivi-card">
+            <h2 class="suivi-card-title">@Localizer["EvolutionObjectifs"]</h2>
+            <SvgCourbeEvolution Title="@Localizer["EvolutionObjectifs"]"
+                                EmptyLabel="@Localizer["CourbeVide"]"
+                                LabelA="@Localizer["LabelNotes"]"
+                                PointsA="_notesObjectifs" />
+        </section>
+
+        @foreach (var serie in _seriesCriteres)
+        {
+            <section class="suivi-card">
+                <h2 class="suivi-card-title">@serie.Categorie — @serie.Libelle</h2>
+                <SvgCourbeEvolution Title="@serie.Libelle"
+                                    EmptyLabel="@Localizer["CourbeVide"]"
+                                    LabelA="@Localizer["LabelActuel"]"
+                                    LabelB="@Localizer["LabelSouhaite"]"
+                                    PointsA="serie.Actuel"
+                                    PointsB="serie.Souhaite" />
+            </section>
+        }
+    </div>
+
+    <section class="suivi-card">
+        <h2 class="suivi-card-title">@Localizer["AnalyseIa"]</h2>
+
+        @if (_analyseEnCours)
+        {
+            <div class="suivi-progress" role="status">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                @Localizer["AnalyseEnCours"]
+            </div>
+        }
+        else if (_analyse is null || string.IsNullOrWhiteSpace(_analyse.AnalyseMarkdown))
+        {
+            <p class="suivi-hint">@Localizer["AnalyseVide"]</p>
+        }
+        else
+        {
+            <div class="suivi-analyse">@((MarkupString)FormatAnalyseMarkdown(_analyse.AnalyseMarkdown))</div>
+            <p class="suivi-meta">
+                @Localizer["GenereeLe"] @_analyse.GenereeLe.ToLocalTime().ToString("g")
+                · @(_analyse.GenereeParIa ? Localizer["GenereeParIa"] : Localizer["AnalyseRepli"])
+            </p>
+            @if (!string.IsNullOrEmpty(_analyse.Avertissement))
+            {
+                <div class="suivi-alert suivi-alert-info" style="margin-top:0.75rem">@Localizer["AvertissementIa"]: @_analyse.Avertissement</div>
+            }
+        }
+
+        @if (!string.IsNullOrEmpty(_erreurAnalyse))
+        {
+            <div class="suivi-alert suivi-alert-error" style="margin-top:0.75rem" role="alert">@_erreurAnalyse</div>
+        }
+
+        @if (!_readOnly)
+        {
+            <div class="suivi-actions">
+                <button type="button" class="suivi-btn-primary" disabled="@_analyseEnCours" @onclick="GenererAnalyseAsync">
+                    <i class="bi @(_analyse is null ? "bi-stars" : "bi-arrow-repeat")" aria-hidden="true"></i>
+                    @(_analyse is null ? Localizer["GenererAnalyse"] : Localizer["RegenererAnalyse"])
+                </button>
+            </div>
+        }
+    </section>
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public int UserCompanyLinkId { get; set; }
+    [Parameter] public string? Suivi { get; set; }
+
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+
+    private bool _loading = true;
+    private bool _accesRefuse;
+    private bool _moduleInactif;
+    private bool _analyseEnCours;
+    private string? _erreurAnalyse;
+    private string? _currentUserId;
+    private EmployeContexte? _contexte;
+    private AnalyseIaEmployeView? _analyse;
+    private IReadOnlyList<PointCourbe> _notesObjectifs = [];
+    private IReadOnlyList<SerieCritereCourbe> _seriesCriteres = [];
+
+    private string Href(string? suffix = null)
+    {
+        if (_readOnly)
+        {
+            var basePath = $"/coach/suivi-employes/{Suivi}/lien/{UserCompanyLinkId}";
+            return string.IsNullOrEmpty(suffix) ? basePath : $"{basePath}/{suffix}";
+        }
+
+        var entreprise = $"/entreprise/employes/{UserCompanyLinkId}";
+        return string.IsNullOrEmpty(suffix) ? entreprise : $"{entreprise}/{suffix}";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _accesRefuse = false;
+        _moduleInactif = false;
+        _erreurAnalyse = null;
+        await LoadAsync();
+        _loading = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        _currentUserId = await GetUserIdAsync();
+        if (string.IsNullOrEmpty(_currentUserId))
+        {
+            _accesRefuse = true;
+            return;
+        }
+
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, _currentUserId);
+            if (autorise is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            var contexteCoach = await SuiviService.GetContexteAsync(UserCompanyLinkId);
+            if (contexteCoach is null || !string.Equals(contexteCoach.UserId, autorise, StringComparison.Ordinal))
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _contexte = contexteCoach;
+        }
+        else
+        {
+            var contexte = await SuiviService.GetContexteAsync(UserCompanyLinkId);
+            if (contexte is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            var estProprietaire = await CoreDb.UserCompanyLinks.AsNoTracking()
+                .AnyAsync(l => l.UserId == _currentUserId
+                               && l.CompanyId == contexte.CompanyId
+                               && l.Role == CompanyRole.Proprietaire);
+            if (!estProprietaire)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _contexte = contexte;
+        }
+
+        TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+
+        if (!await ModuleRegistry.IsActiveAsync(_contexte.CompanyId, "SuiviEmployes", CoreDb))
+        {
+            _moduleInactif = true;
+            return;
+        }
+
+        _notesObjectifs = await SuiviService.GetEvolutionNotesObjectifsAsync(UserCompanyLinkId);
+        _seriesCriteres = await SuiviService.GetEvolutionCriteresAsync(UserCompanyLinkId);
+        _analyse = await SuiviService.GetAnalyseIaAsync(UserCompanyLinkId);
+    }
+
+    private async Task GenererAnalyseAsync()
+    {
+        if (_readOnly || _contexte is null || _analyseEnCours)
+            return;
+
+        _analyseEnCours = true;
+        _erreurAnalyse = null;
+        try
+        {
+            TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+            _analyse = await SuiviService.GenererAnalyseEmployeAsync(UserCompanyLinkId, forcerRegeneration: _analyse is not null);
+        }
+        catch (Exception ex)
+        {
+            _erreurAnalyse = string.IsNullOrWhiteSpace(ex.Message) ? Localizer["ErreurGenerique"] : ex.Message;
+        }
+        finally
+        {
+            _analyseEnCours = false;
+        }
+    }
+
+    private async Task<string?> GetUserIdAsync()
+    {
+        if (AuthenticationStateTask is null)
+            return null;
+        var user = (await AuthenticationStateTask).User;
+        return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+
+    private static string FormatAnalyseMarkdown(string texte)
+    {
+        var encoded = System.Net.WebUtility.HtmlEncode(texte ?? "");
+        encoded = System.Text.RegularExpressions.Regex.Replace(
+            encoded, @"\*\*(.+?)\*\*", "<strong>$1</strong>",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+        encoded = System.Text.RegularExpressions.Regex.Replace(
+            encoded, @"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", "<em>$1</em>",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+        encoded = encoded.Replace("\r\n", "\n").Replace("\n", "<br />");
+        return encoded;
+    }
+}

@@ -110,6 +110,14 @@
                                         <span>@Localizer["Module_AnalyticsEntreprise"]</span>
                                     </a>
                                 }
+                                else if (manifest.Code == "SuiviEmployes" && _companyActiveModules.Contains("SuiviEmployes"))
+                                {
+                                    <div class="nav-module-label">@ModuleLabel(manifest)</div>
+                                    <a href="/entreprise/employes" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/employes")">
+                                        <span class="nav-icon"><i class="bi bi-clipboard2-pulse" aria-hidden="true"></i></span>
+                                        <span>@Localizer["Module_SuiviEvaluationEmployes"]</span>
+                                    </a>
+                                }
                             }
 
                             <a href="/entreprise/modules" class="nav-item-auth nav-sub-item @ActiveClass("/entreprise/modules")">
@@ -185,6 +193,10 @@
                                 <span class="nav-icon"><i class="bi bi-calendar-week" aria-hidden="true"></i></span>
                                 <span>@Localizer["Module_Organisation"]</span>
                             </a>
+                            <a href="/gestion-du-temps/calendrier" class="nav-item-auth nav-sub-item @ActiveClass("/gestion-du-temps/calendrier")">
+                                <span class="nav-icon"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+                                <span>@Localizer["Module_Calendrier"]</span>
+                            </a>
                             <a href="/gestion-du-temps/kanban" class="nav-item-auth nav-sub-item @ActiveClass("/gestion-du-temps/kanban")">
                                 <span class="nav-icon"><i class="bi bi-kanban" aria-hidden="true"></i></span>
                                 <span>@Localizer["Module_Planification"]</span>
@@ -220,6 +232,10 @@
                             <a href="/coach/suivis" class="nav-item-auth nav-sub-item @ActiveClass("/coach/suivis")">
                                 <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_MesPersonnesSuivies"]</span>
+                            </a>
+                            <a href="/coach/modules" class="nav-item-auth nav-sub-item @ActiveClass("/coach/modules")">
+                                <span class="nav-icon"><i class="bi bi-plus-square" aria-hidden="true"></i></span>
+                                <span>@Localizer["AjouterUnModuleCoach"]</span>
                             </a>
                         </div>
                     </div>
@@ -304,6 +320,11 @@
 
     <div class="main-content-auth">
         <div class="topbar-auth">
+            <AuthorizeView>
+                <Authorized>
+                    <NotificationBell />
+                </Authorized>
+            </AuthorizeView>
             <div class="lang-switcher">
                 <a href="@CultureLink("fr")" data-enhance-nav="false" class="@(CurrentCultureIsFrench ? "active" : "")">FR</a>
                 <a href="@CultureLink("en")" data-enhance-nav="false" class="@(!CurrentCultureIsFrench ? "active" : "")">EN</a>

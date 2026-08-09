@@ -1,0 +1,313 @@
+@page "/coach/objectifs/{LienId:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Identity
+@using Spectrometre.Modules.Coaching.Entities
+@using Spectrometre.Modules.Coaching.Resources
+@using Spectrometre.Modules.Coaching.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IObjectifsCoachingService ObjectifsService
+@inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<CoachingResource> Localizer
+
+<PageTitle>@Localizer["ObjectifsCoachingTitle"]</PageTitle>
+
+<div class="obj-page">
+@if (_loading)
+{
+    <p class="obj-state">@Localizer["Chargement"]</p>
+}
+else if (_accesRefuse || _periode is null)
+{
+    <section class="obj-card">
+        <p class="obj-hint">@Localizer["AccesRefuse"]</p>
+        <a class="obj-nav-link" href="/coach/suivis">@Localizer["RetourSuivis"]</a>
+    </section>
+}
+else
+{
+    <header class="obj-header">
+        <div>
+            <h1 class="obj-title">@Localizer["ObjectifsCoaching"]</h1>
+            <p class="obj-subtitle">
+                @_nomSuivi
+                · @Localizer["Periode"] @_periode.DateDebut.ToString("dd/MM/yyyy") – @_periode.DateFin.ToString("dd/MM/yyyy")
+            </p>
+        </div>
+        <nav class="obj-nav">
+            <a href="/coach/suivis">@Localizer["RetourSuivis"]</a>
+            <a href="/coach/objectifs/@LienId/archives">@Localizer["VoirArchives"]</a>
+        </nav>
+    </header>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="obj-alert obj-alert-info" role="status">@_message</div>
+    }
+    @if (!string.IsNullOrEmpty(_erreur))
+    {
+        <div class="obj-alert obj-alert-error" role="alert">@_erreur</div>
+    }
+
+    <section class="obj-card">
+        <h2 class="obj-card-title">@Localizer["AjouterObjectif"]</h2>
+        <div class="obj-form-row">
+            <div class="obj-field">
+                <label for="obj-date">@Localizer["Date"]</label>
+                <input id="obj-date" class="obj-input" type="date" @bind="_nouveau.Date" @bind:format="yyyy-MM-dd" />
+            </div>
+            <div class="obj-field obj-field-wide">
+                <label for="obj-titre">@Localizer["Titre"]</label>
+                <input id="obj-titre" class="obj-input" @bind="_nouveau.Titre" />
+            </div>
+            <div class="obj-field obj-field-wide">
+                <label for="obj-moyens">@Localizer["Moyens"]</label>
+                <input id="obj-moyens" class="obj-input" @bind="_nouveau.Moyens" />
+            </div>
+        </div>
+        <div class="obj-actions">
+            <button type="button" class="obj-btn-secondary" @onclick="AjouterObjectif">@Localizer["AjouterObjectif"]</button>
+        </div>
+    </section>
+
+    <section class="obj-card">
+        <h2 class="obj-card-title">@Localizer["ObjectifsCourants"]</h2>
+        @if (_objectifs.Count == 0)
+        {
+            <p class="obj-hint">@Localizer["AucunObjectif"]</p>
+        }
+        else
+        {
+            <ul class="obj-list">
+                @foreach (var obj in _objectifs)
+                {
+                    <li class="obj-item">
+                        <div class="obj-form-row">
+                            <div class="obj-field">
+                                <label>@Localizer["Date"]</label>
+                                <input class="obj-input" type="date" @bind="obj.Date" @bind:format="yyyy-MM-dd" />
+                            </div>
+                            <div class="obj-field obj-field-wide">
+                                <label>@Localizer["Titre"]</label>
+                                <input class="obj-input" @bind="obj.Titre" />
+                            </div>
+                            <div class="obj-field obj-field-wide">
+                                <label>@Localizer["Moyens"]</label>
+                                <input class="obj-input" @bind="obj.Moyens" />
+                            </div>
+                            <div class="obj-field">
+                                <label>@Localizer["Atteinte"]</label>
+                                <select class="obj-select" @bind="obj.Atteinte">
+                                    <option value="@AtteinteObjectifCoaching.NonDefini">@Localizer["Atteinte_NonDefini"]</option>
+                                    <option value="@AtteinteObjectifCoaching.Oui">@Localizer["Atteinte_Oui"]</option>
+                                    <option value="@AtteinteObjectifCoaching.Non">@Localizer["Atteinte_Non"]</option>
+                                    <option value="@AtteinteObjectifCoaching.NonImputable">@Localizer["Atteinte_NonImputable"]</option>
+                                </select>
+                            </div>
+                            <div class="obj-field">
+                                <label>@Localizer["Note"]</label>
+                                <input class="obj-input" type="number" min="0" max="100"
+                                       value="@(obj.Note?.ToString() ?? "")"
+                                       @onchange="e => OnNoteChanged(obj, e)" />
+                            </div>
+                            <div class="obj-field obj-field-wide">
+                                <label>@Localizer["Observation"]</label>
+                                <textarea class="obj-textarea" rows="2" @bind="obj.Observation"></textarea>
+                            </div>
+                        </div>
+                        <div class="obj-actions">
+                            <button type="button" class="obj-btn-ghost" @onclick="() => RetirerObjectif(obj)">@Localizer["SupprimerObjectif"]</button>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+
+        <div class="obj-actions">
+            <button type="button" class="obj-btn-secondary" disabled="@_busy" @onclick="EnregistrerAsync">
+                @Localizer["Enregistrer"]
+            </button>
+            @if (!_confirmTerminer)
+            {
+                <button type="button" class="obj-btn-primary" disabled="@_busy" @onclick="() => _confirmTerminer = true">
+                    @Localizer["TerminerPeriode"]
+                </button>
+            }
+        </div>
+
+        @if (_confirmTerminer)
+        {
+            <div class="obj-alert obj-alert-warn" style="margin-top:1rem" role="alertdialog">
+                <p class="obj-hint" style="margin-bottom:0.75rem">@Localizer["ConfirmerTerminerPeriode"]</p>
+                <div class="obj-actions" style="margin-top:0">
+                    <button type="button" class="obj-btn-primary" disabled="@_busy" @onclick="TerminerAsync">@Localizer["ConfirmerOui"]</button>
+                    <button type="button" class="obj-btn-secondary" disabled="@_busy" @onclick="() => _confirmTerminer = false">@Localizer["ConfirmerNon"]</button>
+                </div>
+            </div>
+        }
+    </section>
+}
+</div>
+
+@code {
+    [Parameter] public int LienId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private sealed class ObjectifEdit
+    {
+        public int? Id { get; set; }
+        public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+        public string Titre { get; set; } = "";
+        public string? Moyens { get; set; }
+        public AtteinteObjectifCoaching Atteinte { get; set; } = AtteinteObjectifCoaching.NonDefini;
+        public string? Observation { get; set; }
+        public int? Note { get; set; }
+    }
+
+    private string? _userId;
+    private string _nomSuivi = "";
+    private bool _loading = true;
+    private bool _accesRefuse;
+    private bool _busy;
+    private bool _confirmTerminer;
+    private string? _message;
+    private string? _erreur;
+    private PeriodeObjectifsCoachingView? _periode;
+    private List<ObjectifEdit> _objectifs = [];
+    private ObjectifEdit _nouveau = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            _userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        if (string.IsNullOrEmpty(_userId))
+        {
+            _accesRefuse = true;
+            _loading = false;
+            return;
+        }
+
+        await ChargerAsync();
+        _loading = false;
+    }
+
+    private async Task ChargerAsync()
+    {
+        _periode = await ObjectifsService.GetPeriodeCouranteAsync(LienId, _userId!);
+        if (_periode is null)
+        {
+            _accesRefuse = true;
+            return;
+        }
+
+        _accesRefuse = false;
+        _nomSuivi = await NomAfficheAsync(_periode.SuiviUserId);
+        _objectifs = _periode.Objectifs.Select(o => new ObjectifEdit
+        {
+            Id = o.Id,
+            Date = o.Date,
+            Titre = o.Titre,
+            Moyens = o.Moyens,
+            Atteinte = o.Atteinte,
+            Observation = o.Observation,
+            Note = o.Note,
+        }).ToList();
+    }
+
+    private async Task<string> NomAfficheAsync(string userId)
+    {
+        var user = await UserManager.FindByIdAsync(userId);
+        if (user is null)
+            return userId;
+        var nom = $"{user.FirstName} {user.LastName}".Trim();
+        return string.IsNullOrWhiteSpace(nom) ? (user.Email ?? userId) : nom;
+    }
+
+    private void AjouterObjectif()
+    {
+        _erreur = null;
+        if (string.IsNullOrWhiteSpace(_nouveau.Titre))
+        {
+            _erreur = Localizer["TitreRequis"];
+            return;
+        }
+
+        _objectifs.Add(new ObjectifEdit
+        {
+            Date = _nouveau.Date,
+            Titre = _nouveau.Titre.Trim(),
+            Moyens = _nouveau.Moyens,
+            Atteinte = AtteinteObjectifCoaching.NonDefini,
+        });
+        _nouveau = new ObjectifEdit();
+    }
+
+    private void RetirerObjectif(ObjectifEdit obj) => _objectifs.Remove(obj);
+
+    private static void OnNoteChanged(ObjectifEdit obj, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var n) && n is >= 0 and <= 100)
+            obj.Note = n;
+        else if (string.IsNullOrWhiteSpace(e.Value?.ToString()))
+            obj.Note = null;
+    }
+
+    private IReadOnlyList<ObjectifCoachingInput> ToInputs() =>
+        _objectifs.Select(o => new ObjectifCoachingInput(o.Id, o.Date, o.Titre, o.Moyens, o.Atteinte, o.Observation, o.Note)).ToList();
+
+    private async Task EnregistrerAsync()
+    {
+        _busy = true;
+        _message = null;
+        _erreur = null;
+        try
+        {
+            var ok = await ObjectifsService.SaveObjectifsAsync(LienId, _userId!, ToInputs());
+            if (!ok)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _message = Localizer["ObjectifsEnregistres"];
+            await ChargerAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task TerminerAsync()
+    {
+        _busy = true;
+        _message = null;
+        _erreur = null;
+        try
+        {
+            var ok = await ObjectifsService.TerminerPeriodeAsync(LienId, _userId!, ToInputs());
+            if (!ok)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _confirmTerminer = false;
+            _message = Localizer["PeriodeTerminee"];
+            await ChargerAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

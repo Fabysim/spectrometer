@@ -1,0 +1,219 @@
+@page "/gestion-du-temps/calendrier"
+@page "/gestion-du-temps/calendrier/{Suivi}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Modules
+@using Spectrometre.Modules.GestionDuTemps.Resources
+@using Spectrometre.Modules.GestionDuTemps.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IGestionDuTempsService GdtService
+@inject IGestionDuTempsAccessService AccessService
+@inject ICoachingAccessChecker CoachingAccessChecker
+@inject IStringLocalizer<GestionDuTempsResource> Localizer
+@inject NavigationManager Navigation
+
+<PageTitle>@Localizer["CalendrierTitle"]</PageTitle>
+
+<div class="gdt-page cal-page">
+@if (_loading)
+{
+    <p class="hint">@Localizer["Chargement"]</p>
+}
+else if (!_hasAccess)
+{
+    <p class="hint">@Localizer["ModuleNonActive"]</p>
+}
+else
+{
+    <header class="cal-header">
+        <div>
+            <h1 class="gdt-title">@Localizer["CalendrierTitle"]</h1>
+            <p class="hint">
+                @Localizer["CalendrierHint"]
+                @if (_readOnly)
+                {
+                    <text> · @Localizer["LectureSeule"]</text>
+                }
+            </p>
+        </div>
+        <nav class="cal-nav-links">
+            <a href="@Href("/gestion-du-temps")">@Localizer["NavMoniteur"]</a>
+            <a href="@Href("/gestion-du-temps/organisation")">@Localizer["NavOrganisation"]</a>
+            <a href="@Href("/gestion-du-temps/kanban")">@Localizer["NavKanban"]</a>
+        </nav>
+    </header>
+
+    <div class="cal-toolbar">
+        <button type="button" class="cal-btn" @onclick="PreviousWeek" aria-label="@Localizer["GdtOrg_PreviousWeek"]">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="cal-btn cal-today @(_viewingCurrentWeek ? "is-active" : "")" @onclick="GoToTodayWeek">
+            @Localizer["Calendrier_Today"]
+        </button>
+        <button type="button" class="cal-btn" @onclick="NextWeek" aria-label="@Localizer["GdtOrg_NextWeek"]">
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+        </button>
+        <span class="cal-period">@GetWeekLabel()</span>
+    </div>
+
+    <div class="cal-grid">
+        <div class="cal-corner"></div>
+        @foreach (var day in _days)
+        {
+            <div class="cal-day-head @(day.IsToday ? "is-today" : "")">
+                <span class="cal-day-name">@day.Label</span>
+                <span class="cal-day-num">@day.Date.Day</span>
+            </div>
+        }
+
+        @for (var hour = GridStartHour; hour < GridEndHour; hour++)
+        {
+            <div class="cal-hour">@hour.ToString("00")h</div>
+            @foreach (var day in _days)
+            {
+                <div class="cal-cell">
+                    @foreach (var act in GetActs(day.Date, hour))
+                    {
+                        <div class="cal-event" style="@($"border-left-color:{act.TypeCouleur}")" title="@act.Nom">
+                            <strong>@act.Nom</strong>
+                            <span>@act.HeureDebut.ToString("HH:mm") · @act.DureeMinutes min</span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    @if (_activitesSemaine.Count == 0)
+    {
+        <p class="hint cal-empty">@Localizer["CalendrierAucuneActivite"]</p>
+    }
+}
+</div>
+
+@code {
+    [Parameter] public string? Suivi { get; set; }
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private const int GridStartHour = 6;
+    private const int GridEndHour = 22;
+
+    private sealed record DayCol(DateOnly Date, string Label, bool IsToday);
+
+    private string? _userId;
+    private bool _hasAccess;
+    private bool _loading = true;
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+    private DateOnly _weekStart;
+    private List<DayCol> _days = [];
+    private IReadOnlyList<ActiviteView> _allActivites = [];
+    private List<ActiviteView> _activitesSemaine = [];
+    private readonly CultureInfo _culture = CultureInfo.CurrentUICulture;
+
+    private bool _viewingCurrentWeek
+    {
+        get
+        {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            return today >= _weekStart && today < _weekStart.AddDays(7);
+        }
+    }
+
+    private string Href(string basePath) => _readOnly ? $"{basePath}/{Suivi}" : basePath;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, userId);
+            _userId = autorise ?? userId;
+            _hasAccess = autorise is not null;
+        }
+        else
+        {
+            _userId = userId;
+            _hasAccess = await AccessService.HasAccessAsync(userId);
+        }
+
+        if (!_hasAccess)
+        {
+            _loading = false;
+            return;
+        }
+
+        _weekStart = StartOfWeek(DateOnly.FromDateTime(DateTime.Now));
+        RebuildDays();
+        _allActivites = await GdtService.GetActivitesAsync(_userId!, companyId: null, personnelUniquement: false);
+        FilterWeek();
+        _loading = false;
+    }
+
+    private void PreviousWeek()
+    {
+        _weekStart = _weekStart.AddDays(-7);
+        RebuildDays();
+        FilterWeek();
+    }
+
+    private void NextWeek()
+    {
+        _weekStart = _weekStart.AddDays(7);
+        RebuildDays();
+        FilterWeek();
+    }
+
+    private void GoToTodayWeek()
+    {
+        _weekStart = StartOfWeek(DateOnly.FromDateTime(DateTime.Now));
+        RebuildDays();
+        FilterWeek();
+    }
+
+    private void RebuildDays()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        _days = Enumerable.Range(0, 7)
+            .Select(i =>
+            {
+                var d = _weekStart.AddDays(i);
+                return new DayCol(d, d.ToString("ddd", _culture), d == today);
+            })
+            .ToList();
+    }
+
+    private void FilterWeek()
+    {
+        var end = _weekStart.AddDays(7);
+        _activitesSemaine = _allActivites
+            .Where(a => a.DateActivite >= _weekStart && a.DateActivite < end)
+            .OrderBy(a => a.DateActivite)
+            .ThenBy(a => a.HeureDebut)
+            .ToList();
+    }
+
+    private IEnumerable<ActiviteView> GetActs(DateOnly date, int hour) =>
+        _activitesSemaine.Where(a => a.DateActivite == date && a.HeureDebut.Hour == hour);
+
+    private string GetWeekLabel()
+    {
+        var end = _weekStart.AddDays(6);
+        return $"{_weekStart:dd MMM} – {end:dd MMM yyyy}";
+    }
+
+    private static DateOnly StartOfWeek(DateOnly date)
+    {
+        var diff = ((int)date.DayOfWeek + 6) % 7; // lundi = 0
+        return date.AddDays(-diff);
+    }
+}

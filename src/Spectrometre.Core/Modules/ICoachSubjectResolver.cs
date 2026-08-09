@@ -12,4 +12,10 @@ namespace Spectrometre.Core.Modules;
 public interface ICoachSubjectResolver
 {
     Task<int> GetOrCreateCoachProfileIdAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Résout le profil coach s'il existe déjà — <c>null</c> sinon, sans le créer
+    /// (utile pour les gardes d'accès transverses qui ne doivent pas fabriquer de profil au passage).
+    /// </summary>
+    Task<int?> TryGetCoachProfileIdAsync(string userId, CancellationToken cancellationToken = default);
 }

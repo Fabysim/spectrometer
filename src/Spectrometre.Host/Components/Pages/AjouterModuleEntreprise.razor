@@ -98,13 +98,26 @@
                 }
             </article>
 
-            <article class="modules-card is-coming">
-                <div class="modules-card-icon tone-muted">
+            <article class="modules-card @(_suiviEmployesActif ? "is-active" : "")">
+                <div class="modules-card-icon tone-blue">
                     <i class="bi bi-clipboard2-pulse" aria-hidden="true"></i>
                 </div>
                 <h2 class="modules-card-title">@Localizer["Module_SuiviEvaluationEmployes"]</h2>
-                <p class="modules-hint">@Localizer["BientotDisponible"].</p>
-                <p class="modules-status is-soon">@Localizer["BientotDisponible"]</p>
+                <p class="modules-hint">@Localizer["Module_SuiviEvaluationEmployesDescription"]</p>
+                @if (_suiviEmployesActif)
+                {
+                    <p class="modules-status is-on">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["DejaActive"]
+                    </p>
+                }
+                else
+                {
+                    <button type="button" class="modules-btn-primary" @onclick="ActiverSuiviEmployesAsync">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        @Localizer["Activer"]
+                    </button>
+                }
             </article>
         </div>
     }
@@ -117,9 +130,11 @@
     private Company? _company;
     private bool _recrutementActif;
     private bool _gestionDuTempsActif;
+    private bool _suiviEmployesActif;
     private string? _message;
 
     private const string GestionDuTempsCode = "GestionDuTemps";
+    private const string SuiviEmployesCode = "SuiviEmployes";
 
     protected override async Task OnInitializedAsync()
     {
@@ -159,6 +174,7 @@
         }
 
         _gestionDuTempsActif = await ModuleRegistry.IsActiveAsync(_company.Id, GestionDuTempsCode, CoreDb);
+        _suiviEmployesActif = await ModuleRegistry.IsActiveAsync(_company.Id, SuiviEmployesCode, CoreDb);
     }
 
     private async Task ActiverRecrutementAsync()
@@ -175,5 +191,13 @@
         await CompanyOnboarding.ActivateGestionDuTempsAsync(_company.Id, CoreDb);
         await RefreshStatutsAsync();
         _message = Localizer["Module_GestionDuTempsActiveMessage"];
+    }
+
+    private async Task ActiverSuiviEmployesAsync()
+    {
+        if (_company is null) return;
+        await CompanyOnboarding.ActivateSuiviEmployesAsync(_company.Id, CoreDb);
+        await RefreshStatutsAsync();
+        _message = Localizer["Module_SuiviEvaluationEmployesActiveMessage"];
     }
 }

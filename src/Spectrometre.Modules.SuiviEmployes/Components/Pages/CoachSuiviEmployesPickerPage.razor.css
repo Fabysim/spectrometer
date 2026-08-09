@@ -1,0 +1,249 @@
+﻿.suivi-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: calc(100dvh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.suivi-state,
+.suivi-hint {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.suivi-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.suivi-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #0f172a);
+}
+
+.suivi-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.suivi-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.suivi-nav a,
+.suivi-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #0f172a;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.suivi-nav a:hover,
+.suivi-btn-ghost:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.suivi-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.35rem 1.5rem 1.5rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    box-sizing: border-box;
+}
+
+.suivi-card-title {
+    font-size: 1.1rem;
+    font-weight: 650;
+    margin: 0 0 1rem;
+    color: #0f172a;
+}
+
+.suivi-btn-primary,
+.suivi-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 10px;
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.suivi-btn-primary {
+    background: var(--bs-primary, #345f6d);
+    color: #fff;
+    text-decoration: none;
+}
+
+a.suivi-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.suivi-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.suivi-btn-secondary {
+    background: #fff;
+    border-color: #e2e8f0;
+    color: #0f172a;
+}
+
+.suivi-alert {
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.suivi-alert-warn {
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    color: #9a3412;
+}
+
+.suivi-alert-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.suivi-alert-info {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    color: #075985;
+}
+
+.suivi-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 1rem;
+}
+
+.suivi-chart-svg {
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+}
+
+.suivi-chart-axis {
+    stroke: #cbd5e1;
+    stroke-width: 1;
+}
+
+.suivi-chart-line-a {
+    stroke: #345f6d;
+    stroke-width: 2;
+}
+
+.suivi-chart-line-b {
+    stroke: #94a3b8;
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+}
+
+.suivi-chart-dot-a { fill: #345f6d; }
+.suivi-chart-dot-b { fill: #94a3b8; }
+
+.suivi-chart-caption {
+    font-size: 11px;
+    fill: #64748b;
+}
+
+.suivi-chart-caption-b { fill: #94a3b8; }
+
+.suivi-chart-empty {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.suivi-analyse {
+    line-height: 1.55;
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.suivi-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+}
+
+.suivi-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.suivi-meta {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0.75rem 0 0;
+}
+
+.suivi-badge-ro {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.suivi-picker-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.suivi-picker-link {
+    width: 100%;
+    justify-content: space-between;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.suivi-picker-poste {
+    font-weight: 500;
+    opacity: 0.85;
+    font-size: 0.85rem;
+}

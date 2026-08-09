@@ -1,0 +1,52 @@
+.notif-prefs-page {
+    max-width: 36rem;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+}
+
+.notif-prefs-page h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.35rem;
+    color: #0f172a;
+}
+
+.notif-prefs-lead {
+    color: #64748b;
+    margin-bottom: 1.25rem;
+}
+
+.notif-prefs-empty {
+    color: #64748b;
+}
+
+.notif-prefs-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.notif-prefs-list li + li {
+    border-top: 1px solid #e2e8f0;
+}
+
+.notif-prefs-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    margin: 0;
+}
+
+.notif-prefs-row:hover {
+    background: #f8fafc;
+}
+
+.notif-prefs-row input {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: #345f6d;
+}

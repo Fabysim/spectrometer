@@ -52,6 +52,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IGestionDuTempsService, GestionDuTempsService>();
         services.AddScoped<IGestionDuTempsAccessService, GestionDuTempsAccessService>();
+        services.AddScoped<IActiviteNotificationActionService, ActiviteNotificationActionService>();
 
         // AddHttpClient() est idempotent (ajoute IHttpClientFactory s'il n'est pas déjà enregistré) — sûr à
         // appeler ici même si Host ne l'a pas fait ailleurs, pour que ce module reste autonome.

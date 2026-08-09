@@ -11,6 +11,7 @@ using Spectrometre.Core.Email;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
@@ -67,6 +68,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IModuleRegistry, ModuleRegistry>();
         services.AddScoped<IRecruitmentIndexService, RecruitmentIndexService>();
         services.AddScoped<IInvitationService, InvitationService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IPreferenceNotificationService, PreferenceNotificationService>();
 
         // Resend : envoi d'email de confirmation d'inscription — mêmes clés de configuration que mvp
         // (Resend:ApiKey/Resend:From/Resend:AppName, variable d'environnement RESEND_API_KEY en repli).

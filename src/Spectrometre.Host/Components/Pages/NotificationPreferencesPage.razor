@@ -1,0 +1,85 @@
+@page "/notifications/preferences"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Notifications
+@using Spectrometre.Host.Resources
+@inject IPreferenceNotificationService Preferences
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["Notifications_Preferences_Title"]</PageTitle>
+
+<div class="notif-prefs-page">
+    <h1>@Localizer["Notifications_Preferences_Title"]</h1>
+    <p class="notif-prefs-lead">@Localizer["Notifications_Preferences_Lead"]</p>
+
+    @if (_loading)
+    {
+        <p>@Localizer["Chargement"]</p>
+    }
+    else if (_items.Count == 0)
+    {
+        <p class="notif-prefs-empty">@Localizer["Notifications_Preferences_Empty"]</p>
+    }
+    else
+    {
+        <ul class="notif-prefs-list">
+            @foreach (var item in _items)
+            {
+                <li>
+                    <label class="notif-prefs-row">
+                        <input type="checkbox"
+                               checked="@item.Active"
+                               disabled="@_saving.Contains(item.CategorieCode)"
+                               @onchange="e => OnToggleAsync(item.CategorieCode, (bool)(e.Value ?? false))" />
+                        <span>@item.Libelle</span>
+                    </label>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private bool _loading = true;
+    private List<PreferenceNotificationView> _items = [];
+    private readonly HashSet<string> _saving = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            _userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        if (!string.IsNullOrEmpty(_userId))
+            _items = (await Preferences.GetPreferencesAsync(_userId)).ToList();
+
+        _loading = false;
+    }
+
+    private async Task OnToggleAsync(string categorieCode, bool active)
+    {
+        if (string.IsNullOrEmpty(_userId))
+            return;
+
+        _saving.Add(categorieCode);
+        try
+        {
+            await Preferences.SetPreferenceAsync(_userId, categorieCode, active);
+            var idx = _items.FindIndex(i => i.CategorieCode == categorieCode);
+            if (idx >= 0)
+                _items[idx] = _items[idx] with { Active = active };
+        }
+        finally
+        {
+            _saving.Remove(categorieCode);
+        }
+    }
+}

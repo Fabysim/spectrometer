@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Module_Nom" xml:space="preserve"><value>Employee follow-up &amp; evaluation</value></data>
+
+  <data name="AccesRefuse" xml:space="preserve"><value>Access denied.</value></data>
+  <data name="AjouterObjectif" xml:space="preserve"><value>Add an objective</value></data>
+  <data name="AnalyseEnCours" xml:space="preserve"><value>Generating analysis…</value></data>
+  <data name="AnalyseIa" xml:space="preserve"><value>AI analysis</value></data>
+  <data name="AnalyseRepli" xml:space="preserve"><value>Local analysis (fallback, AI unavailable)</value></data>
+  <data name="AnalyseVide" xml:space="preserve"><value>No analysis available yet.</value></data>
+  <data name="ArchivesTitre" xml:space="preserve"><value>Evaluation archives</value></data>
+  <data name="AssignerPosteLien" xml:space="preserve"><value>Assign a position</value></data>
+  <data name="Atteinte" xml:space="preserve"><value>Attainment</value></data>
+  <data name="Atteinte_Non" xml:space="preserve"><value>No</value></data>
+  <data name="Atteinte_NonDefini" xml:space="preserve"><value>Not set</value></data>
+  <data name="Atteinte_NonImputable" xml:space="preserve"><value>Not attributable</value></data>
+  <data name="Atteinte_Oui" xml:space="preserve"><value>Yes</value></data>
+  <data name="AucunCritere" xml:space="preserve"><value>No criteria defined for this position.</value></data>
+  <data name="AucunObjectif" xml:space="preserve"><value>No objectives for this period.</value></data>
+  <data name="AucuneArchive" xml:space="preserve"><value>No archived period yet.</value></data>
+  <data name="AvertissementIa" xml:space="preserve"><value>Warning</value></data>
+  <data name="BlocOuvert" xml:space="preserve"><value>Open evaluation</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Loading…</value></data>
+  <data name="CoachAucunRattachement" xml:space="preserve"><value>This person is not linked to any company as an employee.</value></data>
+  <data name="CoachChoisirEntreprise" xml:space="preserve"><value>Multiple companies — choose which link to open.</value></data>
+  <data name="CoachPickerTitre" xml:space="preserve"><value>Employee follow-up</value></data>
+  <data name="ConfirmerArchiverEvaluation" xml:space="preserve"><value>Archive this evaluation period? A new period will be created afterwards.</value></data>
+  <data name="ConfirmerNon" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ConfirmerOui" xml:space="preserve"><value>Confirm</value></data>
+  <data name="ConfirmerTerminerEvaluation" xml:space="preserve"><value>Close this evaluation? Scores will be saved and can no longer be edited.</value></data>
+  <data name="CourbeVide" xml:space="preserve"><value>Not enough data yet to plot a chart.</value></data>
+  <data name="Critere" xml:space="preserve"><value>Criterion</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Enregistrer" xml:space="preserve"><value>Save</value></data>
+  <data name="ErreurGenerique" xml:space="preserve"><value>An error occurred.</value></data>
+  <data name="EvaluationArchivee" xml:space="preserve"><value>Evaluation archived.</value></data>
+  <data name="EvaluationEnregistree" xml:space="preserve"><value>Evaluation saved.</value></data>
+  <data name="EvaluationTerminee" xml:space="preserve"><value>Evaluation closed.</value></data>
+  <data name="EvaluationTitre" xml:space="preserve"><value>Objectives evaluation</value></data>
+  <data name="EvolutionObjectifs" xml:space="preserve"><value>Objectives evolution</value></data>
+  <data name="GenereeLe" xml:space="preserve"><value>Generated on</value></data>
+  <data name="GenereeParIa" xml:space="preserve"><value>AI-generated</value></data>
+  <data name="GenererAnalyse" xml:space="preserve"><value>Generate analysis</value></data>
+  <data name="LabelActuel" xml:space="preserve"><value>Current</value></data>
+  <data name="LabelNotes" xml:space="preserve"><value>Scores</value></data>
+  <data name="LabelSouhaite" xml:space="preserve"><value>Desired</value></data>
+  <data name="ModeCoach" xml:space="preserve"><value>Read-only (coach)</value></data>
+  <data name="ModuleInactif" xml:space="preserve"><value>The Employee follow-up module is not active for this company.</value></data>
+  <data name="Moyens" xml:space="preserve"><value>Means</value></data>
+  <data name="NavArchives" xml:space="preserve"><value>Archives</value></data>
+  <data name="NavEvaluation" xml:space="preserve"><value>Evaluation</value></data>
+  <data name="NavProfilProfessionnel" xml:space="preserve"><value>Professional profile</value></data>
+  <data name="Note" xml:space="preserve"><value>Score</value></data>
+  <data name="NouvelleEvaluation" xml:space="preserve"><value>New evaluation</value></data>
+  <data name="ObjectifsCourants" xml:space="preserve"><value>Current period objectives</value></data>
+  <data name="Observation" xml:space="preserve"><value>Observation</value></data>
+  <data name="PageTitreDetail" xml:space="preserve"><value>Employee record</value></data>
+  <data name="Periode" xml:space="preserve"><value>Period</value></data>
+  <data name="PosteNonAssigne" xml:space="preserve"><value>No position assigned</value></data>
+  <data name="PosteNonAssigneDetail" xml:space="preserve"><value>Assign a position to this employee first to define their evaluation criteria.</value></data>
+  <data name="ProfilValide" xml:space="preserve"><value>Initial profile validated.</value></data>
+  <data name="RegenererAnalyse" xml:space="preserve"><value>Regenerate analysis</value></data>
+  <data name="RetourDetail" xml:space="preserve"><value>Back to record</value></data>
+  <data name="RetourEvaluation" xml:space="preserve"><value>Back to evaluation</value></data>
+  <data name="ScoreActuel" xml:space="preserve"><value>Current score</value></data>
+  <data name="ScoreSouhaite" xml:space="preserve"><value>Desired score</value></data>
+  <data name="SeuilCritiqueBanner" xml:space="preserve"><value>Several consecutive results are below the critical threshold. Closer follow-up is recommended.</value></data>
+  <data name="SeuilCritiqueCourt" xml:space="preserve"><value>Critical threshold</value></data>
+  <data name="SupprimerObjectif" xml:space="preserve"><value>Remove</value></data>
+  <data name="TerminerEvaluation" xml:space="preserve"><value>Complete evaluation</value></data>
+  <data name="TerminerEvaluationObjectifs" xml:space="preserve"><value>Complete evaluation</value></data>
+  <data name="Titre" xml:space="preserve"><value>Title</value></data>
+  <data name="TitreRequis" xml:space="preserve"><value>Title is required.</value></data>
+  <data name="ValiderProfilInitial" xml:space="preserve"><value>Validate initial profile</value></data>
+  <data name="VoirArchives" xml:space="preserve"><value>View archives</value></data>
+</root>

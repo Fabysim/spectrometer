@@ -78,6 +78,9 @@ public interface ICandidateProfileService
 {
     Task<int> GetOrCreateProfileIdAsync(string userId, CancellationToken cancellationToken = default);
 
+    /// <summary>Identifiant profil s'il existe — <c>null</c> sinon, sans créer de ligne.</summary>
+    Task<int?> TryGetProfileIdAsync(string userId, CancellationToken cancellationToken = default);
+
     /// <summary>Les 6 thèmes du questionnaire avec, pour chaque question, la réponse déjà donnée par ce candidat le cas échéant.</summary>
     Task<IReadOnlyList<CandidateQuestionView>> GetQuestionnaireAsync(int candidateProfileId, CancellationToken cancellationToken = default);
 

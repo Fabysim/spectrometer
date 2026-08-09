@@ -178,6 +178,7 @@
                     <div class="dashboard-inline-actions mt-3">
                         <a href="/coach/profil" class="btn-secondary-modern-dashboard">@Localizer["Home_ProfilCoach"]</a>
                         <a href="/coach/suivis" class="btn-secondary-modern-dashboard">@Localizer["Home_MesPersonnesSuivies"]</a>
+                        <a href="/coach/modules" class="btn-secondary-modern-dashboard">@Localizer["AjouterUnModuleCoach"]</a>
                     </div>
                 </section>
             }
@@ -210,6 +211,7 @@
         "SuiviEvolutif" => "bi-clock-history",
         "Analytics" => "bi-graph-up",
         "GestionDuTemps" => "bi-hourglass-split",
+        "SuiviEmployes" => "bi-clipboard2-pulse",
         "Compatibilite" => "bi-intersect",
         "Entretien" => "bi-chat-dots",
         "ProfilCandidat" => "bi-ui-checks-grid",
@@ -227,6 +229,7 @@
         "SuiviEvolutif" => "/entreprise/historique",
         "Analytics" => "/entreprise/analytics",
         "GestionDuTemps" => "/gestion-du-temps",
+        "SuiviEmployes" => "/entreprise/employes",
         _ => null
     };
 
@@ -240,6 +243,7 @@
     private static string? HrefForCoachModule(string code) => code switch
     {
         "ProfilCoach" => "/coach/profil",
+        "GestionDuTemps" => "/gestion-du-temps",
         _ => null
     };
 

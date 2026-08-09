@@ -104,6 +104,13 @@
     flex: 1 1 auto;
 }
 
+.actif-entete-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .demande-nom,
 .actif-nom {
     font-size: 1.05rem;

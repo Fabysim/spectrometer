@@ -1,0 +1,227 @@
+@page "/entreprise/employes/{UserCompanyLinkId:int}/evaluation/archives"
+@page "/coach/suivi-employes/{Suivi}/lien/{UserCompanyLinkId:int}/evaluation/archives"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ISuiviEmployesService SuiviService
+@inject CoreDbContext CoreDb
+@inject ITenantContext TenantContext
+@inject ICoachingAccessChecker CoachingAccessChecker
+@inject IModuleRegistry ModuleRegistry
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SuiviEmployesResource> Localizer
+
+<PageTitle>@Localizer["ArchivesTitre"]</PageTitle>
+
+<div class="suivi-page">
+@if (_loading)
+{
+    <p class="suivi-state">@Localizer["Chargement"]</p>
+}
+else if (_accesRefuse)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["AccesRefuse"]</p>
+    </section>
+}
+else if (_moduleInactif)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["ModuleInactif"]</p>
+    </section>
+}
+else if (_contexte is not null)
+{
+    <header class="suivi-header">
+        <div>
+            <h1 class="suivi-title">@Localizer["ArchivesTitre"]</h1>
+            <p class="suivi-subtitle">
+                @_contexte.Email
+                @if (_readOnly)
+                {
+                    <span class="suivi-badge-ro" style="margin-left:0.5rem">@Localizer["ModeCoach"]</span>
+                }
+            </p>
+        </div>
+        <nav class="suivi-nav">
+            <a href="@Href()">@Localizer["RetourDetail"]</a>
+            <a href="@Href("evaluation")">@Localizer["RetourEvaluation"]</a>
+        </nav>
+    </header>
+
+    @if (_archives.Count == 0)
+    {
+        <section class="suivi-card">
+            <p class="suivi-hint">@Localizer["AucuneArchive"]</p>
+        </section>
+    }
+    else
+    {
+        @foreach (var archive in _archives)
+        {
+            <section class="suivi-card">
+                <h2 class="suivi-card-title">
+                    @Localizer["Periode"] @archive.DateDebut.ToString("dd/MM/yyyy") – @archive.DateFin.ToString("dd/MM/yyyy")
+                    @if (archive.SeuilCritiqueAtteint)
+                    {
+                        <span class="suivi-badge-ro" style="margin-left:0.5rem;background:#fff7ed;color:#9a3412">@Localizer["SeuilCritiqueCourt"]</span>
+                    }
+                </h2>
+
+                @if (archive.Objectifs.Count == 0)
+                {
+                    <p class="suivi-hint">@Localizer["AucunObjectif"]</p>
+                }
+                else
+                {
+                    <div class="suivi-table-wrap">
+                        <table class="suivi-table">
+                            <thead>
+                                <tr>
+                                    <th>@Localizer["Date"]</th>
+                                    <th>@Localizer["Titre"]</th>
+                                    <th>@Localizer["Moyens"]</th>
+                                    <th>@Localizer["Atteinte"]</th>
+                                    <th>@Localizer["Note"]</th>
+                                    <th>@Localizer["Observation"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var obj in archive.Objectifs)
+                                {
+                                    <tr>
+                                        <td>@obj.Date.ToString("dd/MM/yyyy")</td>
+                                        <td>@obj.Titre</td>
+                                        <td>@(obj.Moyens ?? "—")</td>
+                                        <td>@LabelAtteinte(obj.Atteinte)</td>
+                                        <td>@(obj.Note?.ToString() ?? "—")</td>
+                                        <td>@(obj.Observation ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        }
+    }
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public int UserCompanyLinkId { get; set; }
+    [Parameter] public string? Suivi { get; set; }
+
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+
+    private bool _loading = true;
+    private bool _accesRefuse;
+    private bool _moduleInactif;
+    private string? _currentUserId;
+    private EmployeContexte? _contexte;
+    private IReadOnlyList<EvaluationObjectifsView> _archives = [];
+
+    private string Href(string? suffix = null)
+    {
+        if (_readOnly)
+        {
+            var basePath = $"/coach/suivi-employes/{Suivi}/lien/{UserCompanyLinkId}";
+            return string.IsNullOrEmpty(suffix) ? basePath : $"{basePath}/{suffix}";
+        }
+
+        var entreprise = $"/entreprise/employes/{UserCompanyLinkId}";
+        return string.IsNullOrEmpty(suffix) ? entreprise : $"{entreprise}/{suffix}";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _accesRefuse = false;
+        _moduleInactif = false;
+        await LoadAsync();
+        _loading = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        _currentUserId = await GetUserIdAsync();
+        if (string.IsNullOrEmpty(_currentUserId))
+        {
+            _accesRefuse = true;
+            return;
+        }
+
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, _currentUserId);
+            if (autorise is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            var contexteCoach = await SuiviService.GetContexteAsync(UserCompanyLinkId);
+            if (contexteCoach is null || !string.Equals(contexteCoach.UserId, autorise, StringComparison.Ordinal))
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _contexte = contexteCoach;
+        }
+        else
+        {
+            var contexte = await SuiviService.GetContexteAsync(UserCompanyLinkId);
+            if (contexte is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            var estProprietaire = await CoreDb.UserCompanyLinks.AsNoTracking()
+                .AnyAsync(l => l.UserId == _currentUserId
+                               && l.CompanyId == contexte.CompanyId
+                               && l.Role == CompanyRole.Proprietaire);
+            if (!estProprietaire)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _contexte = contexte;
+        }
+
+        TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+
+        if (!await ModuleRegistry.IsActiveAsync(_contexte.CompanyId, "SuiviEmployes", CoreDb))
+        {
+            _moduleInactif = true;
+            return;
+        }
+
+        _archives = await SuiviService.GetArchivesObjectifsAsync(UserCompanyLinkId);
+    }
+
+    private string LabelAtteinte(AtteinteObjectif a) => a switch
+    {
+        AtteinteObjectif.Oui => Localizer["Atteinte_Oui"],
+        AtteinteObjectif.Non => Localizer["Atteinte_Non"],
+        AtteinteObjectif.NonImputable => Localizer["Atteinte_NonImputable"],
+        _ => Localizer["Atteinte_NonDefini"],
+    };
+
+    private async Task<string?> GetUserIdAsync()
+    {
+        if (AuthenticationStateTask is null)
+            return null;
+        var user = (await AuthenticationStateTask).User;
+        return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+}

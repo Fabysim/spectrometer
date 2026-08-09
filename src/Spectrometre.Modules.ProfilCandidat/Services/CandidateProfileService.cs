@@ -45,6 +45,15 @@ public sealed class CandidateProfileService(IDbContextFactory<ProfilCandidatDbCo
         return profile.Id;
     }
 
+    public async Task<int?> TryGetProfileIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        return await db.CandidateProfiles.AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .Select(p => (int?)p.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<CandidateQuestionView>> GetQuestionnaireAsync(int candidateProfileId, CancellationToken cancellationToken = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);

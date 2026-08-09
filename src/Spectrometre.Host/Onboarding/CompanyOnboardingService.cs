@@ -11,6 +11,7 @@ using VivierModule = Spectrometre.Modules.Vivier.ServiceCollectionExtensions;
 using EntretienModule = Spectrometre.Modules.Entretien.ServiceCollectionExtensions;
 using AnalyticsModule = Spectrometre.Modules.Analytics.ServiceCollectionExtensions;
 using GestionDuTempsModule = Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions;
+using SuiviEmployesModule = Spectrometre.Modules.SuiviEmployes.ServiceCollectionExtensions;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -104,6 +105,10 @@ public sealed class CompanyOnboardingService(
         await UpgradeToStandardPlusTempsAsync(companyId, coreDb, cancellationToken);
         await ActivateModulesInOrderAsync(companyId, [GestionDuTempsModule.Manifest.Code], coreDb, cancellationToken);
     }
+
+    /// <summary>Active Suivi employés (écran Ajouter un module) — inclus dans <see cref="PlanCodes.Standard"/>.</summary>
+    public Task ActivateSuiviEmployesAsync(int companyId, CoreDbContext coreDb, CancellationToken cancellationToken = default) =>
+        ActivateModulesInOrderAsync(companyId, [SuiviEmployesModule.Manifest.Code], coreDb, cancellationToken);
 
     private static async Task UpgradeToStandardPlusTempsAsync(int companyId, CoreDbContext coreDb, CancellationToken cancellationToken)
     {

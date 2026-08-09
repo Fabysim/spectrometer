@@ -1,0 +1,449 @@
+@page "/entreprise/employes/{UserCompanyLinkId:int}/evaluation"
+@page "/coach/suivi-employes/{Suivi}/lien/{UserCompanyLinkId:int}/evaluation"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Tenancy
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ISuiviEmployesService SuiviService
+@inject CoreDbContext CoreDb
+@inject ITenantContext TenantContext
+@inject ICoachingAccessChecker CoachingAccessChecker
+@inject IModuleRegistry ModuleRegistry
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SuiviEmployesResource> Localizer
+
+<PageTitle>@Localizer["EvaluationTitre"]</PageTitle>
+
+<div class="suivi-page">
+@if (_loading)
+{
+    <p class="suivi-state">@Localizer["Chargement"]</p>
+}
+else if (_accesRefuse)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["AccesRefuse"]</p>
+    </section>
+}
+else if (_moduleInactif)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["ModuleInactif"]</p>
+    </section>
+}
+else if (_contexte is not null && _evaluation is not null)
+{
+    <header class="suivi-header">
+        <div>
+            <h1 class="suivi-title">@Localizer["EvaluationTitre"]</h1>
+            <p class="suivi-subtitle">
+                @_contexte.Email
+                · @Localizer["Periode"] @_evaluation.DateDebut.ToString("dd/MM/yyyy") – @_evaluation.DateFin.ToString("dd/MM/yyyy")
+                @if (_readOnly)
+                {
+                    <span class="suivi-badge-ro" style="margin-left:0.5rem">@Localizer["ModeCoach"]</span>
+                }
+            </p>
+        </div>
+        <nav class="suivi-nav">
+            <a href="@Href()">@Localizer["RetourDetail"]</a>
+            <a href="@Href("evaluation/archives")">@Localizer["VoirArchives"]</a>
+        </nav>
+    </header>
+
+    @if (_seuilCritique)
+    {
+        <div class="suivi-alert suivi-alert-warn" role="alert">@Localizer["SeuilCritiqueBanner"]</div>
+    }
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="suivi-alert suivi-alert-info" role="status">@_message</div>
+    }
+    @if (!string.IsNullOrEmpty(_erreur))
+    {
+        <div class="suivi-alert suivi-alert-error" role="alert">@_erreur</div>
+    }
+
+    @if (!_readOnly)
+    {
+        <section class="suivi-card">
+            <h2 class="suivi-card-title">@Localizer["AjouterObjectif"]</h2>
+            <div class="suivi-form-row">
+                <div class="suivi-field">
+                    <label for="obj-date">@Localizer["Date"]</label>
+                    <input id="obj-date" class="suivi-input" type="date" @bind="_nouveau.Date" @bind:format="yyyy-MM-dd" />
+                </div>
+                <div class="suivi-field suivi-field-wide">
+                    <label for="obj-titre">@Localizer["Titre"]</label>
+                    <input id="obj-titre" class="suivi-input" @bind="_nouveau.Titre" />
+                </div>
+                <div class="suivi-field suivi-field-wide">
+                    <label for="obj-moyens">@Localizer["Moyens"]</label>
+                    <input id="obj-moyens" class="suivi-input" @bind="_nouveau.Moyens" />
+                </div>
+            </div>
+            <div class="suivi-actions">
+                <button type="button" class="suivi-btn-secondary" @onclick="AjouterObjectif">@Localizer["AjouterObjectif"]</button>
+            </div>
+        </section>
+    }
+
+    <section class="suivi-card">
+        <h2 class="suivi-card-title">@Localizer["ObjectifsCourants"]</h2>
+        @if (_objectifs.Count == 0)
+        {
+            <p class="suivi-hint">@Localizer["AucunObjectif"]</p>
+        }
+        else
+        {
+            <ul class="suivi-obj-list">
+                @foreach (var obj in _objectifs)
+                {
+                    <li class="suivi-obj-item">
+                        <div class="suivi-form-row">
+                            <div class="suivi-field">
+                                <label>@Localizer["Date"]</label>
+                                @if (_readOnly)
+                                {
+                                    <div>@obj.Date.ToString("dd/MM/yyyy")</div>
+                                }
+                                else
+                                {
+                                    <input class="suivi-input" type="date" @bind="obj.Date" @bind:format="yyyy-MM-dd" />
+                                }
+                            </div>
+                            <div class="suivi-field suivi-field-wide">
+                                <label>@Localizer["Titre"]</label>
+                                @if (_readOnly)
+                                {
+                                    <div>@obj.Titre</div>
+                                }
+                                else
+                                {
+                                    <input class="suivi-input" @bind="obj.Titre" />
+                                }
+                            </div>
+                            <div class="suivi-field suivi-field-wide">
+                                <label>@Localizer["Moyens"]</label>
+                                @if (_readOnly)
+                                {
+                                    <div>@(obj.Moyens ?? "—")</div>
+                                }
+                                else
+                                {
+                                    <input class="suivi-input" @bind="obj.Moyens" />
+                                }
+                            </div>
+                            <div class="suivi-field">
+                                <label>@Localizer["Atteinte"]</label>
+                                @if (_readOnly)
+                                {
+                                    <div>@LabelAtteinte(obj.Atteinte)</div>
+                                }
+                                else
+                                {
+                                    <select class="suivi-select" @bind="obj.Atteinte">
+                                        <option value="@AtteinteObjectif.NonDefini">@Localizer["Atteinte_NonDefini"]</option>
+                                        <option value="@AtteinteObjectif.Oui">@Localizer["Atteinte_Oui"]</option>
+                                        <option value="@AtteinteObjectif.Non">@Localizer["Atteinte_Non"]</option>
+                                        <option value="@AtteinteObjectif.NonImputable">@Localizer["Atteinte_NonImputable"]</option>
+                                    </select>
+                                }
+                            </div>
+                            <div class="suivi-field">
+                                <label>@Localizer["Note"]</label>
+                                @if (_readOnly)
+                                {
+                                    <div>@(obj.Note?.ToString() ?? "—")</div>
+                                }
+                                else
+                                {
+                                    <input class="suivi-input" type="number" min="0" max="100"
+                                           value="@(obj.Note?.ToString() ?? "")"
+                                           @onchange="e => OnNoteChanged(obj, e)" />
+                                }
+                            </div>
+                            <div class="suivi-field suivi-field-wide">
+                                <label>@Localizer["Observation"]</label>
+                                @if (_readOnly)
+                                {
+                                    <div>@(obj.Observation ?? "—")</div>
+                                }
+                                else
+                                {
+                                    <textarea class="suivi-textarea" rows="2" @bind="obj.Observation"></textarea>
+                                }
+                            </div>
+                        </div>
+                        @if (!_readOnly)
+                        {
+                            <div class="suivi-actions">
+                                <button type="button" class="suivi-btn-ghost" @onclick="() => RetirerObjectif(obj)">@Localizer["SupprimerObjectif"]</button>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (!_readOnly)
+        {
+            <div class="suivi-actions">
+                <button type="button" class="suivi-btn-secondary" disabled="@_busy" @onclick="() => EnregistrerAsync(archiver: false)">
+                    @Localizer["Enregistrer"]
+                </button>
+                @if (!_confirmArchiver)
+                {
+                    <button type="button" class="suivi-btn-primary" disabled="@_busy" @onclick="() => _confirmArchiver = true">
+                        @Localizer["TerminerEvaluationObjectifs"]
+                    </button>
+                }
+            </div>
+
+            @if (_confirmArchiver)
+            {
+                <div class="suivi-alert suivi-alert-warn" style="margin-top:1rem" role="alertdialog">
+                    <p class="suivi-hint" style="margin-bottom:0.75rem">@Localizer["ConfirmerArchiverEvaluation"]</p>
+                    <div class="suivi-actions" style="margin-top:0">
+                        <button type="button" class="suivi-btn-primary" disabled="@_busy" @onclick="() => EnregistrerAsync(archiver: true)">@Localizer["ConfirmerOui"]</button>
+                        <button type="button" class="suivi-btn-secondary" disabled="@_busy" @onclick="() => _confirmArchiver = false">@Localizer["ConfirmerNon"]</button>
+                    </div>
+                </div>
+            }
+        }
+    </section>
+}
+</div>
+
+@code {
+    private sealed class ObjectifEdit
+    {
+        public int? Id { get; set; }
+        public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+        public string Titre { get; set; } = "";
+        public string? Moyens { get; set; }
+        public AtteinteObjectif Atteinte { get; set; } = AtteinteObjectif.NonDefini;
+        public string? Observation { get; set; }
+        public int? Note { get; set; }
+    }
+
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public int UserCompanyLinkId { get; set; }
+    [Parameter] public string? Suivi { get; set; }
+
+    private bool _readOnly => !string.IsNullOrEmpty(Suivi);
+
+    private bool _loading = true;
+    private bool _accesRefuse;
+    private bool _moduleInactif;
+    private bool _busy;
+    private bool _confirmArchiver;
+    private bool _seuilCritique;
+    private string? _erreur;
+    private string? _message;
+    private string? _currentUserId;
+    private EmployeContexte? _contexte;
+    private EvaluationObjectifsView? _evaluation;
+    private List<ObjectifEdit> _objectifs = [];
+    private ObjectifEdit _nouveau = new();
+
+    private string Href(string? suffix = null)
+    {
+        if (_readOnly)
+        {
+            var basePath = $"/coach/suivi-employes/{Suivi}/lien/{UserCompanyLinkId}";
+            return string.IsNullOrEmpty(suffix) ? basePath : $"{basePath}/{suffix}";
+        }
+
+        var entreprise = $"/entreprise/employes/{UserCompanyLinkId}";
+        return string.IsNullOrEmpty(suffix) ? entreprise : $"{entreprise}/{suffix}";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _accesRefuse = false;
+        _moduleInactif = false;
+        _erreur = null;
+        _message = null;
+        _confirmArchiver = false;
+        await LoadAsync();
+        _loading = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        _currentUserId = await GetUserIdAsync();
+        if (string.IsNullOrEmpty(_currentUserId))
+        {
+            _accesRefuse = true;
+            return;
+        }
+
+        if (_readOnly)
+        {
+            var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi!, _currentUserId);
+            if (autorise is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            var contexteCoach = await SuiviService.GetContexteAsync(UserCompanyLinkId);
+            if (contexteCoach is null || !string.Equals(contexteCoach.UserId, autorise, StringComparison.Ordinal))
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _contexte = contexteCoach;
+        }
+        else
+        {
+            var contexte = await SuiviService.GetContexteAsync(UserCompanyLinkId);
+            if (contexte is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            var estProprietaire = await CoreDb.UserCompanyLinks.AsNoTracking()
+                .AnyAsync(l => l.UserId == _currentUserId
+                               && l.CompanyId == contexte.CompanyId
+                               && l.Role == CompanyRole.Proprietaire);
+            if (!estProprietaire)
+            {
+                _accesRefuse = true;
+                return;
+            }
+
+            _contexte = contexte;
+        }
+
+        TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+
+        if (!await ModuleRegistry.IsActiveAsync(_contexte.CompanyId, "SuiviEmployes", CoreDb))
+        {
+            _moduleInactif = true;
+            return;
+        }
+
+        _evaluation = await SuiviService.GetOrCreateEvaluationObjectifsCouranteAsync(
+            UserCompanyLinkId,
+            _readOnly ? null : _currentUserId);
+
+        _objectifs = _evaluation.Objectifs
+            .Select(o => new ObjectifEdit
+            {
+                Id = o.Id,
+                Date = o.Date,
+                Titre = o.Titre,
+                Moyens = o.Moyens,
+                Atteinte = o.Atteinte,
+                Observation = o.Observation,
+                Note = o.Note,
+            })
+            .ToList();
+
+        _seuilCritique = _evaluation.SeuilCritiqueAtteint || _contexte.SeuilCritiqueAtteint;
+        if (!_seuilCritique)
+        {
+            var archives = await SuiviService.GetArchivesObjectifsAsync(UserCompanyLinkId);
+            _seuilCritique = archives.Any(a => a.SeuilCritiqueAtteint);
+        }
+
+        _nouveau = new ObjectifEdit();
+    }
+
+    private void AjouterObjectif()
+    {
+        if (string.IsNullOrWhiteSpace(_nouveau.Titre))
+        {
+            _erreur = Localizer["TitreRequis"];
+            return;
+        }
+
+        _erreur = null;
+        _objectifs.Add(new ObjectifEdit
+        {
+            Date = _nouveau.Date,
+            Titre = _nouveau.Titre.Trim(),
+            Moyens = string.IsNullOrWhiteSpace(_nouveau.Moyens) ? null : _nouveau.Moyens.Trim(),
+        });
+        _nouveau = new ObjectifEdit();
+    }
+
+    private void RetirerObjectif(ObjectifEdit obj) => _objectifs.Remove(obj);
+
+    private void OnNoteChanged(ObjectifEdit obj, ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            obj.Note = null;
+            return;
+        }
+
+        if (int.TryParse(raw, out var n))
+            obj.Note = Math.Clamp(n, 0, 100);
+    }
+
+    private async Task EnregistrerAsync(bool archiver)
+    {
+        if (_readOnly || _contexte is null || _busy)
+            return;
+
+        _busy = true;
+        _erreur = null;
+        try
+        {
+            TenantContext.SetActiveCompany(_contexte.CompanyId, _contexte.SchemaName);
+            var dtos = _objectifs
+                .Where(o => !string.IsNullOrWhiteSpace(o.Titre))
+                .Select(o => new ObjectifSaisieDto(
+                    o.Id,
+                    o.Date,
+                    o.Titre.Trim(),
+                    string.IsNullOrWhiteSpace(o.Moyens) ? null : o.Moyens.Trim(),
+                    o.Atteinte,
+                    string.IsNullOrWhiteSpace(o.Observation) ? null : o.Observation.Trim(),
+                    o.Note))
+                .ToList();
+
+            await SuiviService.SaveObjectifsAsync(UserCompanyLinkId, dtos, archiver, _currentUserId);
+            _confirmArchiver = false;
+            _message = archiver ? Localizer["EvaluationArchivee"] : Localizer["EvaluationEnregistree"];
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = string.IsNullOrWhiteSpace(ex.Message) ? Localizer["ErreurGenerique"] : ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private string LabelAtteinte(AtteinteObjectif a) => a switch
+    {
+        AtteinteObjectif.Oui => Localizer["Atteinte_Oui"],
+        AtteinteObjectif.Non => Localizer["Atteinte_Non"],
+        AtteinteObjectif.NonImputable => Localizer["Atteinte_NonImputable"],
+        _ => Localizer["Atteinte_NonDefini"],
+    };
+
+    private async Task<string?> GetUserIdAsync()
+    {
+        if (AuthenticationStateTask is null)
+            return null;
+        var user = (await AuthenticationStateTask).User;
+        return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+}

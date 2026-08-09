@@ -54,6 +54,12 @@ namespace Spectrometre.Modules.GestionDuTemps.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("NotificationDebutEnvoyee")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("NotificationFinEnvoyee")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("TypeDeTempsId")
                         .HasColumnType("integer");
 

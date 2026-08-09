@@ -13,8 +13,10 @@
 @using Spectrometre.Modules.Coaching.Entities
 @using Spectrometre.Modules.Coaching.Resources
 @using Spectrometre.Modules.Coaching.Services
+@using Spectrometre.Modules.SuiviEmployes.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject ICoachingService CoachingService
+@inject ISuiviEmployesService SuiviEmployesService
 @inject ICoachSubjectResolver CoachSubjectResolver
 @inject IModuleRegistry ModuleRegistry
 @inject IDbContextFactory<CoreDbContext> CoreDbFactory
@@ -91,7 +93,7 @@ else
         else
         {
             <div class="suivis-grid">
-                @foreach (var (lien, nom, anamnese) in _actifs)
+                @foreach (var (lien, nom, anamnese, aRattachementEmploye) in _actifs)
                 {
                     <article class="suivis-card actif-carte">
                         <div class="actif-entete">
@@ -99,10 +101,27 @@ else
                                 <h3 class="actif-nom">@nom</h3>
                                 <span class="statut actif">@Localizer["StatutActif"]</span>
                             </div>
-                            <a class="suivis-btn-ghost" href="/gestion-du-temps/@lien.SuiviUserId">
-                                <i class="bi bi-clock-history" aria-hidden="true"></i>
-                                @Localizer["VoirLeSuivi"]
-                            </a>
+                            <div class="actif-entete-actions">
+                                <a class="suivis-btn-ghost" href="/gestion-du-temps/@lien.SuiviUserId">
+                                    <i class="bi bi-clock-history" aria-hidden="true"></i>
+                                    @Localizer["VoirLeSuivi"]
+                                </a>
+                                <a class="suivis-btn-ghost" href="/gestion-du-temps/calendrier/@lien.SuiviUserId">
+                                    <i class="bi bi-calendar3" aria-hidden="true"></i>
+                                    @Localizer["Calendrier"]
+                                </a>
+                                <a class="suivis-btn-ghost" href="/coach/objectifs/@lien.Id">
+                                    <i class="bi bi-bullseye" aria-hidden="true"></i>
+                                    @Localizer["Objectifs"]
+                                </a>
+                                @if (aRattachementEmploye)
+                                {
+                                    <a class="suivis-btn-ghost" href="/coach/suivi-employes/@lien.SuiviUserId">
+                                        <i class="bi bi-clipboard2-pulse" aria-hidden="true"></i>
+                                        @Localizer["VoirSuiviEmployes"]
+                                    </a>
+                                }
+                            </div>
                         </div>
 
                         <div class="anamnese-bloc">
@@ -143,8 +162,9 @@ else
     private string? _userId;
     private bool _hasAccess;
     private List<(LienCoachingView Lien, string Nom)> _enAttente = [];
-    private List<(LienCoachingView Lien, string Nom, AnamneseCoachingView? Anamnese)> _actifs = [];
+    private List<(LienCoachingView Lien, string Nom, AnamneseCoachingView? Anamnese, bool ARattachementEmploye)> _actifs = [];
     private readonly HashSet<int> _anamneseEnCours = [];
+    private readonly Dictionary<string, bool> _rattachementCache = new(StringComparer.Ordinal);
 
     protected override async Task OnInitializedAsync()
     {
@@ -173,7 +193,7 @@ else
         var liens = await CoachingService.GetLiensPourCoachAsync(_userId!);
 
         var enAttente = new List<(LienCoachingView, string)>();
-        var actifs = new List<(LienCoachingView, string, AnamneseCoachingView?)>();
+        var actifs = new List<(LienCoachingView, string, AnamneseCoachingView?, bool)>();
         foreach (var lien in liens)
         {
             if (lien.Statut is not (LienCoachingStatut.EnAttente or LienCoachingStatut.Actif))
@@ -187,12 +207,28 @@ else
             else
             {
                 var anamnese = await CoachingService.GetAnamneseAsync(lien.Id, _userId!);
-                actifs.Add((lien, nom, anamnese));
+                var aRattachement = await ARattachementEmployeAsync(lien.SuiviUserId);
+                actifs.Add((lien, nom, anamnese, aRattachement));
             }
         }
 
         _enAttente = enAttente;
         _actifs = actifs;
+    }
+
+    /// <summary>
+    /// Lecture seule via <see cref="ISuiviEmployesService.ListRattachementsEmployeAsync"/> —
+    /// conditionne l'affichage du bouton « Suivi employés » (jamais d'écriture SuiviEmployes).
+    /// </summary>
+    private async Task<bool> ARattachementEmployeAsync(string suiviUserId)
+    {
+        if (_rattachementCache.TryGetValue(suiviUserId, out var cached))
+            return cached;
+
+        var rattachements = await SuiviEmployesService.ListRattachementsEmployeAsync(suiviUserId);
+        var hasAny = rattachements.Count > 0;
+        _rattachementCache[suiviUserId] = hasAny;
+        return hasAny;
     }
 
     private async Task<string> NomAfficheAsync(string userId)

@@ -1,0 +1,109 @@
+@page "/coach/suivi-employes/{Suivi}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ISuiviEmployesService SuiviService
+@inject ICoachingAccessChecker CoachingAccessChecker
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SuiviEmployesResource> Localizer
+
+<PageTitle>@Localizer["CoachPickerTitre"]</PageTitle>
+
+<div class="suivi-page">
+@if (_loading)
+{
+    <p class="suivi-state">@Localizer["Chargement"]</p>
+}
+else if (_accesRefuse)
+{
+    <section class="suivi-card">
+        <p class="suivi-hint">@Localizer["AccesRefuse"]</p>
+    </section>
+}
+else if (_rattachements.Count == 0)
+{
+    <section class="suivi-card">
+        <h1 class="suivi-title">@Localizer["CoachPickerTitre"]</h1>
+        <p class="suivi-hint" style="margin-top:0.75rem">@Localizer["CoachAucunRattachement"]</p>
+    </section>
+}
+else
+{
+    <header class="suivi-header">
+        <div>
+            <h1 class="suivi-title">@Localizer["CoachPickerTitre"]</h1>
+            <p class="suivi-subtitle">@Localizer["CoachChoisirEntreprise"]</p>
+        </div>
+    </header>
+
+    <section class="suivi-card">
+        <ul class="suivi-picker-list">
+            @foreach (var r in _rattachements)
+            {
+                <li>
+                    <a class="suivi-btn-primary suivi-picker-link" href="@($"/coach/suivi-employes/{Suivi}/lien/{r.UserCompanyLinkId}")">
+                        <span>@r.CompanyName</span>
+                        @if (!string.IsNullOrEmpty(r.PosteTitre))
+                        {
+                            <span class="suivi-picker-poste">@r.PosteTitre</span>
+                        }
+                    </a>
+                </li>
+            }
+        </ul>
+    </section>
+}
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    [Parameter] public string Suivi { get; set; } = "";
+
+    private bool _loading = true;
+    private bool _accesRefuse;
+    private IReadOnlyList<EmployeRattachementOption> _rattachements = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _accesRefuse = false;
+        _rattachements = [];
+
+        var userId = await GetUserIdAsync();
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrWhiteSpace(Suivi))
+        {
+            _accesRefuse = true;
+            _loading = false;
+            return;
+        }
+
+        var autorise = await CoachingAccessChecker.GetSuiviUserIdSiAutoriseAsync(Suivi, userId);
+        if (autorise is null)
+        {
+            _accesRefuse = true;
+            _loading = false;
+            return;
+        }
+
+        _rattachements = await SuiviService.ListRattachementsEmployeAsync(autorise);
+
+        if (_rattachements.Count == 1)
+        {
+            NavigationManager.NavigateTo($"/coach/suivi-employes/{Suivi}/lien/{_rattachements[0].UserCompanyLinkId}");
+            return;
+        }
+
+        _loading = false;
+    }
+
+    private async Task<string?> GetUserIdAsync()
+    {
+        if (AuthenticationStateTask is null)
+            return null;
+        var user = (await AuthenticationStateTask).User;
+        return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+}

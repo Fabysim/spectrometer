@@ -1,0 +1,154 @@
+@page "/coach/objectifs/{LienId:int}/archives"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Identity
+@using Spectrometre.Modules.Coaching.Entities
+@using Spectrometre.Modules.Coaching.Resources
+@using Spectrometre.Modules.Coaching.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IObjectifsCoachingService ObjectifsService
+@inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<CoachingResource> Localizer
+
+<PageTitle>@Localizer["ArchivesObjectifsTitle"]</PageTitle>
+
+<div class="obj-page">
+@if (_loading)
+{
+    <p class="obj-state">@Localizer["Chargement"]</p>
+}
+else if (_accesRefuse)
+{
+    <section class="obj-card">
+        <p class="obj-hint">@Localizer["AccesRefuse"]</p>
+        <a class="obj-nav-link" href="/coach/suivis">@Localizer["RetourSuivis"]</a>
+    </section>
+}
+else
+{
+    <header class="obj-header">
+        <div>
+            <h1 class="obj-title">@Localizer["ArchivesObjectifs"]</h1>
+            <p class="obj-subtitle">@_nomSuivi</p>
+        </div>
+        <nav class="obj-nav">
+            <a href="/coach/suivis">@Localizer["RetourSuivis"]</a>
+            <a href="/coach/objectifs/@LienId">@Localizer["RetourObjectifs"]</a>
+        </nav>
+    </header>
+
+    @if (_archives.Count == 0)
+    {
+        <section class="obj-card">
+            <p class="obj-hint">@Localizer["AucuneArchive"]</p>
+        </section>
+    }
+    else
+    {
+        @foreach (var archive in _archives)
+        {
+            <section class="obj-card">
+                <h2 class="obj-card-title">
+                    @Localizer["Periode"] @archive.DateDebut.ToString("dd/MM/yyyy") – @archive.DateFin.ToString("dd/MM/yyyy")
+                </h2>
+                @if (archive.Objectifs.Count == 0)
+                {
+                    <p class="obj-hint">@Localizer["AucunObjectif"]</p>
+                }
+                else
+                {
+                    <div class="obj-table-wrap">
+                        <table class="obj-table">
+                            <thead>
+                                <tr>
+                                    <th>@Localizer["Date"]</th>
+                                    <th>@Localizer["Titre"]</th>
+                                    <th>@Localizer["Moyens"]</th>
+                                    <th>@Localizer["Atteinte"]</th>
+                                    <th>@Localizer["Note"]</th>
+                                    <th>@Localizer["Observation"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var o in archive.Objectifs)
+                                {
+                                    <tr>
+                                        <td>@o.Date.ToString("dd/MM/yyyy")</td>
+                                        <td>@o.Titre</td>
+                                        <td>@(o.Moyens ?? "—")</td>
+                                        <td>@LabelAtteinte(o.Atteinte)</td>
+                                        <td>@(o.Note?.ToString() ?? "—")</td>
+                                        <td>@(o.Observation ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        }
+    }
+}
+</div>
+
+@code {
+    [Parameter] public int LienId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private string? _userId;
+    private string _nomSuivi = "";
+    private bool _loading = true;
+    private bool _accesRefuse;
+    private IReadOnlyList<PeriodeObjectifsCoachingView> _archives = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            _userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        if (string.IsNullOrEmpty(_userId))
+        {
+            _accesRefuse = true;
+            _loading = false;
+            return;
+        }
+
+        // GetArchives retourne [] aussi en cas de refus — distinguer via GetPeriodeCourante.
+        var courante = await ObjectifsService.GetPeriodeCouranteAsync(LienId, _userId);
+        if (courante is null)
+        {
+            _accesRefuse = true;
+            _loading = false;
+            return;
+        }
+
+        _nomSuivi = await NomAfficheAsync(courante.SuiviUserId);
+        _archives = await ObjectifsService.GetArchivesAsync(LienId, _userId);
+        _loading = false;
+    }
+
+    private async Task<string> NomAfficheAsync(string userId)
+    {
+        var user = await UserManager.FindByIdAsync(userId);
+        if (user is null)
+            return userId;
+        var nom = $"{user.FirstName} {user.LastName}".Trim();
+        return string.IsNullOrWhiteSpace(nom) ? (user.Email ?? userId) : nom;
+    }
+
+    private string LabelAtteinte(AtteinteObjectifCoaching a) => a switch
+    {
+        AtteinteObjectifCoaching.Oui => Localizer["Atteinte_Oui"],
+        AtteinteObjectifCoaching.Non => Localizer["Atteinte_Non"],
+        AtteinteObjectifCoaching.NonImputable => Localizer["Atteinte_NonImputable"],
+        _ => Localizer["Atteinte_NonDefini"],
+    };
+}

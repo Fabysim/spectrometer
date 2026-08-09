@@ -506,4 +506,8 @@
   <data name="GdtProfil_Type_social" xml:space="preserve"><value>Social</value></data>
   <data name="GdtProfil_Type_sommeil" xml:space="preserve"><value>Sleep</value></data>
   <data name="GdtProfil_Type_sommeil_extended" xml:space="preserve"><value>Sleep · Rest · Recovery</value></data>
+  <data name="CalendrierTitle" xml:space="preserve"><value>Calendar</value></data>
+  <data name="CalendrierHint" xml:space="preserve"><value>Week view of activities in the active cycle.</value></data>
+  <data name="CalendrierAucuneActivite" xml:space="preserve"><value>No activities this week.</value></data>
+  <data name="LectureSeule" xml:space="preserve"><value>Read-only</value></data>
 </root>

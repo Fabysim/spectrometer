@@ -10,6 +10,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Core.Recruitment;
 using Spectrometre.Core.Suivi;
 using Spectrometre.Core.Tenancy;
@@ -38,6 +39,8 @@ using Spectrometre.Modules.ProfilEntreprise.Services;
 using Spectrometre.Modules.SuiviEvolutif;
 using Spectrometre.Modules.SuiviEvolutif.Data;
 using Spectrometre.Modules.SuiviEvolutif.Services;
+using Spectrometre.Modules.SuiviEmployes;
+using Spectrometre.Modules.SuiviEmployes.Data;
 using Spectrometre.Modules.Vivier;
 using Xunit;
 
@@ -135,6 +138,8 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddSingleton<IModuleRegistry, ModuleRegistry>();
         services.AddScoped<IRecruitmentIndexService, RecruitmentIndexService>();
         services.AddScoped<IInvitationService, InvitationService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IPreferenceNotificationService, PreferenceNotificationService>();
 
         services.AddScoped<ITenantContext, TenantContext>();
         services.AddProfilCandidatModule(config);
@@ -143,6 +148,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddRecrutementModule(config);
         services.AddEntretienModule(config);
         services.AddSuiviEvolutifModule(config);
+        services.AddSuiviEmployesModule(config);
         services.AddAnalyticsModule();
         services.AddGestionDuTempsModule(config);
         services.AddProfilCoachModule(config);
@@ -180,6 +186,7 @@ public sealed class ServiceFixture : IAsyncLifetime
             moduleRegistry.Register(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Entretien.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.SuiviEmployes.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Analytics.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions.Manifest);
@@ -218,6 +225,9 @@ public sealed class ServiceFixture : IAsyncLifetime
         await using var suiviEntrepriseDb = await Services.GetRequiredService<IDbContextFactory<SuiviEvolutifEntrepriseDbContext>>().CreateDbContextAsync();
         await suiviEntrepriseDb.Database.MigrateAsync();
 
+        await using var suiviEmployesDb = await Services.GetRequiredService<IDbContextFactory<SuiviEmployesDbContext>>().CreateDbContextAsync();
+        await suiviEmployesDb.Database.MigrateAsync();
+
         await using var gestionDuTempsDb = await Services.GetRequiredService<IDbContextFactory<GestionDuTempsDbContext>>().CreateDbContextAsync();
         await gestionDuTempsDb.Database.MigrateAsync();
 
@@ -248,6 +258,8 @@ public sealed class ServiceFixture : IAsyncLifetime
             async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<EntretienDbContext>>().CreateDbContextAsync(ct)),
         new(Spectrometre.Modules.SuiviEvolutif.ServiceCollectionExtensions.Manifest.Code,
             async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<SuiviEvolutifEntrepriseDbContext>>().CreateDbContextAsync(ct)),
+        new(Spectrometre.Modules.SuiviEmployes.ServiceCollectionExtensions.Manifest.Code,
+            async (sp, ct) => await sp.GetRequiredService<IDbContextFactory<SuiviEmployesDbContext>>().CreateDbContextAsync(ct)),
     ];
 
     /// <summary>

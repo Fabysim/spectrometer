@@ -4,6 +4,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Modules;
 using Spectrometre.Modules.ProfilCoach.Services;
 using ProfilCoachModule = Spectrometre.Modules.ProfilCoach.ServiceCollectionExtensions;
+using GestionDuTempsModule = Spectrometre.Modules.GestionDuTemps.ServiceCollectionExtensions;
 
 namespace Spectrometre.Host.Onboarding;
 
@@ -41,6 +42,25 @@ public sealed class CoachOnboardingService(
         await ActivateModulesInOrderAsync(coachProfileId, FreeTierModuleCodes, coreDb, cancellationToken);
 
         return coachProfileId;
+    }
+
+    /// <summary>
+    /// Active Gestion du temps pour ce coach (écran Ajouter un module) — nécessite de faire passer le plan à
+    /// <see cref="PlanCodes.CoachPlusTemps"/> (le seul plan coach qui l'inclut) avant d'activer.
+    /// Même pattern que <see cref="CandidateOnboardingService.ActivateGestionDuTempsAsync"/>.
+    /// </summary>
+    public async Task ActivateGestionDuTempsAsync(int coachProfileId, CoreDbContext coreDb, CancellationToken cancellationToken = default)
+    {
+        var subscription = await coreDb.CoachSubscriptions.FirstOrDefaultAsync(s => s.CoachProfileId == coachProfileId, cancellationToken)
+            ?? throw new InvalidOperationException($"Aucun abonnement pour le coach {coachProfileId}.");
+
+        if (subscription.PlanCode != PlanCodes.CoachPlusTemps)
+        {
+            subscription.PlanCode = PlanCodes.CoachPlusTemps;
+            await coreDb.SaveChangesAsync(cancellationToken);
+        }
+
+        await ActivateModulesInOrderAsync(coachProfileId, [GestionDuTempsModule.Manifest.Code], coreDb, cancellationToken);
     }
 
     /// <summary>Même boucle d'activation que <see cref="CandidateOnboardingService"/>, côté coach.</summary>

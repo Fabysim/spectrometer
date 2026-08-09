@@ -1,0 +1,87 @@
+@using Spectrometre.Modules.SuiviEmployes.Services
+
+@if ((PointsA is null || PointsA.Count == 0) && (PointsB is null || PointsB.Count == 0))
+{
+    <p class="suivi-chart-empty">@EmptyLabel</p>
+}
+else
+{
+    <svg class="suivi-chart-svg" viewBox="0 0 @_width @_height" role="img" aria-label="@Title">
+        <line x1="@_pad" y1="@(_height - _pad)" x2="@(_width - _pad)" y2="@(_height - _pad)" class="suivi-chart-axis" />
+        <line x1="@_pad" y1="@_pad" x2="@_pad" y2="@(_height - _pad)" class="suivi-chart-axis" />
+
+        @* Razor réserve <text> — balises SVG en MarkupString *@
+        @((MarkupString)$"""<text x="{_pad}" y="14" class="suivi-chart-caption">{System.Net.WebUtility.HtmlEncode(LabelA)}</text>""")
+        @if (!string.IsNullOrEmpty(LabelB))
+        {
+            @((MarkupString)$"""<text x="{_pad + 90}" y="14" class="suivi-chart-caption suivi-chart-caption-b">{System.Net.WebUtility.HtmlEncode(LabelB)}</text>""")
+        }
+
+        @{
+            var polyA = BuildPolyline(PointsA);
+            var polyB = BuildPolyline(PointsB);
+        }
+
+        @if (!string.IsNullOrEmpty(polyA))
+        {
+            <polyline fill="none" points="@polyA" class="suivi-chart-line-a" />
+            @foreach (var (x, y) in BuildDots(PointsA))
+            {
+                <circle cx="@x.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        cy="@y.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        r="3.5" class="suivi-chart-dot-a" />
+            }
+        }
+
+        @if (!string.IsNullOrEmpty(polyB))
+        {
+            <polyline fill="none" points="@polyB" class="suivi-chart-line-b" />
+            @foreach (var (x, y) in BuildDots(PointsB))
+            {
+                <circle cx="@x.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        cy="@y.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        r="3.5" class="suivi-chart-dot-b" />
+            }
+        }
+    </svg>
+}
+
+@code {
+    private const int _width = 560;
+    private const int _height = 220;
+    private const int _pad = 36;
+
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string EmptyLabel { get; set; } = "";
+    [Parameter] public string LabelA { get; set; } = "";
+    [Parameter] public string? LabelB { get; set; }
+    [Parameter] public IReadOnlyList<PointCourbe>? PointsA { get; set; }
+    [Parameter] public IReadOnlyList<PointCourbe>? PointsB { get; set; }
+
+    private string BuildPolyline(IReadOnlyList<PointCourbe>? points)
+    {
+        var dots = BuildDots(points).ToList();
+        if (dots.Count == 0)
+            return "";
+        return string.Join(' ', dots.Select(d =>
+            $"{d.X.ToString(System.Globalization.CultureInfo.InvariantCulture)},{d.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
+    }
+
+    private IEnumerable<(double X, double Y)> BuildDots(IReadOnlyList<PointCourbe>? points)
+    {
+        if (points is null || points.Count == 0)
+            yield break;
+
+        var n = points.Count;
+        var plotW = _width - 2 * _pad;
+        var plotH = _height - 2 * _pad;
+
+        for (var i = 0; i < n; i++)
+        {
+            var x = n == 1 ? _pad + plotW / 2.0 : _pad + (plotW * i / (n - 1.0));
+            var v = Math.Clamp(points[i].Valeur, 0, 100);
+            var y = _pad + plotH * (1.0 - v / 100.0);
+            yield return (x, y);
+        }
+    }
+}

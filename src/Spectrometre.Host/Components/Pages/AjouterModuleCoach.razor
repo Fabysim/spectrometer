@@ -1,0 +1,109 @@
+@page "/coach/modules"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Data
+@using Spectrometre.Core.Modules
+@using Spectrometre.Host.Onboarding
+@using Spectrometre.Host.Resources
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICoachSubjectResolver CoachSubjectResolver
+@inject CoachOnboardingService CoachOnboarding
+@inject IModuleRegistry ModuleRegistry
+@inject CoreDbContext CoreDb
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["AjouterUnModule"]</PageTitle>
+
+<div class="modules-page">
+    <header class="modules-header">
+        <div>
+            <h1 class="modules-title">@Localizer["AjouterUnModule"]</h1>
+            <p class="modules-subtitle">@Localizer["Home_ProfilCoach"]</p>
+        </div>
+        <a href="/dashboard" class="modules-back">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["RetourAuTableauDeBord"]
+        </a>
+    </header>
+
+    @if (_loading)
+    {
+        <section class="modules-card modules-empty">
+            <p class="modules-hint">@Localizer["Chargement"]</p>
+        </section>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(_message))
+        {
+            <div class="modules-alert modules-alert-success" role="status">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                @_message
+            </div>
+        }
+
+        <div class="modules-grid">
+            <article class="modules-card @(_gestionDuTempsActif ? "is-active" : "")">
+                <div class="modules-card-icon tone-teal">
+                    <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                </div>
+                <h2 class="modules-card-title">@Localizer["Module_GestionDuTemps"]</h2>
+                <p class="modules-hint">@Localizer["Module_GestionDuTempsCoachDescription"]</p>
+                @if (_gestionDuTempsActif)
+                {
+                    <p class="modules-status is-on">
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        @Localizer["DejaActive"]
+                    </p>
+                }
+                else
+                {
+                    <button type="button" class="modules-btn-primary" @onclick="ActiverGestionDuTempsAsync">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        @Localizer["Activer"]
+                    </button>
+                }
+            </article>
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool _loading = true;
+    private int _coachProfileId;
+    private bool _gestionDuTempsActif;
+    private string? _message;
+
+    private const string GestionDuTempsCode = "GestionDuTemps";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = "anonymous";
+        if (AuthenticationStateTask is not null)
+        {
+            var user = (await AuthenticationStateTask).User;
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
+        }
+
+        _coachProfileId = await CoachSubjectResolver.GetOrCreateCoachProfileIdAsync(userId);
+        await RefreshStatutAsync();
+        _loading = false;
+    }
+
+    private async Task RefreshStatutAsync()
+    {
+        _gestionDuTempsActif = await ModuleRegistry.IsActiveForCoachAsync(_coachProfileId, GestionDuTempsCode, CoreDb);
+    }
+
+    private async Task ActiverGestionDuTempsAsync()
+    {
+        await CoachOnboarding.ActivateGestionDuTempsAsync(_coachProfileId, CoreDb);
+        await RefreshStatutAsync();
+        _message = Localizer["Module_GestionDuTempsActiveMessage"];
+    }
+}

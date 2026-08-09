@@ -15,6 +15,7 @@ public sealed class GestionDuTempsAccessService(
     IDbContextFactory<CoreDbContext> coreDbFactory,
     IModuleRegistry moduleRegistry,
     ICandidateSubjectResolver candidateSubjectResolver,
+    ICoachSubjectResolver coachSubjectResolver,
     ICompanyProvisioningService companyProvisioningService) : IGestionDuTempsAccessService
 {
     public async Task<bool> HasAccessAsync(string userId, CancellationToken cancellationToken = default)
@@ -31,6 +32,12 @@ public sealed class GestionDuTempsAccessService(
             if (await moduleRegistry.IsActiveAsync(company.Id, ServiceCollectionExtensions.Manifest.Code, coreDb, cancellationToken))
                 return true;
         }
+
+        // Usage personnel du coach (activé via /coach/modules) — sans créer de profil au passage.
+        var coachProfileId = await coachSubjectResolver.TryGetCoachProfileIdAsync(userId, cancellationToken);
+        if (coachProfileId is int cid
+            && await moduleRegistry.IsActiveForCoachAsync(cid, ServiceCollectionExtensions.Manifest.Code, coreDb, cancellationToken))
+            return true;
 
         return false;
     }
