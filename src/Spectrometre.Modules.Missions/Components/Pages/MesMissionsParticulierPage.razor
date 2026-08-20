@@ -33,6 +33,11 @@
             <div class="missions-card">
                 <h3>@AfficherTitre(m.Categorie, m.Titre)</h3>
                 <p class="missions-meta">@Localizer[$"Statut_{m.Statut}"] · @Localizer[$"Difficulte_{m.Difficulte}"]</p>
+                @if ((m.Statut == MissionStatut.Attribuee || m.Statut == MissionStatut.Terminee)
+                     && !string.IsNullOrWhiteSpace(m.JeunePrenom))
+                {
+                    <p class="missions-meta">@Localizer["Mission_RealiseePar", m.JeunePrenom]</p>
+                }
                 <p class="missions-meta">@Localizer["Mission_NiveauEncadrement"] : @Localizer[$"Encadrement_{m.NiveauEncadrement}"]</p>
                 @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
                 @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
@@ -40,6 +45,9 @@
                 @if (m.Statut == MissionStatut.Disponible)
                 {
                     <div class="missions-actions">
+                        <a class="missions-btn missions-btn-secondary" href="/particulier/mes-missions/@m.MissionId/modifier">
+                            @Localizer["ModifierMission_Bouton"]
+                        </a>
                         <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
                                 @onclick="() => AnnulerAsync(m.MissionId)">
                             @Localizer["AnnulerMission_Bouton"]

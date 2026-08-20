@@ -185,6 +185,13 @@
   <data name="PublierMission_LieuConfidentialite" xml:space="preserve"><value>Your full address is only used after the mission is confirmed.</value></data>
   <data name="AnnulerMission_Bouton" xml:space="preserve"><value>Cancel this task</value></data>
   <data name="AnnulerMission_Succes" xml:space="preserve"><value>Mission cancelled — it is no longer visible to young providers.</value></data>
+  <data name="ModifierMission_Bouton" xml:space="preserve"><value>Edit</value></data>
+  <data name="ModifierMission_Title" xml:space="preserve"><value>Edit mission · Spectrometre</value></data>
+  <data name="ModifierMission_Heading" xml:space="preserve"><value>Edit mission</value></data>
+  <data name="ModifierMission_Enregistrer" xml:space="preserve"><value>Save</value></data>
+  <data name="ModifierMission_Erreur" xml:space="preserve"><value>Could not save. Check required fields, or that the mission is still available.</value></data>
+  <data name="ModifierMission_Indisponible" xml:space="preserve"><value>This mission can no longer be edited (already accepted, assigned, or it is not yours).</value></data>
+  <data name="Mission_RealiseePar" xml:space="preserve"><value>Carried out by {0}</value></data>
   <data name="SignalerProbleme_Bouton" xml:space="preserve"><value>Report a problem</value></data>
   <data name="SignalerProbleme_Label" xml:space="preserve"><value>Briefly describe the problem (optional)</value></data>
   <data name="SignalerProbleme_Placeholder" xml:space="preserve"><value>E.g. delay, difficulty on site…</value></data>

@@ -53,6 +53,24 @@ public interface IMissionService
     Task<bool> AnnulerMissionAsync(string particulierUserId, int missionId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Détail pour pré-remplir la modification. Null si non propriétaire ou statut ≠ Disponible.
+    /// </summary>
+    Task<MissionDetailView?> TryGetMissionPourModificationAsync(
+        string particulierUserId,
+        int missionId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Met à jour une mission <c>Disponible</c> du propriétaire (mêmes règles qu'à la publication).
+    /// Ne change ni le statut ni <c>CreatedAt</c>.
+    /// </summary>
+    Task<bool> ModifierMissionAsync(
+        string particulierUserId,
+        int missionId,
+        PublierMissionInput input,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Signale un problème pendant une mission <c>Attribuee</c> : notifie le coach suiveur actif du jeune.
     /// <c>false</c> si non propriétaire, statut ≠ Attribuee, ou aucun coach actif.
     /// </summary>

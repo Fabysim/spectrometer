@@ -26,34 +26,17 @@ public sealed class MissionService(
         if (particulier is null)
             return null;
 
-        if (string.IsNullOrWhiteSpace(input.Description))
+        if (!TryNormalizePublication(input, out var titre, out var description))
             return null;
-
-        if (input.Categorie == MissionCategorie.Autre && string.IsNullOrWhiteSpace(input.Titre))
-            return null;
-
-        var titre = string.IsNullOrWhiteSpace(input.Titre) ? "" : input.Titre.Trim();
 
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         var mission = new Mission
         {
             ParticulierProfileId = particulier.Id,
-            Categorie = input.Categorie,
-            Titre = titre,
-            Description = input.Description.Trim(),
-            Lieu = string.IsNullOrWhiteSpace(input.Lieu) ? null : input.Lieu.Trim(),
-            DureeEstimee = string.IsNullOrWhiteSpace(input.DureeEstimee) ? null : input.DureeEstimee.Trim(),
-            Difficulte = input.Difficulte,
-            RemunerationMontant = input.RemunerationMontant,
-            CompetencesTravaillees = string.IsNullOrWhiteSpace(input.CompetencesTravaillees) ? null : input.CompetencesTravaillees.Trim(),
-            NiveauEncadrement = input.NiveauEncadrement,
-            PresenceEscaliers = input.PresenceEscaliers,
-            PresenceAnimaux = input.PresenceAnimaux,
-            PortDeCharge = input.PortDeCharge,
-            AccesDifficile = input.AccesDifficile,
-            RisqueParticulier = string.IsNullOrWhiteSpace(input.RisqueParticulier) ? null : input.RisqueParticulier.Trim(),
+            Description = description,
             Statut = MissionStatut.Disponible,
         };
+        ApplyPublicationFields(mission, input, titre, description);
         db.Missions.Add(mission);
         await db.SaveChangesAsync(cancellationToken);
         return mission.Id;
@@ -80,6 +63,7 @@ public sealed class MissionService(
                 m.AccesDifficile,
                 m.RisqueParticulier,
                 m.CreatedAt,
+                null,
                 null))
             .ToListAsync(cancellationToken);
     }
@@ -245,18 +229,21 @@ public sealed class MissionService(
             .OrderByDescending(m => m.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return missions.Select(m =>
+        var result = new List<MissionResumeView>(missions.Count);
+        foreach (var m in missions)
         {
-            int? acceptationId = null;
-            if (m.Statut == MissionStatut.Terminee)
+            var accValidee = TryGetAcceptationValideeParCoach(m.Acceptations);
+            int? acceptationIdEval = m.Statut == MissionStatut.Terminee ? accValidee?.Id : null;
+            string? jeunePrenom = null;
+
+            if ((m.Statut == MissionStatut.Attribuee || m.Statut == MissionStatut.Terminee)
+                && accValidee is not null)
             {
-                acceptationId = m.Acceptations
-                    .Where(a => a.Statut == MissionAcceptationStatut.ValideeParCoach)
-                    .Select(a => (int?)a.Id)
-                    .FirstOrDefault();
+                var jeune = await jeuneProfileService.TryGetByIdAsync(accValidee.JeuneProfileId, cancellationToken);
+                jeunePrenom = jeune?.Prenoms;
             }
 
-            return new MissionResumeView(
+            result.Add(new MissionResumeView(
                 m.Id,
                 m.Titre,
                 m.Categorie,
@@ -271,8 +258,11 @@ public sealed class MissionService(
                 m.AccesDifficile,
                 m.RisqueParticulier,
                 m.CreatedAt,
-                acceptationId);
-        }).ToList();
+                acceptationIdEval,
+                jeunePrenom));
+        }
+
+        return result;
     }
 
     public async Task<bool> AnnulerMissionAsync(string particulierUserId, int missionId, CancellationToken cancellationToken = default)
@@ -293,6 +283,64 @@ public sealed class MissionService(
             return false;
 
         mission.Statut = MissionStatut.Annulee;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<MissionDetailView?> TryGetMissionPourModificationAsync(
+        string particulierUserId,
+        int missionId,
+        CancellationToken cancellationToken = default)
+    {
+        var mission = await TryGetMissionProprietaireDisponibleAsync(particulierUserId, missionId, cancellationToken);
+        if (mission is null)
+            return null;
+
+        return new MissionDetailView(
+            mission.Id,
+            mission.Titre,
+            mission.Categorie,
+            mission.Description,
+            mission.Lieu,
+            mission.DureeEstimee,
+            mission.Difficulte,
+            mission.NiveauEncadrement,
+            mission.RemunerationMontant,
+            mission.CompetencesTravaillees,
+            mission.PresenceEscaliers,
+            mission.PresenceAnimaux,
+            mission.PortDeCharge,
+            mission.AccesDifficile,
+            mission.RisqueParticulier,
+            mission.Statut,
+            mission.CreatedAt);
+    }
+
+    public async Task<bool> ModifierMissionAsync(
+        string particulierUserId,
+        int missionId,
+        PublierMissionInput input,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryNormalizePublication(input, out var titre, out var description))
+            return false;
+
+        var particulier = await particulierProfileService.TryGetByUserIdAsync(particulierUserId, cancellationToken);
+        if (particulier is null)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var mission = await db.Missions.FirstOrDefaultAsync(m => m.Id == missionId, cancellationToken);
+        if (mission is null)
+            return false;
+
+        if (mission.ParticulierProfileId != particulier.Id)
+            return false;
+
+        if (mission.Statut != MissionStatut.Disponible)
+            return false;
+
+        ApplyPublicationFields(mission, input, titre, description);
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -320,8 +368,7 @@ public sealed class MissionService(
         if (mission.Statut != MissionStatut.Attribuee)
             return false;
 
-        var acceptation = mission.Acceptations
-            .FirstOrDefault(a => a.Statut == MissionAcceptationStatut.ValideeParCoach);
+        var acceptation = TryGetAcceptationValideeParCoach(mission.Acceptations);
         if (acceptation is null)
             return false;
 
@@ -347,6 +394,68 @@ public sealed class MissionService(
             cancellationToken);
 
         return true;
+    }
+
+    /// <summary>
+    /// Acceptation confirmée par le coach — même critère que SignalerProbleme / évaluation / suivi coach.
+    /// </summary>
+    private static MissionAcceptation? TryGetAcceptationValideeParCoach(IEnumerable<MissionAcceptation> acceptations) =>
+        acceptations.FirstOrDefault(a => a.Statut == MissionAcceptationStatut.ValideeParCoach);
+
+    private static bool TryNormalizePublication(PublierMissionInput input, out string titre, out string description)
+    {
+        titre = "";
+        description = "";
+        if (string.IsNullOrWhiteSpace(input.Description))
+            return false;
+
+        if (input.Categorie == MissionCategorie.Autre && string.IsNullOrWhiteSpace(input.Titre))
+            return false;
+
+        titre = string.IsNullOrWhiteSpace(input.Titre) ? "" : input.Titre.Trim();
+        description = input.Description.Trim();
+        return true;
+    }
+
+    private static void ApplyPublicationFields(Mission mission, PublierMissionInput input, string titre, string description)
+    {
+        mission.Categorie = input.Categorie;
+        mission.Titre = titre;
+        mission.Description = description;
+        mission.Lieu = string.IsNullOrWhiteSpace(input.Lieu) ? null : input.Lieu.Trim();
+        mission.DureeEstimee = string.IsNullOrWhiteSpace(input.DureeEstimee) ? null : input.DureeEstimee.Trim();
+        mission.Difficulte = input.Difficulte;
+        mission.RemunerationMontant = input.RemunerationMontant;
+        mission.CompetencesTravaillees = string.IsNullOrWhiteSpace(input.CompetencesTravaillees) ? null : input.CompetencesTravaillees.Trim();
+        mission.NiveauEncadrement = input.NiveauEncadrement;
+        mission.PresenceEscaliers = input.PresenceEscaliers;
+        mission.PresenceAnimaux = input.PresenceAnimaux;
+        mission.PortDeCharge = input.PortDeCharge;
+        mission.AccesDifficile = input.AccesDifficile;
+        mission.RisqueParticulier = string.IsNullOrWhiteSpace(input.RisqueParticulier) ? null : input.RisqueParticulier.Trim();
+    }
+
+    private async Task<Mission?> TryGetMissionProprietaireDisponibleAsync(
+        string particulierUserId,
+        int missionId,
+        CancellationToken cancellationToken)
+    {
+        var particulier = await particulierProfileService.TryGetByUserIdAsync(particulierUserId, cancellationToken);
+        if (particulier is null)
+            return null;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var mission = await db.Missions.AsNoTracking().FirstOrDefaultAsync(m => m.Id == missionId, cancellationToken);
+        if (mission is null)
+            return null;
+
+        if (mission.ParticulierProfileId != particulier.Id)
+            return null;
+
+        if (mission.Statut != MissionStatut.Disponible)
+            return null;
+
+        return mission;
     }
 
     /// <summary>Même résolution que AutoObservationService.FindCoachReferentAsync — lien coaching Actif.</summary>

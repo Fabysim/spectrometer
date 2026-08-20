@@ -185,6 +185,13 @@
   <data name="PublierMission_LieuConfidentialite" xml:space="preserve"><value>Votre adresse complète n'est utilisée qu'après validation de la mission.</value></data>
   <data name="AnnulerMission_Bouton" xml:space="preserve"><value>Annuler cette tâche</value></data>
   <data name="AnnulerMission_Succes" xml:space="preserve"><value>Mission annulée — elle n'est plus visible pour les jeunes.</value></data>
+  <data name="ModifierMission_Bouton" xml:space="preserve"><value>Modifier</value></data>
+  <data name="ModifierMission_Title" xml:space="preserve"><value>Modifier la mission · Spectromètre</value></data>
+  <data name="ModifierMission_Heading" xml:space="preserve"><value>Modifier la mission</value></data>
+  <data name="ModifierMission_Enregistrer" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="ModifierMission_Erreur" xml:space="preserve"><value>Impossible d'enregistrer. Vérifiez les champs obligatoires ou que la mission est encore disponible.</value></data>
+  <data name="ModifierMission_Indisponible" xml:space="preserve"><value>Cette mission ne peut plus être modifiée (déjà acceptée, attribuée, ou elle ne vous appartient pas).</value></data>
+  <data name="Mission_RealiseePar" xml:space="preserve"><value>Réalisée par {0}</value></data>
   <data name="SignalerProbleme_Bouton" xml:space="preserve"><value>Signaler un problème</value></data>
   <data name="SignalerProbleme_Label" xml:space="preserve"><value>Décrivez brièvement le problème (optionnel)</value></data>
   <data name="SignalerProbleme_Placeholder" xml:space="preserve"><value>Ex. : retard, difficulté sur place…</value></data>

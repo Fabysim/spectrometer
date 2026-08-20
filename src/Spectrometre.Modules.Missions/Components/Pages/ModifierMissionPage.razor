@@ -1,0 +1,90 @@
+@page "/particulier/mes-missions/{MissionId:int}/modifier"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionService MissionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["ModifierMission_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+    @if (_chargement)
+    {
+        <p>@Localizer["Chargement"]</p>
+    }
+    else if (_form is null)
+    {
+        <div class="missions-card">
+            <h1 class="missions-title">@Localizer["ModifierMission_Heading"]</h1>
+            <p class="missions-meta">@Localizer["ModifierMission_Indisponible"]</p>
+            <p><a href="/particulier/mes-missions">@Localizer["MesMissions_Lien"]</a></p>
+        </div>
+    }
+    else
+    {
+        <h1 class="missions-title">@Localizer["ModifierMission_Heading"]</h1>
+
+        @if (!string.IsNullOrEmpty(_message))
+        {
+            <div class="missions-success">@_message</div>
+        }
+
+        <MissionPublicationForm Model="_form">
+            <Actions>
+                <button type="button" class="missions-btn missions-btn-primary" disabled="@_saving" @onclick="EnregistrerAsync">
+                    @Localizer["ModifierMission_Enregistrer"]
+                </button>
+                <a href="/particulier/mes-missions" class="missions-btn missions-btn-secondary">@Localizer["MesMissions_Lien"]</a>
+            </Actions>
+        </MissionPublicationForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int MissionId { get; set; }
+
+    private string? _userId;
+    private MissionFormModel? _form;
+    private bool _chargement = true;
+    private bool _saving;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is null)
+        {
+            _chargement = false;
+            return;
+        }
+
+        var detail = await MissionService.TryGetMissionPourModificationAsync(_userId, MissionId);
+        _form = detail is null ? null : MissionFormModel.FromDetail(detail);
+        _chargement = false;
+    }
+
+    private async Task EnregistrerAsync()
+    {
+        if (_userId is null || _form is null)
+            return;
+
+        _saving = true;
+        _message = null;
+
+        var ok = await MissionService.ModifierMissionAsync(_userId, MissionId, _form.ToInput());
+        if (ok)
+            Navigation.NavigateTo("/particulier/mes-missions");
+        else
+            _message = Localizer["ModifierMission_Erreur"];
+
+        _saving = false;
+    }
+}
