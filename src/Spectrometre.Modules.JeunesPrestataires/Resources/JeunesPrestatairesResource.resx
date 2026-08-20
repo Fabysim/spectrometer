@@ -55,8 +55,10 @@
   <data name="AutoObs_PageTitle" xml:space="preserve"><value>Questionnaire d'auto-observassions · Spectromètre</value></data>
   <data name="AutoObs_Titre" xml:space="preserve"><value>Questionnaire d'auto-observassions pour le jeune prestataire</value></data>
   <data name="AutoObs_Progression" xml:space="preserve"><value>Progression</value></data>
+  <data name="AutoObs_Partie0" xml:space="preserve"><value>Exploration de mon profil</value></data>
   <data name="AutoObs_Partie1" xml:space="preserve"><value>Partie 1 — réflexion ouverte</value></data>
   <data name="AutoObs_Partie2" xml:space="preserve"><value>Partie 2 — Formulaire opérationnel d'inscription</value></data>
+  <data name="AutoObs_Piste" xml:space="preserve"><value>Piste {0}</value></data>
   <data name="AutoObs_EnregistrerSection" xml:space="preserve"><value>Enregistrer cette section</value></data>
   <data name="AutoObs_BesoinAide" xml:space="preserve"><value>Besoin d'aide</value></data>
   <data name="AutoObs_SectionEnregistree" xml:space="preserve"><value>Section enregistrée.</value></data>

@@ -6,6 +6,7 @@ using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
+using Spectrometre.Modules.JeunesPrestataires.Catalog;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Xunit;
 
@@ -84,6 +85,56 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
 
         var syntheseCoach = await svc.RegenererSyntheseAsync(coachId, profileId);
         Assert.NotNull(syntheseCoach);
+    }
+
+    [Fact]
+    public void AllSections_InclutPart0EnTete_AvecClesP0()
+    {
+        var sections = AutoObservationCatalog.AllSections;
+        Assert.True(sections.Count >= AutoObservationCatalog.Part0Sections.Count
+            + AutoObservationCatalog.Part1Sections.Count
+            + AutoObservationCatalog.Part2Sections.Count);
+
+        Assert.Equal("p0.s1", sections[0].Key);
+        Assert.Equal(0, sections[0].PartNumber);
+        Assert.All(AutoObservationCatalog.Part0Sections, s => Assert.Equal(0, s.PartNumber));
+
+        Assert.Contains(sections, s => s.Key == "p0.s7");
+        var grille = Assert.Single(sections, s => s.Key == "p0.s7");
+        Assert.Equal(24, grille.Questions.Count);
+        Assert.Contains(grille.Questions, q => q.Key == "p0.s7.piste1.motivation");
+        Assert.Contains(grille.Questions, q => q.Key == "p0.s7.piste4.utilite");
+        Assert.All(grille.Questions, q => Assert.Equal(AutoObservationFieldType.Scale1To5, q.FieldType));
+
+        Assert.Contains(sections, s => s.Key == "p0.s8");
+        var conclusion = Assert.Single(sections, s => s.Key == "p0.s8");
+        Assert.Equal(7, conclusion.Questions.Count);
+
+        // Part1/Part2 conservées après Part0, clés inchangées
+        var idxP1 = sections.ToList().FindIndex(s => s.Key == "p1.s1");
+        var idxP2 = sections.ToList().FindIndex(s => s.Key == "p2.s1");
+        Assert.True(idxP1 > 0);
+        Assert.True(idxP2 > idxP1);
+    }
+
+    [Fact]
+    public async Task Jeune_PeutSauvegarderSectionPart0()
+    {
+        var (_, jeuneId, profileId) = await CreerJeuneAvecCoachAsync();
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+
+        Assert.True(await svc.SaveSectionAsync(
+            jeuneId,
+            profileId,
+            "p0.s7",
+            [
+                new AutoObservationAnswerInput("p0.s7.piste1.motivation", null, 4),
+                new AutoObservationAnswerInput("p0.s7.piste2.valeurs", null, 3),
+            ]));
+
+        var section = await svc.TryGetSectionAsync(jeuneId, profileId, "p0.s7");
+        Assert.NotNull(section);
+        Assert.Equal(4, section!.Answers.First(a => a.QuestionKey == "p0.s7.piste1.motivation").NumericValue);
     }
 
     private async Task<(string CoachId, string JeuneId, int ProfileId)> CreerJeuneAvecCoachAsync()

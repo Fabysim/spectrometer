@@ -39,6 +39,15 @@
 .ao-section-btn.saved::before { content: "✓ "; color: #16a34a; }
 
 .ao-section-title { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.75rem; }
+.ao-piste-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.25rem 0 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+.ao-piste-title:first-of-type { margin-top: 0.25rem; }
 .ao-question { margin-bottom: 1.25rem; }
 .ao-question-label { display: block; font-weight: 500; margin-bottom: 0.35rem; }
 .ao-textarea, .ao-input {

@@ -258,4 +258,26 @@
   <data name="GuideEntrevue_Peur_peur_experience_passee_Levier" xml:space="preserve"><value>Identify conditions that make the new experience safer</value></data>
 
   <data name="GuideEntrevue_Posture" xml:space="preserve"><value>The coach can adopt a three-step posture: welcome the fear without minimizing it, make it more precise, then build a first safe action. For example: “It's normal to feel apprehensive when starting something new. When you say you're not sure of yourself, is it more the fear of doing it wrong, of not understanding, or of how others see you? What small first step would let you try without feeling put at risk?”</value></data>
+
+  <data name="AutoObs_PageTitle" xml:space="preserve"><value>Self-observation questionnaire · Spectromètre</value></data>
+  <data name="AutoObs_Titre" xml:space="preserve"><value>Self-observation questionnaire for young providers</value></data>
+  <data name="AutoObs_Progression" xml:space="preserve"><value>Progress</value></data>
+  <data name="AutoObs_Partie0" xml:space="preserve"><value>Exploring my profile</value></data>
+  <data name="AutoObs_Partie1" xml:space="preserve"><value>Part 1 — open reflection</value></data>
+  <data name="AutoObs_Partie2" xml:space="preserve"><value>Part 2 — operational registration form</value></data>
+  <data name="AutoObs_Piste" xml:space="preserve"><value>Track {0}</value></data>
+  <data name="AutoObs_EnregistrerSection" xml:space="preserve"><value>Save this section</value></data>
+  <data name="AutoObs_BesoinAide" xml:space="preserve"><value>Need help</value></data>
+  <data name="AutoObs_SectionEnregistree" xml:space="preserve"><value>Section saved.</value></data>
+  <data name="AutoObs_AideEnvoyee" xml:space="preserve"><value>Your coach has been notified.</value></data>
+  <data name="AutoObs_DerniereSauvegarde" xml:space="preserve"><value>Last saved: {0}</value></data>
+  <data name="AutoObs_Echelle1a5" xml:space="preserve"><value>1 = not at all; 2 = rather not; 3 = sometimes; 4 = rather yes; 5 = completely.</value></data>
+  <data name="AutoObs_Echelle1a4" xml:space="preserve"><value>Scale 1 to 4</value></data>
+  <data name="AutoObs_AutrePreciser" xml:space="preserve"><value>Please specify…</value></data>
+  <data name="AutoObs_RegenererSynthese" xml:space="preserve"><value>Generate / refresh summary</value></data>
+  <data name="AutoObs_SyntheseVide" xml:space="preserve"><value>Complete the form then generate the summary for the coach.</value></data>
+  <data name="AutoObs_ModeCoach" xml:space="preserve"><value>Read-only — profile of {0} {1}</value></data>
+  <data name="AutoObs_AccesRefuse_Titre" xml:space="preserve"><value>Access denied</value></data>
+  <data name="AutoObs_AccesRefuse_Message" xml:space="preserve"><value>This questionnaire is reserved for invited young providers and their referring coach.</value></data>
+  <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Self-observation questionnaire</value></data>
 </root>

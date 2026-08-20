@@ -49,6 +49,20 @@ else
         <aside class="ao-sidebar ao-card">
             <h2 class="ao-sidebar-title">@Localizer["AutoObs_Progression"]</h2>
             <details open class="ao-part">
+                <summary>@Localizer["AutoObs_Partie0"]</summary>
+                <ul class="ao-section-list">
+                    @foreach (var s in AutoObservationCatalog.Part0Sections)
+                    {
+                        <li>
+                            <button type="button" class="ao-section-btn @(_sectionKey == s.Key ? "active" : "") @(IsSaved(s.Key) ? "saved" : "")"
+                                    @onclick="() => SelectSectionAsync(s.Key)">
+                                @s.Title
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </details>
+            <details open class="ao-part">
                 <summary>@Localizer["AutoObs_Partie1"]</summary>
                 <ul class="ao-section-list">
                     @foreach (var s in AutoObservationCatalog.Part1Sections)
@@ -116,11 +130,26 @@ else
                 }
                 else
                 {
+                    string? currentPistePrefix = null;
                     @foreach (var q in _sectionDef.Questions)
                     {
                         @if (q.AutreKey is not null && q.Key.EndsWith(".autre", StringComparison.Ordinal))
                         {
                             continue;
+                        }
+
+                        @if (_sectionDef.Key == "p0.s7"
+                             && q.Key.Length > 12
+                             && q.Key.StartsWith("p0.s7.piste", StringComparison.Ordinal))
+                        {
+                            var dotAfterPiste = q.Key.IndexOf('.', "p0.s7.piste".Length);
+                            var pistePrefix = dotAfterPiste > 0 ? q.Key[..dotAfterPiste] : null;
+                            if (pistePrefix is not null && pistePrefix != currentPistePrefix)
+                            {
+                                currentPistePrefix = pistePrefix;
+                                var pisteNum = pistePrefix["p0.s7.piste".Length..];
+                                <h3 class="ao-piste-title">@string.Format(Localizer["AutoObs_Piste"], pisteNum)</h3>
+                            }
                         }
 
                         <div class="ao-question">
@@ -135,7 +164,7 @@ else
                                     <div class="ao-checkboxes">
                                         @foreach (var opt in q.Options ?? [])
                                         {
-                                            var isAutre = opt == "Autre";
+                                            var isAutre = opt.StartsWith("Autre", StringComparison.Ordinal);
                                             <label class="ao-checkbox">
                                                 <input type="checkbox" disabled="@(!_canEdit)"
                                                        checked="@IsChecked(q.Key, opt)"
@@ -144,7 +173,7 @@ else
                                             </label>
                                             @if (isAutre && q.AutreKey is not null)
                                             {
-                                                <input class="ao-input ao-autre" disabled="@(!_canEdit || !IsChecked(q.Key, "Autre"))"
+                                                <input class="ao-input ao-autre" disabled="@(!_canEdit || !IsChecked(q.Key, opt))"
                                                        @bind="_textValues[q.AutreKey]" placeholder="@Localizer["AutoObs_AutrePreciser"]" />
                                             }
                                         }
@@ -233,7 +262,7 @@ else
     private bool _chargement = true;
     private bool _saving;
     private AutoObservationPageView? _page;
-    private string _sectionKey = "p1.s1";
+    private string _sectionKey = "p0.s1";
     private AutoObservationSectionDef? _sectionDef;
     private bool _canEdit;
     private DateTimeOffset? _sectionSavedAt;

@@ -23,7 +23,7 @@ public static partial class AutoObservationCatalog
     private static IReadOnlyList<AutoObservationSectionDef>? _allSections;
 
     public static IReadOnlyList<AutoObservationSectionDef> AllSections =>
-        _allSections ??= Part1Sections.Concat(Part2Sections).ToList();
+        _allSections ??= Part0Sections.Concat(Part1Sections).Concat(Part2Sections).ToList();
 
     public static AutoObservationSectionDef? TryGetSection(string sectionKey) =>
         AllSections.FirstOrDefault(s => s.Key == sectionKey);
