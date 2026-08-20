@@ -262,6 +262,24 @@
   <data name="Home_MesPersonnesSuivies" xml:space="preserve">
     <value>My clients</value>
   </data>
+  <data name="Home_EspaceJeune" xml:space="preserve">
+    <value>Young space</value>
+  </data>
+  <data name="Home_EspaceJeuneIntro" xml:space="preserve">
+    <value>Open your self-observation questionnaire and, if needed, parental consent.</value>
+  </data>
+  <data name="Home_QuestionnaireAutoObservation" xml:space="preserve">
+    <value>Self-observation questionnaire</value>
+  </data>
+  <data name="Home_GrilleObservation" xml:space="preserve">
+    <value>Socio-professional observation grid</value>
+  </data>
+  <data name="Home_ConsentementParental" xml:space="preserve">
+    <value>Parental consent</value>
+  </data>
+  <data name="Home_ACompleter" xml:space="preserve">
+    <value>to complete</value>
+  </data>
   <data name="Home_AdminBienvenue" xml:space="preserve">
     <value>Platform overview.</value>
   </data>
@@ -439,6 +457,10 @@
   <data name="InvitationCandidaturePosteIntro" xml:space="preserve">
     <value>You have been invited to apply for a job on Spectromètre.</value>
   </data>
+  <data name="InvitationJeunePrestataireIntro" xml:space="preserve">
+    <value>You have been invited to join Spectromètre as a young service provider. Complete your account, then the parental consent form with your parents.</value>
+  </data>
+  <data name="InvitationAllerConsentementParental" xml:space="preserve"><value>Complete parental consent</value></data>
   <data name="GestionManagers_Titre" xml:space="preserve">
     <value>Company employees</value>
   </data>

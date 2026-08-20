@@ -24,4 +24,11 @@ public enum InvitationType
     /// au nom d'un tiers).
     /// </summary>
     CandidaturePoste = 2,
+
+    /// <summary>
+    /// Invitation d'un jeune prestataire mineur par un coach — <see cref="Invitation.EmetteurUserId"/> =
+    /// coach, l'accepteur devient la personne suivie (<c>LienCoaching.SuiviUserId</c>). Sens INVERSÉ de
+    /// <see cref="Coaching"/> où l'émetteur est la personne suivie et l'accepteur devient coach.
+    /// </summary>
+    JeunePrestataire = 3,
 }

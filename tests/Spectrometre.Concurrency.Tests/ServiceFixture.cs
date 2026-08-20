@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Spectrometre.Core.Ai;
 using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
+using Spectrometre.Core.Email;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
@@ -25,6 +26,8 @@ using Spectrometre.Modules.Entretien;
 using Spectrometre.Modules.Entretien.Data;
 using Spectrometre.Modules.GestionDuTemps;
 using Spectrometre.Modules.GestionDuTemps.Data;
+using Spectrometre.Modules.JeunesPrestataires;
+using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.GestionDuTemps.Services;
 using Spectrometre.Modules.ProfilCoach;
 using Spectrometre.Modules.ProfilCoach.Data;
@@ -144,6 +147,7 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         services.AddScoped<ITenantContext, TenantContext>();
         services.AddProfilCandidatModule(config);
+        services.AddJeunesPrestatairesModule(config);
         services.AddProfilEntrepriseModule(config);
         services.AddCompatibiliteModule(config);
         services.AddRecrutementModule(config);
@@ -164,6 +168,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         // Jamais d'appel réseau réel à Replicate en test — substitue l'implémentation réelle enregistrée
         // par AddGestionDuTempsModule / AddSpectrometreCore par des doubles configurables.
         services.AddScoped<IReplicateService, FakeReplicateService>();
+        services.AddScoped<IResendEmailService, FakeResendEmailService>();
         services.Replace(ServiceDescriptor.Scoped<IAiSynthesisService, FakeAiSynthesisService>());
         services.Replace(ServiceDescriptor.Scoped<Spectrometre.Modules.Recrutement.Services.IAnalysePosteIaService, FakeAnalysePosteIaService>());
         services.Replace(ServiceDescriptor.Scoped<Spectrometre.Modules.ProfilEntreprise.Services.IPosteCritereIaService, FakePosteCritereIaService>());
@@ -182,6 +187,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         {
             var moduleRegistry = scope.ServiceProvider.GetRequiredService<IModuleRegistry>();
             moduleRegistry.Register(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.JeunesPrestataires.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest);
@@ -203,6 +209,9 @@ public sealed class ServiceFixture : IAsyncLifetime
         // idempotent.
         await using var candidatDb = await Services.GetRequiredService<IDbContextFactory<ProfilCandidatDbContext>>().CreateDbContextAsync();
         await candidatDb.Database.MigrateAsync();
+
+        await using var jeunesPrestatairesDb = await Services.GetRequiredService<IDbContextFactory<JeunesPrestatairesDbContext>>().CreateDbContextAsync();
+        await jeunesPrestatairesDb.Database.MigrateAsync();
 
         await using var entrepriseDb = await Services.GetRequiredService<IDbContextFactory<ProfilEntrepriseDbContext>>().CreateDbContextAsync();
         await entrepriseDb.Database.MigrateAsync();

@@ -18,4 +18,17 @@ public interface IResendEmailService
     /// existe), c'est à l'appelant de décider comment informer l'utilisateur d'un email non envoyé.
     /// </returns>
     Task<bool> SendConfirmationEmailAsync(string email, string confirmationLink, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Envoie l'email d'invitation jeune prestataire avec le lien d'acceptation, dans la culture courante.
+    /// </summary>
+    /// <returns>
+    /// <see langword="false"/> si <c>Resend:ApiKey</c> n'est pas configuré ou si l'appel à l'API Resend
+    /// échoue — jamais d'exception propagée : l'invitation a déjà été créée à ce stade.
+    /// </returns>
+    Task<bool> SendJeunePrestataireInvitationEmailAsync(
+        string email,
+        string coachNomAffiche,
+        string acceptationLink,
+        CancellationToken cancellationToken = default);
 }

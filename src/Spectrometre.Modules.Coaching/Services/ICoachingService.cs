@@ -56,6 +56,13 @@ public interface ICoachingService
     /// </summary>
     Task<LienCoachingView> FinaliserDepuisInvitationAsync(Invitation invitation, string accepteurUserId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Finalise une invitation <see cref="InvitationType.JeunePrestataire"/> : coach = émetteur,
+    /// accepteur = jeune suivi — sens inverse de <see cref="FinaliserDepuisInvitationAsync"/>.
+    /// Ne pas confondre avec l'invitation <see cref="InvitationType.Coaching"/>.
+    /// </summary>
+    Task<LienCoachingView> FinaliserJeunePrestataireDepuisInvitationAsync(Invitation invitation, string accepteurUserId, CancellationToken cancellationToken = default);
+
     // ── Anamnèse IA (voir IAiSynthesisService, réutilisé tel quel) ──────────
 
     Task<AnamneseCoachingView?> GetAnamneseAsync(int lienId, string requestingCoachUserId, CancellationToken cancellationToken = default);

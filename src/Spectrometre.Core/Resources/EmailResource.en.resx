@@ -40,4 +40,10 @@
   <data name="Email_Confirmation_Button" xml:space="preserve"><value>Verify my account</value></data>
   <data name="Email_LinkFallback" xml:space="preserve"><value>If the button doesn't work, copy and paste this link into your browser:</value></data>
   <data name="Email_Confirmation_Footer" xml:space="preserve"><value>© {0} {1}. If you didn't create an account, you can ignore this email.</value></data>
+
+  <data name="Email_InvitationJeune_Subject" xml:space="preserve"><value>Invitation to join Spectromètre as a young service provider</value></data>
+  <data name="Email_InvitationJeune_Title" xml:space="preserve"><value>Young service provider invitation</value></data>
+  <data name="Email_InvitationJeune_Body" xml:space="preserve"><value>{0} invites you to join the Spectromètre platform as a young service provider. Click the button below to create your account and accept the invitation:</value></data>
+  <data name="Email_InvitationJeune_Button" xml:space="preserve"><value>Accept invitation</value></data>
+  <data name="Email_InvitationJeune_Footer" xml:space="preserve"><value>© {0} {1}. If you were not expecting this invitation, you can ignore this email.</value></data>
 </root>

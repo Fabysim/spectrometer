@@ -19,6 +19,9 @@ public static class NotificationCategoryCodes
     /// <c>GestionDuTemps.ActiviteDebut</c>. Code = préfixe TypeCode, pas « Activites ».
     /// </summary>
     public const string GestionDuTemps = "GestionDuTemps";
+
+    /// <summary>Jeunes prestataires — TypeCode ex. <c>JeunesPrestataires.BesoinAide</c>.</summary>
+    public const string JeunesPrestataires = "JeunesPrestataires";
 }
 
 public sealed record NotificationCategoryDefinition(
@@ -42,6 +45,7 @@ public static class NotificationCategoryCatalog
         new(NotificationCategoryCodes.Coaching, "Invitations", "Invitations"),
         new(NotificationCategoryCodes.SuiviEmployes, "Alertes", "Alerts"),
         new(NotificationCategoryCodes.GestionDuTemps, "Activités", "Activities"),
+        new(NotificationCategoryCodes.JeunesPrestataires, "Jeunes prestataires", "Young providers"),
     ];
 
     public static string DeriveCategorieCode(string typeCode)

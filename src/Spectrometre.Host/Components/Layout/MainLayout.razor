@@ -10,6 +10,9 @@
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
+@using Spectrometre.Modules.JeunesPrestataires.Services
+@inject IJeuneProfileService JeuneProfileService
+@inject IConsentementParentalService ConsentementParentalService
 @inject IGestionDuTempsAccessService GestionDuTempsAccessService
 @inject IStringLocalizer<Spectrometre.Modules.Admin.Resources.AdminResource> AdminLocalizer
 @inject IModuleRegistry ModuleRegistry
@@ -128,12 +131,44 @@
                         </div>
                     </div>
                 }
-                else if (!_estCandidatOuCoach && !_isPlatformAdmin)
+                else if (!_estCandidatOuCoach && !_isPlatformAdmin && !_estJeune)
                 {
                     <a href="/entreprise/creer" class="nav-item-auth @ActiveClass("/entreprise/creer")">
                         <span class="nav-icon"><i class="bi bi-building-add" aria-hidden="true"></i></span>
                         <span>@Localizer["CreerUneEntreprise"]</span>
                     </a>
+                }
+
+                @if (_estJeune)
+                {
+                    <div class="nav-group @(IsGroupActive("jeune") ? "open" : "")" data-nav-group="jeune">
+                        <div class="nav-group-row">
+                            <a href="/jeune/auto-observation" class="nav-item-auth nav-group-primary @ActiveClass("/jeune/auto-observation")">
+                                <span class="nav-icon"><i class="bi bi-person-hearts" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_EspaceJeune"]</span>
+                            </a>
+                            <button type="button" class="nav-group-caret" onclick="spectrometreToggleNavGroup(this)" aria-expanded="@(IsGroupActive("jeune") ? "true" : "false")" aria-label="@Localizer["Home_EspaceJeune"]">
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="nav-submenu">
+                            <a href="/jeune/auto-observation" class="nav-item-auth nav-sub-item @ActiveClass("/jeune/auto-observation")">
+                                <span class="nav-icon"><i class="bi bi-ui-checks" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_QuestionnaireAutoObservation"]</span>
+                            </a>
+                            <a href="/jeune/grille-observation" class="nav-item-auth nav-sub-item @ActiveClass("/jeune/grille-observation")">
+                                <span class="nav-icon"><i class="bi bi-clipboard2-data" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_GrilleObservation"]</span>
+                            </a>
+                            @if (_consentementParentalACompleter)
+                            {
+                                <a href="/candidat/consentement-parental" class="nav-item-auth nav-sub-item @ActiveClass("/candidat/consentement-parental")">
+                                    <span class="nav-icon"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+                                    <span>@Localizer["Home_ConsentementParental"]</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
                 }
 
                 @if (_candidateActiveModules.Contains("ProfilCandidat"))
@@ -353,6 +388,8 @@
     private bool _isAuthenticated;
     private bool _hasCompany;
     private bool _estCandidatOuCoach;
+    private bool _estJeune;
+    private bool _consentementParentalACompleter;
     private readonly HashSet<string> _companyActiveModules = [];
     private readonly HashSet<string> _candidateActiveModules = [];
     private readonly HashSet<string> _coachActiveModules = [];
@@ -441,6 +478,18 @@
         _estCandidatOuCoach =
             await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, "ProfilCandidat", coreDb)
             || await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, "ProfilCoach", coreDb);
+
+        // Même résolution que Dashboard.razor : un jeune (JeuneProfile créé par invitation coach) n'a ni
+        // entreprise ni ProfilCandidat/ProfilCoach actif — sans ce garde-fou il retombe dans la branche
+        // "aucun profil reconnu" et voit à tort le lien « Créer une entreprise ».
+        var jeuneProfile = await JeuneProfileService.TryGetByUserIdAsync(userId);
+        _estJeune = jeuneProfile is not null;
+        if (jeuneProfile is not null
+            && JeuneProfileService.EstMineur(jeuneProfile.DateNaissance)
+            && !await ConsentementParentalService.EstConsentementValideAsync(jeuneProfile.Id))
+        {
+            _consentementParentalACompleter = true;
+        }
     }
 
     private bool CurrentCultureIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr";
@@ -484,6 +533,8 @@
                   && !CurrentPath.Equals("/gestion-du-temps", StringComparison.OrdinalIgnoreCase))
                  || CurrentPath.StartsWith("/mon-coach", StringComparison.OrdinalIgnoreCase),
         "coach" => CurrentPath.StartsWith("/coach/suivis", StringComparison.OrdinalIgnoreCase),
+        "jeune" => CurrentPath.StartsWith("/jeune", StringComparison.OrdinalIgnoreCase)
+                   || CurrentPath.StartsWith("/candidat/consentement-parental", StringComparison.OrdinalIgnoreCase),
         "admin" => CurrentPath.StartsWith("/admin", StringComparison.OrdinalIgnoreCase) && !CurrentPath.Equals("/admin", StringComparison.OrdinalIgnoreCase),
         _ => false
     };

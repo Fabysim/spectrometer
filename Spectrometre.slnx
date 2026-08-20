@@ -9,6 +9,7 @@
     <Project Path="src/Spectrometre.Modules.Compatibilite/Spectrometre.Modules.Compatibilite.csproj" />
     <Project Path="src/Spectrometre.Modules.Entretien/Spectrometre.Modules.Entretien.csproj" />
     <Project Path="src/Spectrometre.Modules.GestionDuTemps/Spectrometre.Modules.GestionDuTemps.csproj" />
+    <Project Path="src/Spectrometre.Modules.JeunesPrestataires/Spectrometre.Modules.JeunesPrestataires.csproj" />
     <Project Path="src/Spectrometre.Modules.Recrutement/Spectrometre.Modules.Recrutement.csproj" />
     <Project Path="src/Spectrometre.Modules.ProfilCandidat/Spectrometre.Modules.ProfilCandidat.csproj" />
     <Project Path="src/Spectrometre.Modules.ProfilCoach/Spectrometre.Modules.ProfilCoach.csproj" />
@@ -22,5 +23,6 @@
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Spectrometre.AdminBootstrap/Spectrometre.AdminBootstrap.csproj" />
+    <Project Path="tools/Spectrometre.BackfillJeunesGdt/Spectrometre.BackfillJeunesGdt.csproj" />
   </Folder>
 </Solution>

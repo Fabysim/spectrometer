@@ -1,0 +1,412 @@
+@page "/jeune/auto-observation"
+@page "/coach/suivis/{SuiviUserId}/auto-observation"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.WebUtilities
+@using Spectrometre.Modules.JeunesPrestataires.Catalog
+@using Spectrometre.Modules.JeunesPrestataires.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IAutoObservationService AutoObservationService
+@inject IJeuneProfileService JeuneProfileService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject IStringLocalizer<JeunesPrestatairesResource> Localizer
+
+<PageTitle>@Localizer["AutoObs_PageTitle"]</PageTitle>
+
+<div class="ao-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_page is null)
+{
+    <div class="ao-card ao-alert">
+        <h2>@Localizer["AutoObs_AccesRefuse_Titre"]</h2>
+        <p>@Localizer["AutoObs_AccesRefuse_Message"]</p>
+    </div>
+}
+else
+{
+    <header class="ao-header">
+        <h1 class="ao-title">@Localizer["AutoObs_Titre"]</h1>
+        <p class="ao-accroche">@AutoObservationCatalog.PageIntro</p>
+        <p class="ao-hint">@AutoObservationCatalog.PageAideIntro</p>
+        @if (_page.AccessMode == AutoObservationAccessMode.Coach)
+        {
+            <p class="ao-coach-badge">
+                <i class="bi bi-eye" aria-hidden="true"></i>
+                @string.Format(Localizer["AutoObs_ModeCoach"], _page.JeuneProfile.Prenoms, _page.JeuneProfile.Nom)
+            </p>
+        }
+    </header>
+
+    <div class="ao-layout">
+        <aside class="ao-sidebar ao-card">
+            <h2 class="ao-sidebar-title">@Localizer["AutoObs_Progression"]</h2>
+            <details open class="ao-part">
+                <summary>@Localizer["AutoObs_Partie1"]</summary>
+                <ul class="ao-section-list">
+                    @foreach (var s in AutoObservationCatalog.Part1Sections)
+                    {
+                        <li>
+                            <button type="button" class="ao-section-btn @(_sectionKey == s.Key ? "active" : "") @(IsSaved(s.Key) ? "saved" : "")"
+                                    @onclick="() => SelectSectionAsync(s.Key)">
+                                @s.Title
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </details>
+            <details open class="ao-part">
+                <summary>@Localizer["AutoObs_Partie2"]</summary>
+                <ul class="ao-section-list">
+                    @foreach (var s in AutoObservationCatalog.Part2Sections)
+                    {
+                        <li>
+                            <button type="button" class="ao-section-btn @(_sectionKey == s.Key ? "active" : "") @(IsSaved(s.Key) ? "saved" : "")"
+                                    @onclick="() => SelectSectionAsync(s.Key)">
+                                @s.Title
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </details>
+        </aside>
+
+        <main class="ao-main ao-card">
+            @if (_sectionDef is not null)
+            {
+                <h2 class="ao-section-title">@_sectionDef.Title</h2>
+                @if (!string.IsNullOrWhiteSpace(_sectionDef.Intro))
+                {
+                    <p class="ao-hint">@_sectionDef.Intro</p>
+                }
+
+                @if (_sectionDef.Key == "p2.s1")
+                {
+                    <dl class="ao-readonly">
+                        <div><dt>@Localizer["Nom"]</dt><dd>@_page.JeuneProfile.Nom</dd></div>
+                        <div><dt>@Localizer["Prenoms"]</dt><dd>@_page.JeuneProfile.Prenoms</dd></div>
+                        <div><dt>@Localizer["DateNaissance"]</dt><dd>@_page.JeuneProfile.DateNaissance.ToString("d", CultureInfo.CurrentCulture)</dd></div>
+                        <div><dt>@Localizer["Age"]</dt><dd>@string.Format(Localizer["AgeAns"], JeuneProfileService.CalculerAge(_page.JeuneProfile.DateNaissance))</dd></div>
+                    </dl>
+                }
+
+                @if (_sectionDef.IsSynthesisDisplayOnly)
+                {
+                    <p class="ao-hint">@AutoObservationCatalog.Part2Intro</p>
+                    <div class="ao-synthese-actions">
+                        <button type="button" class="ao-btn-primary" @onclick="RegenererSyntheseAsync" disabled="@_saving">
+                            @Localizer["AutoObs_RegenererSynthese"]
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(_synthese))
+                    {
+                        <div class="ao-synthese">@_synthese</div>
+                    }
+                    else
+                    {
+                        <p class="ao-hint">@Localizer["AutoObs_SyntheseVide"]</p>
+                    }
+                }
+                else
+                {
+                    @foreach (var q in _sectionDef.Questions)
+                    {
+                        @if (q.AutreKey is not null && q.Key.EndsWith(".autre", StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+
+                        <div class="ao-question">
+                            <label class="ao-question-label">@q.Label</label>
+                            @switch (q.FieldType)
+                            {
+                                case AutoObservationFieldType.OpenText:
+                                    <textarea class="ao-textarea" rows="3" disabled="@(!_canEdit)"
+                                              @bind="_textValues[q.Key]"></textarea>
+                                    break;
+                                case AutoObservationFieldType.MultiCheckbox:
+                                    <div class="ao-checkboxes">
+                                        @foreach (var opt in q.Options ?? [])
+                                        {
+                                            var isAutre = opt == "Autre";
+                                            <label class="ao-checkbox">
+                                                <input type="checkbox" disabled="@(!_canEdit)"
+                                                       checked="@IsChecked(q.Key, opt)"
+                                                       @onchange="e => ToggleMulti(q.Key, opt, (bool)e.Value!)" />
+                                                @opt
+                                            </label>
+                                            @if (isAutre && q.AutreKey is not null)
+                                            {
+                                                <input class="ao-input ao-autre" disabled="@(!_canEdit || !IsChecked(q.Key, "Autre"))"
+                                                       @bind="_textValues[q.AutreKey]" placeholder="@Localizer["AutoObs_AutrePreciser"]" />
+                                            }
+                                        }
+                                    </div>
+                                    break;
+                                case AutoObservationFieldType.SingleChoice:
+                                    <div class="ao-radios">
+                                        @foreach (var opt in q.Options ?? [])
+                                        {
+                                            <label class="ao-radio">
+                                                <input type="radio" name="@q.Key" disabled="@(!_canEdit)"
+                                                       checked="@(_textValues.GetValueOrDefault(q.Key) == opt)"
+                                                       @onchange="() => _textValues[q.Key] = opt" />
+                                                @opt
+                                            </label>
+                                        }
+                                    </div>
+                                    break;
+                                case AutoObservationFieldType.Scale1To5:
+                                    <div class="ao-scale">
+                                        <span class="ao-scale-hint">@Localizer["AutoObs_Echelle1a5"]</span>
+                                        @for (var n = 1; n <= 5; n++)
+                                        {
+                                            var score = n;
+                                            <label class="ao-scale-item">
+                                                <input type="radio" name="@q.Key" disabled="@(!_canEdit)"
+                                                       checked="@(_numericValues.GetValueOrDefault(q.Key) == score)"
+                                                       @onchange="() => _numericValues[q.Key] = score" />
+                                                @score
+                                            </label>
+                                        }
+                                    </div>
+                                    break;
+                                case AutoObservationFieldType.Scale1To4:
+                                    <div class="ao-scale">
+                                        <span class="ao-scale-hint">@Localizer["AutoObs_Echelle1a4"]</span>
+                                        @for (var n = 1; n <= 4; n++)
+                                        {
+                                            var score = n;
+                                            <label class="ao-scale-item">
+                                                <input type="radio" name="@q.Key" disabled="@(!_canEdit)"
+                                                       checked="@(_numericValues.GetValueOrDefault(q.Key) == score)"
+                                                       @onchange="() => _numericValues[q.Key] = score" />
+                                                @score
+                                            </label>
+                                        }
+                                    </div>
+                                    break;
+                            }
+                        </div>
+                    }
+
+                    @if (_message is not null)
+                    {
+                        <div class="ao-alert-success" role="status">@_message</div>
+                    }
+
+                    <div class="ao-actions">
+                        @if (_canEdit)
+                        {
+                            <button type="button" class="ao-btn-primary" @onclick="SaveSectionAsync" disabled="@_saving">
+                                @Localizer["AutoObs_EnregistrerSection"]
+                            </button>
+                        }
+                        @if (_page.AccessMode == AutoObservationAccessMode.Jeune && !_sectionDef.IsSynthesisDisplayOnly)
+                        {
+                            <button type="button" class="ao-btn-secondary" @onclick="DemanderAideAsync" disabled="@_saving">
+                                @Localizer["AutoObs_BesoinAide"]
+                            </button>
+                        }
+                    </div>
+                    @if (_sectionSavedAt.HasValue)
+                    {
+                        <p class="ao-saved-at">@string.Format(Localizer["AutoObs_DerniereSauvegarde"], _sectionSavedAt.Value.ToLocalTime().ToString("g", CultureInfo.CurrentCulture))</p>
+                    }
+                }
+            }
+        </main>
+    </div>
+}
+</div>
+
+@code {
+    [Parameter] public string? SuiviUserId { get; set; }
+
+    private bool _chargement = true;
+    private bool _saving;
+    private AutoObservationPageView? _page;
+    private string _sectionKey = "p1.s1";
+    private AutoObservationSectionDef? _sectionDef;
+    private bool _canEdit;
+    private DateTimeOffset? _sectionSavedAt;
+    private string? _message;
+    private string? _synthese;
+    private string? _userId;
+
+    private readonly Dictionary<string, string?> _textValues = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int?> _numericValues = new(StringComparer.Ordinal);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is null)
+        {
+            _chargement = false;
+            return;
+        }
+
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("section", out var sectionParam))
+            _sectionKey = sectionParam.ToString();
+
+        int? profileId = null;
+        if (!string.IsNullOrWhiteSpace(SuiviUserId))
+        {
+            var profilSuivi = await JeuneProfileService.TryGetByUserIdAsync(SuiviUserId);
+            profileId = profilSuivi?.Id;
+        }
+
+        _page = await AutoObservationService.TryGetPageAsync(_userId, profileId);
+        _synthese = _page?.SyntheseGeneree;
+
+        if (_page is not null)
+            await LoadSectionAsync(_sectionKey);
+
+        _chargement = false;
+    }
+
+    private bool IsSaved(string key) =>
+        _page?.SectionProgress.Any(p => p.SectionKey == key) == true;
+
+    private async Task SelectSectionAsync(string key)
+    {
+        _sectionKey = key;
+        _message = null;
+        await LoadSectionAsync(key);
+    }
+
+    private async Task LoadSectionAsync(string key)
+    {
+        if (_page is null || _userId is null)
+            return;
+
+        var sectionDef = AutoObservationCatalog.TryGetSection(key);
+        if (sectionDef is null)
+            return;
+
+        // Ne pas assigner _sectionDef avant d'avoir les réponses en main : entre le set synchrone et cet
+        // await, Blazor peut re-rendre avec les questions de la NOUVELLE section mais les dictionnaires de
+        // l'ANCIENNE (encore non vidés/repeuplés à ce stade) — @bind="_textValues[q.Key]" lève alors un
+        // KeyNotFoundException pour toute clé absente. On garde _sectionDef inchangé tant que ce n'est pas prêt.
+        var section = await AutoObservationService.TryGetSectionAsync(_userId, _page.JeuneProfile.Id, key);
+        if (section is null)
+            return;
+
+        _canEdit = section.CanEdit;
+        _sectionSavedAt = section.SavedAt;
+        _textValues.Clear();
+        _numericValues.Clear();
+
+        foreach (var a in section.Answers)
+        {
+            if (a.TextValue is not null)
+                _textValues[a.QuestionKey] = a.TextValue;
+            if (a.NumericValue.HasValue)
+                _numericValues[a.QuestionKey] = a.NumericValue;
+        }
+
+        foreach (var q in sectionDef.Questions)
+        {
+            _textValues.TryAdd(q.Key, null);
+            if (q.AutreKey is not null)
+                _textValues.TryAdd(q.AutreKey, null);
+            if (q.FieldType is AutoObservationFieldType.Scale1To4 or AutoObservationFieldType.Scale1To5)
+                _numericValues.TryAdd(q.Key, null);
+        }
+
+        _sectionDef = sectionDef;
+    }
+
+    private bool IsChecked(string key, string option)
+    {
+        if (!_textValues.TryGetValue(key, out var val) || string.IsNullOrWhiteSpace(val))
+            return false;
+        return val.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Contains(option, StringComparer.Ordinal);
+    }
+
+    private void ToggleMulti(string key, string option, bool selected)
+    {
+        var set = _textValues.TryGetValue(key, out var val) && !string.IsNullOrWhiteSpace(val)
+            ? val.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet(StringComparer.Ordinal)
+            : new HashSet<string>(StringComparer.Ordinal);
+
+        if (selected)
+            set.Add(option);
+        else
+            set.Remove(option);
+
+        _textValues[key] = set.Count > 0 ? string.Join("|", set) : null;
+    }
+
+    private async Task SaveSectionAsync()
+    {
+        if (_page is null || _userId is null || _sectionDef is null)
+            return;
+
+        _saving = true;
+        _message = null;
+
+        var inputs = new List<AutoObservationAnswerInput>();
+        foreach (var q in _sectionDef.Questions)
+        {
+            if (q.FieldType is AutoObservationFieldType.Scale1To4 or AutoObservationFieldType.Scale1To5)
+            {
+                _numericValues.TryGetValue(q.Key, out var num);
+                inputs.Add(new AutoObservationAnswerInput(q.Key, null, num));
+            }
+            else
+            {
+                _textValues.TryGetValue(q.Key, out var text);
+                inputs.Add(new AutoObservationAnswerInput(q.Key, text, null));
+            }
+            if (q.AutreKey is not null)
+            {
+                _textValues.TryGetValue(q.AutreKey, out var autre);
+                inputs.Add(new AutoObservationAnswerInput(q.AutreKey, autre, null));
+            }
+        }
+
+        var ok = await AutoObservationService.SaveSectionAsync(_userId, _page.JeuneProfile.Id, _sectionKey, inputs);
+        if (ok)
+        {
+            _message = Localizer["AutoObs_SectionEnregistree"];
+            _page = await AutoObservationService.TryGetPageAsync(_userId, _page.JeuneProfile.Id);
+            await LoadSectionAsync(_sectionKey);
+        }
+
+        _saving = false;
+    }
+
+    private async Task DemanderAideAsync()
+    {
+        if (_page is null || _userId is null)
+            return;
+
+        _saving = true;
+        await AutoObservationService.DemanderAideAsync(_userId, _page.JeuneProfile.Id, _sectionKey);
+        _message = Localizer["AutoObs_AideEnvoyee"];
+        _saving = false;
+    }
+
+    private async Task RegenererSyntheseAsync()
+    {
+        if (_page is null || _userId is null)
+            return;
+
+        _saving = true;
+        _synthese = await AutoObservationService.RegenererSyntheseAsync(_userId, _page.JeuneProfile.Id);
+        _page = await AutoObservationService.TryGetPageAsync(_userId, _page.JeuneProfile.Id);
+        _saving = false;
+    }
+}

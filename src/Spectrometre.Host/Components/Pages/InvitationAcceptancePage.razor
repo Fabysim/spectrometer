@@ -10,12 +10,15 @@
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.Coaching.Services
+@using Spectrometre.Modules.JeunesPrestataires.Services
 @using Spectrometre.Modules.ProfilEntreprise.Services
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IInvitationService InvitationService
 @inject CoachOnboardingService CoachOnboarding
+@inject CandidateOnboardingService CandidateOnboarding
 @inject ICoachingService CoachingService
+@inject IJeuneProfileService JeuneProfileService
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject IPosteService PosteService
 @inject CoreDbContext CoreDb
@@ -148,6 +151,7 @@
                                 {
                                     InvitationType.CompanyEmploye => Localizer["Accueil"],
                                     InvitationType.CandidaturePoste => Localizer["Accueil"],
+                                    InvitationType.JeunePrestataire => Localizer["InvitationAllerConsentementParental"],
                                     _ => Localizer["InvitationVoirMesPersonnesSuivies"],
                                 })
                             </a>
@@ -211,6 +215,16 @@
         _invitation = await InvitationService.ObtenirValidePourAcceptationAsync(Token, CoreDb);
         if (_invitation is null)
             return;
+
+        if (_invitation.Type == InvitationType.JeunePrestataire)
+        {
+            var draft = await JeuneProfileService.TryGetDraftForInvitationAsync(_invitation.Id);
+            if (draft is not null)
+            {
+                _model.Nom = draft.Nom;
+                _model.Prenom = draft.Prenoms;
+            }
+        }
 
         _existingUser = await UserManager.FindByEmailAsync(_invitation.EmailInvite);
         if (_existingUser is null)
@@ -297,6 +311,19 @@
             case InvitationType.CandidaturePoste:
                 await PosteService.FinaliserCandidatureDepuisInvitationAsync(_invitation, accepteurUserId);
                 break;
+            case InvitationType.JeunePrestataire:
+                await JeuneProfileService.FinaliserDepuisInvitationAsync(_invitation, accepteurUserId);
+                await CoachingService.FinaliserJeunePrestataireDepuisInvitationAsync(_invitation, accepteurUserId);
+                // Gestion du temps pour un jeune : pas de self-serve (/candidat/modules) — activation silencieuse
+                // via le canal candidat (ModuleActivationSubjectType n'a pas de sujet « Jeune »).
+                // CreateCandidateAsync ouvre un CandidateSubscription Essai (accès technique gratuit) ;
+                // aucun job ni bascule automatique Essai→Suspendue/Résiliée n'existe aujourd'hui dans le code
+                // (grep SubscriptionStatus / RenewalDate : seul EstEnRetard côté admin exige Active + RenewalDate
+                // passée). Risque connu si une facturation automatique est ajoutée plus tard : distinguer les
+                // CandidateProfile rattachés à un JeuneProfile pour ne pas couper l'agenda jeune.
+                var candidateProfileId = await CandidateOnboarding.CreateCandidateAsync(accepteurUserId, CoreDb);
+                await CandidateOnboarding.ActivateGestionDuTempsAsync(candidateProfileId, CoreDb);
+                break;
         }
     }
 
@@ -304,6 +331,7 @@
     {
         InvitationType.CompanyEmploye => "/dashboard",
         InvitationType.CandidaturePoste => "/candidat/postes",
+        InvitationType.JeunePrestataire => "/candidat/consentement-parental",
         _ => "/coach/suivis",
     };
 
@@ -311,6 +339,7 @@
     {
         InvitationType.CompanyEmploye => "InvitationManagerIntro",
         InvitationType.CandidaturePoste => "InvitationCandidaturePosteIntro",
+        InvitationType.JeunePrestataire => "InvitationJeunePrestataireIntro",
         _ => "InvitationCoachingIntro",
     };
 }

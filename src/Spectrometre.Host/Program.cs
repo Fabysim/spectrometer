@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core;
@@ -19,6 +21,8 @@ using Spectrometre.Modules.Compatibilite;
 using Spectrometre.Modules.Entretien;
 using Spectrometre.Modules.GestionDuTemps;
 using Spectrometre.Modules.GestionDuTemps.Data;
+using Spectrometre.Modules.JeunesPrestataires;
+using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.Recrutement;
 using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
@@ -54,6 +58,7 @@ builder.Services.AddHttpContextAccessor();
 // (Compatibilite dépend de ProfilCandidat + ProfilEntreprise).
 builder.Services.AddSpectrometreCore(builder.Configuration);
 builder.Services.AddProfilCandidatModule(builder.Configuration);
+builder.Services.AddJeunesPrestatairesModule(builder.Configuration);
 builder.Services.AddProfilEntrepriseModule(builder.Configuration);
 builder.Services.AddCompatibiliteModule(builder.Configuration);
 builder.Services.AddRecrutementModule(builder.Configuration);
@@ -109,6 +114,38 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
+// Data Protection : antiforgery Blazor / cookies. En Docker, persister sur volume (voir deploy/docker-compose.yml).
+if (!builder.Environment.IsDevelopment())
+{
+    var keysPath = ResolveDataProtectionKeysPath(builder.Environment, builder.Configuration);
+    Directory.CreateDirectory(keysPath);
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
+        .SetApplicationName("Spectrometre")
+        .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
+}
+
+var useForwardedHeaders = builder.Configuration.GetValue("ReverseProxy:UseForwardedHeaders", false);
+if (useForwardedHeaders)
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
+static string ResolveDataProtectionKeysPath(IHostEnvironment env, IConfiguration configuration)
+{
+    var configured = configuration["DataProtection:KeysPath"];
+    if (string.IsNullOrWhiteSpace(configured))
+        return Path.Combine(env.ContentRootPath, "keys");
+    return Path.IsPathRooted(configured)
+        ? configured
+        : Path.Combine(env.ContentRootPath, configured);
+}
+
 // Français = culture par défaut (tout le contenu existant est en français) ; anglais = seule autre culture
 // supportée pour l'instant. Cultures neutres ("fr"/"en", pas "fr-FR"/"en-US") : le chrome n'a pas besoin de
 // variantes régionales, et ça garde SharedResource.resx/.en.resx alignés sans complexité supplémentaire.
@@ -126,6 +163,7 @@ using (var startupScope = app.Services.CreateScope())
 {
     var moduleRegistry = startupScope.ServiceProvider.GetRequiredService<IModuleRegistry>();
     moduleRegistry.Register(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.JeunesPrestataires.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest);
@@ -153,6 +191,14 @@ using (var startupScope = app.Services.CreateScope())
                .CreateDbContext())
     {
         profilCandidatDb.Database.Migrate();
+    }
+
+    // Jeunes prestataires : schéma fixe non tenant-scopé, comme ProfilCandidat — migré globalement ici.
+    using (var jeunesPrestatairesDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<JeunesPrestatairesDbContext>>()
+               .CreateDbContext())
+    {
+        jeunesPrestatairesDb.Database.Migrate();
     }
 
     // SuiviEvolutif candidat : schéma fixe non tenant-scopé, comme ProfilCandidat — migré globalement ici,
@@ -251,6 +297,9 @@ else
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
+
+if (useForwardedHeaders)
+    app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 
@@ -472,6 +521,7 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(
         typeof(Spectrometre.Host.Client._Imports).Assembly,
         typeof(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.JeunesPrestataires.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions).Assembly,

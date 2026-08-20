@@ -1,0 +1,356 @@
+@page "/candidat/consentement-parental"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.JeunesPrestataires.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IJeuneProfileService JeuneProfileService
+@inject IConsentementParentalService ConsentementService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<JeunesPrestatairesResource> Localizer
+
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
+
+<div class="jp-page">
+    <header class="jp-header">
+        <div>
+            <h1 class="jp-title">@Localizer["PageHeading"]</h1>
+            @if (!_estMajeur)
+            {
+                <p class="jp-subtitle">@Localizer["PageIntro"]</p>
+            }
+            @if (_jeuneProfile is not null && !_estMajeur)
+            {
+                <p style="margin-top:0.75rem">
+                    <a href="/jeune/auto-observation" class="jp-btn-secondary">@Localizer["AutoObs_LienQuestionnaire"]</a>
+                </p>
+            }
+        </div>
+    </header>
+
+@if (!_chargement && _jeuneProfile is not null && !_estMajeur)
+{
+    <div class="jp-disclaimer" role="note">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        @Localizer["LegalDisclaimer"]
+    </div>
+}
+
+@if (_chargement)
+{
+    <p class="jp-state">@Localizer["Chargement"]</p>
+}
+else if (_jeuneProfile is null)
+{
+    <section class="jp-card">
+        <h2 class="jp-section-title">@Localizer["NonJeune_Titre"]</h2>
+        <p>@Localizer["NonJeune_Message"]</p>
+    </section>
+}
+else if (_estMajeur)
+{
+    <section class="jp-card">
+        <h2 class="jp-section-title">@Localizer["ConsentementNonRequis_Titre"]</h2>
+        <p>@Localizer["ConsentementNonRequis_Message"]</p>
+        <p style="margin-top:1rem">
+            <a href="/jeune/auto-observation" class="jp-btn-primary">@Localizer["AutoObs_LienQuestionnaire"]</a>
+        </p>
+    </section>
+}
+else
+{
+    @if (_vue!.EstValide && !_modeEdition)
+    {
+        <div class="jp-badge-valid" role="status">
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            @string.Format(Localizer["Badge_Valide"], _vue.Entity.ValideLe!.Value.ToLocalTime().ToString("g", CultureInfo.CurrentCulture))
+        </div>
+    }
+
+    @if (_messageSucces is not null)
+    {
+        <div class="jp-alert jp-alert-success" role="status">@_messageSucces</div>
+    }
+
+    @if (_champsManquants.Count > 0)
+    {
+        <div class="jp-alert jp-alert-error" role="alert">
+            <p>@Localizer["ErreurChampsManquants"]</p>
+            <ul>
+                @foreach (var champ in _champsManquants)
+                {
+                    <li>@Localizer[champ]</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <section class="jp-card">
+        <h2 class="jp-section-title">@Localizer["Section1_Title"]</h2>
+        <p class="jp-hint">@Localizer["Section1_Intro"]</p>
+        <dl class="jp-readonly">
+            <div><dt>@Localizer["Nom"]</dt><dd>@Afficher(_jeuneProfile.Nom)</dd></div>
+            <div><dt>@Localizer["Prenoms"]</dt><dd>@Afficher(_jeuneProfile.Prenoms)</dd></div>
+            <div><dt>@Localizer["DateNaissance"]</dt><dd>@_jeuneProfile.DateNaissance.ToString("d", CultureInfo.CurrentCulture)</dd></div>
+            <div><dt>@Localizer["Age"]</dt><dd>@string.Format(Localizer["AgeAns"], JeuneProfileService.CalculerAge(_jeuneProfile.DateNaissance))</dd></div>
+        </dl>
+    </section>
+
+    <fieldset class="jp-card" disabled="@(!_modeEdition)">
+        <legend class="jp-section-title">@Localizer["Section2_Title"]</legend>
+        <p class="jp-hint">@Localizer["Section2_Intro"]</p>
+
+        <h3 class="jp-subsection">@Localizer["Parent1_Title"]</h3>
+        <div class="jp-form">
+            <div class="jp-field"><label>@Localizer["Parent_Nom"]</label><input class="jp-input" @bind="_form.Parent1Nom" /></div>
+            <div class="jp-field"><label>@Localizer["Parent_Lien"]</label><input class="jp-input" @bind="_form.Parent1Lien" /></div>
+            <div class="jp-field"><label>@Localizer["Parent_Adresse"]</label><input class="jp-input" @bind="_form.Parent1Adresse" /></div>
+            <div class="jp-form-row">
+                <div class="jp-field"><label>@Localizer["Parent_Telephone"]</label><input class="jp-input" @bind="_form.Parent1Telephone" /></div>
+                <div class="jp-field"><label>@Localizer["Parent_Email"]</label><input class="jp-input" @bind="_form.Parent1Email" /></div>
+            </div>
+        </div>
+
+        <h3 class="jp-subsection">@Localizer["Parent2_Title"]</h3>
+        <div class="jp-form">
+            <div class="jp-field"><label>@Localizer["Parent_Nom"]</label><input class="jp-input" @bind="_form.Parent2Nom" /></div>
+            <div class="jp-field"><label>@Localizer["Parent_Lien"]</label><input class="jp-input" @bind="_form.Parent2Lien" /></div>
+            <div class="jp-field"><label>@Localizer["Parent_Adresse"]</label><input class="jp-input" @bind="_form.Parent2Adresse" /></div>
+            <div class="jp-form-row">
+                <div class="jp-field"><label>@Localizer["Parent_Telephone"]</label><input class="jp-input" @bind="_form.Parent2Telephone" /></div>
+                <div class="jp-field"><label>@Localizer["Parent_Email"]</label><input class="jp-input" @bind="_form.Parent2Email" /></div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="jp-card" disabled="@(!_modeEdition)">
+        <legend class="jp-section-title">@Localizer["Section3_Title"]</legend>
+        <p class="jp-hint">@Localizer["Section3_Description"]</p>
+        <label class="jp-checkbox">
+            <input type="checkbox" @bind="_form.AutorisationMissions" />
+            <span>@Localizer["AutorisationMissions_Label"]</span>
+        </label>
+    </fieldset>
+
+    <fieldset class="jp-card" disabled="@(!_modeEdition)">
+        <legend class="jp-section-title">@Localizer["Section4_Title"]</legend>
+        <p class="jp-hint">@Localizer["Section4_Description"]</p>
+        <label class="jp-checkbox">
+            <input type="checkbox" @bind="_form.AutorisationRevenus" />
+            <span>@Localizer["AutorisationRevenus_Label"]</span>
+        </label>
+        <div class="jp-form-row">
+            <div class="jp-field">
+                <label>@Localizer["PartParascolairePourcent"]</label>
+                <input class="jp-input" type="number" min="0" max="100" step="0.01"
+                       value="@_partParascolaireText"
+                       @onchange="OnPartParascolaireChanged" />
+            </div>
+            <div class="jp-field">
+                <label>@Localizer["PartArgentDePochePourcent"]</label>
+                <input class="jp-input" type="number" min="0" max="100" step="0.01"
+                       value="@_partArgentText"
+                       @onchange="OnPartArgentChanged" />
+            </div>
+        </div>
+        <div class="jp-field"><label>@Localizer["AutreAffectation"]</label><input class="jp-input" @bind="_form.AutreAffectation" /></div>
+        <div class="jp-field"><label>@Localizer["ModalitesVersement"]</label><textarea class="jp-input jp-textarea" rows="2" @bind="_form.ModalitesVersement"></textarea></div>
+    </fieldset>
+
+    <fieldset class="jp-card" disabled="@(!_modeEdition)">
+        <legend class="jp-section-title">@Localizer["Section5_Title"]</legend>
+        <p class="jp-hint">@Localizer["Section5_Description"]</p>
+        <label class="jp-checkbox">
+            <input type="checkbox" @bind="_form.AutorisationDonneesEtImage" />
+            <span>@Localizer["AutorisationDonneesEtImage_Label"]</span>
+        </label>
+    </fieldset>
+
+    <fieldset class="jp-card" disabled="@(!_modeEdition)">
+        <legend class="jp-section-title">@Localizer["Section6_Title"]</legend>
+        <p class="jp-hint">@Localizer["Section6_Intro"]</p>
+        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementScolariteSanteEquilibre" /><span>@Localizer["EngagementScolariteSanteEquilibre"]</span></label>
+        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementInformerContraintes" /><span>@Localizer["EngagementInformerContraintes"]</span></label>
+        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementEncouragerCharte" /><span>@Localizer["EngagementEncouragerCharte"]</span></label>
+        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementSignalerMissionInadaptee" /><span>@Localizer["EngagementSignalerMissionInadaptee"]</span></label>
+        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementCollaborerCoach" /><span>@Localizer["EngagementCollaborerCoach"]</span></label>
+    </fieldset>
+
+    @if (_modeEdition)
+    {
+        <section class="jp-card">
+            <h2 class="jp-section-title">@Localizer["Section7_Title"]</h2>
+            <p class="jp-hint">@Localizer["Section7_Intro"]</p>
+            <div class="jp-form">
+                <div class="jp-field"><label>@Localizer["NomJeuneConfirmation"]</label><input class="jp-input" @bind="_nomJeuneConfirmation" /></div>
+                <div class="jp-field"><label>@Localizer["NomParent1Confirmation"]</label><input class="jp-input" @bind="_nomParent1Confirmation" /></div>
+                @if (!string.IsNullOrWhiteSpace(_form.Parent2Nom))
+                {
+                    <div class="jp-field"><label>@Localizer["NomParent2Confirmation"]</label><input class="jp-input" @bind="_nomParent2Confirmation" /></div>
+                }
+            </div>
+        </section>
+
+        <div class="jp-actions">
+            <button type="button" class="jp-btn-secondary" @onclick="SauvegarderBrouillonAsync" disabled="@_operationEnCours">
+                @Localizer["Btn_SauvegarderBrouillon"]
+            </button>
+            <button type="button" class="jp-btn-primary" @onclick="ConfirmerAsync" disabled="@_operationEnCours">
+                @Localizer["Btn_Confirmer"]
+            </button>
+        </div>
+    }
+    else if (_vue!.EstValide)
+    {
+        <section class="jp-card">
+            <h2 class="jp-section-title">@Localizer["Section7_Title"]</h2>
+            <dl class="jp-readonly">
+                <div><dt>@Localizer["NomJeuneConfirmation"]</dt><dd>@Afficher(_vue.Entity.NomJeuneConfirmation)</dd></div>
+                <div><dt>@Localizer["NomParent1Confirmation"]</dt><dd>@Afficher(_vue.Entity.NomParent1Confirmation)</dd></div>
+                @if (!string.IsNullOrWhiteSpace(_vue.Entity.NomParent2Confirmation))
+                {
+                    <div><dt>@Localizer["NomParent2Confirmation"]</dt><dd>@Afficher(_vue.Entity.NomParent2Confirmation)</dd></div>
+                }
+            </dl>
+        </section>
+        <div class="jp-actions">
+            <button type="button" class="jp-btn-secondary" @onclick="ReprendreEditionAsync" disabled="@_operationEnCours">
+                @Localizer["Btn_Modifier"]
+            </button>
+        </div>
+    }
+}
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _estMajeur;
+    private JeuneProfileView? _jeuneProfile;
+    private ConsentementParentalView? _vue;
+    private ConsentementParentalFormModel _form = new();
+    private bool _modeEdition = true;
+    private bool _operationEnCours;
+    private string? _messageSucces;
+    private List<string> _champsManquants = [];
+    private string _nomJeuneConfirmation = "";
+    private string _nomParent1Confirmation = "";
+    private string _nomParent2Confirmation = "";
+    private string _partParascolaireText = "";
+    private string _partArgentText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User
+            .FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return;
+
+        _jeuneProfile = await JeuneProfileService.TryGetByUserIdAsync(userId);
+        if (_jeuneProfile is null)
+        {
+            _chargement = false;
+            return;
+        }
+
+        _estMajeur = !JeuneProfileService.EstMineur(_jeuneProfile.DateNaissance);
+        if (_estMajeur)
+        {
+            _chargement = false;
+            return;
+        }
+
+        await ChargerConsentementAsync();
+        _chargement = false;
+    }
+
+    private async Task ChargerConsentementAsync()
+    {
+        _vue = await ConsentementService.GetAsync(_jeuneProfile!.Id);
+        _form = ConsentementParentalFormModel.FromEntity(_vue.Entity);
+        _partParascolaireText = _form.PartParascolairePourcent?.ToString(CultureInfo.InvariantCulture) ?? "";
+        _partArgentText = _form.PartArgentDePochePourcent?.ToString(CultureInfo.InvariantCulture) ?? "";
+        _modeEdition = !_vue.EstValide;
+        _nomJeuneConfirmation = _vue.Entity.NomJeuneConfirmation ?? "";
+        _nomParent1Confirmation = _vue.Entity.NomParent1Confirmation ?? "";
+        _nomParent2Confirmation = _vue.Entity.NomParent2Confirmation ?? "";
+    }
+
+    private string Afficher(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? Localizer["ValeurNonRenseignee"] : value;
+
+    private void OnPartParascolaireChanged(ChangeEventArgs e)
+    {
+        _partParascolaireText = e.Value?.ToString() ?? "";
+        _form.PartParascolairePourcent = decimal.TryParse(_partParascolaireText, NumberStyles.Number, CultureInfo.InvariantCulture, out var v) ? v : null;
+    }
+
+    private void OnPartArgentChanged(ChangeEventArgs e)
+    {
+        _partArgentText = e.Value?.ToString() ?? "";
+        _form.PartArgentDePochePourcent = decimal.TryParse(_partArgentText, NumberStyles.Number, CultureInfo.InvariantCulture, out var v) ? v : null;
+    }
+
+    private async Task SauvegarderBrouillonAsync()
+    {
+        _operationEnCours = true;
+        _messageSucces = null;
+        _champsManquants = [];
+        try
+        {
+            await ConsentementService.SaveBrouillonAsync(_jeuneProfile!.Id, _form);
+            await ChargerConsentementAsync();
+            _messageSucces = Localizer["Message_BrouillonEnregistre"];
+        }
+        finally
+        {
+            _operationEnCours = false;
+        }
+    }
+
+    private async Task ConfirmerAsync()
+    {
+        _operationEnCours = true;
+        _messageSucces = null;
+        _champsManquants = [];
+        try
+        {
+            await ConsentementService.SaveBrouillonAsync(_jeuneProfile!.Id, _form);
+            var result = await ConsentementService.ConfirmerAsync(
+                _jeuneProfile.Id,
+                _nomJeuneConfirmation,
+                _nomParent1Confirmation,
+                string.IsNullOrWhiteSpace(_form.Parent2Nom) ? null : _nomParent2Confirmation);
+
+            if (!result.Success)
+            {
+                _champsManquants = result.ChampsManquants.ToList();
+                return;
+            }
+
+            await ChargerConsentementAsync();
+            _messageSucces = Localizer["Message_ConfirmationReussie"];
+        }
+        finally
+        {
+            _operationEnCours = false;
+        }
+    }
+
+    private async Task ReprendreEditionAsync()
+    {
+        _operationEnCours = true;
+        _messageSucces = null;
+        try
+        {
+            await ConsentementService.ReprendreEditionAsync(_jeuneProfile!.Id);
+            await ChargerConsentementAsync();
+        }
+        finally
+        {
+            _operationEnCours = false;
+        }
+    }
+}

@@ -264,6 +264,24 @@
   <data name="Home_MesPersonnesSuivies" xml:space="preserve">
     <value>Mes personnes suivies</value>
   </data>
+  <data name="Home_EspaceJeune" xml:space="preserve">
+    <value>Espace jeune</value>
+  </data>
+  <data name="Home_EspaceJeuneIntro" xml:space="preserve">
+    <value>Accédez à votre questionnaire d'auto-observation et, si besoin, au consentement parental.</value>
+  </data>
+  <data name="Home_QuestionnaireAutoObservation" xml:space="preserve">
+    <value>Questionnaire d'auto-observation</value>
+  </data>
+  <data name="Home_GrilleObservation" xml:space="preserve">
+    <value>Grille d'observation socioprofessionnelle</value>
+  </data>
+  <data name="Home_ConsentementParental" xml:space="preserve">
+    <value>Consentement parental</value>
+  </data>
+  <data name="Home_ACompleter" xml:space="preserve">
+    <value>à compléter</value>
+  </data>
   <data name="Home_AdminBienvenue" xml:space="preserve">
     <value>Vue d'ensemble plateforme.</value>
   </data>
@@ -446,6 +464,10 @@
   <data name="InvitationCandidaturePosteIntro" xml:space="preserve">
     <value>Vous avez été invité(e) à postuler à un poste sur Spectromètre.</value>
   </data>
+  <data name="InvitationJeunePrestataireIntro" xml:space="preserve">
+    <value>Vous avez été invité(e) à rejoindre Spectromètre en tant que jeune prestataire. Complétez votre compte puis le consentement parental avec vos parents.</value>
+  </data>
+  <data name="InvitationAllerConsentementParental" xml:space="preserve"><value>Compléter le consentement parental</value></data>
   <data name="GestionManagers_Titre" xml:space="preserve">
     <value>Employés de l'entreprise</value>
   </data>

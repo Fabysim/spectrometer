@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>Consentement parental · Spectromètre</value></data>
+  <data name="PageHeading" xml:space="preserve"><value>Consentement parental</value></data>
+  <data name="PageIntro" xml:space="preserve"><value>Formulaire de consentement pour les jeunes prestataires mineurs souhaitant réaliser des missions via la plateforme.</value></data>
+  <data name="LegalDisclaimer" xml:space="preserve"><value>Texte de travail — à faire revoir par un avocat avant toute publication. Le contenu ci-dessous pourra être remplacé sans modification de l'architecture technique.</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
+
+  <data name="NonJeune_Titre" xml:space="preserve"><value>Accès réservé aux jeunes prestataires invités</value></data>
+  <data name="NonJeune_Message" xml:space="preserve"><value>Cette page est réservée aux jeunes prestataires invités par un coach. Si vous pensez devoir y accéder, demandez à votre coach de vous envoyer une invitation.</value></data>
+  <data name="ConsentementNonRequis_Titre" xml:space="preserve"><value>Consentement parental non requis</value></data>
+  <data name="ConsentementNonRequis_Message" xml:space="preserve"><value>Le consentement parental ne s'applique pas à votre profil — vous êtes majeur(e). Vous pouvez poursuivre avec le questionnaire d'auto-observation et vos missions.</value></data>
+  <data name="Age" xml:space="preserve"><value>Âge</value></data>
+  <data name="AgeAns" xml:space="preserve"><value>{0} ans</value></data>
+  <data name="InviterJeune_Title" xml:space="preserve"><value>Inviter un jeune · Spectromètre</value></data>
+  <data name="InviterJeune_Heading" xml:space="preserve"><value>Inviter un jeune prestataire</value></data>
+  <data name="InviterJeune_Intro" xml:space="preserve"><value>Invitez un jeune par e-mail. Il créera son compte via le lien reçu. Le consentement parental ne s'applique qu'aux mineurs.</value></data>
+  <data name="InviterJeune_FormHeading" xml:space="preserve"><value>Informations du jeune</value></data>
+  <data name="InviterJeune_FormDesc" xml:space="preserve"><value>Vérifiez l'e-mail et la date de naissance avant d'envoyer.</value></data>
+  <data name="InviterJeune_RetourSuivis" xml:space="preserve"><value>Retour aux personnes suivies</value></data>
+  <data name="InviterJeune_Email" xml:space="preserve"><value>E-mail du jeune</value></data>
+  <data name="InviterJeune_Envoyer" xml:space="preserve"><value>Envoyer l'invitation</value></data>
+  <data name="InviterJeune_SuccesEmail" xml:space="preserve"><value>Un e-mail d'invitation a été envoyé à {0}.</value></data>
+  <data name="InviterJeune_SuccesLien" xml:space="preserve"><value>Invitation créée. L'e-mail n'a pas pu être envoyé automatiquement — partagez le lien ci-dessous avec le jeune.</value></data>
+  <data name="InviterJeune_LienHint" xml:space="preserve"><value>Copiez ce lien et transmettez-le au jeune.</value></data>
+  <data name="Erreur_NomPrenomRequis" xml:space="preserve"><value>Le nom et les prénoms du jeune sont obligatoires.</value></data>
+  <data name="Erreur_DateNaissanceRequise" xml:space="preserve"><value>La date de naissance est obligatoire.</value></data>
+  <data name="Erreur_InvitationEchec" xml:space="preserve"><value>L'invitation n'a pas pu être créée.</value></data>
+
+  <data name="AutoObs_PageTitle" xml:space="preserve"><value>Questionnaire d'auto-observassions · Spectromètre</value></data>
+  <data name="AutoObs_Titre" xml:space="preserve"><value>Questionnaire d'auto-observassions pour le jeune prestataire</value></data>
+  <data name="AutoObs_Progression" xml:space="preserve"><value>Progression</value></data>
+  <data name="AutoObs_Partie1" xml:space="preserve"><value>Partie 1 — réflexion ouverte</value></data>
+  <data name="AutoObs_Partie2" xml:space="preserve"><value>Partie 2 — Formulaire opérationnel d'inscription</value></data>
+  <data name="AutoObs_EnregistrerSection" xml:space="preserve"><value>Enregistrer cette section</value></data>
+  <data name="AutoObs_BesoinAide" xml:space="preserve"><value>Besoin d'aide</value></data>
+  <data name="AutoObs_SectionEnregistree" xml:space="preserve"><value>Section enregistrée.</value></data>
+  <data name="AutoObs_AideEnvoyee" xml:space="preserve"><value>Votre coach a été notifié.</value></data>
+  <data name="AutoObs_DerniereSauvegarde" xml:space="preserve"><value>Dernière sauvegarde : {0}</value></data>
+  <data name="AutoObs_Echelle1a5" xml:space="preserve"><value>1 = pas du tout ; 2 = plutôt non ; 3 = parfois ; 4 = plutôt oui ; 5 = tout à fait.</value></data>
+  <data name="AutoObs_Echelle1a4" xml:space="preserve"><value>Échelle 1 à 4</value></data>
+  <data name="AutoObs_AutrePreciser" xml:space="preserve"><value>Préciser…</value></data>
+  <data name="AutoObs_RegenererSynthese" xml:space="preserve"><value>Générer / actualiser la synthèse</value></data>
+  <data name="AutoObs_SyntheseVide" xml:space="preserve"><value>Complétez le formulaire puis générez la synthèse pour le coach.</value></data>
+  <data name="AutoObs_ModeCoach" xml:space="preserve"><value>Lecture — profil de {0} {1}</value></data>
+  <data name="AutoObs_AccesRefuse_Titre" xml:space="preserve"><value>Accès non autorisé</value></data>
+  <data name="AutoObs_AccesRefuse_Message" xml:space="preserve"><value>Ce questionnaire est réservé aux jeunes prestataires invités et à leur coach référent.</value></data>
+  <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Questionnaire d'auto-observation</value></data>
+
+  <data name="Section1_Title" xml:space="preserve"><value>1. Identification du jeune prestataire</value></data>
+  <data name="Section1_Intro" xml:space="preserve"><value>Informations issues de votre profil jeune prestataire (lecture seule).</value></data>
+  <data name="Section1_Manquant" xml:space="preserve"><value>Certaines informations d'identification sont manquantes dans votre CV.</value></data>
+  <data name="LienCv" xml:space="preserve"><value>Aller à mon CV</value></data>
+  <data name="Nom" xml:space="preserve"><value>Nom</value></data>
+  <data name="Prenoms" xml:space="preserve"><value>Prénoms</value></data>
+  <data name="DateNaissance" xml:space="preserve"><value>Date de naissance</value></data>
+  <data name="AdresseComplete" xml:space="preserve"><value>Adresse complète</value></data>
+  <data name="Telephone" xml:space="preserve"><value>Téléphone</value></data>
+  <data name="Email" xml:space="preserve"><value>Adresse e-mail</value></data>
+  <data name="ValeurNonRenseignee" xml:space="preserve"><value>Non renseigné</value></data>
+
+  <data name="Section2_Title" xml:space="preserve"><value>2. Représentants légaux</value></data>
+  <data name="Section2_Intro" xml:space="preserve"><value>Le représentant légal 1 est obligatoire. Un second représentant peut être ajouté si nécessaire.</value></data>
+  <data name="Parent1_Title" xml:space="preserve"><value>Représentant légal 1</value></data>
+  <data name="Parent2_Title" xml:space="preserve"><value>Représentant légal 2 (facultatif)</value></data>
+  <data name="Parent_Nom" xml:space="preserve"><value>Nom et prénom</value></data>
+  <data name="Parent_Lien" xml:space="preserve"><value>Lien de parenté</value></data>
+  <data name="Parent_Adresse" xml:space="preserve"><value>Adresse</value></data>
+  <data name="Parent_Telephone" xml:space="preserve"><value>Téléphone</value></data>
+  <data name="Parent_Email" xml:space="preserve"><value>Adresse e-mail</value></data>
+
+  <data name="Section3_Title" xml:space="preserve"><value>3. Autorisation de missions</value></data>
+  <data name="Section3_Description" xml:space="preserve"><value>Nous autorisons notre enfant à s'inscrire sur la plateforme et à accepter des missions adaptées à son âge, sous notre supervision et conformément à la charte des jeunes prestataires.</value></data>
+  <data name="AutorisationMissions_Label" xml:space="preserve"><value>J'autorise mon enfant à réaliser des missions via la plateforme</value></data>
+
+  <data name="Section4_Title" xml:space="preserve"><value>4. Répartition des revenus</value></data>
+  <data name="Section4_Description" xml:space="preserve"><value>Nous autorisons la perception de revenus liés aux missions et convenons de la répartition suivante entre activités parascolaires et argent de poche.</value></data>
+  <data name="AutorisationRevenus_Label" xml:space="preserve"><value>J'autorise la perception et la répartition des revenus</value></data>
+  <data name="PartParascolairePourcent" xml:space="preserve"><value>Part activités parascolaires (%)</value></data>
+  <data name="PartArgentDePochePourcent" xml:space="preserve"><value>Part argent de poche (%)</value></data>
+  <data name="AutreAffectation" xml:space="preserve"><value>Autre affectation (facultatif)</value></data>
+  <data name="ModalitesVersement" xml:space="preserve"><value>Modalités de versement (facultatif)</value></data>
+
+  <data name="Section5_Title" xml:space="preserve"><value>5. Données personnelles et image</value></data>
+  <data name="Section5_Description" xml:space="preserve"><value>Nous autorisons le traitement des données personnelles du jeune et, le cas échéant, l'utilisation de son image dans le cadre strict des missions et de la communication liée au programme.</value></data>
+  <data name="AutorisationDonneesEtImage_Label" xml:space="preserve"><value>J'autorise le traitement des données et l'utilisation de l'image dans ce cadre</value></data>
+
+  <data name="Section6_Title" xml:space="preserve"><value>6. Engagements des parents</value></data>
+  <data name="Section6_Intro" xml:space="preserve"><value>En signant ce consentement, nous nous engageons à :</value></data>
+  <data name="EngagementScolariteSanteEquilibre" xml:space="preserve"><value>Veiller à ce que les missions n'entravent pas la scolarité, la santé et l'équilibre de vie de notre enfant</value></data>
+  <data name="EngagementInformerContraintes" xml:space="preserve"><value>Informer la plateforme et l'accompagnateur de toute contrainte (horaires, transport, santé, etc.)</value></data>
+  <data name="EngagementEncouragerCharte" xml:space="preserve"><value>Encourager notre enfant à respecter la charte des jeunes prestataires</value></data>
+  <data name="EngagementSignalerMissionInadaptee" xml:space="preserve"><value>Signaler sans délai toute mission qui nous semblerait inadaptée à l'âge ou à la situation de notre enfant</value></data>
+  <data name="EngagementCollaborerCoach" xml:space="preserve"><value>Collaborer avec l'accompagnateur ou le coach référent le cas échéant</value></data>
+
+  <data name="Section7_Title" xml:space="preserve"><value>7. Déclaration de consentement</value></data>
+  <data name="Section7_Intro" xml:space="preserve"><value>En tapant nos noms ci-dessous, nous confirmons avoir lu ce formulaire et donner notre consentement. Il s'agit d'une confirmation par saisie de texte, et non d'une signature électronique qualifiée au sens du règlement eIDAS.</value></data>
+  <data name="NomJeuneConfirmation" xml:space="preserve"><value>Nom et prénom du jeune (confirmation)</value></data>
+  <data name="NomParent1Confirmation" xml:space="preserve"><value>Nom et prénom du représentant légal 1 (confirmation)</value></data>
+  <data name="NomParent2Confirmation" xml:space="preserve"><value>Nom et prénom du représentant légal 2 (confirmation, si renseigné)</value></data>
+
+  <data name="Btn_SauvegarderBrouillon" xml:space="preserve"><value>Enregistrer le brouillon</value></data>
+  <data name="Btn_Confirmer" xml:space="preserve"><value>Confirmer le consentement</value></data>
+  <data name="Btn_Modifier" xml:space="preserve"><value>Modifier</value></data>
+  <data name="Badge_Valide" xml:space="preserve"><value>Consentement validé le {0}</value></data>
+  <data name="Message_BrouillonEnregistre" xml:space="preserve"><value>Brouillon enregistré.</value></data>
+  <data name="Message_ConfirmationReussie" xml:space="preserve"><value>Consentement confirmé.</value></data>
+  <data name="ErreurChampsManquants" xml:space="preserve"><value>Les éléments suivants doivent être complétés avant confirmation :</value></data>
+
+  <data name="Champ_Parent1Nom" xml:space="preserve"><value>Nom du représentant légal 1</value></data>
+  <data name="Champ_Parent1Lien" xml:space="preserve"><value>Lien de parenté du représentant légal 1</value></data>
+  <data name="Champ_Parent1Adresse" xml:space="preserve"><value>Adresse du représentant légal 1</value></data>
+  <data name="Champ_Parent1Telephone" xml:space="preserve"><value>Téléphone du représentant légal 1</value></data>
+  <data name="Champ_Parent1Email" xml:space="preserve"><value>E-mail du représentant légal 1</value></data>
+  <data name="Champ_AutorisationMissions" xml:space="preserve"><value>Autorisation de missions</value></data>
+  <data name="Champ_AutorisationRevenus" xml:space="preserve"><value>Autorisation de revenus</value></data>
+  <data name="Champ_PartParascolairePourcent" xml:space="preserve"><value>Part activités parascolaires</value></data>
+  <data name="Champ_PartArgentDePochePourcent" xml:space="preserve"><value>Part argent de poche</value></data>
+  <data name="Champ_AutorisationDonneesEtImage" xml:space="preserve"><value>Autorisation données et image</value></data>
+  <data name="Champ_EngagementScolariteSanteEquilibre" xml:space="preserve"><value>Engagement scolarité / santé / équilibre</value></data>
+  <data name="Champ_EngagementInformerContraintes" xml:space="preserve"><value>Engagement informer des contraintes</value></data>
+  <data name="Champ_EngagementEncouragerCharte" xml:space="preserve"><value>Engagement respect de la charte</value></data>
+  <data name="Champ_EngagementSignalerMissionInadaptee" xml:space="preserve"><value>Engagement signaler mission inadaptée</value></data>
+  <data name="Champ_EngagementCollaborerCoach" xml:space="preserve"><value>Engagement collaboration avec l'accompagnateur</value></data>
+  <data name="Champ_NomJeuneConfirmation" xml:space="preserve"><value>Confirmation du nom du jeune</value></data>
+  <data name="Champ_NomParent1Confirmation" xml:space="preserve"><value>Confirmation du nom du représentant légal 1</value></data>
+  <data name="Champ_NomParent2Confirmation" xml:space="preserve"><value>Confirmation du nom du représentant légal 2</value></data>
+
+  <data name="GrilleObs_PageTitle" xml:space="preserve"><value>Grille d'observation socioprofessionnelle · Spectromètre</value></data>
+  <data name="GrilleObs_Titre" xml:space="preserve"><value>Grille d'observation socioprofessionnelle</value></data>
+  <data name="GrilleObs_Intro" xml:space="preserve"><value>Évaluation périodique des compétences socioprofessionnelles — historique conservé à travers les missions.</value></data>
+  <data name="GrilleObs_Historique" xml:space="preserve"><value>Historique des évaluations</value></data>
+  <data name="GrilleObs_NouvelleEvaluation" xml:space="preserve"><value>Nouvelle évaluation</value></data>
+  <data name="GrilleObs_EvaluationDu" xml:space="preserve"><value>Évaluation du {0}</value></data>
+  <data name="GrilleObs_MoyenneFormat" xml:space="preserve"><value>Moyenne : {0} / 5</value></data>
+  <data name="GrilleObs_CommentaireGeneral" xml:space="preserve"><value>Commentaire général (confidentiel)</value></data>
+  <data name="GrilleObs_CommentaireGeneralHint" xml:space="preserve"><value>Notes d'accompagnement réservées au coach — jamais visibles du jeune.</value></data>
+  <data name="GrilleObs_CommentaireCritere" xml:space="preserve"><value>Commentaire (facultatif, visible du jeune)</value></data>
+  <data name="GrilleObs_Enregistrer" xml:space="preserve"><value>Enregistrer l'évaluation</value></data>
+  <data name="GrilleObs_EvaluationEnregistree" xml:space="preserve"><value>Évaluation enregistrée.</value></data>
+  <data name="GrilleObs_ModeCoach" xml:space="preserve"><value>Évaluation — {0} {1}</value></data>
+  <data name="GrilleObs_AccesRefuse_Titre" xml:space="preserve"><value>Accès non autorisé</value></data>
+  <data name="GrilleObs_AccesRefuse_Message" xml:space="preserve"><value>Cette grille est réservée aux jeunes prestataires invités et à leur coach référent.</value></data>
+  <data name="GrilleObs_AucuneEvaluation" xml:space="preserve"><value>Aucune évaluation enregistrée pour l'instant.</value></data>
+  <data name="GrilleObs_SelectionnerEvaluation" xml:space="preserve"><value>Sélectionnez une évaluation dans l'historique ou créez-en une nouvelle.</value></data>
+  <data name="GrilleObs_Score" xml:space="preserve"><value>Score</value></data>
+  <data name="GrilleObs_NonRenseigne" xml:space="preserve"><value>Non renseigné</value></data>
+
+  <data name="GrilleObs_Critere_ponctualite" xml:space="preserve"><value>Ponctualité</value></data>
+  <data name="GrilleObs_Def_ponctualite" xml:space="preserve"><value>Arrive à l'heure aux rendez-vous, missions et activités prévues.</value></data>
+  <data name="GrilleObs_Critere_comprehension_consignes" xml:space="preserve"><value>Compréhension des consignes</value></data>
+  <data name="GrilleObs_Def_comprehension_consignes" xml:space="preserve"><value>Comprend et applique les consignes ; demande des précisions si nécessaire.</value></data>
+  <data name="GrilleObs_Critere_autonomie" xml:space="preserve"><value>Autonomie</value></data>
+  <data name="GrilleObs_Def_autonomie" xml:space="preserve"><value>Travaille et agit de manière autonome sans supervision constante.</value></data>
+  <data name="GrilleObs_Critere_communication" xml:space="preserve"><value>Communication</value></data>
+  <data name="GrilleObs_Def_communication" xml:space="preserve"><value>S'exprime clairement à l'oral et à l'écrit ; écoute les autres.</value></data>
+  <data name="GrilleObs_Critere_soin_travail" xml:space="preserve"><value>Soin apporté au travail</value></data>
+  <data name="GrilleObs_Def_soin_travail" xml:space="preserve"><value>Accomplit les tâches avec attention, précision et qualité.</value></data>
+  <data name="GrilleObs_Critere_respect_cadre" xml:space="preserve"><value>Respect du cadre</value></data>
+  <data name="GrilleObs_Def_respect_cadre" xml:space="preserve"><value>Respecte les règles, horaires et contraintes de l'environnement professionnel.</value></data>
+  <data name="GrilleObs_Critere_ordre" xml:space="preserve"><value>Ordre</value></data>
+  <data name="GrilleObs_Def_ordre" xml:space="preserve"><value>Maintient son espace de travail et ses documents organisés.</value></data>
+  <data name="GrilleObs_Critere_proprete" xml:space="preserve"><value>Propreté</value></data>
+  <data name="GrilleObs_Def_proprete" xml:space="preserve"><value>Veille à la propreté de son poste de travail et de son matériel.</value></data>
+  <data name="GrilleObs_Critere_presentation_vestimentaire" xml:space="preserve"><value>Présentation vestimentaire</value></data>
+  <data name="GrilleObs_Def_presentation_vestimentaire" xml:space="preserve"><value>Adopte une tenue adaptée et soignée au contexte professionnel.</value></data>
+  <data name="GrilleObs_Critere_presentation_verbale" xml:space="preserve"><value>Présentation verbale</value></data>
+  <data name="GrilleObs_Def_presentation_verbale" xml:space="preserve"><value>Utilise un langage approprié, courtois et professionnel.</value></data>
+  <data name="GrilleObs_Critere_sens_responsabilite" xml:space="preserve"><value>Sens des responsabilités</value></data>
+  <data name="GrilleObs_Def_sens_responsabilite" xml:space="preserve"><value>Assume ses engagements et les conséquences de ses actes.</value></data>
+  <data name="GrilleObs_Critere_sens_engagement" xml:space="preserve"><value>Sens de l'engagement</value></data>
+  <data name="GrilleObs_Def_sens_engagement" xml:space="preserve"><value>Se investit dans les missions et les mène à terme.</value></data>
+  <data name="GrilleObs_Critere_initiative" xml:space="preserve"><value>Initiative</value></data>
+  <data name="GrilleObs_Def_initiative" xml:space="preserve"><value>Prend des initiatives pertinentes sans attendre qu'on le lui demande.</value></data>
+  <data name="GrilleObs_Critere_creativite" xml:space="preserve"><value>Créativité</value></data>
+  <data name="GrilleObs_Def_creativite" xml:space="preserve"><value>Propose des idées nouvelles et des solutions originales.</value></data>
+  <data name="GrilleObs_Critere_debrouillardise" xml:space="preserve"><value>Débrouillardise</value></data>
+  <data name="GrilleObs_Def_debrouillardise" xml:space="preserve"><value>Trouve des solutions face aux imprévus et aux difficultés.</value></data>
+  <data name="GrilleObs_Critere_respect" xml:space="preserve"><value>Respect</value></data>
+  <data name="GrilleObs_Def_respect" xml:space="preserve"><value>Traite les collègues, clients et interlocuteurs avec considération.</value></data>
+  <data name="GrilleObs_Critere_honnetete" xml:space="preserve"><value>Honnêteté</value></data>
+  <data name="GrilleObs_Def_honnetete" xml:space="preserve"><value>Dit la vérité et agit avec transparence.</value></data>
+  <data name="GrilleObs_Critere_integrite" xml:space="preserve"><value>Intégrité</value></data>
+  <data name="GrilleObs_Def_integrite" xml:space="preserve"><value>Agit conformément aux valeurs éthiques et aux règles établies.</value></data>
+  <data name="GrilleObs_Critere_sens_justice" xml:space="preserve"><value>Sens de la justice</value></data>
+  <data name="GrilleObs_Def_sens_justice" xml:space="preserve"><value>Traite équitablement les situations et les personnes.</value></data>
+  <data name="GrilleObs_Critere_rapidite_execution" xml:space="preserve"><value>Rapidité d'exécution</value></data>
+  <data name="GrilleObs_Def_rapidite_execution" xml:space="preserve"><value>Accomplit les tâches dans les délais impartis.</value></data>
+  <data name="GrilleObs_Critere_orientation_resultats" xml:space="preserve"><value>Orientation résultats</value></data>
+  <data name="GrilleObs_Def_orientation_resultats" xml:space="preserve"><value>Se concentre sur l'atteinte des objectifs fixés.</value></data>
+  <data name="GrilleObs_Critere_perfectionnisme" xml:space="preserve"><value>Perfectionnisme</value></data>
+  <data name="GrilleObs_Def_perfectionnisme" xml:space="preserve"><value>Cherche l'excellence sans bloquer inutilement la progression.</value></data>
+  <data name="GrilleObs_Critere_discretion" xml:space="preserve"><value>Discrétion</value></data>
+  <data name="GrilleObs_Def_discretion" xml:space="preserve"><value>Préserve la confidentialité des informations dont il ou elle a connaissance.</value></data>
+</root>

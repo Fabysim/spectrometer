@@ -142,6 +142,27 @@ public sealed class CoachingService(
         return new LienCoachingView(lien.Id, lien.SuiviUserId, lien.CoachUserId, lien.Statut, lien.CreatedAt, lien.AccepteLe);
     }
 
+    public async Task<LienCoachingView> FinaliserJeunePrestataireDepuisInvitationAsync(Invitation invitation, string accepteurUserId, CancellationToken cancellationToken = default)
+    {
+        if (invitation.Type != InvitationType.JeunePrestataire)
+            throw new InvalidOperationException($"Type d'invitation attendu : {InvitationType.JeunePrestataire}.");
+
+        await using var db = await coachingDbFactory.CreateDbContextAsync(cancellationToken);
+
+        var lien = new LienCoaching
+        {
+            SuiviUserId = accepteurUserId,
+            CoachUserId = invitation.EmetteurUserId,
+            Statut = LienCoachingStatut.Actif,
+            InvitationId = invitation.Id,
+            AccepteLe = DateTimeOffset.UtcNow,
+        };
+        db.LiensCoaching.Add(lien);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return new LienCoachingView(lien.Id, lien.SuiviUserId, lien.CoachUserId, lien.Statut, lien.CreatedAt, lien.AccepteLe);
+    }
+
     public async Task<AnamneseCoachingView?> GetAnamneseAsync(int lienId, string requestingCoachUserId, CancellationToken cancellationToken = default)
     {
         await using var db = await coachingDbFactory.CreateDbContextAsync(cancellationToken);

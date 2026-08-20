@@ -19,7 +19,7 @@ public sealed class ResendEmailService(
 {
     private readonly ResendEmailServiceOptions _options = options.Value;
 
-    private const string ConfirmationTemplate = """
+    private const string EmailTemplate = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -67,32 +67,86 @@ public sealed class ResendEmailService(
 """;
 
     /// <inheritdoc />
-    public async Task<bool> SendConfirmationEmailAsync(string email, string confirmationLink, CancellationToken cancellationToken = default)
+    public Task<bool> SendConfirmationEmailAsync(string email, string confirmationLink, CancellationToken cancellationToken = default)
+    {
+        var appName = ResolveAppName();
+        var year = DateTime.UtcNow.Year.ToString();
+        var html = BuildHtmlEmail(
+            localizer["Email_Confirmation_Title"].Value,
+            localizer["Email_Confirmation_Body"].Value,
+            localizer["Email_Confirmation_Button"].Value,
+            string.Format(localizer["Email_Confirmation_Footer"].Value, year, appName),
+            confirmationLink);
+
+        return SendEmailAsync(
+            email,
+            localizer["Email_Confirmation_Subject"].Value,
+            html,
+            "confirmation",
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> SendJeunePrestataireInvitationEmailAsync(
+        string email,
+        string coachNomAffiche,
+        string acceptationLink,
+        CancellationToken cancellationToken = default)
+    {
+        var appName = ResolveAppName();
+        var year = DateTime.UtcNow.Year.ToString();
+        var html = BuildHtmlEmail(
+            localizer["Email_InvitationJeune_Title"].Value,
+            string.Format(localizer["Email_InvitationJeune_Body"].Value, coachNomAffiche),
+            localizer["Email_InvitationJeune_Button"].Value,
+            string.Format(localizer["Email_InvitationJeune_Footer"].Value, year, appName),
+            acceptationLink);
+
+        return SendEmailAsync(
+            email,
+            localizer["Email_InvitationJeune_Subject"].Value,
+            html,
+            "invitation jeune prestataire",
+            cancellationToken);
+    }
+
+    private string ResolveAppName() =>
+        string.IsNullOrWhiteSpace(_options.AppName) ? "Spectromètre" : _options.AppName;
+
+    private string BuildHtmlEmail(string title, string body, string buttonText, string footer, string actionLink)
+    {
+        var appName = ResolveAppName();
+        var year = DateTime.UtcNow.Year.ToString();
+        return EmailTemplate
+            .Replace("{{title}}", title)
+            .Replace("{{hello}}", localizer["Email_Hello"].Value)
+            .Replace("{{body}}", body)
+            .Replace("{{button}}", buttonText)
+            .Replace("{{linkFallback}}", localizer["Email_LinkFallback"].Value)
+            .Replace("{{footer}}", footer)
+            .Replace("{{verificationLink}}", actionLink)
+            .Replace("{{appName}}", appName)
+            .Replace("{{year}}", year);
+    }
+
+    private async Task<bool> SendEmailAsync(
+        string email,
+        string subject,
+        string html,
+        string emailKind,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
-            logger.LogError("Impossible d'envoyer l'email de confirmation à {Email} : Resend:ApiKey n'est pas configuré.", email);
+            logger.LogError("Impossible d'envoyer l'email {EmailKind} à {Email} : Resend:ApiKey n'est pas configuré.", emailKind, email);
             return false;
         }
-
-        var appName = string.IsNullOrWhiteSpace(_options.AppName) ? "Spectromètre" : _options.AppName;
-        var year = DateTime.UtcNow.Year.ToString();
-        var html = ConfirmationTemplate
-            .Replace("{{title}}", localizer["Email_Confirmation_Title"].Value)
-            .Replace("{{hello}}", localizer["Email_Hello"].Value)
-            .Replace("{{body}}", localizer["Email_Confirmation_Body"].Value)
-            .Replace("{{button}}", localizer["Email_Confirmation_Button"].Value)
-            .Replace("{{linkFallback}}", localizer["Email_LinkFallback"].Value)
-            .Replace("{{footer}}", string.Format(localizer["Email_Confirmation_Footer"].Value, year, appName))
-            .Replace("{{verificationLink}}", confirmationLink)
-            .Replace("{{appName}}", appName)
-            .Replace("{{year}}", year);
 
         var message = new EmailMessage
         {
             From = _options.From,
             To = { email },
-            Subject = localizer["Email_Confirmation_Subject"].Value,
+            Subject = subject,
             HtmlBody = html,
         };
 
@@ -103,7 +157,7 @@ public sealed class ResendEmailService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Échec de l'envoi de l'email de confirmation à {Email} via Resend.", email);
+            logger.LogError(ex, "Échec de l'envoi de l'email {EmailKind} à {Email} via Resend.", emailKind, email);
             return false;
         }
     }

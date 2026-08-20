@@ -61,9 +61,24 @@
   <!-- MesPersonnesSuiviesPage.razor -->
   <data name="MesPersonnesSuiviesTitle" xml:space="preserve"><value>Mes personnes suivies · Spectromètre</value></data>
   <data name="MesPersonnesSuivies" xml:space="preserve"><value>Mes personnes suivies</value></data>
+  <data name="InviterJeunePrestataire" xml:space="preserve"><value>Inviter un jeune prestataire</value></data>
+  <data name="ActionsSuivi" xml:space="preserve"><value>Actions</value></data>
+  <data name="AutoObservationJeune" xml:space="preserve"><value>Auto-observation jeune</value></data>
+  <data name="GrilleObservationJeune" xml:space="preserve"><value>Grille d'observation</value></data>
   <data name="ModuleCoachNonActif" xml:space="preserve"><value>Le profil Coach n'est pas activé pour votre compte.</value></data>
   <data name="DemandesEnAttente" xml:space="preserve"><value>Demandes en attente</value></data>
   <data name="AucuneDemandeEnAttente" xml:space="preserve"><value>Aucune demande en attente.</value></data>
+  <data name="InvitationsJeunesEnAttente" xml:space="preserve"><value>Invitations jeunes en attente</value></data>
+  <data name="AucuneInvitationJeuneEnAttente" xml:space="preserve"><value>Aucune invitation jeune en attente d'acceptation.</value></data>
+  <data name="InvitationJeuneEnvoyeeLe" xml:space="preserve"><value>Envoyée le {0}</value></data>
+  <data name="StatutInvitationJeuneEnAttente" xml:space="preserve"><value>en attente d'acceptation</value></data>
+  <data name="StatutInvitationJeuneExpiree" xml:space="preserve"><value>expirée</value></data>
+  <data name="AnnulerInvitationJeune" xml:space="preserve"><value>Annuler</value></data>
+  <data name="RenvoyerInvitationJeune" xml:space="preserve"><value>Renvoyer l'invitation</value></data>
+  <data name="RenvoyerInvitationJeune_Succes" xml:space="preserve"><value>L'invitation a été renvoyée par e-mail.</value></data>
+  <data name="RenvoyerInvitationJeune_SuccesRenouvelee" xml:space="preserve"><value>L'invitation expirée a été renouvelée et renvoyée par e-mail.</value></data>
+  <data name="RenvoyerInvitationJeune_EmailNonEnvoye" xml:space="preserve"><value>L'invitation a été préparée mais l'e-mail n'a pas pu être envoyé (Resend non configuré ou erreur d'envoi).</value></data>
+  <data name="RenvoyerInvitationJeune_Echec" xml:space="preserve"><value>Impossible de renvoyer cette invitation.</value></data>
   <data name="Accepter" xml:space="preserve"><value>Accepter</value></data>
   <data name="Refuser" xml:space="preserve"><value>Refuser</value></data>
   <data name="LiensActifs" xml:space="preserve"><value>Personnes suivies actives</value></data>

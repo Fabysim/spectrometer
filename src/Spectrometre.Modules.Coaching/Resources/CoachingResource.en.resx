@@ -61,9 +61,24 @@
 
   <data name="MesPersonnesSuiviesTitle" xml:space="preserve"><value>My clients · Spectromètre</value></data>
   <data name="MesPersonnesSuivies" xml:space="preserve"><value>My clients</value></data>
+  <data name="InviterJeunePrestataire" xml:space="preserve"><value>Invite a young service provider</value></data>
+  <data name="ActionsSuivi" xml:space="preserve"><value>Actions</value></data>
+  <data name="AutoObservationJeune" xml:space="preserve"><value>Young self-observation</value></data>
+  <data name="GrilleObservationJeune" xml:space="preserve"><value>Observation grid</value></data>
   <data name="ModuleCoachNonActif" xml:space="preserve"><value>The Coach profile is not enabled for your account.</value></data>
   <data name="DemandesEnAttente" xml:space="preserve"><value>Pending requests</value></data>
   <data name="AucuneDemandeEnAttente" xml:space="preserve"><value>No pending requests.</value></data>
+  <data name="InvitationsJeunesEnAttente" xml:space="preserve"><value>Pending young invitations</value></data>
+  <data name="AucuneInvitationJeuneEnAttente" xml:space="preserve"><value>No young invitations awaiting acceptance.</value></data>
+  <data name="InvitationJeuneEnvoyeeLe" xml:space="preserve"><value>Sent on {0}</value></data>
+  <data name="StatutInvitationJeuneEnAttente" xml:space="preserve"><value>awaiting acceptance</value></data>
+  <data name="StatutInvitationJeuneExpiree" xml:space="preserve"><value>expired</value></data>
+  <data name="AnnulerInvitationJeune" xml:space="preserve"><value>Cancel</value></data>
+  <data name="RenvoyerInvitationJeune" xml:space="preserve"><value>Resend invitation</value></data>
+  <data name="RenvoyerInvitationJeune_Succes" xml:space="preserve"><value>The invitation was resent by email.</value></data>
+  <data name="RenvoyerInvitationJeune_SuccesRenouvelee" xml:space="preserve"><value>The expired invitation was renewed and resent by email.</value></data>
+  <data name="RenvoyerInvitationJeune_EmailNonEnvoye" xml:space="preserve"><value>The invitation was prepared but the email could not be sent (Resend not configured or send error).</value></data>
+  <data name="RenvoyerInvitationJeune_Echec" xml:space="preserve"><value>Unable to resend this invitation.</value></data>
   <data name="Accepter" xml:space="preserve"><value>Accept</value></data>
   <data name="Refuser" xml:space="preserve"><value>Decline</value></data>
   <data name="LiensActifs" xml:space="preserve"><value>Active clients</value></data>

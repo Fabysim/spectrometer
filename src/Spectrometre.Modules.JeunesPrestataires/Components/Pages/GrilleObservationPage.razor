@@ -1,0 +1,312 @@
+@page "/jeune/grille-observation"
+@page "/coach/suivis/{SuiviUserId}/grille-observation"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.JeunesPrestataires.Catalog
+@using Spectrometre.Modules.JeunesPrestataires.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IGrilleObservationService GrilleObservationService
+@inject IJeuneProfileService JeuneProfileService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject IStringLocalizer<JeunesPrestatairesResource> Localizer
+
+<PageTitle>@Localizer["GrilleObs_PageTitle"]</PageTitle>
+
+<div class="go-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_page is null)
+{
+    <div class="go-card go-alert">
+        <h2>@Localizer["GrilleObs_AccesRefuse_Titre"]</h2>
+        <p>@Localizer["GrilleObs_AccesRefuse_Message"]</p>
+    </div>
+}
+else
+{
+    <header class="go-header">
+        <h1 class="go-title">@Localizer["GrilleObs_Titre"]</h1>
+        <p class="go-hint">@Localizer["GrilleObs_Intro"]</p>
+        @if (_page.AccessMode == GrilleObservationAccessMode.Coach)
+        {
+            <span class="go-coach-badge">
+                @string.Format(CultureInfo.CurrentCulture, Localizer["GrilleObs_ModeCoach"],
+                    _page.JeuneProfile.Prenoms, _page.JeuneProfile.Nom)
+            </span>
+        }
+    </header>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="go-success" role="status">@_message</div>
+    }
+
+    <div class="go-layout">
+        <aside class="go-card">
+            <h2 class="go-sidebar-title">@Localizer["GrilleObs_Historique"]</h2>
+            @if (_page.CanCreateEvaluation)
+            {
+                <button type="button" class="go-new-btn @(_mode == ViewMode.Nouvelle ? "active" : "")"
+                        @onclick="ShowNouvelleAsync">
+                    + @Localizer["GrilleObs_NouvelleEvaluation"]
+                </button>
+            }
+            @if (_page.Historique.Count == 0)
+            {
+                <p class="go-hint">@Localizer["GrilleObs_AucuneEvaluation"]</p>
+            }
+            else
+            {
+                <ul class="go-hist-list">
+                    @foreach (var item in _page.Historique)
+                    {
+                        <li>
+                            <button type="button"
+                                    class="go-hist-btn @(_selectedEvaluationId == item.EvaluationId && _mode == ViewMode.Detail ? "active" : "")"
+                                    @onclick="() => SelectEvaluationAsync(item.EvaluationId)">
+                                @item.EvalueeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)
+                                @if (item.MoyenneScore is not null)
+                                {
+                                    <span class="go-hist-meta">
+                                        @string.Format(CultureInfo.CurrentCulture, Localizer["GrilleObs_MoyenneFormat"],
+                                            item.MoyenneScore.Value.ToString("0.0", CultureInfo.CurrentCulture))
+                                    </span>
+                                }
+                            </button>
+                        </li>
+                    }
+                </ul>
+            }
+        </aside>
+
+        <main class="go-card">
+            @if (_mode == ViewMode.Nouvelle && _page.CanCreateEvaluation)
+            {
+                <h2 class="go-sidebar-title">@Localizer["GrilleObs_NouvelleEvaluation"]</h2>
+                <p class="go-hint">@Localizer["AutoObs_Echelle1a5"]</p>
+
+                @foreach (var critere in GrilleObservationCatalog.AllCriteres)
+                {
+                    <div class="go-critere">
+                        <div class="go-critere-header">
+                            <p class="go-critere-label">@CritereLabel(critere.Key)</p>
+                            <button type="button" class="go-help-btn" title="@CritereDefinition(critere.Key)"
+                                    aria-label="@CritereDefinition(critere.Key)">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="go-score-row" role="group" aria-label="@CritereLabel(critere.Key)">
+                            @for (var score = 1; score <= 5; score++)
+                            {
+                                var s = score;
+                                <label class="go-score-option">
+                                    <input type="radio" name="@($"score_{critere.Key}")"
+                                           checked="@(_scores.GetValueOrDefault(critere.Key) == s)"
+                                           @onchange="() => SetScore(critere.Key, s)" />
+                                    @s
+                                </label>
+                            }
+                            <label class="go-score-option">
+                                <input type="radio" name="@($"score_{critere.Key}")"
+                                       checked="@(_scores.GetValueOrDefault(critere.Key) is null)"
+                                       @onchange="() => SetScore(critere.Key, null)" />
+                                @Localizer["GrilleObs_NonRenseigne"]
+                            </label>
+                        </div>
+                        <textarea class="go-comment form-control" rows="2"
+                                  placeholder="@Localizer["GrilleObs_CommentaireCritere"]"
+                                  @bind="_comments[critere.Key]"></textarea>
+                    </div>
+                }
+
+                <div class="go-confidential">
+                    <label for="commentaireGeneral"><strong>@Localizer["GrilleObs_CommentaireGeneral"]</strong></label>
+                    <p class="go-hint">@Localizer["GrilleObs_CommentaireGeneralHint"]</p>
+                    <textarea id="commentaireGeneral" class="form-control" rows="4"
+                              @bind="_commentaireGeneral"></textarea>
+                </div>
+
+                <div class="go-actions">
+                    <button type="button" class="go-btn-primary" disabled="@_saving" @onclick="EnregistrerAsync">
+                        @Localizer["GrilleObs_Enregistrer"]
+                    </button>
+                </div>
+            }
+            else if (_detail is not null)
+            {
+                <h2 class="go-sidebar-title">
+                    @string.Format(CultureInfo.CurrentCulture, Localizer["GrilleObs_EvaluationDu"],
+                        _detail.EvalueeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture))
+                </h2>
+
+                @foreach (var row in _detail.Criteres)
+                {
+                    <div class="go-critere">
+                        <div class="go-critere-header">
+                            <p class="go-critere-label">@CritereLabel(row.CritereKey)</p>
+                            <button type="button" class="go-help-btn" title="@CritereDefinition(row.CritereKey)"
+                                    aria-label="@CritereDefinition(row.CritereKey)">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <p>
+                            @Localizer["GrilleObs_Score"] :
+                            @if (row.Score is int sc)
+                            {
+                                <span class="go-readonly-score">@sc / 5</span>
+                            }
+                            else
+                            {
+                                <span class="go-hint">@Localizer["GrilleObs_NonRenseigne"]</span>
+                            }
+                        </p>
+                        @if (!string.IsNullOrWhiteSpace(row.Commentaire))
+                        {
+                            <p class="go-hint"><em>@row.Commentaire</em></p>
+                        }
+                    </div>
+                }
+
+                @if (_detail.CommentaireGeneral is not null)
+                {
+                    <div class="go-confidential">
+                        <strong>@Localizer["GrilleObs_CommentaireGeneral"]</strong>
+                        <p>@_detail.CommentaireGeneral</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="go-hint">@Localizer["GrilleObs_SelectionnerEvaluation"]</p>
+            }
+        </main>
+    </div>
+}
+</div>
+
+@code {
+    [Parameter] public string? SuiviUserId { get; set; }
+
+    private enum ViewMode { Aucune, Nouvelle, Detail }
+
+    private bool _chargement = true;
+    private bool _saving;
+    private string? _userId;
+    private GrilleObservationPageView? _page;
+    private GrilleObservationEvaluationDetailView? _detail;
+    private ViewMode _mode = ViewMode.Aucune;
+    private int? _selectedEvaluationId;
+    private string? _message;
+    private string? _commentaireGeneral;
+    private readonly Dictionary<string, int?> _scores = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string?> _comments = new(StringComparer.Ordinal);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is null)
+        {
+            _chargement = false;
+            return;
+        }
+
+        int? profileId = null;
+        if (!string.IsNullOrWhiteSpace(SuiviUserId))
+        {
+            var profilSuivi = await JeuneProfileService.TryGetByUserIdAsync(SuiviUserId);
+            profileId = profilSuivi?.Id;
+        }
+
+        _page = await GrilleObservationService.TryGetPageAsync(_userId, profileId);
+        if (_page?.CanCreateEvaluation == true)
+        {
+            InitFormDictionaries();
+            _mode = ViewMode.Nouvelle;
+        }
+        else if (_page?.Historique.Count > 0)
+        {
+            await SelectEvaluationAsync(_page.Historique[0].EvaluationId);
+        }
+
+        _chargement = false;
+    }
+
+    private void InitFormDictionaries()
+    {
+        _scores.Clear();
+        _comments.Clear();
+        foreach (var c in GrilleObservationCatalog.AllCriteres)
+        {
+            _scores[c.Key] = null;
+            _comments[c.Key] = null;
+        }
+        _commentaireGeneral = null;
+    }
+
+    private string CritereLabel(string key) => Localizer[$"GrilleObs_Critere_{key}"];
+    private string CritereDefinition(string key) => Localizer[$"GrilleObs_Def_{key}"];
+
+    private void SetScore(string key, int? score) => _scores[key] = score;
+
+    private async Task ShowNouvelleAsync()
+    {
+        _mode = ViewMode.Nouvelle;
+        _selectedEvaluationId = null;
+        _detail = null;
+        _message = null;
+        InitFormDictionaries();
+        await Task.CompletedTask;
+    }
+
+    private async Task SelectEvaluationAsync(int evaluationId)
+    {
+        if (_userId is null)
+            return;
+
+        _mode = ViewMode.Detail;
+        _selectedEvaluationId = evaluationId;
+        _message = null;
+        _detail = await GrilleObservationService.TryGetEvaluationAsync(_userId, evaluationId);
+    }
+
+    private async Task EnregistrerAsync()
+    {
+        if (_userId is null || _page is null || !_page.CanCreateEvaluation)
+            return;
+
+        _saving = true;
+        _message = null;
+
+        var inputs = GrilleObservationCatalog.AllCriteres
+            .Select(c => new GrilleObservationCritereInput(
+                c.Key,
+                _scores.GetValueOrDefault(c.Key),
+                _comments.GetValueOrDefault(c.Key)))
+            .ToList();
+
+        var id = await GrilleObservationService.CreerEvaluationAsync(
+            _userId,
+            _page.JeuneProfile.Id,
+            inputs,
+            _commentaireGeneral);
+
+        if (id is null)
+        {
+            _saving = false;
+            return;
+        }
+
+        _page = await GrilleObservationService.TryGetPageAsync(_userId, _page.JeuneProfile.Id);
+        _message = Localizer["GrilleObs_EvaluationEnregistree"];
+        await SelectEvaluationAsync(id.Value);
+        _saving = false;
+    }
+}

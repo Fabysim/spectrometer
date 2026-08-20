@@ -41,4 +41,10 @@
   <data name="Email_Confirmation_Button" xml:space="preserve"><value>Vérifier mon compte</value></data>
   <data name="Email_LinkFallback" xml:space="preserve"><value>Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :</value></data>
   <data name="Email_Confirmation_Footer" xml:space="preserve"><value>© {0} {1}. Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.</value></data>
+
+  <data name="Email_InvitationJeune_Subject" xml:space="preserve"><value>Invitation à rejoindre Spectromètre en tant que jeune prestataire</value></data>
+  <data name="Email_InvitationJeune_Title" xml:space="preserve"><value>Invitation jeune prestataire</value></data>
+  <data name="Email_InvitationJeune_Body" xml:space="preserve"><value>{0} vous invite à rejoindre la plateforme Spectromètre en tant que jeune prestataire. Cliquez sur le bouton ci-dessous pour créer votre compte et accepter l'invitation :</value></data>
+  <data name="Email_InvitationJeune_Button" xml:space="preserve"><value>Accepter l'invitation</value></data>
+  <data name="Email_InvitationJeune_Footer" xml:space="preserve"><value>© {0} {1}. Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.</value></data>
 </root>

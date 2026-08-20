@@ -1,0 +1,171 @@
+@page "/coach/jeunes/inviter"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.JeunesPrestataires.Resources
+@using Spectrometre.Modules.JeunesPrestataires.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IJeuneProfileService JeuneProfileService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject IStringLocalizer<JeunesPrestatairesResource> Localizer
+
+<PageTitle>@Localizer["InviterJeune_Title"]</PageTitle>
+
+<div class="inviter-page">
+    <header class="inviter-header">
+        <div class="inviter-header-main">
+            <div class="inviter-icon-badge" aria-hidden="true">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <h1 class="inviter-title">@Localizer["InviterJeune_Heading"]</h1>
+            <p class="inviter-subtitle">@Localizer["InviterJeune_Intro"]</p>
+        </div>
+        <a class="inviter-back" href="/coach/suivis">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            @Localizer["InviterJeune_RetourSuivis"]
+        </a>
+    </header>
+
+@if (_userId is null)
+{
+    <p class="inviter-state">@Localizer["Chargement"]</p>
+}
+else
+{
+    <div class="inviter-inner">
+    @if (_messageSucces is not null)
+    {
+        <div class="inviter-alert inviter-alert-success" role="status">
+            <p class="inviter-alert-title">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                @_messageSucces
+            </p>
+            @if (_lienInvitation is not null && !_emailEnvoye)
+            {
+                <div class="inviter-lien-box">
+                    <code>@_lienInvitation</code>
+                </div>
+                <p class="inviter-hint">@Localizer["InviterJeune_LienHint"]</p>
+            }
+        </div>
+    }
+
+    @if (_errorKey is not null)
+    {
+        <div class="inviter-alert inviter-alert-error" role="alert">
+            <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+            <span>@Localizer[_errorKey]</span>
+        </div>
+    }
+
+    <section class="inviter-card">
+        <h2 class="inviter-card-title">
+            <i class="bi bi-envelope-paper" aria-hidden="true"></i>
+            @Localizer["InviterJeune_FormHeading"]
+        </h2>
+        <p class="inviter-card-desc">@Localizer["InviterJeune_FormDesc"]</p>
+
+        <div class="inviter-form">
+            <div class="inviter-field">
+                <label for="inviter-email">@Localizer["InviterJeune_Email"]</label>
+                <input id="inviter-email" class="inviter-input" type="email" autocomplete="email"
+                       placeholder="jeune@exemple.fr" @bind="_email" />
+            </div>
+            <div class="inviter-form-row">
+                <div class="inviter-field">
+                    <label for="inviter-nom">@Localizer["Nom"]</label>
+                    <input id="inviter-nom" class="inviter-input" autocomplete="family-name" @bind="_nom" />
+                </div>
+                <div class="inviter-field">
+                    <label for="inviter-prenoms">@Localizer["Prenoms"]</label>
+                    <input id="inviter-prenoms" class="inviter-input" autocomplete="given-name" @bind="_prenoms" />
+                </div>
+            </div>
+            <div class="inviter-field">
+                <label for="inviter-dob">@Localizer["DateNaissance"]</label>
+                <input id="inviter-dob" class="inviter-input" type="date" @bind="_dateNaissance" />
+            </div>
+        </div>
+
+        <div class="inviter-actions">
+            <button type="button" class="inviter-btn-primary" @onclick="InviterAsync" disabled="@_operationEnCours">
+                @if (_operationEnCours)
+                {
+                    <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                }
+                else
+                {
+                    <i class="bi bi-send" aria-hidden="true"></i>
+                }
+                @Localizer["InviterJeune_Envoyer"]
+            </button>
+        </div>
+    </section>
+    </div>
+}
+</div>
+
+@code {
+    private string? _userId;
+    private string _email = "";
+    private string _nom = "";
+    private string _prenoms = "";
+    private DateOnly? _dateNaissance;
+    private bool _operationEnCours;
+    private string? _messageSucces;
+    private string? _errorKey;
+    private string? _lienInvitation;
+    private bool _emailEnvoye;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userId = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User
+            .FindFirstValue(ClaimTypes.NameIdentifier);
+    }
+
+    private async Task InviterAsync()
+    {
+        if (_userId is null || _dateNaissance is null)
+        {
+            _errorKey = "Erreur_DateNaissanceRequise";
+            return;
+        }
+
+        _operationEnCours = true;
+        _messageSucces = null;
+        _errorKey = null;
+        _lienInvitation = null;
+        _emailEnvoye = false;
+        try
+        {
+            var baseUrl = Navigation.BaseUri.TrimEnd('/');
+            var result = await JeuneProfileService.InviterJeuneAsync(
+                _userId,
+                _email,
+                _nom,
+                _prenoms,
+                _dateNaissance.Value,
+                baseUrl);
+
+            if (!result.Success)
+            {
+                _errorKey = result.ErrorKey ?? "Erreur_InvitationEchec";
+                return;
+            }
+
+            _lienInvitation = result.LienAcceptation;
+            _emailEnvoye = result.EmailEnvoye;
+            _messageSucces = _emailEnvoye
+                ? Localizer["InviterJeune_SuccesEmail", _email.Trim()]
+                : Localizer["InviterJeune_SuccesLien"];
+        }
+        finally
+        {
+            _operationEnCours = false;
+        }
+    }
+}

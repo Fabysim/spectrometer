@@ -10,11 +10,14 @@
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.Admin.Services
+@using Spectrometre.Modules.JeunesPrestataires.Services
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject ICoachSubjectResolver CoachSubjectResolver
 @inject IAdminService AdminService
+@inject IJeuneProfileService JeuneProfileService
+@inject IConsentementParentalService ConsentementParentalService
 @inject CoreDbContext CoreDb
 @inject IStringLocalizer<SharedResource> Localizer
 
@@ -42,7 +45,7 @@
                     @Localizer["Home_AdminVoirFacturation"]
                 </a>
             }
-            else if (_company is null && !_estCandidatOuCoach)
+            else if (_company is null && !_estCandidatOuCoach && !_estJeune)
             {
                 <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
@@ -200,7 +203,46 @@
                 </section>
             }
 
-            @if ((_company is not null || (!_estCandidatOuCoach && !_isPlatformAdmin)))
+            @if (_estJeune)
+            {
+                <section class="card-modern-dashboard">
+                    <div class="card-header-modern-dashboard">
+                        <h2 class="card-title-modern-dashboard">
+                            <i class="bi bi-person-hearts" aria-hidden="true"></i>
+                            <span>@Localizer["Home_EspaceJeune"]</span>
+                        </h2>
+                    </div>
+                    <p class="dashboard-hint">@Localizer["Home_EspaceJeuneIntro"]</p>
+                    <div class="quick-actions-dashboard">
+                        <a href="/jeune/auto-observation" class="quick-action-btn-dashboard">
+                            <div class="quick-action-icon-dashboard tone-teal">
+                                <i class="bi bi-ui-checks" aria-hidden="true"></i>
+                            </div>
+                            <div class="quick-action-label-dashboard">@Localizer["Home_QuestionnaireAutoObservation"]</div>
+                        </a>
+                        <a href="/jeune/grille-observation" class="quick-action-btn-dashboard">
+                            <div class="quick-action-icon-dashboard tone-purple">
+                                <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+                            </div>
+                            <div class="quick-action-label-dashboard">@Localizer["Home_GrilleObservation"]</div>
+                        </a>
+                        @if (_consentementParentalACompleter)
+                        {
+                            <a href="/candidat/consentement-parental" class="quick-action-btn-dashboard">
+                                <div class="quick-action-icon-dashboard tone-orange">
+                                    <i class="bi bi-shield-check" aria-hidden="true"></i>
+                                </div>
+                                <div class="quick-action-label-dashboard">
+                                    @Localizer["Home_ConsentementParental"]
+                                    <span class="dashboard-badge-todo">@Localizer["Home_ACompleter"]</span>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </section>
+            }
+
+            @if (_company is not null || (!_estCandidatOuCoach && !_estJeune && !_isPlatformAdmin))
             {
             <section class="card-modern-dashboard">
                 <div class="card-header-modern-dashboard">
@@ -224,7 +266,7 @@
                     }
                 </div>
 
-                @if (_company is null && !_estCandidatOuCoach && !_isPlatformAdmin)
+                @if (_company is null && !_estCandidatOuCoach && !_estJeune && !_isPlatformAdmin)
                 {
                     <p class="dashboard-hint">@Localizer["Home_AucuneEntreprise"]</p>
                     <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
@@ -291,8 +333,8 @@
                             <i class="bi bi-people" aria-hidden="true"></i>
                             @Localizer["Home_ProfilCoach"]
                         </h2>
-                        <a href="/coach/suivis" class="card-action-dashboard">
-                            @Localizer["Home_MesPersonnesSuivies"]
+                        <a href="/coach/modules" class="card-action-dashboard">
+                            @Localizer["AjouterUnModule"]
                             <i class="bi bi-chevron-right" aria-hidden="true"></i>
                         </a>
                     </div>
@@ -308,11 +350,6 @@
                             </a>
                         }
                     </div>
-                    <div class="dashboard-inline-actions mt-3">
-                        <a href="/coach/profil" class="btn-secondary-modern-dashboard">@Localizer["Home_ProfilCoach"]</a>
-                        <a href="/coach/suivis" class="btn-secondary-modern-dashboard">@Localizer["Home_MesPersonnesSuivies"]</a>
-                        <a href="/coach/modules" class="btn-secondary-modern-dashboard">@Localizer["AjouterUnModuleCoach"]</a>
-                    </div>
                 </section>
             }
         </div>
@@ -325,6 +362,8 @@
     private bool _isAuthenticated;
     private bool _isPlatformAdmin;
     private bool _estCandidatOuCoach;
+    private bool _estJeune;
+    private bool _consentementParentalACompleter;
     private Company? _company;
     private AdminGlobalCounts? _compteurs;
     private int _enRetardTotal;
@@ -356,6 +395,7 @@
         "Entretien" => "bi-chat-dots",
         "ProfilCandidat" => "bi-ui-checks-grid",
         "ProfilCoach" => "bi-person-badge",
+        "MesPersonnesSuivies" => "bi-people",
         _ => "bi-grid-1x2"
     };
 
@@ -438,6 +478,15 @@
                 .Take(8));
         }
 
+        var jeuneProfile = await JeuneProfileService.TryGetByUserIdAsync(userId);
+        _estJeune = jeuneProfile is not null;
+        if (jeuneProfile is not null
+            && JeuneProfileService.EstMineur(jeuneProfile.DateNaissance)
+            && !await ConsentementParentalService.EstConsentementValideAsync(jeuneProfile.Id))
+        {
+            _consentementParentalACompleter = true;
+        }
+
         var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
         if (companies.Count > 0)
         {
@@ -510,6 +559,13 @@
 
             _coachLinks.Add(new DashboardLink(manifest.Code, DisplayNameFor(manifest), href));
         }
+
+        // "Mes personnes suivies" n'est pas un module (pas de ModuleManifest associé) mais une fonctionnalité
+        // toujours pertinente dès que le profil Coach est actif — ajoutée en tête de grille au même titre
+        // que les tuiles pilotées par module, pour que la section coach ait exactement la même mise en page
+        // que les sections entreprise/candidat (une seule grille de tuiles, pas de rangée de boutons à part).
+        if (_coachLinks.Count > 0)
+            _coachLinks.Insert(0, new DashboardLink("MesPersonnesSuivies", Localizer["Home_MesPersonnesSuivies"].Value, "/coach/suivis"));
     }
 
     /// <summary>
