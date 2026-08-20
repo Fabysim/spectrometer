@@ -22,6 +22,9 @@ public static class NotificationCategoryCodes
 
     /// <summary>Jeunes prestataires — TypeCode ex. <c>JeunesPrestataires.BesoinAide</c>.</summary>
     public const string JeunesPrestataires = "JeunesPrestataires";
+
+    /// <summary>Missions (particulier) — TypeCode ex. <c>Missions.MissionValidee</c>.</summary>
+    public const string Missions = "Missions";
 }
 
 public sealed record NotificationCategoryDefinition(
@@ -46,6 +49,7 @@ public static class NotificationCategoryCatalog
         new(NotificationCategoryCodes.SuiviEmployes, "Alertes", "Alerts"),
         new(NotificationCategoryCodes.GestionDuTemps, "Activités", "Activities"),
         new(NotificationCategoryCodes.JeunesPrestataires, "Jeunes prestataires", "Young providers"),
+        new(NotificationCategoryCodes.Missions, "Missions", "Missions"),
     ];
 
     public static string DeriveCategorieCode(string typeCode)

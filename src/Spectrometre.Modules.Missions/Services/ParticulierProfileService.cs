@@ -14,6 +14,14 @@ public sealed class ParticulierProfileService(IDbContextFactory<MissionsDbContex
         return entity is null ? null : ToView(entity);
     }
 
+    public async Task<ParticulierProfileView?> TryGetByIdAsync(int particulierProfileId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.ParticulierProfiles.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == particulierProfileId, cancellationToken);
+        return entity is null ? null : ToView(entity);
+    }
+
     public async Task<int> GetOrCreateProfileIdAsync(string userId, string nom, string prenoms, CancellationToken cancellationToken = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Services;
@@ -16,7 +17,8 @@ public sealed class MissionService(
     IDbContextFactory<MissionsDbContext> dbFactory,
     IParticulierProfileService particulierProfileService,
     IJeuneProfileService jeuneProfileService,
-    ICoachingService coachingService) : IMissionService
+    ICoachingService coachingService,
+    INotificationService notificationService) : IMissionService
 {
     public async Task<int?> PublierMissionAsync(string particulierUserId, PublierMissionInput input, CancellationToken cancellationToken = default)
     {
@@ -197,6 +199,25 @@ public sealed class MissionService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
+
+        // Notification in-app uniquement après validation réussie (pas de notif sur refus).
+        if (valider)
+        {
+            var particulier = await particulierProfileService.TryGetByIdAsync(
+                acceptation.Mission.ParticulierProfileId, cancellationToken);
+            if (particulier is not null)
+            {
+                var jeuneNom = $"{jeune.Prenoms} {jeune.Nom}".Trim();
+                await notificationService.CreerAsync(
+                    particulier.UserId,
+                    "Mission confirmée",
+                    $"{jeuneNom} a été confirmé(e) pour réaliser la mission « {acceptation.Mission.Titre} ».",
+                    "/particulier/mes-missions",
+                    "Missions.MissionValidee",
+                    cancellationToken);
+            }
+        }
+
         return true;
     }
 

@@ -14,7 +14,8 @@ public sealed class PreferenceNotificationService(
     IModuleRegistry moduleRegistry,
     ICompanyProvisioningService companyProvisioning,
     ICandidateSubjectResolver candidateSubjectResolver,
-    ICoachSubjectResolver coachSubjectResolver) : IPreferenceNotificationService
+    ICoachSubjectResolver coachSubjectResolver,
+    IParticulierSubjectResolver particulierSubjectResolver) : IPreferenceNotificationService
 {
     public async Task<IReadOnlyList<PreferenceNotificationView>> GetPreferencesAsync(
         string userId,
@@ -130,6 +131,10 @@ public sealed class PreferenceNotificationService(
                 return coachId is int coachProfileId
                     && await moduleRegistry.IsActiveForCoachAsync(coachProfileId, "GestionDuTemps", db, cancellationToken);
             }
+
+            case NotificationCategoryCodes.Missions:
+                // Particulier ayant un profil (émetteur / destinataire des notifs Missions.MissionValidee).
+                return await particulierSubjectResolver.TryGetParticulierProfileIdAsync(userId, cancellationToken) is not null;
 
             default:
                 return false;
