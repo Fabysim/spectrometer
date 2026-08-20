@@ -33,6 +33,14 @@
                 </p>
                 @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
                 <p class="missions-meta">@Localizer["AccepteeLe", m.AccepteeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]</p>
+                @if (m.MissionStatut == MissionStatut.Attribuee && m.AcceptationStatut == MissionAcceptationStatut.ValideeParCoach)
+                {
+                    <div class="missions-actions">
+                        <a class="missions-btn missions-btn-secondary" href="/jeune/missions/@m.AcceptationId/preparation">
+                            @Localizer["Preparation_Lien"]
+                        </a>
+                    </div>
+                }
             </div>
         }
     }

@@ -1,0 +1,101 @@
+@page "/jeune/missions/{MissionAcceptationId:int}/preparation"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.Missions.Catalog
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionPreparationService PreparationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["Preparation_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_view is null)
+{
+    <div class="missions-card">
+        <h1 class="missions-title">@Localizer["Preparation_AccesRefuse_Titre"]</h1>
+        <p class="missions-meta">@Localizer["Preparation_AccesRefuse_Message"]</p>
+        <p><a href="/jeune/mes-missions">@Localizer["MesMissionsJeune_Lien"]</a></p>
+    </div>
+}
+else
+{
+    <p><a href="/jeune/mes-missions">@Localizer["MesMissionsJeune_Lien"]</a></p>
+    <h1 class="missions-title">@Localizer["Preparation_Heading"]</h1>
+    <p class="missions-meta">@_view.MissionTitre</p>
+    <p class="missions-progress" aria-live="polite">
+        @string.Format(CultureInfo.CurrentCulture, Localizer["Preparation_Progression"], _completes, MissionPreparationCatalog.Items.Count)
+    </p>
+
+    <div class="missions-card missions-checklist">
+        @foreach (var item in _view.Items)
+        {
+            var key = item.ItemKey;
+            var coche = item.Coche;
+            <label class="missions-check-item">
+                <input type="checkbox"
+                       checked="@coche"
+                       disabled="@_busy"
+                       @onchange="e => OnToggleAsync(key, (bool)(e.Value ?? false))" />
+                <span>@Localizer[$"Preparation_{key}"]</span>
+            </label>
+        }
+    </div>
+}
+</div>
+
+@code {
+    [Parameter] public int MissionAcceptationId { get; set; }
+
+    private string? _userId;
+    private bool _chargement = true;
+    private bool _busy;
+    private MissionPreparationView? _view;
+
+    private int _completes => _view?.Items.Count(i => i.Coche) ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is not null)
+            _view = await PreparationService.GetPreparationAsync(_userId, MissionAcceptationId);
+        _chargement = false;
+    }
+
+    private async Task OnToggleAsync(string itemKey, bool coche)
+    {
+        if (_userId is null || _view is null || _busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            if (!await PreparationService.ToggleItemPreparationAsync(_userId, MissionAcceptationId, itemKey, coche))
+            {
+                _view = await PreparationService.GetPreparationAsync(_userId, MissionAcceptationId);
+                return;
+            }
+
+            _view = _view with
+            {
+                Items = _view.Items
+                    .Select(i => i.ItemKey == itemKey ? i with { Coche = coche } : i)
+                    .ToList(),
+            };
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

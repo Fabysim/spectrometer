@@ -81,4 +81,18 @@
   <data name="Difficulte_Facile" xml:space="preserve"><value>Facile</value></data>
   <data name="Difficulte_Intermediaire" xml:space="preserve"><value>Intermédiaire</value></data>
   <data name="Difficulte_Exigeante" xml:space="preserve"><value>Exigeante</value></data>
+
+  <data name="Preparation_Title" xml:space="preserve"><value>Préparation avant mission · Spectromètre</value></data>
+  <data name="Preparation_Heading" xml:space="preserve"><value>Ma préparation avant mission</value></data>
+  <data name="Preparation_Lien" xml:space="preserve"><value>Préparer cette mission</value></data>
+  <data name="Preparation_Progression" xml:space="preserve"><value>{0}/{1} complétées</value></data>
+  <data name="Preparation_AccesRefuse_Titre" xml:space="preserve"><value>Préparation indisponible</value></data>
+  <data name="Preparation_AccesRefuse_Message" xml:space="preserve"><value>Cette checklist n'est disponible que pour une mission qui vous a été attribuée.</value></data>
+  <data name="Chargement" xml:space="preserve"><value>Chargement…</value></data>
+  <data name="Preparation_tenue_adaptee" xml:space="preserve"><value>Tenue adaptée</value></data>
+  <data name="Preparation_horaire_verifie" xml:space="preserve"><value>Horaire vérifié</value></data>
+  <data name="Preparation_adresse_connue" xml:space="preserve"><value>Adresse connue</value></data>
+  <data name="Preparation_materiel_necessaire" xml:space="preserve"><value>Matériel nécessaire</value></data>
+  <data name="Preparation_numero_contact" xml:space="preserve"><value>Numéro de contact</value></data>
+  <data name="Preparation_consignes_relues" xml:space="preserve"><value>Consignes relues</value></data>
 </root>
