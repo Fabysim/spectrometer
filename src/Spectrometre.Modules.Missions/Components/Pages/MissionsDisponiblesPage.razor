@@ -1,7 +1,6 @@
 @page "/jeune/missions-disponibles"
 @attribute [Authorize]
 @rendermode InteractiveServer
-@using System.Globalization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -35,7 +34,7 @@
                 <h3>@m.Titre</h3>
                 <p class="missions-meta">@Localizer[$"Difficulte_{m.Difficulte}"]</p>
                 @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
-                @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@r.ToString("C", CultureInfo.CurrentCulture)</p> }
+                @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
                 <div class="missions-actions">
                     <button type="button" class="missions-btn missions-btn-primary"
                             disabled="@_acceptingId.HasValue"

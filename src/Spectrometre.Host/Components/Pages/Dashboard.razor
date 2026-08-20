@@ -11,13 +11,14 @@
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.Admin.Services
 @using Spectrometre.Modules.JeunesPrestataires.Services
+@using Spectrometre.Modules.Missions.Services
 @inject IModuleRegistry ModuleRegistry
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject ICoachSubjectResolver CoachSubjectResolver
-@inject IParticulierSubjectResolver ParticulierSubjectResolver
 @inject IAdminService AdminService
 @inject IJeuneProfileService JeuneProfileService
+@inject IParticulierProfileService ParticulierProfileService
 @inject IConsentementParentalService ConsentementParentalService
 @inject CoreDbContext CoreDb
 @inject IStringLocalizer<SharedResource> Localizer
@@ -261,7 +262,7 @@
                 </section>
             }
 
-            @if (_company is not null || (!_estCandidatOuCoach && !_estJeune && !_isPlatformAdmin))
+            @if (_company is not null || (!_estCandidatOuCoach && !_estJeune && !_estParticulier && !_isPlatformAdmin))
             {
             <section class="card-modern-dashboard">
                 <div class="card-header-modern-dashboard">
@@ -285,7 +286,7 @@
                     }
                 </div>
 
-                @if (_company is null && !_estCandidatOuCoach && !_estJeune && !_isPlatformAdmin)
+                @if (_company is null && !_estCandidatOuCoach && !_estJeune && !_estParticulier && !_isPlatformAdmin)
                 {
                     <p class="dashboard-hint">@Localizer["Home_AucuneEntreprise"]</p>
                     <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
@@ -542,6 +543,9 @@
             _consentementParentalACompleter = true;
         }
 
+        var particulierProfile = await ParticulierProfileService.TryGetByUserIdAsync(userId);
+        _estParticulier = particulierProfile is not null;
+
         var companies = await CompanyProvisioningService.GetCompaniesForUserAsync(userId, CoreDb);
         if (companies.Count > 0)
         {
@@ -627,15 +631,11 @@
         if (_coachLinks.Count > 0)
             _coachLinks.Insert(0, new DashboardLink("MesPersonnesSuivies", Localizer["Home_MesPersonnesSuivies"].Value, "/coach/suivis"));
 
-        var particulierProfileId = await ParticulierSubjectResolver.TryGetParticulierProfileIdAsync(userId);
-        if (particulierProfileId is int pid)
+        if (_estParticulier && particulierProfile is not null
+            && await ModuleRegistry.IsActiveForParticulierAsync(particulierProfile.Id, "ProfilParticulier", CoreDb))
         {
-            _estParticulier = await ModuleRegistry.IsActiveForParticulierAsync(pid, "ProfilParticulier", CoreDb);
-            if (_estParticulier)
-            {
-                _particulierLinks.Add(new DashboardLink("PublierMission", Localizer["Home_PublierMission"].Value, "/particulier/publier-mission"));
-                _particulierLinks.Add(new DashboardLink("MesMissionsPubliees", Localizer["Home_MesMissionsPubliees"].Value, "/particulier/mes-missions"));
-            }
+            _particulierLinks.Add(new DashboardLink("PublierMission", Localizer["Home_PublierMission"].Value, "/particulier/publier-mission"));
+            _particulierLinks.Add(new DashboardLink("MesMissionsPubliees", Localizer["Home_MesMissionsPubliees"].Value, "/particulier/mes-missions"));
         }
     }
 

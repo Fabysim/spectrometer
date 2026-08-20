@@ -11,7 +11,9 @@
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
 @using Spectrometre.Modules.JeunesPrestataires.Services
+@using Spectrometre.Modules.Missions.Services
 @inject IJeuneProfileService JeuneProfileService
+@inject IParticulierProfileService ParticulierProfileService
 @inject IConsentementParentalService ConsentementParentalService
 @inject IGestionDuTempsAccessService GestionDuTempsAccessService
 @inject IStringLocalizer<Spectrometre.Modules.Admin.Resources.AdminResource> AdminLocalizer
@@ -19,7 +21,6 @@
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject ICoachSubjectResolver CoachSubjectResolver
-@inject IParticulierSubjectResolver ParticulierSubjectResolver
 @inject IDbContextFactory<CoreDbContext> CoreDbFactory
 @inject IStringLocalizer<SharedResource> Localizer
 @inject NavigationManager Navigation
@@ -268,7 +269,7 @@
                     </div>
                 }
 
-                @if (_estParticulier)
+                @if (_estParticulier && _particulierActiveModules.Contains("ProfilParticulier"))
                 {
                     <div class="nav-group @(IsGroupActive("particulier") ? "open" : "")" data-nav-group="particulier">
                         <div class="nav-group-row">
@@ -534,16 +535,15 @@
             _consentementParentalACompleter = true;
         }
 
-        var particulierProfileId = await ParticulierSubjectResolver.TryGetParticulierProfileIdAsync(userId);
-        if (particulierProfileId is int pid)
+        var particulierProfile = await ParticulierProfileService.TryGetByUserIdAsync(userId);
+        _estParticulier = particulierProfile is not null;
+        if (particulierProfile is not null)
         {
             foreach (var manifest in ModuleRegistry.AllModules)
             {
-                if (await ModuleRegistry.IsActiveForParticulierAsync(pid, manifest.Code, coreDb))
+                if (await ModuleRegistry.IsActiveForParticulierAsync(particulierProfile.Id, manifest.Code, coreDb))
                     _particulierActiveModules.Add(manifest.Code);
             }
-
-            _estParticulier = _particulierActiveModules.Contains("ProfilParticulier");
         }
     }
 
