@@ -12,3 +12,18 @@
 .DS_Store
 Thumbs.db
 tools/scenario_*/
+
+# Deploy/publish scratch output
+_publish_probe/
+deploy/
+
+# Environment-specific settings (contains connection strings)
+src/Spectrometre.Host/appsettings.Production.json
+
+# PWA assets not yet finalized
+src/Spectrometre.Host/wwwroot/images/apple-touch-icon.png
+src/Spectrometre.Host/wwwroot/images/favicon.png
+src/Spectrometre.Host/wwwroot/images/icon-192.png
+src/Spectrometre.Host/wwwroot/images/icon-512.png
+src/Spectrometre.Host/wwwroot/images/icon-maskable-512.png
+src/Spectrometre.Host/wwwroot/manifest.webmanifest
