@@ -200,7 +200,10 @@ public sealed class MissionService(
 
         await db.SaveChangesAsync(cancellationToken);
 
-        // Notification in-app uniquement après validation réussie (pas de notif sur refus).
+        // Même catégorie Missions (préfixe TypeCode) — TypeCodes distincts par événement métier.
+        // Validation : particulier + jeune. Refus : jeune uniquement (le particulier voit juste la
+        // mission redevenir Disponible — rien ne « disparaît » de son côté).
+        var titreMission = acceptation.Mission.Titre;
         if (valider)
         {
             var particulier = await particulierProfileService.TryGetByIdAsync(
@@ -211,11 +214,29 @@ public sealed class MissionService(
                 await notificationService.CreerAsync(
                     particulier.UserId,
                     "Mission confirmée",
-                    $"{jeuneNom} a été confirmé(e) pour réaliser la mission « {acceptation.Mission.Titre} ».",
+                    $"{jeuneNom} a été confirmé(e) pour réaliser la mission « {titreMission} ».",
                     "/particulier/mes-missions",
                     "Missions.MissionValidee",
                     cancellationToken);
             }
+
+            await notificationService.CreerAsync(
+                jeune.UserId,
+                "Mission confirmée",
+                $"Ta mission « {titreMission} » a été validée par ton coach.",
+                "/jeune/mes-missions",
+                "Missions.MissionValidee",
+                cancellationToken);
+        }
+        else
+        {
+            await notificationService.CreerAsync(
+                jeune.UserId,
+                "Candidature non retenue",
+                $"Ta candidature pour « {titreMission} » n'a pas été retenue. D'autres missions sont disponibles.",
+                "/jeune/missions-disponibles",
+                "Missions.MissionRefusee",
+                cancellationToken);
         }
 
         return true;

@@ -114,7 +114,7 @@ public sealed class MissionTests(ServiceFixture fixture)
     }
 
     [Fact]
-    public async Task ValiderAcceptation_NotifieLeParticulier_RefusNeNotifiePas()
+    public async Task ValiderEtRefuser_NotifientSelonLesRegles()
     {
         var missionService = fixture.Services.GetRequiredService<IMissionService>();
         var notifService = fixture.Services.GetRequiredService<INotificationService>();
@@ -125,33 +125,58 @@ public sealed class MissionTests(ServiceFixture fixture)
         var demandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId);
         var acceptationId = demandes.Single().AcceptationId;
 
-        // Refus d'une première acceptation → aucune notif pour le particulier
+        // Refus → notif jeune MissionRefusee ; particulier sans aucune notif Missions
         Assert.True(await missionService.RefuserAcceptationAsync(jeune.CoachUserId, acceptationId));
-        var apresRefus = await notifService.GetRecentesAsync(particulierUserId, 20);
-        Assert.DoesNotContain(apresRefus, n => n.TypeCode == "Missions.MissionValidee");
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode is "Missions.MissionValidee" or "Missions.MissionRefusee");
 
-        // Nouvelle acceptation + validation → notif pour le bon UserId
+        var notifRefus = Assert.Single(
+            await notifService.GetRecentesAsync(jeune.UserId, 20),
+            n => n.TypeCode == "Missions.MissionRefusee");
+        Assert.Equal("/jeune/missions-disponibles", notifRefus.Lien);
+        Assert.Contains("Test mission", notifRefus.Message);
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(jeune.UserId, 20),
+            n => n.TypeCode == "Missions.MissionValidee");
+
+        // Nouvelle acceptation + validation → Validee pour particulier + jeune ; pas de Refusee supplémentaire
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         demandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId);
         acceptationId = demandes.Single().AcceptationId;
         Assert.True(await missionService.ValiderAcceptationAsync(jeune.CoachUserId, acceptationId));
 
-        var apresValidation = await notifService.GetRecentesAsync(particulierUserId, 20);
-        var notif = Assert.Single(apresValidation, n => n.TypeCode == "Missions.MissionValidee");
-        Assert.Equal("/particulier/mes-missions", notif.Lien);
-        Assert.Contains("Test mission", notif.Message);
-        Assert.Contains("Léa", notif.Message);
+        var notifParticulier = Assert.Single(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.MissionValidee");
+        Assert.Equal("/particulier/mes-missions", notifParticulier.Lien);
+        Assert.Contains("Test mission", notifParticulier.Message);
+        Assert.Contains("Léa", notifParticulier.Message);
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.MissionRefusee");
 
-        // Coach non autorisé ne doit rien créer non plus
+        var notifsJeune = await notifService.GetRecentesAsync(jeune.UserId, 20);
+        var notifJeuneValidee = Assert.Single(notifsJeune, n => n.TypeCode == "Missions.MissionValidee");
+        Assert.Equal("/jeune/mes-missions", notifJeuneValidee.Lien);
+        Assert.Contains("Test mission", notifJeuneValidee.Message);
+        // La Refusee du premier cycle reste ; la validation n'en ajoute pas une seconde
+        Assert.Single(notifsJeune, n => n.TypeCode == "Missions.MissionRefusee");
+
+        // Coach non autorisé ne crée aucune notif
         var (autreParticulier, autreMissionId) = await PublierMissionAsync();
         var autreJeune = await CreerJeuneAvecCoachAsync();
         Assert.True(await missionService.AccepterMissionAsync(autreJeune.UserId, autreMissionId));
         var autreDemandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(autreJeune.CoachUserId, autreJeune.UserId);
         var coachEtranger = await CreerUtilisateurAsync($"coach-notif-etranger-{Guid.NewGuid()}@test.local");
         Assert.False(await missionService.ValiderAcceptationAsync(coachEtranger, autreDemandes.Single().AcceptationId));
+        Assert.False(await missionService.RefuserAcceptationAsync(coachEtranger, autreDemandes.Single().AcceptationId));
         Assert.DoesNotContain(
             await notifService.GetRecentesAsync(autreParticulier, 20),
-            n => n.TypeCode == "Missions.MissionValidee");
+            n => n.TypeCode is "Missions.MissionValidee" or "Missions.MissionRefusee");
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(autreJeune.UserId, 20),
+            n => n.TypeCode is "Missions.MissionValidee" or "Missions.MissionRefusee");
 
         await CleanupMissionAsync(missionId, particulierUserId, jeune);
         await CleanupMissionAsync(autreMissionId, autreParticulier, autreJeune);
