@@ -31,8 +31,27 @@
         @foreach (var m in _missions)
         {
             <div class="missions-card">
-                <h3>@m.Titre</h3>
+                <h3>@AfficherTitre(m.Categorie, m.Titre)</h3>
                 <p class="missions-meta">@Localizer[$"Difficulte_{m.Difficulte}"]</p>
+                <p class="missions-meta">@Localizer["Mission_NiveauEncadrement"] : @Localizer[$"Encadrement_{m.NiveauEncadrement}"]</p>
+                @if (m.PresenceEscaliers || m.PresenceAnimaux || m.PortDeCharge || m.AccesDifficile)
+                {
+                    <p class="missions-meta">
+                        @Localizer["Mission_ConditionsSecurite"] :
+                        @{
+                            var secs = new List<string>();
+                            if (m.PresenceEscaliers) secs.Add(Localizer["Mission_PresenceEscaliers"]);
+                            if (m.PresenceAnimaux) secs.Add(Localizer["Mission_PresenceAnimaux"]);
+                            if (m.PortDeCharge) secs.Add(Localizer["Mission_PortDeCharge"]);
+                            if (m.AccesDifficile) secs.Add(Localizer["Mission_AccesDifficile"]);
+                        }
+                        @string.Join(" · ", secs)
+                    </p>
+                }
+                @if (!string.IsNullOrWhiteSpace(m.RisqueParticulier))
+                {
+                    <p class="missions-meta">@Localizer["Mission_RisqueParticulier"] : @m.RisqueParticulier</p>
+                }
                 @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
                 @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
                 <div class="missions-actions">
@@ -72,5 +91,13 @@
         _message = ok ? Localizer["Acceptation_Succes"] : Localizer["Acceptation_Echec"];
         await RefreshAsync();
         _acceptingId = null;
+    }
+
+    private string AfficherTitre(MissionCategorie categorie, string titre)
+    {
+        if (categorie == MissionCategorie.Autre)
+            return string.IsNullOrWhiteSpace(titre) ? Localizer["Categorie_Autre"] : titre;
+        var label = Localizer[$"Categorie_{categorie}"].Value;
+        return string.IsNullOrWhiteSpace(titre) ? label : $"{label} — {titre}";
     }
 }

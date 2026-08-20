@@ -1,0 +1,214 @@
+@page "/particulier/missions/{MissionAcceptationId:int}/evaluation"
+@page "/jeune/missions/{MissionAcceptationId:int}/evaluation-particulier"
+@page "/coach/suivis/{SuiviUserId}/missions/{MissionAcceptationId:int}/evaluation-particulier"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionEvaluationParticulierService EvaluationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["EvaluationParticulier_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_view is null)
+{
+    <div class="missions-card">
+        <h1 class="missions-title">@Localizer["EvaluationParticulier_AccesRefuse_Titre"]</h1>
+        <p class="missions-meta">@Localizer["EvaluationParticulier_AccesRefuse_Message"]</p>
+        <p><a href="@_lienRetourListe">@_lienRetourLabel</a></p>
+    </div>
+}
+else
+{
+    <p><a href="@_lienRetourListe">@_lienRetourLabel</a></p>
+    <h1 class="missions-title">@Localizer["EvaluationParticulier_Heading"]</h1>
+    <p class="missions-meta">@_view.MissionTitre</p>
+    @if (!_view.PeutEcrire)
+    {
+        <p class="missions-meta">@Localizer["EvaluationParticulier_ModeLecture"]</p>
+        <p class="missions-meta">@Localizer["EvaluationParticulier_AideProgression"]</p>
+    }
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="missions-success" role="status">@_message</div>
+    }
+
+    <div class="missions-card">
+        <div class="missions-field">
+            <label>@Localizer["Evaluation_Ponctualite"]</label>
+            <select @bind="_ponctualite" disabled="@(!_view.PeutEcrire)">
+                <option value="">@Localizer["Evaluation_NonRenseigne"]</option>
+                <option value="true">@Localizer["Evaluation_Oui"]</option>
+                <option value="false">@Localizer["Evaluation_Non"]</option>
+            </select>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Evaluation_ConsignesComprises"]</label>
+            <select @bind="_consignes" disabled="@(!_view.PeutEcrire)">
+                <option value="">@Localizer["Evaluation_NonRenseigne"]</option>
+                <option value="true">@Localizer["Evaluation_Oui"]</option>
+                <option value="false">@Localizer["Evaluation_Non"]</option>
+            </select>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Evaluation_TacheRealisee"]</label>
+            <select @bind="_tache" disabled="@(!_view.PeutEcrire)">
+                <option value="">@Localizer["Evaluation_NonRenseigne"]</option>
+                <option value="true">@Localizer["Evaluation_Oui"]</option>
+                <option value="false">@Localizer["Evaluation_Non"]</option>
+            </select>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Evaluation_AttitudeRespectueuse"]</label>
+            <select @bind="_attitude" disabled="@(!_view.PeutEcrire)">
+                <option value="">@Localizer["Evaluation_NonRenseigne"]</option>
+                <option value="true">@Localizer["Evaluation_Oui"]</option>
+                <option value="false">@Localizer["Evaluation_Non"]</option>
+            </select>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Evaluation_PointsPositifs"]</label>
+            <textarea rows="3" @bind="_positifs" disabled="@(!_view.PeutEcrire)"></textarea>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Evaluation_PointsAAmeliorer"]</label>
+            <textarea rows="3" @bind="_ameliorer" disabled="@(!_view.PeutEcrire)"></textarea>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Evaluation_AccepteraitNouvelle"]</label>
+            <select @bind="_nouvelle" disabled="@(!_view.PeutEcrire)">
+                <option value="">@Localizer["Evaluation_NonRenseigne"]</option>
+                <option value="true">@Localizer["Evaluation_Oui"]</option>
+                <option value="false">@Localizer["Evaluation_Non"]</option>
+            </select>
+        </div>
+
+        @if (_view.PeutEcrire)
+        {
+            <div class="missions-actions">
+                <button type="button" class="missions-btn missions-btn-primary" disabled="@_busy" @onclick="SaveAsync">
+                    @Localizer["Evaluation_Enregistrer"]
+                </button>
+            </div>
+        }
+
+        @if (_view.UpdatedAt is DateTimeOffset updated)
+        {
+            <p class="missions-meta">@Localizer["Evaluation_MisAJourLe", updated.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]</p>
+        }
+    </div>
+}
+</div>
+
+@code {
+    [Parameter] public int MissionAcceptationId { get; set; }
+    [Parameter] public string? SuiviUserId { get; set; }
+
+    private string? _userId;
+    private bool _chargement = true;
+    private bool _busy;
+    private MissionEvaluationParticulierView? _view;
+    private string? _message;
+    private string _ponctualite = "";
+    private string _consignes = "";
+    private string _tache = "";
+    private string _attitude = "";
+    private string _positifs = "";
+    private string _ameliorer = "";
+    private string _nouvelle = "";
+
+    // Routes : écriture particulier ; lecture jeune et coach (même page, PeutEcrire=false).
+    private bool EstModeCoach => !string.IsNullOrWhiteSpace(SuiviUserId);
+
+    private string _lienRetourListe =>
+        EstModeCoach ? $"/coach/suivis/{SuiviUserId}/missions"
+        : _view?.AccessMode == MissionEvaluationParticulierAccessMode.Jeune ? "/jeune/mes-missions"
+        : "/particulier/mes-missions";
+
+    private string _lienRetourLabel =>
+        EstModeCoach ? Localizer["RetourSuivisMissions"]
+        : _view?.AccessMode == MissionEvaluationParticulierAccessMode.Jeune ? Localizer["MesMissionsJeune_Lien"]
+        : Localizer["MesMissions_Lien"];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is not null)
+        {
+            _view = await EvaluationService.GetOrCreateAsync(_userId, MissionAcceptationId);
+            if (_view is not null)
+                ApplyView(_view);
+        }
+
+        _chargement = false;
+    }
+
+    private void ApplyView(MissionEvaluationParticulierView view)
+    {
+        _ponctualite = FormatBool(view.Ponctualite);
+        _consignes = FormatBool(view.ConsignesComprises);
+        _tache = FormatBool(view.TacheRealiseeCorrectement);
+        _attitude = FormatBool(view.AttitudeRespectueuse);
+        _positifs = view.PointsPositifs ?? "";
+        _ameliorer = view.PointsAAmeliorer ?? "";
+        _nouvelle = FormatBool(view.AccepteraitNouvelleMission);
+    }
+
+    private static string FormatBool(bool? value) => value switch
+    {
+        true => "true",
+        false => "false",
+        null => "",
+    };
+
+    private static bool? ParseBool(string value) => value switch
+    {
+        "true" => true,
+        "false" => false,
+        _ => null,
+    };
+
+    private async Task SaveAsync()
+    {
+        if (_userId is null || _view is null || !_view.PeutEcrire || _busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = await EvaluationService.SaveAsync(
+                _userId,
+                MissionAcceptationId,
+                ParseBool(_ponctualite),
+                ParseBool(_consignes),
+                ParseBool(_tache),
+                ParseBool(_attitude),
+                _positifs,
+                _ameliorer,
+                ParseBool(_nouvelle));
+            _message = ok ? Localizer["Evaluation_Succes"] : Localizer["Action_Echec"];
+            if (ok)
+            {
+                _view = await EvaluationService.GetOrCreateAsync(_userId, MissionAcceptationId);
+                if (_view is not null)
+                    ApplyView(_view);
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

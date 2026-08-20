@@ -26,20 +26,32 @@ public sealed class MissionService(
         if (particulier is null)
             return null;
 
-        if (string.IsNullOrWhiteSpace(input.Titre) || string.IsNullOrWhiteSpace(input.Description))
+        if (string.IsNullOrWhiteSpace(input.Description))
             return null;
+
+        if (input.Categorie == MissionCategorie.Autre && string.IsNullOrWhiteSpace(input.Titre))
+            return null;
+
+        var titre = string.IsNullOrWhiteSpace(input.Titre) ? "" : input.Titre.Trim();
 
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         var mission = new Mission
         {
             ParticulierProfileId = particulier.Id,
-            Titre = input.Titre.Trim(),
+            Categorie = input.Categorie,
+            Titre = titre,
             Description = input.Description.Trim(),
             Lieu = string.IsNullOrWhiteSpace(input.Lieu) ? null : input.Lieu.Trim(),
             DureeEstimee = string.IsNullOrWhiteSpace(input.DureeEstimee) ? null : input.DureeEstimee.Trim(),
             Difficulte = input.Difficulte,
             RemunerationMontant = input.RemunerationMontant,
             CompetencesTravaillees = string.IsNullOrWhiteSpace(input.CompetencesTravaillees) ? null : input.CompetencesTravaillees.Trim(),
+            NiveauEncadrement = input.NiveauEncadrement,
+            PresenceEscaliers = input.PresenceEscaliers,
+            PresenceAnimaux = input.PresenceAnimaux,
+            PortDeCharge = input.PortDeCharge,
+            AccesDifficile = input.AccesDifficile,
+            RisqueParticulier = string.IsNullOrWhiteSpace(input.RisqueParticulier) ? null : input.RisqueParticulier.Trim(),
             Statut = MissionStatut.Disponible,
         };
         db.Missions.Add(mission);
@@ -53,7 +65,22 @@ public sealed class MissionService(
         return await db.Missions.AsNoTracking()
             .Where(m => m.Statut == MissionStatut.Disponible)
             .OrderByDescending(m => m.CreatedAt)
-            .Select(m => new MissionResumeView(m.Id, m.Titre, m.Lieu, m.Statut, m.Difficulte, m.RemunerationMontant, m.CreatedAt))
+            .Select(m => new MissionResumeView(
+                m.Id,
+                m.Titre,
+                m.Categorie,
+                m.Lieu,
+                m.Statut,
+                m.Difficulte,
+                m.NiveauEncadrement,
+                m.RemunerationMontant,
+                m.PresenceEscaliers,
+                m.PresenceAnimaux,
+                m.PortDeCharge,
+                m.AccesDifficile,
+                m.RisqueParticulier,
+                m.CreatedAt,
+                null))
             .ToListAsync(cancellationToken);
     }
 
@@ -70,15 +97,7 @@ public sealed class MissionService(
             .OrderByDescending(a => a.AccepteeLe)
             .ToListAsync(cancellationToken);
 
-        return rows.Select(a => new MissionJeuneView(
-            a.Id,
-            a.MissionId,
-            a.Mission.Titre,
-            a.Mission.Lieu,
-            a.Mission.Statut,
-            a.Statut,
-            a.AccepteeLe,
-            a.DecideeLe)).ToList();
+        return rows.Select(ToMissionJeuneView).ToList();
     }
 
     public async Task<bool> AccepterMissionAsync(string jeuneUserId, int missionId, CancellationToken cancellationToken = default)
@@ -197,15 +216,7 @@ public sealed class MissionService(
             .OrderByDescending(a => a.DecideeLe ?? a.AccepteeLe)
             .ToListAsync(cancellationToken);
 
-        return rows.Select(a => new MissionJeuneView(
-            a.Id,
-            a.MissionId,
-            a.Mission.Titre,
-            a.Mission.Lieu,
-            a.Mission.Statut,
-            a.Statut,
-            a.AccepteeLe,
-            a.DecideeLe)).ToList();
+        return rows.Select(ToMissionJeuneView).ToList();
     }
 
     public async Task<IReadOnlyList<MissionResumeView>> GetMesMissionsPublieesAsync(string particulierUserId, CancellationToken cancellationToken = default)
@@ -215,12 +226,59 @@ public sealed class MissionService(
             return [];
 
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
-        return await db.Missions.AsNoTracking()
+        var missions = await db.Missions.AsNoTracking()
+            .Include(m => m.Acceptations)
             .Where(m => m.ParticulierProfileId == particulier.Id)
             .OrderByDescending(m => m.CreatedAt)
-            .Select(m => new MissionResumeView(m.Id, m.Titre, m.Lieu, m.Statut, m.Difficulte, m.RemunerationMontant, m.CreatedAt))
             .ToListAsync(cancellationToken);
+
+        return missions.Select(m =>
+        {
+            int? acceptationId = null;
+            if (m.Statut == MissionStatut.Terminee)
+            {
+                acceptationId = m.Acceptations
+                    .Where(a => a.Statut == MissionAcceptationStatut.ValideeParCoach)
+                    .Select(a => (int?)a.Id)
+                    .FirstOrDefault();
+            }
+
+            return new MissionResumeView(
+                m.Id,
+                m.Titre,
+                m.Categorie,
+                m.Lieu,
+                m.Statut,
+                m.Difficulte,
+                m.NiveauEncadrement,
+                m.RemunerationMontant,
+                m.PresenceEscaliers,
+                m.PresenceAnimaux,
+                m.PortDeCharge,
+                m.AccesDifficile,
+                m.RisqueParticulier,
+                m.CreatedAt,
+                acceptationId);
+        }).ToList();
     }
+
+    private static MissionJeuneView ToMissionJeuneView(MissionAcceptation a) =>
+        new(
+            a.Id,
+            a.MissionId,
+            a.Mission.Titre,
+            a.Mission.Categorie,
+            a.Mission.Lieu,
+            a.Mission.Statut,
+            a.Statut,
+            a.Mission.NiveauEncadrement,
+            a.Mission.PresenceEscaliers,
+            a.Mission.PresenceAnimaux,
+            a.Mission.PortDeCharge,
+            a.Mission.AccesDifficile,
+            a.Mission.RisqueParticulier,
+            a.AccepteeLe,
+            a.DecideeLe);
 
     private async Task<bool> DeciderAcceptationAsync(
         string coachUserId,
@@ -264,7 +322,7 @@ public sealed class MissionService(
         // Même catégorie Missions (préfixe TypeCode) — TypeCodes distincts par événement métier.
         // Validation : particulier + jeune. Refus : jeune uniquement (le particulier voit juste la
         // mission redevenir Disponible — rien ne « disparaît » de son côté).
-        var titreMission = acceptation.Mission.Titre;
+        var titreMission = MissionDisplay.TitreAffiche(acceptation.Mission.Categorie, acceptation.Mission.Titre);
         if (valider)
         {
             var particulier = await particulierProfileService.TryGetByIdAsync(
@@ -340,7 +398,7 @@ public sealed class MissionService(
             views.Add(new MissionAcceptationView(
                 a.Id,
                 a.MissionId,
-                a.Mission.Titre,
+                MissionDisplay.TitreAffiche(a.Mission.Categorie, a.Mission.Titre),
                 a.JeuneProfileId,
                 jeune.Nom,
                 jeune.Prenoms,

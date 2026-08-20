@@ -94,7 +94,8 @@ public sealed class MissionRetourTests(ServiceFixture fixture)
         var missionService = fixture.Services.GetRequiredService<IMissionService>();
         var missionId = await missionService.PublierMissionAsync(
             particulierUserId,
-            new PublierMissionInput("Mission retour", "Desc", null, null, MissionDifficulte.Facile, 20m, null));
+            new PublierMissionInput("Mission retour", "Desc", null, null, MissionDifficulte.Facile, 20m, null,
+                MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         Assert.NotNull(missionId);
         return (particulierUserId, missionId.Value);
     }

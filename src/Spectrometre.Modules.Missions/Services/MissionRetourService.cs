@@ -109,7 +109,7 @@ public sealed class MissionRetourService(
         MissionRetourAccessMode mode) =>
         new(
             acceptation.Id,
-            acceptation.Mission.Titre,
+            MissionDisplay.TitreAffiche(acceptation.Mission.Categorie, acceptation.Mission.Titre),
             entity?.CeQuiSestBienPasse,
             entity?.CeQuiAEteDifficile,
             entity?.CeQueJaiAppris,

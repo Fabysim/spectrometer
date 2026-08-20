@@ -31,7 +31,8 @@ public sealed class CoachDashboardSyntheseTests(ServiceFixture fixture)
         var missionService = fixture.Services.GetRequiredService<IMissionService>();
         var missionId = await missionService.PublierMissionAsync(
             particulierId,
-            new PublierMissionInput("Mission dash", "Desc", null, null, MissionDifficulte.Facile, 20m, null));
+            new PublierMissionInput("Mission dash", "Desc", null, null, MissionDifficulte.Facile, 20m, null,
+                MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         Assert.NotNull(missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune1.UserId, missionId.Value));
 

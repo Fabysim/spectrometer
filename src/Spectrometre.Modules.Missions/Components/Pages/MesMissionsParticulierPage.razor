@@ -26,10 +26,19 @@
         @foreach (var m in _missions)
         {
             <div class="missions-card">
-                <h3>@m.Titre</h3>
+                <h3>@AfficherTitre(m.Categorie, m.Titre)</h3>
                 <p class="missions-meta">@Localizer[$"Statut_{m.Statut}"] · @Localizer[$"Difficulte_{m.Difficulte}"]</p>
+                <p class="missions-meta">@Localizer["Mission_NiveauEncadrement"] : @Localizer[$"Encadrement_{m.NiveauEncadrement}"]</p>
                 @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
                 @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
+                @if (m.Statut == MissionStatut.Terminee && m.AcceptationIdPourEvaluation is int acceptationId)
+                {
+                    <div class="missions-actions">
+                        <a class="missions-btn missions-btn-primary" href="/particulier/missions/@acceptationId/evaluation">
+                            @Localizer["Evaluation_Lien"]
+                        </a>
+                    </div>
+                }
             </div>
         }
     }
@@ -45,5 +54,13 @@
         _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (_userId is not null)
             _missions = await MissionService.GetMesMissionsPublieesAsync(_userId);
+    }
+
+    private string AfficherTitre(MissionCategorie categorie, string titre)
+    {
+        if (categorie == MissionCategorie.Autre)
+            return string.IsNullOrWhiteSpace(titre) ? Localizer["Categorie_Autre"] : titre;
+        var label = Localizer[$"Categorie_{categorie}"].Value;
+        return string.IsNullOrWhiteSpace(titre) ? label : $"{label} — {titre}";
     }
 }

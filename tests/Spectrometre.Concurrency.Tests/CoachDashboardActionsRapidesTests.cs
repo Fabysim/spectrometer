@@ -29,10 +29,12 @@ public sealed class CoachDashboardActionsRapidesTests(ServiceFixture fixture)
 
         var missionRecentId = await missionService.PublierMissionAsync(
             particulierId,
-            new PublierMissionInput("Mission récente", "D", null, null, MissionDifficulte.Facile, 10m, null));
+            new PublierMissionInput("Mission récente", "D", null, null, MissionDifficulte.Facile, 10m, null,
+                MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         var missionAncienneId = await missionService.PublierMissionAsync(
             particulierId,
-            new PublierMissionInput("Mission ancienne", "D", null, null, MissionDifficulte.Facile, 10m, null));
+            new PublierMissionInput("Mission ancienne", "D", null, null, MissionDifficulte.Facile, 10m, null,
+                MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         Assert.NotNull(missionRecentId);
         Assert.NotNull(missionAncienneId);
 
@@ -69,7 +71,8 @@ public sealed class CoachDashboardActionsRapidesTests(ServiceFixture fixture)
 
         var missionId = await missionService.PublierMissionAsync(
             particulierId,
-            new PublierMissionInput("Mission à valider", "D", null, null, MissionDifficulte.Facile, 10m, null));
+            new PublierMissionInput("Mission à valider", "D", null, null, MissionDifficulte.Facile, 10m, null,
+                MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         Assert.NotNull(missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId.Value));
 

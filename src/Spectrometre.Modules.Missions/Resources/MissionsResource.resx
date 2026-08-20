@@ -40,6 +40,17 @@
   <data name="CoachMissions_Heading" xml:space="preserve"><value>Demandes de mission en attente</value></data>
   <data name="RetourSuivis" xml:space="preserve"><value>Retour aux personnes suivies</value></data>
   <data name="Mission_Titre" xml:space="preserve"><value>Titre</value></data>
+  <data name="Mission_TitreComplement" xml:space="preserve"><value>Précision (optionnel)</value></data>
+  <data name="Mission_TitreObligatoire" xml:space="preserve"><value>Précisez la tâche</value></data>
+  <data name="Mission_Categorie" xml:space="preserve"><value>Catégorie de tâche</value></data>
+  <data name="Mission_NiveauEncadrement" xml:space="preserve"><value>Niveau d'encadrement</value></data>
+  <data name="Mission_ConditionsSecurite" xml:space="preserve"><value>Conditions pratiques / sécurité</value></data>
+  <data name="Mission_ConditionsSecurite_Hint" xml:space="preserve"><value>Cochez ce qui s'applique — informations utiles pour préparer la mission, pas une enquête personnelle.</value></data>
+  <data name="Mission_PresenceEscaliers" xml:space="preserve"><value>Présence d'escaliers</value></data>
+  <data name="Mission_PresenceAnimaux" xml:space="preserve"><value>Présence d'animaux</value></data>
+  <data name="Mission_PortDeCharge" xml:space="preserve"><value>Port de charge</value></data>
+  <data name="Mission_AccesDifficile" xml:space="preserve"><value>Accès difficile</value></data>
+  <data name="Mission_RisqueParticulier" xml:space="preserve"><value>Précision utile (optionnel)</value></data>
   <data name="Mission_Description" xml:space="preserve"><value>Description</value></data>
   <data name="Mission_Lieu" xml:space="preserve"><value>Lieu</value></data>
   <data name="Mission_Duree" xml:space="preserve"><value>Durée estimée</value></data>
@@ -115,6 +126,58 @@
   <data name="RetourSuivisMissions" xml:space="preserve"><value>Retour aux missions du suivi</value></data>
   <data name="CoachMissions_EnAttente" xml:space="preserve"><value>Demandes en attente</value></data>
   <data name="CoachMissions_Terminees" xml:space="preserve"><value>Missions terminées</value></data>
-  <data name="CoachMissions_Terminees_Hint" xml:space="preserve"><value>Consultez le retour rempli par le jeune après chaque mission terminée.</value></data>
+  <data name="CoachMissions_Terminees_Hint" xml:space="preserve"><value>Consultez le retour du jeune et l'évaluation du particulier après chaque mission terminée.</value></data>
   <data name="AucuneMissionTerminee" xml:space="preserve"><value>Aucune mission terminée pour ce jeune.</value></data>
+
+  <data name="Categorie_JardinageSimple" xml:space="preserve"><value>Jardinage simple</value></data>
+  <data name="Categorie_Rangement" xml:space="preserve"><value>Rangement</value></data>
+  <data name="Categorie_NettoyageLeger" xml:space="preserve"><value>Nettoyage léger</value></data>
+  <data name="Categorie_AideDemenagementLeger" xml:space="preserve"><value>Aide au déménagement léger</value></data>
+  <data name="Categorie_PetitBricolageNonDangereux" xml:space="preserve"><value>Petit bricolage non dangereux</value></data>
+  <data name="Categorie_AideLogistique" xml:space="preserve"><value>Aide logistique</value></data>
+  <data name="Categorie_TriClassementOrganisation" xml:space="preserve"><value>Tri, classement, organisation</value></data>
+  <data name="Categorie_AccompagnementTachePratique" xml:space="preserve"><value>Accompagnement d'une tâche pratique</value></data>
+  <data name="Categorie_SoinsAuxAnimaux" xml:space="preserve"><value>Soins aux animaux</value></data>
+  <data name="Categorie_LavageDeVoiture" xml:space="preserve"><value>Lavage de voiture</value></data>
+  <data name="Categorie_Autre" xml:space="preserve"><value>Autre</value></data>
+  <data name="CategorieExemple_JardinageSimple" xml:space="preserve"><value>Ex. : tondre une petite surface, désherber un massif</value></data>
+  <data name="CategorieExemple_Rangement" xml:space="preserve"><value>Ex. : ranger un garage, un grenier ou un placard</value></data>
+  <data name="CategorieExemple_NettoyageLeger" xml:space="preserve"><value>Ex. : laver des vitres, passer un coup de balai</value></data>
+  <data name="CategorieExemple_AideDemenagementLeger" xml:space="preserve"><value>Ex. : porter des cartons légers, aider à vider une pièce</value></data>
+  <data name="CategorieExemple_PetitBricolageNonDangereux" xml:space="preserve"><value>Ex. : monter un meuble simple, fixer une étagère</value></data>
+  <data name="CategorieExemple_AideLogistique" xml:space="preserve"><value>Ex. : préparer des colis, aider à une réception</value></data>
+  <data name="CategorieExemple_TriClassementOrganisation" xml:space="preserve"><value>Ex. : trier des documents, classer des affaires</value></data>
+  <data name="CategorieExemple_AccompagnementTachePratique" xml:space="preserve"><value>Ex. : accompagner pour courses ou démarches simples</value></data>
+  <data name="CategorieExemple_SoinsAuxAnimaux" xml:space="preserve"><value>Ex. : promener un chien, nourrir un animal</value></data>
+  <data name="CategorieExemple_LavageDeVoiture" xml:space="preserve"><value>Ex. : laver et sécher une voiture</value></data>
+  <data name="CategorieExemple_Autre" xml:space="preserve"><value>Ex. : précisez clairement la tâche dans le champ ci-dessous</value></data>
+
+  <data name="Encadrement_PresentPendantMission" xml:space="preserve"><value>Présent pendant toute la mission</value></data>
+  <data name="Encadrement_PresentDebutSeulement" xml:space="preserve"><value>Présent au début seulement</value></data>
+  <data name="Encadrement_AccompagnateurSouhaite" xml:space="preserve"><value>Accompagnateur souhaité</value></data>
+  <data name="Encadrement_Binome" xml:space="preserve"><value>En binôme</value></data>
+  <data name="Encadrement_AutonomieApresExplication" xml:space="preserve"><value>Autonomie après explication</value></data>
+
+  <data name="Evaluation_Lien" xml:space="preserve"><value>Évaluer cette mission</value></data>
+  <data name="EvaluationParticulier_Lire" xml:space="preserve"><value>Voir l'évaluation du particulier</value></data>
+  <data name="EvaluationParticulier_Consulter" xml:space="preserve"><value>Consulter l'évaluation particulier</value></data>
+  <data name="EvaluationParticulier_Title" xml:space="preserve"><value>Évaluation après mission · Spectromètre</value></data>
+  <data name="EvaluationParticulier_Heading" xml:space="preserve"><value>Évaluation constructive après mission</value></data>
+  <data name="EvaluationParticulier_ModeLecture" xml:space="preserve"><value>Lecture seule.</value></data>
+  <data name="EvaluationParticulier_AideProgression" xml:space="preserve"><value>Ce retour aide la personne accompagnée à progresser.</value></data>
+  <data name="EvaluationParticulier_AccesRefuse_Titre" xml:space="preserve"><value>Évaluation indisponible</value></data>
+  <data name="EvaluationParticulier_AccesRefuse_Message" xml:space="preserve"><value>L'évaluation n'est disponible que pour une mission terminée qui vous concerne.</value></data>
+  <data name="Evaluation_Ponctualite" xml:space="preserve"><value>Ponctualité</value></data>
+  <data name="Evaluation_ConsignesComprises" xml:space="preserve"><value>Consignes comprises</value></data>
+  <data name="Evaluation_TacheRealisee" xml:space="preserve"><value>Tâche réalisée correctement</value></data>
+  <data name="Evaluation_AttitudeRespectueuse" xml:space="preserve"><value>Attitude respectueuse</value></data>
+  <data name="Evaluation_PointsPositifs" xml:space="preserve"><value>Points positifs</value></data>
+  <data name="Evaluation_PointsAAmeliorer" xml:space="preserve"><value>Points à améliorer</value></data>
+  <data name="Evaluation_AccepteraitNouvelle" xml:space="preserve"><value>Accepterait une nouvelle mission</value></data>
+  <data name="Evaluation_Oui" xml:space="preserve"><value>Oui</value></data>
+  <data name="Evaluation_Non" xml:space="preserve"><value>Non</value></data>
+  <data name="Evaluation_NonRenseigne" xml:space="preserve"><value>— Non renseigné —</value></data>
+  <data name="Evaluation_Enregistrer" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="Evaluation_Succes" xml:space="preserve"><value>Évaluation enregistrée.</value></data>
+  <data name="Evaluation_MisAJourLe" xml:space="preserve"><value>Dernière mise à jour : {0}</value></data>
 </root>

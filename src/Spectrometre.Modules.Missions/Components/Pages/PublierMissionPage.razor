@@ -4,6 +4,7 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.Missions.Catalog
 @using Spectrometre.Modules.Missions.Entities
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IMissionService MissionService
@@ -23,12 +24,31 @@
 
     <div class="missions-card">
         <div class="missions-field">
-            <label>@Localizer["Mission_Titre"]</label>
+            <label>@Localizer["Mission_Categorie"]</label>
+            <select @bind="_categorie" @bind:after="OnCategorieChanged">
+                @foreach (var c in Enum.GetValues<MissionCategorie>())
+                {
+                    <option value="@c">@Localizer[$"Categorie_{c}"]</option>
+                }
+            </select>
+            <p class="missions-meta">@Localizer[MissionCategorieCatalog.ExempleCle(_categorie)]</p>
+        </div>
+        <div class="missions-field">
+            <label>@(_categorie == MissionCategorie.Autre ? Localizer["Mission_TitreObligatoire"] : Localizer["Mission_TitreComplement"])</label>
             <input @bind="_titre" />
         </div>
         <div class="missions-field">
             <label>@Localizer["Mission_Description"]</label>
             <textarea rows="4" @bind="_description"></textarea>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Mission_NiveauEncadrement"]</label>
+            <select @bind="_niveauEncadrement">
+                @foreach (var n in Enum.GetValues<MissionNiveauEncadrement>())
+                {
+                    <option value="@n">@Localizer[$"Encadrement_{n}"]</option>
+                }
+            </select>
         </div>
         <div class="missions-field">
             <label>@Localizer["Mission_Lieu"]</label>
@@ -55,6 +75,21 @@
             <label>@Localizer["Mission_Competences"]</label>
             <textarea rows="2" @bind="_competences"></textarea>
         </div>
+
+        <fieldset class="missions-field">
+            <legend>@Localizer["Mission_ConditionsSecurite"]</legend>
+            <p class="missions-meta">@Localizer["Mission_ConditionsSecurite_Hint"]</p>
+            <label class="missions-check"><input type="checkbox" @bind="_presenceEscaliers" /> @Localizer["Mission_PresenceEscaliers"]</label>
+            <label class="missions-check"><input type="checkbox" @bind="_presenceAnimaux" /> @Localizer["Mission_PresenceAnimaux"]</label>
+            <label class="missions-check"><input type="checkbox" @bind="_portDeCharge" /> @Localizer["Mission_PortDeCharge"]</label>
+            <label class="missions-check"><input type="checkbox" @bind="_accesDifficile" /> @Localizer["Mission_AccesDifficile"]</label>
+            @if (_presenceEscaliers || _presenceAnimaux || _portDeCharge || _accesDifficile)
+            {
+                <label>@Localizer["Mission_RisqueParticulier"]</label>
+                <textarea rows="2" @bind="_risqueParticulier"></textarea>
+            }
+        </fieldset>
+
         <div class="missions-actions">
             <button type="button" class="missions-btn missions-btn-primary" disabled="@_saving" @onclick="PublierAsync">
                 @Localizer["PublierMission_Bouton"]
@@ -66,13 +101,20 @@
 
 @code {
     private string? _userId;
+    private MissionCategorie _categorie = MissionCategorie.JardinageSimple;
     private string _titre = "";
     private string _description = "";
+    private MissionNiveauEncadrement _niveauEncadrement = MissionNiveauEncadrement.PresentPendantMission;
     private string? _lieu;
     private string? _duree;
     private MissionDifficulte _difficulte = MissionDifficulte.Facile;
     private decimal? _remuneration;
     private string? _competences;
+    private bool _presenceEscaliers;
+    private bool _presenceAnimaux;
+    private bool _portDeCharge;
+    private bool _accesDifficile;
+    private string? _risqueParticulier;
     private bool _saving;
     private string? _message;
 
@@ -82,6 +124,11 @@
         _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 
+    private void OnCategorieChanged()
+    {
+        // no-op : relance le rendu pour le label titre / exemple
+    }
+
     private async Task PublierAsync()
     {
         if (_userId is null) return;
@@ -89,7 +136,20 @@
         _message = null;
 
         var id = await MissionService.PublierMissionAsync(_userId, new PublierMissionInput(
-            _titre, _description, _lieu, _duree, _difficulte, _remuneration, _competences));
+            _titre,
+            _description,
+            _lieu,
+            _duree,
+            _difficulte,
+            _remuneration,
+            _competences,
+            _categorie,
+            _niveauEncadrement,
+            _presenceEscaliers,
+            _presenceAnimaux,
+            _portDeCharge,
+            _accesDifficile,
+            _risqueParticulier));
 
         if (id is null)
             _message = Localizer["Erreur_Publication"];
@@ -97,8 +157,11 @@
         {
             _message = Localizer["PublierMission_Succes"];
             _titre = _description = "";
-            _lieu = _duree = _competences = null;
+            _lieu = _duree = _competences = _risqueParticulier = null;
             _remuneration = null;
+            _presenceEscaliers = _presenceAnimaux = _portDeCharge = _accesDifficile = false;
+            _categorie = MissionCategorie.JardinageSimple;
+            _niveauEncadrement = MissionNiveauEncadrement.PresentPendantMission;
         }
 
         _saving = false;

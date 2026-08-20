@@ -28,7 +28,10 @@ public sealed class MissionPreparationService(
             .Select(def => new MissionPreparationItemView(def.Key, coches.GetValueOrDefault(def.Key)))
             .ToList();
 
-        return new MissionPreparationView(missionAcceptationId, acceptation.Mission.Titre, items);
+        return new MissionPreparationView(
+            missionAcceptationId,
+            MissionDisplay.TitreAffiche(acceptation.Mission.Categorie, acceptation.Mission.Titre),
+            items);
     }
 
     public async Task<bool> ToggleItemPreparationAsync(

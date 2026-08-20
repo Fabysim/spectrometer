@@ -193,7 +193,8 @@ public sealed class MissionTests(ServiceFixture fixture)
         var missionService = fixture.Services.GetRequiredService<IMissionService>();
         var missionId = await missionService.PublierMissionAsync(
             particulierUserId,
-            new PublierMissionInput("Test mission", "Description test", "Paris", "2 h", MissionDifficulte.Facile, 50m, "Organisation"));
+            new PublierMissionInput("Test mission", "Description test", "Paris", "2 h", MissionDifficulte.Facile, 50m, "Organisation",
+                MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         Assert.NotNull(missionId);
         return (particulierUserId, missionId.Value);
     }
