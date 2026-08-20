@@ -243,4 +243,32 @@
   <data name="FicheSuivi_Lien_Guide" xml:space="preserve"><value>Interview guide</value></data>
   <data name="FicheSuivi_Lien_Missions" xml:space="preserve"><value>Missions</value></data>
   <data name="FicheSuivi_Lien_Objectifs" xml:space="preserve"><value>Objectives</value></data>
+
+  <data name="MesAstuces_Title" xml:space="preserve"><value>Tips to succeed · Spectrometre</value></data>
+  <data name="MesAstuces_Heading" xml:space="preserve"><value>Tips to succeed</value></data>
+  <data name="MesAstuces_Intro" xml:space="preserve"><value>A few simple pointers for your missions — read them when you need them, no pressure.</value></data>
+  <data name="MesAstuces_Lien" xml:space="preserve"><value>Tips to succeed</value></data>
+  <data name="MesAstuces_AccesRefuse_Titre" xml:space="preserve"><value>Access restricted</value></data>
+  <data name="MesAstuces_AccesRefuse_Message" xml:space="preserve"><value>This page is for young providers only.</value></data>
+
+  <data name="MesAstuces_Fiche_arriver_a_lheure_Titre" xml:space="preserve"><value>How to arrive on time</value></data>
+  <data name="MesAstuces_Fiche_arriver_a_lheure_Texte" xml:space="preserve"><value>The day before, write down the time and place, and leave a little extra time for the trip. If you are unsure about the route, ask your coach or the client before the day. Arriving a little early is already a good start.</value></data>
+
+  <data name="MesAstuces_Fiche_dire_bonjour_Titre" xml:space="preserve"><value>How to say hello</value></data>
+  <data name="MesAstuces_Fiche_dire_bonjour_Texte" xml:space="preserve"><value>When you arrive, say hello, smile if you feel comfortable, and wait to be invited in. “Hello, I’m [first name], I’m here for the task” is enough. You don’t need a long speech.</value></data>
+
+  <data name="MesAstuces_Fiche_se_presenter_Titre" xml:space="preserve"><value>How to introduce yourself</value></data>
+  <data name="MesAstuces_Fiche_se_presenter_Texte" xml:space="preserve"><value>Say your first name and why you are there, for example: “Hello, my name is Léa, I’m here to help with the garden.” If someone is with you, you can mention that too. One clear sentence is enough.</value></data>
+
+  <data name="MesAstuces_Fiche_demander_aide_Titre" xml:space="preserve"><value>How to ask for help</value></data>
+  <data name="MesAstuces_Fiche_demander_aide_Texte" xml:space="preserve"><value>You can simply say: “I didn’t quite understand — could you show me?” Asking for a clarification is not a failure. Better a question now than a task done the wrong way.</value></data>
+
+  <data name="MesAstuces_Fiche_prevenir_probleme_Titre" xml:space="preserve"><value>How to speak up if there is a problem</value></data>
+  <data name="MesAstuces_Fiche_prevenir_probleme_Texte" xml:space="preserve"><value>If something is wrong (you’re stuck, you don’t feel well, the task isn’t clear), say so as soon as you can. Tell the client on site first, then your coach. That isn’t “bothering” people — it’s what helps things go well.</value></data>
+
+  <data name="MesAstuces_Fiche_en_retard_Titre" xml:space="preserve"><value>What to do if I’m late</value></data>
+  <data name="MesAstuces_Fiche_en_retard_Texte" xml:space="preserve"><value>Let them know right away, even if you feel embarrassed: a message or a call is better than arriving with no warning. Say when you think you’ll get there. Once you arrive, apologise briefly and start the task.</value></data>
+
+  <data name="MesAstuces_Fiche_finir_mission_Titre" xml:space="preserve"><value>How to finish a mission</value></data>
+  <data name="MesAstuces_Fiche_finir_mission_Texte" xml:space="preserve"><value>Before you leave, ask if everything is okay and if you can still help. Put away what you used, say thank you and goodbye. If something wasn’t finished, say so clearly rather than leaving without mentioning it.</value></data>
 </root>

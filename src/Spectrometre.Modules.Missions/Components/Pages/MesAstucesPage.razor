@@ -1,0 +1,56 @@
+@page "/jeune/mes-astuces"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.JeunesPrestataires.Services
+@using Spectrometre.Modules.Missions.Catalog
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IJeuneProfileService JeuneProfileService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["MesAstuces_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (!_autorise)
+{
+    <div class="missions-card">
+        <h1 class="missions-title">@Localizer["MesAstuces_AccesRefuse_Titre"]</h1>
+        <p class="missions-meta">@Localizer["MesAstuces_AccesRefuse_Message"]</p>
+    </div>
+}
+else
+{
+    <h1 class="missions-title">@Localizer["MesAstuces_Heading"]</h1>
+    <p class="missions-meta">@Localizer["MesAstuces_Intro"]</p>
+
+    @foreach (var fiche in MesAstucesCatalog.Fiches)
+    {
+        <div class="missions-card">
+            <h2 class="missions-section-title">@Localizer[$"MesAstuces_Fiche_{fiche.Key}_Titre"]</h2>
+            <p class="mes-progres-extrait">@Localizer[$"MesAstuces_Fiche_{fiche.Key}_Texte"]</p>
+        </div>
+    }
+}
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _autorise;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is not null)
+            _autorise = await JeuneProfileService.TryGetByUserIdAsync(userId) is not null;
+        _chargement = false;
+    }
+}

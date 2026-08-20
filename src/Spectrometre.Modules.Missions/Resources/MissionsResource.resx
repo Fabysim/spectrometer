@@ -243,4 +243,32 @@
   <data name="FicheSuivi_Lien_Guide" xml:space="preserve"><value>Guide d'entrevue</value></data>
   <data name="FicheSuivi_Lien_Missions" xml:space="preserve"><value>Missions</value></data>
   <data name="FicheSuivi_Lien_Objectifs" xml:space="preserve"><value>Objectifs</value></data>
+
+  <data name="MesAstuces_Title" xml:space="preserve"><value>Mes astuces pour réussir · Spectromètre</value></data>
+  <data name="MesAstuces_Heading" xml:space="preserve"><value>Mes astuces pour réussir</value></data>
+  <data name="MesAstuces_Intro" xml:space="preserve"><value>Quelques repères simples pour tes missions — à relire quand tu en as besoin, sans pression.</value></data>
+  <data name="MesAstuces_Lien" xml:space="preserve"><value>Mes astuces pour réussir</value></data>
+  <data name="MesAstuces_AccesRefuse_Titre" xml:space="preserve"><value>Accès réservé</value></data>
+  <data name="MesAstuces_AccesRefuse_Message" xml:space="preserve"><value>Cette page est réservée aux jeunes prestataires.</value></data>
+
+  <data name="MesAstuces_Fiche_arriver_a_lheure_Titre" xml:space="preserve"><value>Comment arriver à l'heure</value></data>
+  <data name="MesAstuces_Fiche_arriver_a_lheure_Texte" xml:space="preserve"><value>La veille, note l'heure et le lieu, et prévois un peu de marge pour le trajet. Si tu as un doute sur le chemin, demande à ton coach ou au particulier avant le jour J. Arriver un peu en avance, c'est déjà un bon départ.</value></data>
+
+  <data name="MesAstuces_Fiche_dire_bonjour_Titre" xml:space="preserve"><value>Comment dire bonjour</value></data>
+  <data name="MesAstuces_Fiche_dire_bonjour_Texte" xml:space="preserve"><value>En arrivant, dis bonjour, souris si tu te sens à l'aise, et attends qu'on t'invite à entrer. Un « Bonjour, je suis [prénom], je viens pour la mission » suffit. Tu n'as pas besoin d'un long discours.</value></data>
+
+  <data name="MesAstuces_Fiche_se_presenter_Titre" xml:space="preserve"><value>Comment se présenter</value></data>
+  <data name="MesAstuces_Fiche_se_presenter_Texte" xml:space="preserve"><value>Dis ton prénom et pourquoi tu es là, par exemple : « Bonjour, je m'appelle Léa, je viens aider pour le jardinage. » Si tu es accompagné, tu peux aussi le dire. Une phrase claire, c'est assez.</value></data>
+
+  <data name="MesAstuces_Fiche_demander_aide_Titre" xml:space="preserve"><value>Comment demander de l'aide</value></data>
+  <data name="MesAstuces_Fiche_demander_aide_Texte" xml:space="preserve"><value>Tu peux dire simplement : « Je n'ai pas bien compris, pouvez-vous me montrer ? » Demander une précision, ce n'est pas un échec. Mieux vaut une question maintenant qu'une tâche faite à l'envers.</value></data>
+
+  <data name="MesAstuces_Fiche_prevenir_probleme_Titre" xml:space="preserve"><value>Comment prévenir en cas de problème</value></data>
+  <data name="MesAstuces_Fiche_prevenir_probleme_Texte" xml:space="preserve"><value>Si quelque chose ne va pas (tu es bloqué, tu ne te sens pas bien, la tâche n'est pas claire), préviens dès que tu le peux. Contacte d'abord le particulier sur place, puis ton coach. Ce n'est pas « déranger » : c'est faire ce qu'il faut pour que tout se passe bien.</value></data>
+
+  <data name="MesAstuces_Fiche_en_retard_Titre" xml:space="preserve"><value>Que faire si je suis en retard</value></data>
+  <data name="MesAstuces_Fiche_en_retard_Texte" xml:space="preserve"><value>Préviens tout de suite, même si tu as un peu honte : un message ou un appel vaut mieux qu'arriver sans rien dire. Indique l'heure à laquelle tu penses arriver. Ensuite, une fois sur place, excuse-toi brièvement et passe à la mission.</value></data>
+
+  <data name="MesAstuces_Fiche_finir_mission_Titre" xml:space="preserve"><value>Comment terminer une mission</value></data>
+  <data name="MesAstuces_Fiche_finir_mission_Texte" xml:space="preserve"><value>Avant de partir, demande si tout est bon et si tu peux encore aider. Range ce que tu as utilisé, dis merci et au revoir. Si quelque chose n'était pas fini, dis-le clairement plutôt que de partir sans en parler.</value></data>
 </root>
