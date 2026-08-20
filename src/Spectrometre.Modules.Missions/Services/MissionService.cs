@@ -194,10 +194,23 @@ public sealed class MissionService(
         return true;
     }
 
-    public async Task<IReadOnlyList<MissionJeuneView>> GetMissionsTermineesPourJeuneSuiviAsync(
+    public Task<IReadOnlyList<MissionJeuneView>> GetMissionsTermineesPourJeuneSuiviAsync(
         string coachUserId,
         string suiviUserId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        LoadMissionsPourJeuneSuiviAsync(coachUserId, suiviUserId, MissionStatut.Terminee, cancellationToken);
+
+    public Task<IReadOnlyList<MissionJeuneView>> GetMissionsEnCoursPourJeuneSuiviAsync(
+        string coachUserId,
+        string suiviUserId,
+        CancellationToken cancellationToken = default) =>
+        LoadMissionsPourJeuneSuiviAsync(coachUserId, suiviUserId, MissionStatut.Attribuee, cancellationToken);
+
+    private async Task<IReadOnlyList<MissionJeuneView>> LoadMissionsPourJeuneSuiviAsync(
+        string coachUserId,
+        string suiviUserId,
+        MissionStatut missionStatut,
+        CancellationToken cancellationToken)
     {
         var autorise = await coachingService.GetSuiviUserIdSiAutoriseAsync(suiviUserId, coachUserId, cancellationToken);
         if (autorise is null)
@@ -212,7 +225,7 @@ public sealed class MissionService(
             .Include(a => a.Mission)
             .Where(a => a.JeuneProfileId == jeune.Id
                 && a.Statut == MissionAcceptationStatut.ValideeParCoach
-                && a.Mission.Statut == MissionStatut.Terminee)
+                && a.Mission.Statut == missionStatut)
             .OrderByDescending(a => a.DecideeLe ?? a.AccepteeLe)
             .ToListAsync(cancellationToken);
 

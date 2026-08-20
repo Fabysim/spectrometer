@@ -213,4 +213,27 @@
   <data name="MesProgres_AutoObs_GenereeLe" xml:space="preserve"><value>Summary generated on {0}</value></data>
   <data name="MesProgres_AutoObs_Vide" xml:space="preserve"><value>No summary has been generated yet.</value></data>
   <data name="MesProgres_AutoObs_Lien" xml:space="preserve"><value>Open the summary section</value></data>
+
+  <data name="FicheSuivi_Title" xml:space="preserve"><value>Follow-up sheet · Spectrometre</value></data>
+  <data name="FicheSuivi_Heading" xml:space="preserve"><value>Follow-up sheet</value></data>
+  <data name="FicheSuivi_Intro" xml:space="preserve"><value>File overview: identity, missions, observation grid and interview guide.</value></data>
+  <data name="FicheSuivi_AccesRefuse_Titre" xml:space="preserve"><value>Access denied</value></data>
+  <data name="FicheSuivi_AccesRefuse_Message" xml:space="preserve"><value>This sheet is only available for a young person you follow.</value></data>
+  <data name="FicheSuivi_Identite_Titre" xml:space="preserve"><value>Identity</value></data>
+  <data name="FicheSuivi_Age" xml:space="preserve"><value>{0} years old</value></data>
+  <data name="FicheSuivi_Consentement_Majeur" xml:space="preserve"><value>Adult (not required)</value></data>
+  <data name="FicheSuivi_Consentement_MineurValide" xml:space="preserve"><value>Minor — validated</value></data>
+  <data name="FicheSuivi_Consentement_MineurAttente" xml:space="preserve"><value>Minor — pending</value></data>
+  <data name="FicheSuivi_Missions_Titre" xml:space="preserve"><value>Missions</value></data>
+  <data name="FicheSuivi_Grille_Titre" xml:space="preserve"><value>Observation grid</value></data>
+  <data name="FicheSuivi_Grille_Vide" xml:space="preserve"><value>No evaluation yet.</value></data>
+  <data name="FicheSuivi_Guide_Titre" xml:space="preserve"><value>Interview guide</value></data>
+  <data name="FicheSuivi_Guide_Rempli" xml:space="preserve"><value>Guide already filled in.</value></data>
+  <data name="FicheSuivi_Guide_Vide" xml:space="preserve"><value>Guide not filled in yet.</value></data>
+  <data name="FicheSuivi_Liens_Titre" xml:space="preserve"><value>Detailed screens</value></data>
+  <data name="FicheSuivi_Lien_AutoObs" xml:space="preserve"><value>Self-observation</value></data>
+  <data name="FicheSuivi_Lien_Grille" xml:space="preserve"><value>Observation grid</value></data>
+  <data name="FicheSuivi_Lien_Guide" xml:space="preserve"><value>Interview guide</value></data>
+  <data name="FicheSuivi_Lien_Missions" xml:space="preserve"><value>Missions</value></data>
+  <data name="FicheSuivi_Lien_Objectifs" xml:space="preserve"><value>Objectives</value></data>
 </root>

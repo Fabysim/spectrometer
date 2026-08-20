@@ -1,0 +1,123 @@
+@page "/coach/suivis/{SuiviUserId}/apercu"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IFicheSuiviCoachService FicheSuiviService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["FicheSuivi_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_view is null)
+{
+    <div class="missions-card">
+        <h1 class="missions-title">@Localizer["FicheSuivi_AccesRefuse_Titre"]</h1>
+        <p class="missions-meta">@Localizer["FicheSuivi_AccesRefuse_Message"]</p>
+        <p><a href="/coach/suivis">@Localizer["RetourSuivis"]</a></p>
+    </div>
+}
+else
+{
+    <p><a href="/coach/suivis">@Localizer["RetourSuivis"]</a></p>
+    <h1 class="missions-title">@Localizer["FicheSuivi_Heading"]</h1>
+    <p class="missions-meta">@Localizer["FicheSuivi_Intro"]</p>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["FicheSuivi_Identite_Titre"]</h2>
+        <p class="mes-progres-stat">@_view.Prenoms @_view.Nom</p>
+        <p class="missions-meta">@Localizer["FicheSuivi_Age", _view.Age]</p>
+        <p class="missions-meta">@ConsentementLabel(_view.ConsentementStatut)</p>
+    </div>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["FicheSuivi_Missions_Titre"]</h2>
+        <p class="mes-progres-stat">@Localizer["MesProgres_Missions_Terminees", _view.MissionsTerminees]</p>
+        <p class="mes-progres-stat">@Localizer["MesProgres_Missions_EnCours", _view.MissionsEnCours]</p>
+        <p><a href="/coach/suivis/@SuiviUserId/missions">@Localizer["FicheSuivi_Lien_Missions"]</a></p>
+    </div>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["FicheSuivi_Grille_Titre"]</h2>
+        @if (_view.GrilleDerniereMoyenne is double moyenne && _view.GrilleDerniereEvaluationLe is DateTimeOffset dateEval)
+        {
+            <p class="mes-progres-stat">
+                @Localizer["MesProgres_Grille_Moyenne", moyenne.ToString("0.0", CultureInfo.CurrentCulture)]
+            </p>
+            <p class="missions-meta">
+                @Localizer["MesProgres_Grille_Date", dateEval.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]
+            </p>
+        }
+        else
+        {
+            <p class="missions-meta">@Localizer["FicheSuivi_Grille_Vide"]</p>
+        }
+        <p><a href="/coach/suivis/@SuiviUserId/grille-observation">@Localizer["FicheSuivi_Lien_Grille"]</a></p>
+    </div>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["FicheSuivi_Guide_Titre"]</h2>
+        <p class="missions-meta">
+            @(_view.GuideEntrevueRempli ? Localizer["FicheSuivi_Guide_Rempli"] : Localizer["FicheSuivi_Guide_Vide"])
+        </p>
+        <p><a href="/coach/suivis/@SuiviUserId/guide-entrevue">@Localizer["FicheSuivi_Lien_Guide"]</a></p>
+    </div>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["FicheSuivi_Liens_Titre"]</h2>
+        <div class="missions-actions">
+            <a class="missions-btn missions-btn-secondary" href="/coach/suivis/@SuiviUserId/auto-observation">
+                @Localizer["FicheSuivi_Lien_AutoObs"]
+            </a>
+            <a class="missions-btn missions-btn-secondary" href="/coach/suivis/@SuiviUserId/grille-observation">
+                @Localizer["FicheSuivi_Lien_Grille"]
+            </a>
+            <a class="missions-btn missions-btn-secondary" href="/coach/suivis/@SuiviUserId/guide-entrevue">
+                @Localizer["FicheSuivi_Lien_Guide"]
+            </a>
+            <a class="missions-btn missions-btn-secondary" href="/coach/suivis/@SuiviUserId/missions">
+                @Localizer["FicheSuivi_Lien_Missions"]
+            </a>
+            @if (_view.LienCoachingId is int lienId)
+            {
+                <a class="missions-btn missions-btn-secondary" href="/coach/objectifs/@lienId">
+                    @Localizer["FicheSuivi_Lien_Objectifs"]
+                </a>
+            }
+        </div>
+    </div>
+}
+</div>
+
+@code {
+    [Parameter] public string? SuiviUserId { get; set; }
+
+    private string? _userId;
+    private bool _chargement = true;
+    private FicheSuiviCoachView? _view;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is not null && !string.IsNullOrWhiteSpace(SuiviUserId))
+            _view = await FicheSuiviService.GetAsync(_userId, SuiviUserId);
+        _chargement = false;
+    }
+
+    private string ConsentementLabel(FicheSuiviConsentementStatut statut) => statut switch
+    {
+        FicheSuiviConsentementStatut.MajeurNonRequis => Localizer["FicheSuivi_Consentement_Majeur"],
+        FicheSuiviConsentementStatut.MineurValide => Localizer["FicheSuivi_Consentement_MineurValide"],
+        _ => Localizer["FicheSuivi_Consentement_MineurAttente"],
+    };
+}

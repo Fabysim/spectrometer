@@ -86,6 +86,7 @@
   <data name="LiensActifs" xml:space="preserve"><value>Active clients</value></data>
   <data name="AucunLienActif" xml:space="preserve"><value>No clients yet.</value></data>
   <data name="VoirLeSuivi" xml:space="preserve"><value>View</value></data>
+  <data name="FicheSuiviJeune" xml:space="preserve"><value>Follow-up sheet</value></data>
   <data name="VoirSuiviEmployes" xml:space="preserve"><value>Employee follow-up</value></data>
   <data name="Anamnese" xml:space="preserve"><value>Anamnesis</value></data>
   <data name="AucuneAnamnese" xml:space="preserve"><value>No anamnesis generated yet.</value></data>

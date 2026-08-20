@@ -171,6 +171,12 @@ else
                         <nav class="actif-actions" aria-label="@Localizer["ActionsSuivi"]">
                             <p class="actif-actions-label">@Localizer["ActionsSuivi"]</p>
                             <div class="actif-actions-grid">
+                                @* Fiche de suivi = dossier agrégé (point d'entrée). « Voir le suivi » reste
+                                   Gestion du temps — autre écran, on ne le remplace pas. *@
+                                <a class="suivis-action" href="/coach/suivis/@lien.SuiviUserId/apercu">
+                                    <span class="suivis-action-icon" aria-hidden="true"><i class="bi bi-folder2-open"></i></span>
+                                    <span class="suivis-action-text">@Localizer["FicheSuiviJeune"]</span>
+                                </a>
                                 <a class="suivis-action" href="/gestion-du-temps/@lien.SuiviUserId">
                                     <span class="suivis-action-icon" aria-hidden="true"><i class="bi bi-clock-history"></i></span>
                                     <span class="suivis-action-text">@Localizer["VoirLeSuivi"]</span>

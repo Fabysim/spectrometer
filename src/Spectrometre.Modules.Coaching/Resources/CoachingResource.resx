@@ -86,6 +86,7 @@
   <data name="LiensActifs" xml:space="preserve"><value>Personnes suivies actives</value></data>
   <data name="AucunLienActif" xml:space="preserve"><value>Aucune personne suivie pour le moment.</value></data>
   <data name="VoirLeSuivi" xml:space="preserve"><value>Voir le suivi</value></data>
+  <data name="FicheSuiviJeune" xml:space="preserve"><value>Fiche de suivi</value></data>
   <data name="VoirSuiviEmployes" xml:space="preserve"><value>Suivi employés</value></data>
   <data name="Anamnese" xml:space="preserve"><value>Anamnèse</value></data>
   <data name="AucuneAnamnese" xml:space="preserve"><value>Aucune anamnèse générée pour le moment.</value></data>

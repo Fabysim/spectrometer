@@ -35,6 +35,15 @@ public interface IMissionService
         string suiviUserId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Missions <c>Attribuee</c> du jeune suivi (lecture coach) — même garde que
+    /// <see cref="GetMissionsTermineesPourJeuneSuiviAsync"/>. Liste vide si coach non autorisé.
+    /// </summary>
+    Task<IReadOnlyList<MissionJeuneView>> GetMissionsEnCoursPourJeuneSuiviAsync(
+        string coachUserId,
+        string suiviUserId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<MissionResumeView>> GetMesMissionsPublieesAsync(string particulierUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
