@@ -31,4 +31,12 @@
 .missions-check { display: flex; align-items: center; gap: 0.5rem; font-weight: 500; margin: 0.35rem 0; }
 .missions-check input { width: auto; }
 .missions-field legend { font-weight: 700; margin-bottom: 0.35rem; }
+.mes-progres-stat { font-size: 1.15rem; font-weight: 600; margin: 0.35rem 0; color: #0f172a; }
+.mes-progres-extrait {
+  color: #334155;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  margin: 0.5rem 0 0.75rem;
+  white-space: pre-wrap;
+}
 

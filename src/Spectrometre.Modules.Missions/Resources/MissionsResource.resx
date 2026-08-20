@@ -192,4 +192,25 @@
   <data name="SignalerProbleme_Annuler" xml:space="preserve"><value>Annuler</value></data>
   <data name="SignalerProbleme_Succes" xml:space="preserve"><value>Le coach a été informé du problème signalé.</value></data>
   <data name="SignalerProbleme_Echec" xml:space="preserve"><value>Impossible d'envoyer le signalement (mission non attribuée ou aucun coach actif).</value></data>
+
+  <data name="MesProgres_Title" xml:space="preserve"><value>Mes progrès · Spectromètre</value></data>
+  <data name="MesProgres_Heading" xml:space="preserve"><value>Mes progrès</value></data>
+  <data name="MesProgres_Intro" xml:space="preserve"><value>Un aperçu simple de tes avancées — missions, grille d'observation et auto-observation.</value></data>
+  <data name="MesProgres_AccesRefuse_Titre" xml:space="preserve"><value>Accès réservé</value></data>
+  <data name="MesProgres_AccesRefuse_Message" xml:space="preserve"><value>Cette page est réservée aux jeunes prestataires.</value></data>
+  <data name="MesProgres_Missions_Titre" xml:space="preserve"><value>Missions</value></data>
+  <data name="MesProgres_Missions_Terminees" xml:space="preserve"><value>{0} mission(s) terminée(s)</value></data>
+  <data name="MesProgres_Missions_EnCours" xml:space="preserve"><value>{0} mission(s) en cours</value></data>
+  <data name="MesProgres_Missions_Lien" xml:space="preserve"><value>Voir mes missions</value></data>
+  <data name="MesProgres_Grille_Titre" xml:space="preserve"><value>Grille d'observation</value></data>
+  <data name="MesProgres_Grille_Moyenne" xml:space="preserve"><value>Dernière moyenne : {0}</value></data>
+  <data name="MesProgres_Grille_Date" xml:space="preserve"><value>Évaluation du {0}</value></data>
+  <data name="MesProgres_Grille_TendanceHausse" xml:space="preserve"><value>Tendance : {0} par rapport à la précédente</value></data>
+  <data name="MesProgres_Grille_TendanceBaisse" xml:space="preserve"><value>Tendance : {0} par rapport à la précédente</value></data>
+  <data name="MesProgres_Grille_Vide" xml:space="preserve"><value>Pas encore d'évaluation de ton coach.</value></data>
+  <data name="MesProgres_Grille_Lien" xml:space="preserve"><value>Voir la grille d'observation</value></data>
+  <data name="MesProgres_AutoObs_Titre" xml:space="preserve"><value>Auto-observation</value></data>
+  <data name="MesProgres_AutoObs_GenereeLe" xml:space="preserve"><value>Synthèse générée le {0}</value></data>
+  <data name="MesProgres_AutoObs_Vide" xml:space="preserve"><value>Aucune synthèse n'a encore été générée.</value></data>
+  <data name="MesProgres_AutoObs_Lien" xml:space="preserve"><value>Ouvrir la section synthèse</value></data>
 </root>

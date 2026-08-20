@@ -192,4 +192,25 @@
   <data name="SignalerProbleme_Annuler" xml:space="preserve"><value>Cancel</value></data>
   <data name="SignalerProbleme_Succes" xml:space="preserve"><value>The coach has been notified of the reported problem.</value></data>
   <data name="SignalerProbleme_Echec" xml:space="preserve"><value>Unable to send the report (mission not assigned or no active coach).</value></data>
+
+  <data name="MesProgres_Title" xml:space="preserve"><value>My progress · Spectrometre</value></data>
+  <data name="MesProgres_Heading" xml:space="preserve"><value>My progress</value></data>
+  <data name="MesProgres_Intro" xml:space="preserve"><value>A simple overview of your progress — missions, observation grid and self-observation.</value></data>
+  <data name="MesProgres_AccesRefuse_Titre" xml:space="preserve"><value>Access restricted</value></data>
+  <data name="MesProgres_AccesRefuse_Message" xml:space="preserve"><value>This page is reserved for young service providers.</value></data>
+  <data name="MesProgres_Missions_Titre" xml:space="preserve"><value>Missions</value></data>
+  <data name="MesProgres_Missions_Terminees" xml:space="preserve"><value>{0} completed mission(s)</value></data>
+  <data name="MesProgres_Missions_EnCours" xml:space="preserve"><value>{0} mission(s) in progress</value></data>
+  <data name="MesProgres_Missions_Lien" xml:space="preserve"><value>View my missions</value></data>
+  <data name="MesProgres_Grille_Titre" xml:space="preserve"><value>Observation grid</value></data>
+  <data name="MesProgres_Grille_Moyenne" xml:space="preserve"><value>Latest average: {0}</value></data>
+  <data name="MesProgres_Grille_Date" xml:space="preserve"><value>Evaluation of {0}</value></data>
+  <data name="MesProgres_Grille_TendanceHausse" xml:space="preserve"><value>Trend: {0} vs previous</value></data>
+  <data name="MesProgres_Grille_TendanceBaisse" xml:space="preserve"><value>Trend: {0} vs previous</value></data>
+  <data name="MesProgres_Grille_Vide" xml:space="preserve"><value>No coach evaluation yet.</value></data>
+  <data name="MesProgres_Grille_Lien" xml:space="preserve"><value>Open the observation grid</value></data>
+  <data name="MesProgres_AutoObs_Titre" xml:space="preserve"><value>Self-observation</value></data>
+  <data name="MesProgres_AutoObs_GenereeLe" xml:space="preserve"><value>Summary generated on {0}</value></data>
+  <data name="MesProgres_AutoObs_Vide" xml:space="preserve"><value>No summary has been generated yet.</value></data>
+  <data name="MesProgres_AutoObs_Lien" xml:space="preserve"><value>Open the summary section</value></data>
 </root>

@@ -322,6 +322,9 @@
   <data name="Home_QuestionnaireAutoObservation" xml:space="preserve">
     <value>Self-observation questionnaire</value>
   </data>
+  <data name="Home_MesProgres" xml:space="preserve">
+    <value>My progress</value>
+  </data>
   <data name="Home_GrilleObservation" xml:space="preserve">
     <value>Socio-professional observation grid</value>
   </data>

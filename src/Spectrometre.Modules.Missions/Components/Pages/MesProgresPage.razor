@@ -1,0 +1,104 @@
+@page "/jeune/mes-progres"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMesProgresService MesProgresService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["MesProgres_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_view is null)
+{
+    <div class="missions-card">
+        <h1 class="missions-title">@Localizer["MesProgres_AccesRefuse_Titre"]</h1>
+        <p class="missions-meta">@Localizer["MesProgres_AccesRefuse_Message"]</p>
+    </div>
+}
+else
+{
+    <h1 class="missions-title">@Localizer["MesProgres_Heading"]</h1>
+    <p class="missions-meta">@Localizer["MesProgres_Intro"]</p>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["MesProgres_Missions_Titre"]</h2>
+        <p class="mes-progres-stat">@Localizer["MesProgres_Missions_Terminees", _view.MissionsTerminees]</p>
+        <p class="mes-progres-stat">@Localizer["MesProgres_Missions_EnCours", _view.MissionsEnCours]</p>
+        <p><a href="/jeune/mes-missions">@Localizer["MesProgres_Missions_Lien"]</a></p>
+    </div>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["MesProgres_Grille_Titre"]</h2>
+        @if (_view.GrilleDerniereMoyenne is double moyenne && _view.GrilleDerniereEvaluationLe is DateTimeOffset dateEval)
+        {
+            <p class="mes-progres-stat">
+                @Localizer["MesProgres_Grille_Moyenne", moyenne.ToString("0.0", CultureInfo.CurrentCulture)]
+            </p>
+            <p class="missions-meta">
+                @Localizer["MesProgres_Grille_Date", dateEval.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]
+            </p>
+            @if (_view.GrilleTendanceDelta is double delta)
+            {
+                <p class="missions-meta">
+                    @(delta >= 0
+                        ? Localizer["MesProgres_Grille_TendanceHausse", delta.ToString("+0.0", CultureInfo.CurrentCulture)]
+                        : Localizer["MesProgres_Grille_TendanceBaisse", delta.ToString("0.0", CultureInfo.CurrentCulture)])
+                </p>
+            }
+        }
+        else
+        {
+            <p class="missions-meta">@Localizer["MesProgres_Grille_Vide"]</p>
+        }
+        <p><a href="/jeune/grille-observation">@Localizer["MesProgres_Grille_Lien"]</a></p>
+    </div>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["MesProgres_AutoObs_Titre"]</h2>
+        @if (_view.AutoObsSyntheseGeneree && _view.AutoObsSyntheseGenereeLe is DateTimeOffset genereeLe)
+        {
+            <p class="missions-meta">
+                @Localizer["MesProgres_AutoObs_GenereeLe", genereeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]
+            </p>
+            @if (!string.IsNullOrWhiteSpace(_view.AutoObsSyntheseExtrait))
+            {
+                <p class="mes-progres-extrait">@_view.AutoObsSyntheseExtrait</p>
+            }
+        }
+        else
+        {
+            <p class="missions-meta">@Localizer["MesProgres_AutoObs_Vide"]</p>
+        }
+        <p>
+            <a href="/jeune/auto-observation?section=p2.s13">
+                @Localizer["MesProgres_AutoObs_Lien"]
+            </a>
+        </p>
+    </div>
+}
+</div>
+
+@code {
+    private string? _userId;
+    private bool _chargement = true;
+    private MesProgresView? _view;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is not null)
+            _view = await MesProgresService.GetAsync(_userId);
+        _chargement = false;
+    }
+}
