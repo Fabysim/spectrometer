@@ -180,4 +180,16 @@
   <data name="Evaluation_Enregistrer" xml:space="preserve"><value>Enregistrer</value></data>
   <data name="Evaluation_Succes" xml:space="preserve"><value>Évaluation enregistrée.</value></data>
   <data name="Evaluation_MisAJourLe" xml:space="preserve"><value>Dernière mise à jour : {0}</value></data>
+
+  <data name="PublierMission_Confidentialite" xml:space="preserve"><value>Ces informations servent uniquement à organiser la mission et à sécuriser la personne accompagnée.</value></data>
+  <data name="PublierMission_LieuConfidentialite" xml:space="preserve"><value>Votre adresse complète n'est utilisée qu'après validation de la mission.</value></data>
+  <data name="AnnulerMission_Bouton" xml:space="preserve"><value>Annuler cette tâche</value></data>
+  <data name="AnnulerMission_Succes" xml:space="preserve"><value>Mission annulée — elle n'est plus visible pour les jeunes.</value></data>
+  <data name="SignalerProbleme_Bouton" xml:space="preserve"><value>Signaler un problème</value></data>
+  <data name="SignalerProbleme_Label" xml:space="preserve"><value>Décrivez brièvement le problème (optionnel)</value></data>
+  <data name="SignalerProbleme_Placeholder" xml:space="preserve"><value>Ex. : retard, difficulté sur place…</value></data>
+  <data name="SignalerProbleme_Envoyer" xml:space="preserve"><value>Envoyer au coach</value></data>
+  <data name="SignalerProbleme_Annuler" xml:space="preserve"><value>Annuler</value></data>
+  <data name="SignalerProbleme_Succes" xml:space="preserve"><value>Le coach a été informé du problème signalé.</value></data>
+  <data name="SignalerProbleme_Echec" xml:space="preserve"><value>Impossible d'envoyer le signalement (mission non attribuée ou aucun coach actif).</value></data>
 </root>

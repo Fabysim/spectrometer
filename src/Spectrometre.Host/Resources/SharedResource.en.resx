@@ -139,6 +139,9 @@
   <data name="Particulier" xml:space="preserve">
     <value>Individual</value>
   </data>
+  <data name="Inscription_Particulier_Confidentialite" xml:space="preserve">
+    <value>As an individual, your information is only used to organise local missions and keep the accompanied person safe.</value>
+  </data>
   <data name="NomDeLEntreprise" xml:space="preserve">
     <value>Company name</value>
   </data>

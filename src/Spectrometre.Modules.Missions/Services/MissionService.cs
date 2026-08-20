@@ -262,6 +262,87 @@ public sealed class MissionService(
         }).ToList();
     }
 
+    public async Task<bool> AnnulerMissionAsync(string particulierUserId, int missionId, CancellationToken cancellationToken = default)
+    {
+        var particulier = await particulierProfileService.TryGetByUserIdAsync(particulierUserId, cancellationToken);
+        if (particulier is null)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var mission = await db.Missions.FirstOrDefaultAsync(m => m.Id == missionId, cancellationToken);
+        if (mission is null)
+            return false;
+
+        if (mission.ParticulierProfileId != particulier.Id)
+            return false;
+
+        if (mission.Statut != MissionStatut.Disponible)
+            return false;
+
+        mission.Statut = MissionStatut.Annulee;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> SignalerProblemeAsync(
+        string particulierUserId,
+        int missionId,
+        string? message,
+        CancellationToken cancellationToken = default)
+    {
+        var particulier = await particulierProfileService.TryGetByUserIdAsync(particulierUserId, cancellationToken);
+        if (particulier is null)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var mission = await db.Missions
+            .Include(m => m.Acceptations)
+            .FirstOrDefaultAsync(m => m.Id == missionId, cancellationToken);
+        if (mission is null)
+            return false;
+
+        if (mission.ParticulierProfileId != particulier.Id)
+            return false;
+
+        if (mission.Statut != MissionStatut.Attribuee)
+            return false;
+
+        var acceptation = mission.Acceptations
+            .FirstOrDefault(a => a.Statut == MissionAcceptationStatut.ValideeParCoach);
+        if (acceptation is null)
+            return false;
+
+        var jeune = await jeuneProfileService.TryGetByIdAsync(acceptation.JeuneProfileId, cancellationToken);
+        if (jeune is null)
+            return false;
+
+        var coachUserId = await FindCoachReferentAsync(jeune.UserId, cancellationToken);
+        if (coachUserId is null)
+            return false;
+
+        var titreMission = MissionDisplay.TitreAffiche(mission.Categorie, mission.Titre);
+        var detail = string.IsNullOrWhiteSpace(message)
+            ? "Aucun détail supplémentaire."
+            : message.Trim();
+
+        await notificationService.CreerAsync(
+            coachUserId,
+            "Problème signalé pendant une mission",
+            $"Le particulier signale un problème sur la mission « {titreMission} » (jeune : {jeune.Prenoms} {jeune.Nom}). {detail}",
+            $"/coach/suivis/{jeune.UserId}/missions",
+            "Missions.ProblemeSignale",
+            cancellationToken);
+
+        return true;
+    }
+
+    /// <summary>Même résolution que AutoObservationService.FindCoachReferentAsync — lien coaching Actif.</summary>
+    private async Task<string?> FindCoachReferentAsync(string jeuneUserId, CancellationToken cancellationToken)
+    {
+        var liens = await coachingService.GetLiensPourSuiviAsync(jeuneUserId, cancellationToken);
+        return liens.FirstOrDefault(l => l.Statut == LienCoachingStatut.Actif)?.CoachUserId;
+    }
+
     private static MissionJeuneView ToMissionJeuneView(MissionAcceptation a) =>
         new(
             a.Id,

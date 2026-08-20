@@ -17,6 +17,11 @@
     <h1 class="missions-title">@Localizer["MesMissionsParticulier_Heading"]</h1>
     <p><a href="/particulier/publier-mission">@Localizer["PublierMission_Lien"]</a></p>
 
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="missions-success" role="status">@_message</div>
+    }
+
     @if (_missions.Count == 0)
     {
         <p class="missions-empty">@Localizer["AucuneMission"]</p>
@@ -31,7 +36,45 @@
                 <p class="missions-meta">@Localizer["Mission_NiveauEncadrement"] : @Localizer[$"Encadrement_{m.NiveauEncadrement}"]</p>
                 @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
                 @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
-                @if (m.Statut == MissionStatut.Terminee && m.AcceptationIdPourEvaluation is int acceptationId)
+
+                @if (m.Statut == MissionStatut.Disponible)
+                {
+                    <div class="missions-actions">
+                        <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
+                                @onclick="() => AnnulerAsync(m.MissionId)">
+                            @Localizer["AnnulerMission_Bouton"]
+                        </button>
+                    </div>
+                }
+                else if (m.Statut == MissionStatut.Attribuee)
+                {
+                    <div class="missions-actions">
+                        @if (_signalementMissionId == m.MissionId)
+                        {
+                            <div class="missions-field" style="flex: 1 1 100%">
+                                <label>@Localizer["SignalerProbleme_Label"]</label>
+                                <textarea rows="2" @bind="_signalementMessage" maxlength="500"
+                                          placeholder="@Localizer["SignalerProbleme_Placeholder"]"></textarea>
+                            </div>
+                            <button type="button" class="missions-btn missions-btn-primary" disabled="@_busy"
+                                    @onclick="() => ConfirmerSignalementAsync(m.MissionId)">
+                                @Localizer["SignalerProbleme_Envoyer"]
+                            </button>
+                            <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
+                                    @onclick="AnnulerSignalementUi">
+                                @Localizer["SignalerProbleme_Annuler"]
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
+                                    @onclick="() => OuvrirSignalement(m.MissionId)">
+                                @Localizer["SignalerProbleme_Bouton"]
+                            </button>
+                        }
+                    </div>
+                }
+                else if (m.Statut == MissionStatut.Terminee && m.AcceptationIdPourEvaluation is int acceptationId)
                 {
                     <div class="missions-actions">
                         <a class="missions-btn missions-btn-primary" href="/particulier/missions/@acceptationId/evaluation">
@@ -47,13 +90,77 @@
 @code {
     private string? _userId;
     private IReadOnlyList<MissionResumeView> _missions = [];
+    private string? _message;
+    private bool _busy;
+    private int? _signalementMissionId;
+    private string _signalementMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
         var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (_userId is not null)
-            _missions = await MissionService.GetMesMissionsPublieesAsync(_userId);
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (_userId is null)
+        {
+            _missions = [];
+            return;
+        }
+
+        _missions = await MissionService.GetMesMissionsPublieesAsync(_userId);
+    }
+
+    private async Task AnnulerAsync(int missionId)
+    {
+        if (_userId is null || _busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = await MissionService.AnnulerMissionAsync(_userId, missionId);
+            _message = ok ? Localizer["AnnulerMission_Succes"] : Localizer["Action_Echec"];
+            await RefreshAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void OuvrirSignalement(int missionId)
+    {
+        _signalementMissionId = missionId;
+        _signalementMessage = "";
+        _message = null;
+    }
+
+    private void AnnulerSignalementUi()
+    {
+        _signalementMissionId = null;
+        _signalementMessage = "";
+    }
+
+    private async Task ConfirmerSignalementAsync(int missionId)
+    {
+        if (_userId is null || _busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = await MissionService.SignalerProblemeAsync(_userId, missionId, _signalementMessage);
+            _message = ok ? Localizer["SignalerProbleme_Succes"] : Localizer["SignalerProbleme_Echec"];
+            if (ok)
+                AnnulerSignalementUi();
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private string AfficherTitre(MissionCategorie categorie, string titre)

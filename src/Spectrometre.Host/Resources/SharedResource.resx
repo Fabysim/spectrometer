@@ -138,6 +138,9 @@
   <data name="Particulier" xml:space="preserve">
     <value>Particulier</value>
   </data>
+  <data name="Inscription_Particulier_Confidentialite" xml:space="preserve">
+    <value>En tant que particulier, vos informations servent uniquement à organiser des missions locales et à sécuriser la personne accompagnée.</value>
+  </data>
   <data name="NomDeLEntreprise" xml:space="preserve">
     <value>Nom de l'entreprise</value>
   </data>

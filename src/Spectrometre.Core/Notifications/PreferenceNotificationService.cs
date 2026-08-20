@@ -133,8 +133,10 @@ public sealed class PreferenceNotificationService(
             }
 
             case NotificationCategoryCodes.Missions:
-                // Particulier ayant un profil (émetteur / destinataire des notifs Missions.MissionValidee).
-                return await particulierSubjectResolver.TryGetParticulierProfileIdAsync(userId, cancellationToken) is not null;
+                // Particulier (publication / validation) ou coach (ex. Missions.ProblemeSignale).
+                if (await particulierSubjectResolver.TryGetParticulierProfileIdAsync(userId, cancellationToken) is not null)
+                    return true;
+                return await coachSubjectResolver.TryGetCoachProfileIdAsync(userId, cancellationToken) is not null;
 
             default:
                 return false;

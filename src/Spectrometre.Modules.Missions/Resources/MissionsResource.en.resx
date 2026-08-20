@@ -180,4 +180,16 @@
   <data name="Evaluation_Enregistrer" xml:space="preserve"><value>Save</value></data>
   <data name="Evaluation_Succes" xml:space="preserve"><value>Evaluation saved.</value></data>
   <data name="Evaluation_MisAJourLe" xml:space="preserve"><value>Last updated: {0}</value></data>
+
+  <data name="PublierMission_Confidentialite" xml:space="preserve"><value>This information is only used to organise the mission and keep the accompanied person safe.</value></data>
+  <data name="PublierMission_LieuConfidentialite" xml:space="preserve"><value>Your full address is only used after the mission is confirmed.</value></data>
+  <data name="AnnulerMission_Bouton" xml:space="preserve"><value>Cancel this task</value></data>
+  <data name="AnnulerMission_Succes" xml:space="preserve"><value>Mission cancelled — it is no longer visible to young providers.</value></data>
+  <data name="SignalerProbleme_Bouton" xml:space="preserve"><value>Report a problem</value></data>
+  <data name="SignalerProbleme_Label" xml:space="preserve"><value>Briefly describe the problem (optional)</value></data>
+  <data name="SignalerProbleme_Placeholder" xml:space="preserve"><value>E.g. delay, difficulty on site…</value></data>
+  <data name="SignalerProbleme_Envoyer" xml:space="preserve"><value>Send to coach</value></data>
+  <data name="SignalerProbleme_Annuler" xml:space="preserve"><value>Cancel</value></data>
+  <data name="SignalerProbleme_Succes" xml:space="preserve"><value>The coach has been notified of the reported problem.</value></data>
+  <data name="SignalerProbleme_Echec" xml:space="preserve"><value>Unable to send the report (mission not assigned or no active coach).</value></data>
 </root>

@@ -36,4 +36,20 @@ public interface IMissionService
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<MissionResumeView>> GetMesMissionsPublieesAsync(string particulierUserId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Annule une mission <c>Disponible</c> du particulier propriétaire → <c>Annulee</c>.
+    /// Refuse si non propriétaire ou statut ≠ Disponible (ex. déjà en attente / attribuée).
+    /// </summary>
+    Task<bool> AnnulerMissionAsync(string particulierUserId, int missionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Signale un problème pendant une mission <c>Attribuee</c> : notifie le coach suiveur actif du jeune.
+    /// <c>false</c> si non propriétaire, statut ≠ Attribuee, ou aucun coach actif.
+    /// </summary>
+    Task<bool> SignalerProblemeAsync(
+        string particulierUserId,
+        int missionId,
+        string? message,
+        CancellationToken cancellationToken = default);
 }
