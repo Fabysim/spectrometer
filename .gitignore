@@ -12,6 +12,8 @@
 .DS_Store
 Thumbs.db
 tools/scenario_*/
+tools/scenario_*.py
+tools/_*.py
 
 # Deploy/publish scratch output
 _publish_probe/
