@@ -89,6 +89,25 @@ public sealed class ObjectifsCoachingService(IDbContextFactory<CoachingDbContext
         return result;
     }
 
+    public async Task<int?> TryGetPremierLienIdAvecObjectifsOuvertsAsync(
+        string coachUserId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var db = await coachingDbFactory.CreateDbContextAsync(cancellationToken);
+
+        // Objectif « ouvert » = Atteinte ≠ Oui (NonDefini / Non / NonImputable encore à traiter).
+        // Ne pas appeler GetPeriodeCouranteAsync : cela créerait des périodes vides pour chaque lien.
+        return await db.LiensCoaching.AsNoTracking()
+            .Where(l => l.CoachUserId == coachUserId && l.Statut == LienCoachingStatut.Actif)
+            .Where(l => db.PeriodesObjectifsCoaching.Any(p =>
+                p.LienCoachingId == l.Id
+                && !p.Archivee
+                && p.Objectifs.Any(o => o.Atteinte != AtteinteObjectifCoaching.Oui)))
+            .OrderBy(l => l.CreatedAt)
+            .Select(l => (int?)l.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     private static async Task<bool> EstCoachActifAsync(CoachingDbContext db, int lienId, string requestingCoachUserId, CancellationToken cancellationToken)
     {
         return await db.LiensCoaching.AsNoTracking().AnyAsync(

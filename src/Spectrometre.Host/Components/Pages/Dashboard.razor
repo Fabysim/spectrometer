@@ -373,16 +373,22 @@
 
             @if (_coachLinks.Count > 0)
             {
-                <section class="card-modern-dashboard">
+                <section class="card-modern-dashboard" id="coach-priorites">
                     <div class="card-header-modern-dashboard">
                         <h2 class="card-title-modern-dashboard">
                             <i class="bi bi-people" aria-hidden="true"></i>
                             @Localizer["Home_ProfilCoach"]
                         </h2>
-                        <a href="/coach/modules" class="card-action-dashboard">
-                            @Localizer["AjouterUnModule"]
-                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                        </a>
+                        <div class="card-header-actions-dashboard">
+                            <a href="#coach-priorites" class="card-action-dashboard">
+                                @Localizer["Home_CoachVoirPriorites"]
+                                <i class="bi bi-arrow-down" aria-hidden="true"></i>
+                            </a>
+                            <a href="/coach/modules" class="card-action-dashboard">
+                                @Localizer["AjouterUnModule"]
+                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                            </a>
+                        </div>
                     </div>
                     @if (_coachSynthese is not null)
                     {
@@ -403,6 +409,51 @@
                                 <span class="dashboard-admin-stat-value">@_coachSynthese.AlertesInvitationsExpirees</span>
                                 <span class="dashboard-admin-stat-label">@Localizer["Home_CoachAlertes"]</span>
                             </a>
+                        </div>
+                    }
+                    @if (_coachActionsRapides is not null && CoachActionsRapidesVisibles(_coachActionsRapides))
+                    {
+                        <div class="quick-actions-dashboard coach-actions-rapides">
+                            @if (_coachActionsRapides.ValiderMissionHref is not null)
+                            {
+                                <a href="@_coachActionsRapides.ValiderMissionHref" class="quick-action-btn-dashboard">
+                                    <div class="quick-action-icon-dashboard tone-orange">
+                                        <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="quick-action-label-dashboard">@Localizer["Home_CoachActionValiderMission"]</div>
+                                </a>
+                            }
+                            @if (_coachActionsRapides.GuideEntrevueHref is not null)
+                            {
+                                <a href="@_coachActionsRapides.GuideEntrevueHref" class="quick-action-btn-dashboard">
+                                    <div class="quick-action-icon-dashboard tone-teal">
+                                        <i class="bi bi-journal-richtext" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="quick-action-label-dashboard">
+                                        @(_coachActionsRapides.GuideEntrevueEstContinuer
+                                            ? Localizer["Home_CoachActionContinuerEntrevue"]
+                                            : Localizer["Home_CoachActionPreparerEntrevue"])
+                                    </div>
+                                </a>
+                            }
+                            @if (_coachActionsRapides.RelancerInvitationHref is not null)
+                            {
+                                <a href="@_coachActionsRapides.RelancerInvitationHref" class="quick-action-btn-dashboard">
+                                    <div class="quick-action-icon-dashboard tone-purple">
+                                        <i class="bi bi-envelope-exclamation" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="quick-action-label-dashboard">@Localizer["Home_CoachActionRelancerInvitation"]</div>
+                                </a>
+                            }
+                            @if (_coachActionsRapides.CloturerObjectifsHref is not null)
+                            {
+                                <a href="@_coachActionsRapides.CloturerObjectifsHref" class="quick-action-btn-dashboard">
+                                    <div class="quick-action-icon-dashboard tone-blue">
+                                        <i class="bi bi-flag" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="quick-action-label-dashboard">@Localizer["Home_CoachActionCloturerObjectifs"]</div>
+                                </a>
+                            }
                         </div>
                     }
                     <div class="quick-actions-dashboard">
@@ -442,6 +493,7 @@
     private readonly List<DashboardLink> _coachLinks = [];
     private readonly List<DashboardLink> _particulierLinks = [];
     private CoachDashboardSynthese? _coachSynthese;
+    private CoachDashboardActionsRapides? _coachActionsRapides;
 
     private const int HorizonEcheanceJours = 14;
 
@@ -655,6 +707,7 @@
         {
             _coachLinks.Insert(0, new DashboardLink("MesPersonnesSuivies", Localizer["Home_MesPersonnesSuivies"].Value, "/coach/suivis"));
             _coachSynthese = await CoachDashboardService.GetSyntheseAsync(userId);
+            _coachActionsRapides = await CoachDashboardService.GetActionsRapidesAsync(userId);
         }
 
         if (_estParticulier && particulierProfile is not null
@@ -672,4 +725,10 @@
     /// </summary>
     private static string DisplayNameFor(ModuleManifest manifest) =>
         CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr" ? manifest.DisplayName : manifest.DisplayNameEn;
+
+    private static bool CoachActionsRapidesVisibles(CoachDashboardActionsRapides a) =>
+        a.ValiderMissionHref is not null
+        || a.GuideEntrevueHref is not null
+        || a.RelancerInvitationHref is not null
+        || a.CloturerObjectifsHref is not null;
 }

@@ -48,4 +48,11 @@ public interface IObjectifsCoachingService
 
     /// <summary>Périodes archivées, plus récentes d'abord. Liste vide si accès refusé.</summary>
     Task<IReadOnlyList<PeriodeObjectifsCoachingView>> GetArchivesAsync(int lienId, string requestingCoachUserId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Premier lien actif du coach ayant au moins un objectif non clôturé (période courante non archivée,
+    /// <see cref="AtteinteObjectifCoaching"/> ≠ Oui). Lecture seule — ne crée pas de période.
+    /// <c>null</c> si aucun.
+    /// </summary>
+    Task<int?> TryGetPremierLienIdAvecObjectifsOuvertsAsync(string coachUserId, CancellationToken cancellationToken = default);
 }

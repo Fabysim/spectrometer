@@ -292,6 +292,24 @@
   <data name="Home_CoachAlertes" xml:space="preserve">
     <value>Alerts</value>
   </data>
+  <data name="Home_CoachVoirPriorites" xml:space="preserve">
+    <value>See my priorities for today</value>
+  </data>
+  <data name="Home_CoachActionValiderMission" xml:space="preserve">
+    <value>Approve a mission</value>
+  </data>
+  <data name="Home_CoachActionPreparerEntrevue" xml:space="preserve">
+    <value>Prepare an interview</value>
+  </data>
+  <data name="Home_CoachActionContinuerEntrevue" xml:space="preserve">
+    <value>Continue an interview</value>
+  </data>
+  <data name="Home_CoachActionRelancerInvitation" xml:space="preserve">
+    <value>Resend an expired invitation</value>
+  </data>
+  <data name="Home_CoachActionCloturerObjectifs" xml:space="preserve">
+    <value>Close a step (objectives)</value>
+  </data>
   <data name="Home_EspaceJeune" xml:space="preserve">
     <value>Young space</value>
   </data>

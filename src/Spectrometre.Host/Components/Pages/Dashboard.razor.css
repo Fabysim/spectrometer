@@ -164,6 +164,18 @@ a.btn-secondary-modern-dashboard:hover {
     color: var(--gscv-orange, hsl(18, 80%, 50%));
 }
 
+.card-header-actions-dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem 1.25rem;
+}
+
+.coach-actions-rapides {
+    margin-bottom: 1rem;
+}
+
 .dashboard-hint {
     color: #64748b;
     font-size: 0.9375rem;
