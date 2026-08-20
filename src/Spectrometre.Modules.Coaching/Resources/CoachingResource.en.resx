@@ -65,6 +65,7 @@
   <data name="ActionsSuivi" xml:space="preserve"><value>Actions</value></data>
   <data name="AutoObservationJeune" xml:space="preserve"><value>Young self-observation</value></data>
   <data name="GrilleObservationJeune" xml:space="preserve"><value>Observation grid</value></data>
+  <data name="GuideEntrevueJeune" xml:space="preserve"><value>Interview guide</value></data>
   <data name="MissionsJeune" xml:space="preserve"><value>Missions</value></data>
   <data name="ModuleCoachNonActif" xml:space="preserve"><value>The Coach profile is not enabled for your account.</value></data>
   <data name="DemandesEnAttente" xml:space="preserve"><value>Pending requests</value></data>

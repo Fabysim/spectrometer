@@ -217,4 +217,67 @@
   <data name="GrilleObs_Def_perfectionnisme" xml:space="preserve"><value>Cherche l'excellence sans bloquer inutilement la progression.</value></data>
   <data name="GrilleObs_Critere_discretion" xml:space="preserve"><value>Discrétion</value></data>
   <data name="GrilleObs_Def_discretion" xml:space="preserve"><value>Préserve la confidentialité des informations dont il ou elle a connaissance.</value></data>
+
+  <data name="GuideEntrevue_PageTitle" xml:space="preserve"><value>Guide d'entrevue · Spectromètre</value></data>
+  <data name="GuideEntrevue_Titre" xml:space="preserve"><value>Guide d'entrevue</value></data>
+  <data name="GuideEntrevue_Intro" xml:space="preserve"><value>Espace de préparation et de notes confidentielles pour structurer la première entrevue et les suivantes. Jamais visible du jeune.</value></data>
+  <data name="GuideEntrevue_ModeCoach" xml:space="preserve"><value>Notes confidentielles — {0} {1}</value></data>
+  <data name="GuideEntrevue_AccesRefuse_Titre" xml:space="preserve"><value>Accès refusé</value></data>
+  <data name="GuideEntrevue_AccesRefuse_Message" xml:space="preserve"><value>Ce guide d'entrevue est réservé au coach qui suit ce jeune.</value></data>
+  <data name="GuideEntrevue_RetourSuivis" xml:space="preserve"><value>Retour aux personnes suivies</value></data>
+  <data name="GuideEntrevue_Enregistrer" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="GuideEntrevue_Succes" xml:space="preserve"><value>Guide d'entrevue enregistré.</value></data>
+  <data name="GuideEntrevue_Erreur" xml:space="preserve"><value>Enregistrement impossible.</value></data>
+  <data name="GuideEntrevue_Checklist_Titre" xml:space="preserve"><value>Checklist de préparation</value></data>
+  <data name="GuideEntrevue_Motivations" xml:space="preserve"><value>Motivations du jeune</value></data>
+  <data name="GuideEntrevue_Freins" xml:space="preserve"><value>Freins identifiés</value></data>
+  <data name="GuideEntrevue_MissionsAdaptees" xml:space="preserve"><value>Types de missions adaptées à son niveau</value></data>
+  <data name="GuideEntrevue_NotesConfidentielles" xml:space="preserve"><value>Notes confidentielles (espace libre)</value></data>
+  <data name="GuideEntrevue_Questions_Titre" xml:space="preserve"><value>Questions pour ouvrir la réflexion</value></data>
+  <data name="GuideEntrevue_Questions_Intro" xml:space="preserve"><value>Texte de référence à utiliser pendant l'entretien — non éditable.</value></data>
+  <data name="GuideEntrevue_Peurs_Titre" xml:space="preserve"><value>Grille d'identification des peurs</value></data>
+  <data name="GuideEntrevue_Peurs_Intro" xml:space="preserve"><value>Contenu du document en lecture seule ; notez vos observations dans la colonne « Note du coach ».</value></data>
+  <data name="GuideEntrevue_Col_Phrase" xml:space="preserve"><value>Ce que le jeune pourrait dire</value></data>
+  <data name="GuideEntrevue_Col_Peur" xml:space="preserve"><value>Peur sous-jacente</value></data>
+  <data name="GuideEntrevue_Col_Question" xml:space="preserve"><value>Question à poser</value></data>
+  <data name="GuideEntrevue_Col_Levier" xml:space="preserve"><value>Levier d'accompagnement</value></data>
+  <data name="GuideEntrevue_Col_Note" xml:space="preserve"><value>Note du coach</value></data>
+  <data name="GuideEntrevue_Posture_Titre" xml:space="preserve"><value>Posture recommandée</value></data>
+
+  <data name="GuideEntrevue_Q_q1" xml:space="preserve"><value>Qu'est-ce qui te fait penser que tu ne serais pas capable de réaliser cette mission ?</value></data>
+  <data name="GuideEntrevue_Q_q2" xml:space="preserve"><value>Qu'est-ce qui pourrait arriver de pire si tu te trompais ?</value></data>
+  <data name="GuideEntrevue_Q_q3" xml:space="preserve"><value>As-tu peur de mal faire, de ne pas comprendre ou de ne pas oser demander ?</value></data>
+  <data name="GuideEntrevue_Q_q4" xml:space="preserve"><value>Est-ce que tu as peur d'être jugé par le particulier, par le coach ou par quelqu'un d'autre ?</value></data>
+  <data name="GuideEntrevue_Q_q5" xml:space="preserve"><value>À quel moment penses-tu que tu pourrais te sentir perdu ?</value></data>
+  <data name="GuideEntrevue_Q_q6" xml:space="preserve"><value>Est-ce facile pour toi de dire que tu ne comprends pas ou de demander de l'aide ?</value></data>
+  <data name="GuideEntrevue_Q_q7" xml:space="preserve"><value>As-tu déjà vécu une situation où tu t'es senti mis en échec ?</value></data>
+  <data name="GuideEntrevue_Q_q8" xml:space="preserve"><value>Qu'est-ce qui serait différent cette fois-ci avec l'accompagnement du coach ?</value></data>
+  <data name="GuideEntrevue_Q_q9" xml:space="preserve"><value>Qu'est-ce qui te rassurerait avant de commencer ?</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_incapacite_Phrase" xml:space="preserve"><value>Je ne sais pas si je vais y arriver</value></data>
+  <data name="GuideEntrevue_Peur_peur_incapacite_Peur" xml:space="preserve"><value>Peur de ne pas être capable</value></data>
+  <data name="GuideEntrevue_Peur_peur_incapacite_Question" xml:space="preserve"><value>Qu'est-ce qui te fait douter ? As-tu déjà réussi quelque chose de similaire ?</value></data>
+  <data name="GuideEntrevue_Peur_peur_incapacite_Levier" xml:space="preserve"><value>Commencer par une mission simple et bien cadrée</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_erreur_Phrase" xml:space="preserve"><value>Et si je fais mal ?</value></data>
+  <data name="GuideEntrevue_Peur_peur_erreur_Peur" xml:space="preserve"><value>Peur de l'erreur</value></data>
+  <data name="GuideEntrevue_Peur_peur_erreur_Question" xml:space="preserve"><value>Que pourrait-on prévoir si tu ne comprends pas ou si tu te trompes ?</value></data>
+  <data name="GuideEntrevue_Peur_peur_erreur_Levier" xml:space="preserve"><value>Prévoir un droit à l'erreur et un canal de contact avec le coach</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_deranger_Phrase" xml:space="preserve"><value>Je n'ose pas demander</value></data>
+  <data name="GuideEntrevue_Peur_peur_deranger_Peur" xml:space="preserve"><value>Peur de déranger ou de paraître faible</value></data>
+  <data name="GuideEntrevue_Peur_peur_deranger_Question" xml:space="preserve"><value>Comment pourrais-tu demander une précision simplement ?</value></data>
+  <data name="GuideEntrevue_Peur_peur_deranger_Levier" xml:space="preserve"><value>Préparer une phrase-type pour demander de l'aide</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_jugement_Phrase" xml:space="preserve"><value>On va me juger</value></data>
+  <data name="GuideEntrevue_Peur_peur_jugement_Peur" xml:space="preserve"><value>Peur du regard des autres</value></data>
+  <data name="GuideEntrevue_Peur_peur_jugement_Question" xml:space="preserve"><value>Qu'imagines-tu que l'autre pourrait penser ? Est-ce un fait ou une supposition ?</value></data>
+  <data name="GuideEntrevue_Peur_peur_jugement_Levier" xml:space="preserve"><value>Clarifier le cadre bienveillant et le rôle d'apprentissage de la mission</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_experience_passee_Phrase" xml:space="preserve"><value>La dernière fois, ça s'est mal passé</value></data>
+  <data name="GuideEntrevue_Peur_peur_experience_passee_Peur" xml:space="preserve"><value>Peur liée à une expérience passée</value></data>
+  <data name="GuideEntrevue_Peur_peur_experience_passee_Question" xml:space="preserve"><value>Qu'est-ce qui s'était passé ? Qu'est-ce qui pourrait être différent cette fois-ci ?</value></data>
+  <data name="GuideEntrevue_Peur_peur_experience_passee_Levier" xml:space="preserve"><value>Identifier les conditions qui rendent la nouvelle expérience plus sécurisée</value></data>
+
+  <data name="GuideEntrevue_Posture" xml:space="preserve"><value>Le coach peut adopter une posture en trois temps : accueillir la peur sans la minimiser, la rendre plus précise, puis construire une première action sécurisée. Par exemple : « C'est normal d'avoir une appréhension quand on commence quelque chose de nouveau. Quand tu dis que tu n'es pas sûr de toi, est-ce plutôt la peur de mal faire, de ne pas comprendre ou du regard de l'autre ? Quelle petite première étape te permettrait d'essayer sans te sentir mis en danger ? »</value></data>
 </root>

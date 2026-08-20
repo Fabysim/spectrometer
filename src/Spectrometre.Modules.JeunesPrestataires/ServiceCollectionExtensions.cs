@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IConsentementParentalService, ConsentementParentalService>();
         services.AddScoped<IAutoObservationService, AutoObservationService>();
         services.AddScoped<IGrilleObservationService, GrilleObservationService>();
+        services.AddScoped<IGuideEntrevueService, GuideEntrevueService>();
         return services;
     }
 }

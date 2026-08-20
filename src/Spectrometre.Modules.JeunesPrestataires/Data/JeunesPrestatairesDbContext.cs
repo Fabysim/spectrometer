@@ -16,6 +16,8 @@ public sealed class JeunesPrestatairesDbContext(DbContextOptions<JeunesPrestatai
     public DbSet<AutoObservationSyntheseGeneree> AutoObservationSynthesesGenerees => Set<AutoObservationSyntheseGeneree>();
     public DbSet<GrilleObservationEvaluation> GrilleObservationEvaluations => Set<GrilleObservationEvaluation>();
     public DbSet<GrilleObservationCritere> GrilleObservationCriteres => Set<GrilleObservationCritere>();
+    public DbSet<GuideEntrevue> GuidesEntrevue => Set<GuideEntrevue>();
+    public DbSet<GuideEntrevuePeurNote> GuideEntrevuePeurNotes => Set<GuideEntrevuePeurNote>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -65,6 +67,20 @@ public sealed class JeunesPrestatairesDbContext(DbContextOptions<JeunesPrestatai
             e.HasOne(c => c.Evaluation)
                 .WithMany(e => e.Criteres)
                 .HasForeignKey(c => c.EvaluationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<GuideEntrevue>(e =>
+        {
+            e.HasIndex(g => g.JeuneProfileId).IsUnique();
+        });
+
+        builder.Entity<GuideEntrevuePeurNote>(e =>
+        {
+            e.HasIndex(n => new { n.GuideEntrevueId, n.PeurKey }).IsUnique();
+            e.HasOne(n => n.GuideEntrevue)
+                .WithMany(g => g.PeurNotes)
+                .HasForeignKey(n => n.GuideEntrevueId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

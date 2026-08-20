@@ -195,4 +195,67 @@
   <data name="GrilleObs_Def_perfectionnisme" xml:space="preserve"><value>Strives for excellence without unnecessarily blocking progress.</value></data>
   <data name="GrilleObs_Critere_discretion" xml:space="preserve"><value>Discretion</value></data>
   <data name="GrilleObs_Def_discretion" xml:space="preserve"><value>Preserves confidentiality of information in their possession.</value></data>
+
+  <data name="GuideEntrevue_PageTitle" xml:space="preserve"><value>Interview guide · Spectrometre</value></data>
+  <data name="GuideEntrevue_Titre" xml:space="preserve"><value>Interview guide</value></data>
+  <data name="GuideEntrevue_Intro" xml:space="preserve"><value>Confidential preparation and notes space to structure the first interview and the ones that follow. Never visible to the young person.</value></data>
+  <data name="GuideEntrevue_ModeCoach" xml:space="preserve"><value>Confidential notes — {0} {1}</value></data>
+  <data name="GuideEntrevue_AccesRefuse_Titre" xml:space="preserve"><value>Access denied</value></data>
+  <data name="GuideEntrevue_AccesRefuse_Message" xml:space="preserve"><value>This interview guide is reserved for the coach who follows this young person.</value></data>
+  <data name="GuideEntrevue_RetourSuivis" xml:space="preserve"><value>Back to people I follow</value></data>
+  <data name="GuideEntrevue_Enregistrer" xml:space="preserve"><value>Save</value></data>
+  <data name="GuideEntrevue_Succes" xml:space="preserve"><value>Interview guide saved.</value></data>
+  <data name="GuideEntrevue_Erreur" xml:space="preserve"><value>Could not save.</value></data>
+  <data name="GuideEntrevue_Checklist_Titre" xml:space="preserve"><value>Preparation checklist</value></data>
+  <data name="GuideEntrevue_Motivations" xml:space="preserve"><value>Young person's motivations</value></data>
+  <data name="GuideEntrevue_Freins" xml:space="preserve"><value>Identified barriers</value></data>
+  <data name="GuideEntrevue_MissionsAdaptees" xml:space="preserve"><value>Types of missions suited to their level</value></data>
+  <data name="GuideEntrevue_NotesConfidentielles" xml:space="preserve"><value>Confidential notes (free space)</value></data>
+  <data name="GuideEntrevue_Questions_Titre" xml:space="preserve"><value>Questions to open reflection</value></data>
+  <data name="GuideEntrevue_Questions_Intro" xml:space="preserve"><value>Reference text to use during the interview — not editable.</value></data>
+  <data name="GuideEntrevue_Peurs_Titre" xml:space="preserve"><value>Fear identification grid</value></data>
+  <data name="GuideEntrevue_Peurs_Intro" xml:space="preserve"><value>Document content is read-only; record your observations in the “Coach note” column.</value></data>
+  <data name="GuideEntrevue_Col_Phrase" xml:space="preserve"><value>What the young person might say</value></data>
+  <data name="GuideEntrevue_Col_Peur" xml:space="preserve"><value>Underlying fear</value></data>
+  <data name="GuideEntrevue_Col_Question" xml:space="preserve"><value>Question to ask</value></data>
+  <data name="GuideEntrevue_Col_Levier" xml:space="preserve"><value>Support lever</value></data>
+  <data name="GuideEntrevue_Col_Note" xml:space="preserve"><value>Coach note</value></data>
+  <data name="GuideEntrevue_Posture_Titre" xml:space="preserve"><value>Recommended posture</value></data>
+
+  <data name="GuideEntrevue_Q_q1" xml:space="preserve"><value>What makes you think you wouldn't be able to complete this mission?</value></data>
+  <data name="GuideEntrevue_Q_q2" xml:space="preserve"><value>What is the worst that could happen if you made a mistake?</value></data>
+  <data name="GuideEntrevue_Q_q3" xml:space="preserve"><value>Are you afraid of doing it wrong, of not understanding, or of not daring to ask?</value></data>
+  <data name="GuideEntrevue_Q_q4" xml:space="preserve"><value>Are you afraid of being judged by the client, by the coach, or by someone else?</value></data>
+  <data name="GuideEntrevue_Q_q5" xml:space="preserve"><value>At what point do you think you might feel lost?</value></data>
+  <data name="GuideEntrevue_Q_q6" xml:space="preserve"><value>Is it easy for you to say you don't understand or to ask for help?</value></data>
+  <data name="GuideEntrevue_Q_q7" xml:space="preserve"><value>Have you ever been in a situation where you felt set up to fail?</value></data>
+  <data name="GuideEntrevue_Q_q8" xml:space="preserve"><value>What would be different this time with the coach's support?</value></data>
+  <data name="GuideEntrevue_Q_q9" xml:space="preserve"><value>What would reassure you before starting?</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_incapacite_Phrase" xml:space="preserve"><value>I don't know if I'll make it</value></data>
+  <data name="GuideEntrevue_Peur_peur_incapacite_Peur" xml:space="preserve"><value>Fear of not being capable</value></data>
+  <data name="GuideEntrevue_Peur_peur_incapacite_Question" xml:space="preserve"><value>What makes you doubt? Have you already succeeded at something similar?</value></data>
+  <data name="GuideEntrevue_Peur_peur_incapacite_Levier" xml:space="preserve"><value>Start with a simple, well-framed mission</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_erreur_Phrase" xml:space="preserve"><value>What if I do it wrong?</value></data>
+  <data name="GuideEntrevue_Peur_peur_erreur_Peur" xml:space="preserve"><value>Fear of making a mistake</value></data>
+  <data name="GuideEntrevue_Peur_peur_erreur_Question" xml:space="preserve"><value>What could we plan for if you don't understand or if you make a mistake?</value></data>
+  <data name="GuideEntrevue_Peur_peur_erreur_Levier" xml:space="preserve"><value>Plan a right to make mistakes and a contact channel with the coach</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_deranger_Phrase" xml:space="preserve"><value>I don't dare ask</value></data>
+  <data name="GuideEntrevue_Peur_peur_deranger_Peur" xml:space="preserve"><value>Fear of bothering or seeming weak</value></data>
+  <data name="GuideEntrevue_Peur_peur_deranger_Question" xml:space="preserve"><value>How could you simply ask for a clarification?</value></data>
+  <data name="GuideEntrevue_Peur_peur_deranger_Levier" xml:space="preserve"><value>Prepare a sample phrase for asking for help</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_jugement_Phrase" xml:space="preserve"><value>People will judge me</value></data>
+  <data name="GuideEntrevue_Peur_peur_jugement_Peur" xml:space="preserve"><value>Fear of how others see them</value></data>
+  <data name="GuideEntrevue_Peur_peur_jugement_Question" xml:space="preserve"><value>What do you imagine the other person might think? Is that a fact or an assumption?</value></data>
+  <data name="GuideEntrevue_Peur_peur_jugement_Levier" xml:space="preserve"><value>Clarify the supportive framework and the learning role of the mission</value></data>
+
+  <data name="GuideEntrevue_Peur_peur_experience_passee_Phrase" xml:space="preserve"><value>Last time, it went badly</value></data>
+  <data name="GuideEntrevue_Peur_peur_experience_passee_Peur" xml:space="preserve"><value>Fear linked to a past experience</value></data>
+  <data name="GuideEntrevue_Peur_peur_experience_passee_Question" xml:space="preserve"><value>What had happened? What could be different this time?</value></data>
+  <data name="GuideEntrevue_Peur_peur_experience_passee_Levier" xml:space="preserve"><value>Identify conditions that make the new experience safer</value></data>
+
+  <data name="GuideEntrevue_Posture" xml:space="preserve"><value>The coach can adopt a three-step posture: welcome the fear without minimizing it, make it more precise, then build a first safe action. For example: “It's normal to feel apprehensive when starting something new. When you say you're not sure of yourself, is it more the fear of doing it wrong, of not understanding, or of how others see you? What small first step would let you try without feeling put at risk?”</value></data>
 </root>

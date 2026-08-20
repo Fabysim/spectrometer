@@ -1,0 +1,214 @@
+@page "/coach/suivis/{SuiviUserId}/guide-entrevue"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.JeunesPrestataires.Catalog
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IGuideEntrevueService GuideEntrevueService
+@inject IJeuneProfileService JeuneProfileService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<JeunesPrestatairesResource> Localizer
+
+<PageTitle>@Localizer["GuideEntrevue_PageTitle"]</PageTitle>
+
+<div class="ge-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_view is null)
+{
+    <div class="ge-card ge-alert">
+        <h2>@Localizer["GuideEntrevue_AccesRefuse_Titre"]</h2>
+        <p>@Localizer["GuideEntrevue_AccesRefuse_Message"]</p>
+        <p><a href="/coach/suivis">@Localizer["GuideEntrevue_RetourSuivis"]</a></p>
+    </div>
+}
+else
+{
+    <header class="ge-header">
+        <p><a href="/coach/suivis">@Localizer["GuideEntrevue_RetourSuivis"]</a></p>
+        <h1 class="ge-title">@Localizer["GuideEntrevue_Titre"]</h1>
+        <p class="ge-hint">@Localizer["GuideEntrevue_Intro"]</p>
+        <span class="ge-badge">
+            @string.Format(CultureInfo.CurrentCulture, Localizer["GuideEntrevue_ModeCoach"],
+                _view.JeunePrenoms, _view.JeuneNom)
+        </span>
+    </header>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="ge-success" role="status">@_message</div>
+    }
+
+    <section class="ge-card">
+        <h2 class="ge-section-title">@Localizer["GuideEntrevue_Checklist_Titre"]</h2>
+        <div class="ge-field">
+            <label>@Localizer["GuideEntrevue_Motivations"]</label>
+            <textarea rows="3" @bind="_motivations"></textarea>
+        </div>
+        <div class="ge-field">
+            <label>@Localizer["GuideEntrevue_Freins"]</label>
+            <textarea rows="3" @bind="_freins"></textarea>
+        </div>
+        <div class="ge-field">
+            <label>@Localizer["GuideEntrevue_MissionsAdaptees"]</label>
+            <textarea rows="3" @bind="_missionsAdaptees"></textarea>
+        </div>
+        <div class="ge-field">
+            <label>@Localizer["GuideEntrevue_NotesConfidentielles"]</label>
+            <textarea rows="4" @bind="_notesConfidentielles"></textarea>
+        </div>
+    </section>
+
+    <section class="ge-card">
+        <h2 class="ge-section-title">@Localizer["GuideEntrevue_Questions_Titre"]</h2>
+        <p class="ge-hint">@Localizer["GuideEntrevue_Questions_Intro"]</p>
+        <ol class="ge-questions">
+            @foreach (var qKey in GuideEntrevueCatalog.QuestionKeys)
+            {
+                <li>@Localizer[$"GuideEntrevue_Q_{qKey}"]</li>
+            }
+        </ol>
+    </section>
+
+    <section class="ge-card">
+        <h2 class="ge-section-title">@Localizer["GuideEntrevue_Peurs_Titre"]</h2>
+        <p class="ge-hint">@Localizer["GuideEntrevue_Peurs_Intro"]</p>
+        <div class="ge-peurs">
+            @foreach (var peur in GuideEntrevueCatalog.Peurs)
+            {
+                <article class="ge-peur">
+                    <h3 class="ge-peur-phrase">@Localizer[$"GuideEntrevue_Peur_{peur.Key}_Phrase"]</h3>
+                    <dl class="ge-peur-grid">
+                        <div>
+                            <dt>@Localizer["GuideEntrevue_Col_Peur"]</dt>
+                            <dd>@Localizer[$"GuideEntrevue_Peur_{peur.Key}_Peur"]</dd>
+                        </div>
+                        <div>
+                            <dt>@Localizer["GuideEntrevue_Col_Question"]</dt>
+                            <dd>@Localizer[$"GuideEntrevue_Peur_{peur.Key}_Question"]</dd>
+                        </div>
+                        <div>
+                            <dt>@Localizer["GuideEntrevue_Col_Levier"]</dt>
+                            <dd>@Localizer[$"GuideEntrevue_Peur_{peur.Key}_Levier"]</dd>
+                        </div>
+                    </dl>
+                    <div class="ge-field">
+                        <label>@Localizer["GuideEntrevue_Col_Note"]</label>
+                        <textarea rows="2"
+                                  value="@_notesPeurs[peur.Key]"
+                                  @onchange="e => _notesPeurs[peur.Key] = e.Value?.ToString() ?? string.Empty"></textarea>
+                    </div>
+                </article>
+            }
+        </div>
+    </section>
+
+    <aside class="ge-card ge-posture">
+        <h2 class="ge-section-title">@Localizer["GuideEntrevue_Posture_Titre"]</h2>
+        <p>@Localizer["GuideEntrevue_Posture"]</p>
+    </aside>
+
+    <div class="ge-actions">
+        <button type="button" class="ge-btn-primary" disabled="@_saving" @onclick="EnregistrerAsync">
+            @Localizer["GuideEntrevue_Enregistrer"]
+        </button>
+    </div>
+}
+</div>
+
+@code {
+    [Parameter] public string? SuiviUserId { get; set; }
+
+    private string? _coachUserId;
+    private int? _jeuneProfileId;
+    private GuideEntrevueView? _view;
+    private bool _chargement = true;
+    private bool _saving;
+    private string? _message;
+
+    private string _motivations = "";
+    private string _freins = "";
+    private string _missionsAdaptees = "";
+    private string _notesConfidentielles = "";
+    private readonly Dictionary<string, string> _notesPeurs = new(StringComparer.Ordinal);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _coachUserId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        foreach (var peur in GuideEntrevueCatalog.Peurs)
+            _notesPeurs[peur.Key] = "";
+
+        if (_coachUserId is null || string.IsNullOrWhiteSpace(SuiviUserId))
+        {
+            _chargement = false;
+            return;
+        }
+
+        var profil = await JeuneProfileService.TryGetByUserIdAsync(SuiviUserId);
+        if (profil is null)
+        {
+            _chargement = false;
+            return;
+        }
+
+        _jeuneProfileId = profil.Id;
+        _view = await GuideEntrevueService.GetOrCreateAsync(_coachUserId, profil.Id);
+        if (_view is not null)
+            ApplyView(_view);
+
+        _chargement = false;
+    }
+
+    private void ApplyView(GuideEntrevueView view)
+    {
+        _motivations = view.Motivations ?? "";
+        _freins = view.Freins ?? "";
+        _missionsAdaptees = view.MissionsAdaptees ?? "";
+        _notesConfidentielles = view.NotesConfidentielles ?? "";
+        foreach (var peur in view.Peurs)
+            _notesPeurs[peur.PeurKey] = peur.NoteCoach ?? "";
+    }
+
+    private async Task EnregistrerAsync()
+    {
+        if (_coachUserId is null || _jeuneProfileId is null)
+            return;
+
+        _saving = true;
+        _message = null;
+
+        var peurs = GuideEntrevueCatalog.Peurs
+            .Select(p => new GuideEntrevuePeurNoteInput(p.Key, _notesPeurs.GetValueOrDefault(p.Key)))
+            .ToList();
+
+        var ok = await GuideEntrevueService.SaveAsync(
+            _coachUserId,
+            _jeuneProfileId.Value,
+            _motivations,
+            _freins,
+            _missionsAdaptees,
+            _notesConfidentielles,
+            peurs);
+
+        if (ok)
+        {
+            _view = await GuideEntrevueService.GetOrCreateAsync(_coachUserId, _jeuneProfileId.Value);
+            if (_view is not null)
+                ApplyView(_view);
+            _message = Localizer["GuideEntrevue_Succes"];
+        }
+        else
+        {
+            _message = Localizer["GuideEntrevue_Erreur"];
+        }
+
+        _saving = false;
+    }
+}

@@ -1,0 +1,28 @@
+.ge-page { max-width: 52rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.ge-title { font-size: 1.75rem; font-weight: 700; margin: 0.5rem 0; }
+.ge-hint { color: #64748b; font-size: 0.95rem; margin: 0.35rem 0 0.75rem; }
+.ge-badge { display: inline-block; background: #eef2ff; color: #3730a3; font-size: 0.85rem; font-weight: 600; padding: 0.35rem 0.75rem; border-radius: 999px; }
+.ge-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+.ge-alert { border-color: #fecaca; background: #fef2f2; }
+.ge-section-title { font-size: 1.15rem; font-weight: 700; margin: 0 0 0.75rem; }
+.ge-field { margin-bottom: 0.85rem; }
+.ge-field label { display: block; font-weight: 600; margin-bottom: 0.3rem; }
+.ge-field textarea { width: 100%; padding: 0.55rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 0.4rem; font: inherit; resize: vertical; }
+.ge-questions { margin: 0; padding-left: 1.25rem; }
+.ge-questions li { margin-bottom: 0.55rem; line-height: 1.45; }
+.ge-peur { border-top: 1px solid #e2e8f0; padding-top: 1rem; margin-top: 1rem; }
+.ge-peur:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.ge-peur-phrase { margin: 0 0 0.65rem; font-size: 1.05rem; font-style: italic; color: #1e293b; }
+.ge-peur-grid { display: grid; gap: 0.65rem; margin: 0 0 0.75rem; }
+.ge-peur-grid dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; color: #64748b; font-weight: 700; margin: 0 0 0.15rem; }
+.ge-peur-grid dd { margin: 0; line-height: 1.4; }
+.ge-posture { background: #f8fafc; border-left: 4px solid #6366f1; }
+.ge-posture p { margin: 0; line-height: 1.55; }
+.ge-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
+.ge-btn-primary { border: none; border-radius: 0.5rem; padding: 0.55rem 1.25rem; font-weight: 600; cursor: pointer; background: #2563eb; color: #fff; }
+.ge-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.ge-success { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+
+@media (min-width: 720px) {
+    .ge-peur-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
