@@ -20,6 +20,7 @@
 @inject IJeuneProfileService JeuneProfileService
 @inject IParticulierProfileService ParticulierProfileService
 @inject IConsentementParentalService ConsentementParentalService
+@inject ICoachDashboardService CoachDashboardService
 @inject CoreDbContext CoreDb
 @inject IStringLocalizer<SharedResource> Localizer
 
@@ -383,6 +384,27 @@
                             <i class="bi bi-chevron-right" aria-hidden="true"></i>
                         </a>
                     </div>
+                    @if (_coachSynthese is not null)
+                    {
+                        <div class="dashboard-admin-stats">
+                            <a href="/coach/suivis" class="dashboard-admin-stat">
+                                <span class="dashboard-admin-stat-value">@_coachSynthese.JeunesSuivisActifs</span>
+                                <span class="dashboard-admin-stat-label">@Localizer["Home_CoachJeunesSuivis"]</span>
+                            </a>
+                            <a href="/coach/suivis" class="dashboard-admin-stat @(_coachSynthese.MissionsAValider > 0 ? "is-alert" : "")">
+                                <span class="dashboard-admin-stat-value">@_coachSynthese.MissionsAValider</span>
+                                <span class="dashboard-admin-stat-label">@Localizer["Home_CoachMissionsAValider"]</span>
+                            </a>
+                            <a href="/coach/suivis" class="dashboard-admin-stat @(_coachSynthese.DossiersIncomplets > 0 ? "is-alert" : "")">
+                                <span class="dashboard-admin-stat-value">@_coachSynthese.DossiersIncomplets</span>
+                                <span class="dashboard-admin-stat-label">@Localizer["Home_CoachDossiersIncomplets"]</span>
+                            </a>
+                            <a href="/coach/suivis" class="dashboard-admin-stat @(_coachSynthese.AlertesInvitationsExpirees > 0 ? "is-alert" : "")">
+                                <span class="dashboard-admin-stat-value">@_coachSynthese.AlertesInvitationsExpirees</span>
+                                <span class="dashboard-admin-stat-label">@Localizer["Home_CoachAlertes"]</span>
+                            </a>
+                        </div>
+                    }
                     <div class="quick-actions-dashboard">
                         @for (var i = 0; i < _coachLinks.Count; i++)
                         {
@@ -419,6 +441,7 @@
     private readonly List<DashboardLink> _candidateLinks = [];
     private readonly List<DashboardLink> _coachLinks = [];
     private readonly List<DashboardLink> _particulierLinks = [];
+    private CoachDashboardSynthese? _coachSynthese;
 
     private const int HorizonEcheanceJours = 14;
 
@@ -629,7 +652,10 @@
         // que les tuiles pilotées par module, pour que la section coach ait exactement la même mise en page
         // que les sections entreprise/candidat (une seule grille de tuiles, pas de rangée de boutons à part).
         if (_coachLinks.Count > 0)
+        {
             _coachLinks.Insert(0, new DashboardLink("MesPersonnesSuivies", Localizer["Home_MesPersonnesSuivies"].Value, "/coach/suivis"));
+            _coachSynthese = await CoachDashboardService.GetSyntheseAsync(userId);
+        }
 
         if (_estParticulier && particulierProfile is not null
             && await ModuleRegistry.IsActiveForParticulierAsync(particulierProfile.Id, "ProfilParticulier", CoreDb))
