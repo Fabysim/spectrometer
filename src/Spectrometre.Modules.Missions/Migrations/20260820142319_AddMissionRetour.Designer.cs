@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Spectrometre.Modules.Missions.Data;
@@ -11,9 +12,11 @@ using Spectrometre.Modules.Missions.Data;
 namespace Spectrometre.Modules.Missions.Migrations
 {
     [DbContext(typeof(MissionsDbContext))]
-    partial class MissionsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820142319_AddMissionRetour")]
+    partial class AddMissionRetour
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

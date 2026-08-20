@@ -18,6 +18,11 @@
     <h1 class="missions-title">@Localizer["MesMissionsJeune_Heading"]</h1>
     <p><a href="/jeune/missions-disponibles">@Localizer["MissionsDisponibles_Lien"]</a></p>
 
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="missions-success" role="status">@_message</div>
+    }
+
     @if (_missions.Count == 0)
     {
         <p class="missions-empty">@Localizer["AucuneMissionJeune"]</p>
@@ -39,6 +44,18 @@
                         <a class="missions-btn missions-btn-secondary" href="/jeune/missions/@m.AcceptationId/preparation">
                             @Localizer["Preparation_Lien"]
                         </a>
+                        <button type="button" class="missions-btn missions-btn-primary" disabled="@_busy"
+                                @onclick="() => MarquerTermineeAsync(m.AcceptationId)">
+                            @Localizer["MarquerTerminee"]
+                        </button>
+                    </div>
+                }
+                else if (m.MissionStatut == MissionStatut.Terminee)
+                {
+                    <div class="missions-actions">
+                        <a class="missions-btn missions-btn-secondary" href="/jeune/missions/@m.AcceptationId/retour">
+                            @Localizer["Retour_Lien"]
+                        </a>
                     </div>
                 }
             </div>
@@ -49,12 +66,42 @@
 @code {
     private string? _userId;
     private IReadOnlyList<MissionJeuneView> _missions = [];
+    private string? _message;
+    private bool _busy;
 
     protected override async Task OnInitializedAsync()
     {
         var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (_userId is not null)
-            _missions = await MissionService.GetMesMissionsAsync(_userId);
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (_userId is null)
+        {
+            _missions = [];
+            return;
+        }
+
+        _missions = await MissionService.GetMesMissionsAsync(_userId);
+    }
+
+    private async Task MarquerTermineeAsync(int acceptationId)
+    {
+        if (_userId is null || _busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = await MissionService.MarquerTermineeAsync(_userId, acceptationId);
+            _message = ok ? Localizer["MarquerTerminee_Succes"] : Localizer["Action_Echec"];
+            await RefreshAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 }

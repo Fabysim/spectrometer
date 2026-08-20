@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IParticulierSubjectResolver, ParticulierSubjectResolver>();
         services.AddScoped<IMissionService, MissionService>();
         services.AddScoped<IMissionPreparationService, MissionPreparationService>();
+        services.AddScoped<IMissionRetourService, MissionRetourService>();
         services.AddScoped<ICoachDashboardService, CoachDashboardService>();
         return services;
     }

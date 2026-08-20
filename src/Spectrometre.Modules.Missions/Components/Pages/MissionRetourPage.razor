@@ -1,0 +1,135 @@
+@page "/jeune/missions/{MissionAcceptationId:int}/retour"
+@page "/coach/suivis/{SuiviUserId}/missions/{MissionAcceptationId:int}/retour"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionRetourService RetourService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["Retour_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_view is null)
+{
+    <div class="missions-card">
+        <h1 class="missions-title">@Localizer["Retour_AccesRefuse_Titre"]</h1>
+        <p class="missions-meta">@Localizer["Retour_AccesRefuse_Message"]</p>
+        <p><a href="@_lienRetourListe">@_lienRetourLabel</a></p>
+    </div>
+}
+else
+{
+    <p><a href="@_lienRetourListe">@_lienRetourLabel</a></p>
+    <h1 class="missions-title">@Localizer["Retour_Heading"]</h1>
+    <p class="missions-meta">@_view.MissionTitre</p>
+    @if (_view.AccessMode == MissionRetourAccessMode.Coach)
+    {
+        <p class="missions-meta">@Localizer["Retour_ModeLectureCoach"]</p>
+    }
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="missions-success" role="status">@_message</div>
+    }
+
+    <div class="missions-card">
+        <div class="missions-field">
+            <label>@Localizer["Retour_CeQuiSestBienPasse"]</label>
+            <textarea rows="3" @bind="_bien" disabled="@(!_view.PeutEcrire)"></textarea>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Retour_CeQuiAEteDifficile"]</label>
+            <textarea rows="3" @bind="_difficile" disabled="@(!_view.PeutEcrire)"></textarea>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Retour_CeQueJaiAppris"]</label>
+            <textarea rows="3" @bind="_appris" disabled="@(!_view.PeutEcrire)"></textarea>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Retour_CeQueJeVeuxAmeliorer"]</label>
+            <textarea rows="3" @bind="_ameliorer" disabled="@(!_view.PeutEcrire)"></textarea>
+        </div>
+
+        @if (_view.PeutEcrire)
+        {
+            <div class="missions-actions">
+                <button type="button" class="missions-btn missions-btn-primary" disabled="@_busy" @onclick="SaveAsync">
+                    @Localizer["Retour_Enregistrer"]
+                </button>
+            </div>
+        }
+
+        @if (_view.UpdatedAt is DateTimeOffset updated)
+        {
+            <p class="missions-meta">@Localizer["Retour_MisAJourLe", updated.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]</p>
+        }
+    </div>
+}
+</div>
+
+@code {
+    [Parameter] public int MissionAcceptationId { get; set; }
+    [Parameter] public string? SuiviUserId { get; set; }
+
+    private string? _userId;
+    private bool _chargement = true;
+    private bool _busy;
+    private MissionRetourView? _view;
+    private string? _message;
+    private string _bien = "";
+    private string _difficile = "";
+    private string _appris = "";
+    private string _ameliorer = "";
+
+    private bool EstModeCoach => !string.IsNullOrWhiteSpace(SuiviUserId);
+    private string _lienRetourListe => EstModeCoach ? $"/coach/suivis/{SuiviUserId}/missions" : "/jeune/mes-missions";
+    private string _lienRetourLabel => EstModeCoach ? Localizer["RetourSuivisMissions"] : Localizer["MesMissionsJeune_Lien"];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is not null)
+        {
+            _view = await RetourService.GetOrCreateAsync(_userId, MissionAcceptationId);
+            if (_view is not null)
+            {
+                _bien = _view.CeQuiSestBienPasse ?? "";
+                _difficile = _view.CeQuiAEteDifficile ?? "";
+                _appris = _view.CeQueJaiAppris ?? "";
+                _ameliorer = _view.CeQueJeVeuxAmeliorer ?? "";
+            }
+        }
+
+        _chargement = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_userId is null || _view is null || !_view.PeutEcrire || _busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = await RetourService.SaveAsync(_userId, MissionAcceptationId, _bien, _difficile, _appris, _ameliorer);
+            _message = ok ? Localizer["Retour_Succes"] : Localizer["Action_Echec"];
+            if (ok)
+                _view = await RetourService.GetOrCreateAsync(_userId, MissionAcceptationId);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

@@ -95,4 +95,26 @@
   <data name="Preparation_materiel_necessaire" xml:space="preserve"><value>Required equipment</value></data>
   <data name="Preparation_numero_contact" xml:space="preserve"><value>Contact number</value></data>
   <data name="Preparation_consignes_relues" xml:space="preserve"><value>Instructions reviewed</value></data>
+
+  <data name="MarquerTerminee" xml:space="preserve"><value>Mark as completed</value></data>
+  <data name="MarquerTerminee_Succes" xml:space="preserve"><value>Mission marked as completed — you can now fill in your feedback.</value></data>
+  <data name="Retour_Title" xml:space="preserve"><value>Post-mission feedback · Spectromètre</value></data>
+  <data name="Retour_Heading" xml:space="preserve"><value>My post-mission feedback</value></data>
+  <data name="Retour_Lien" xml:space="preserve"><value>My feedback</value></data>
+  <data name="Retour_Consulter" xml:space="preserve"><value>View feedback</value></data>
+  <data name="Retour_Enregistrer" xml:space="preserve"><value>Save</value></data>
+  <data name="Retour_Succes" xml:space="preserve"><value>Feedback saved.</value></data>
+  <data name="Retour_CeQuiSestBienPasse" xml:space="preserve"><value>What went well</value></data>
+  <data name="Retour_CeQuiAEteDifficile" xml:space="preserve"><value>What was difficult</value></data>
+  <data name="Retour_CeQueJaiAppris" xml:space="preserve"><value>What I learned</value></data>
+  <data name="Retour_CeQueJeVeuxAmeliorer" xml:space="preserve"><value>What I want to improve</value></data>
+  <data name="Retour_AccesRefuse_Titre" xml:space="preserve"><value>Feedback unavailable</value></data>
+  <data name="Retour_AccesRefuse_Message" xml:space="preserve"><value>Feedback is only available for a completed mission that concerns you.</value></data>
+  <data name="Retour_ModeLectureCoach" xml:space="preserve"><value>Read-only — young person's feedback.</value></data>
+  <data name="Retour_MisAJourLe" xml:space="preserve"><value>Last updated: {0}</value></data>
+  <data name="RetourSuivisMissions" xml:space="preserve"><value>Back to this follow-up's missions</value></data>
+  <data name="CoachMissions_EnAttente" xml:space="preserve"><value>Pending requests</value></data>
+  <data name="CoachMissions_Terminees" xml:space="preserve"><value>Completed missions</value></data>
+  <data name="CoachMissions_Terminees_Hint" xml:space="preserve"><value>Review the feedback filled in by the young person after each completed mission.</value></data>
+  <data name="AucuneMissionTerminee" xml:space="preserve"><value>No completed mission for this young person.</value></data>
 </root>

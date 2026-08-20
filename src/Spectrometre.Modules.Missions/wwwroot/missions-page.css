@@ -24,4 +24,7 @@
     line-height: 1.4;
 }
 .missions-check-item input { margin-top: 0.2rem; width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+.missions-section-title { font-size: 1.15rem; font-weight: 700; margin: 0 0 0.75rem; color: #0f172a; }
+.missions-section-spaced { margin-top: 2rem; }
+.missions-field textarea:disabled { background: #f8fafc; color: #334155; cursor: default; }
 

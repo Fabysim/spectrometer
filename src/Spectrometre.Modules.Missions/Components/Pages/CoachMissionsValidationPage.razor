@@ -23,29 +23,58 @@
         <div class="missions-success">@_message</div>
     }
 
-    @if (_demandes.Count == 0)
-    {
-        <p class="missions-empty">@Localizer["AucuneDemandeEnAttente"]</p>
-    }
-    else
-    {
-        @foreach (var d in _demandes)
+    <section>
+        <h2 class="missions-section-title">@Localizer["CoachMissions_EnAttente"]</h2>
+        @if (_demandes.Count == 0)
         {
-            <div class="missions-card">
-                <h3>@d.MissionTitre</h3>
-                <p class="missions-meta">@d.JeunePrenoms @d.JeuneNom</p>
-                <p class="missions-meta">@Localizer["AccepteeLe", d.AccepteeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]</p>
-                <div class="missions-actions">
-                    <button type="button" class="missions-btn missions-btn-primary" @onclick="() => ValiderAsync(d.AcceptationId)">
-                        @Localizer["Valider"]
-                    </button>
-                    <button type="button" class="missions-btn missions-btn-danger" @onclick="() => RefuserAsync(d.AcceptationId)">
-                        @Localizer["Refuser"]
-                    </button>
-                </div>
-            </div>
+            <p class="missions-empty">@Localizer["AucuneDemandeEnAttente"]</p>
         }
-    }
+        else
+        {
+            @foreach (var d in _demandes)
+            {
+                <div class="missions-card">
+                    <h3>@d.MissionTitre</h3>
+                    <p class="missions-meta">@d.JeunePrenoms @d.JeuneNom</p>
+                    <p class="missions-meta">@Localizer["AccepteeLe", d.AccepteeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]</p>
+                    <div class="missions-actions">
+                        <button type="button" class="missions-btn missions-btn-primary" @onclick="() => ValiderAsync(d.AcceptationId)">
+                            @Localizer["Valider"]
+                        </button>
+                        <button type="button" class="missions-btn missions-btn-danger" @onclick="() => RefuserAsync(d.AcceptationId)">
+                            @Localizer["Refuser"]
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+    </section>
+
+    <section class="missions-section-spaced">
+        <h2 class="missions-section-title">@Localizer["CoachMissions_Terminees"]</h2>
+        <p class="missions-meta">@Localizer["CoachMissions_Terminees_Hint"]</p>
+        @if (_terminees.Count == 0)
+        {
+            <p class="missions-empty">@Localizer["AucuneMissionTerminee"]</p>
+        }
+        else
+        {
+            @foreach (var m in _terminees)
+            {
+                <div class="missions-card">
+                    <h3>@m.Titre</h3>
+                    @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
+                    <p class="missions-meta">@Localizer[$"StatutMission_{m.MissionStatut}"]</p>
+                    <div class="missions-actions">
+                        <a class="missions-btn missions-btn-secondary"
+                           href="/coach/suivis/@SuiviUserId/missions/@m.AcceptationId/retour">
+                            @Localizer["Retour_Consulter"]
+                        </a>
+                    </div>
+                </div>
+            }
+        }
+    </section>
 </div>
 
 @code {
@@ -53,6 +82,7 @@
 
     private string? _coachUserId;
     private IReadOnlyList<MissionAcceptationView> _demandes = [];
+    private IReadOnlyList<MissionJeuneView> _terminees = [];
     private string? _message;
 
     protected override async Task OnInitializedAsync()
@@ -67,10 +97,12 @@
         if (_coachUserId is null || string.IsNullOrWhiteSpace(SuiviUserId))
         {
             _demandes = [];
+            _terminees = [];
             return;
         }
 
         _demandes = await MissionService.GetDemandesEnAttentePourJeuneSuiviAsync(_coachUserId, SuiviUserId);
+        _terminees = await MissionService.GetMissionsTermineesPourJeuneSuiviAsync(_coachUserId, SuiviUserId);
     }
 
     private async Task ValiderAsync(int acceptationId)

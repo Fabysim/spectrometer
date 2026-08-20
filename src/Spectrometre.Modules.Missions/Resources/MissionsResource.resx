@@ -95,4 +95,26 @@
   <data name="Preparation_materiel_necessaire" xml:space="preserve"><value>Matériel nécessaire</value></data>
   <data name="Preparation_numero_contact" xml:space="preserve"><value>Numéro de contact</value></data>
   <data name="Preparation_consignes_relues" xml:space="preserve"><value>Consignes relues</value></data>
+
+  <data name="MarquerTerminee" xml:space="preserve"><value>Marquer comme terminée</value></data>
+  <data name="MarquerTerminee_Succes" xml:space="preserve"><value>Mission marquée comme terminée — vous pouvez maintenant remplir votre retour.</value></data>
+  <data name="Retour_Title" xml:space="preserve"><value>Retour après mission · Spectromètre</value></data>
+  <data name="Retour_Heading" xml:space="preserve"><value>Mon retour après mission</value></data>
+  <data name="Retour_Lien" xml:space="preserve"><value>Mon retour</value></data>
+  <data name="Retour_Consulter" xml:space="preserve"><value>Consulter le retour</value></data>
+  <data name="Retour_Enregistrer" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="Retour_Succes" xml:space="preserve"><value>Retour enregistré.</value></data>
+  <data name="Retour_CeQuiSestBienPasse" xml:space="preserve"><value>Ce qui s'est bien passé</value></data>
+  <data name="Retour_CeQuiAEteDifficile" xml:space="preserve"><value>Ce qui a été difficile</value></data>
+  <data name="Retour_CeQueJaiAppris" xml:space="preserve"><value>Ce que j'ai appris</value></data>
+  <data name="Retour_CeQueJeVeuxAmeliorer" xml:space="preserve"><value>Ce que je veux améliorer</value></data>
+  <data name="Retour_AccesRefuse_Titre" xml:space="preserve"><value>Retour indisponible</value></data>
+  <data name="Retour_AccesRefuse_Message" xml:space="preserve"><value>Le retour n'est disponible que pour une mission terminée qui vous concerne.</value></data>
+  <data name="Retour_ModeLectureCoach" xml:space="preserve"><value>Lecture seule — retour du jeune.</value></data>
+  <data name="Retour_MisAJourLe" xml:space="preserve"><value>Dernière mise à jour : {0}</value></data>
+  <data name="RetourSuivisMissions" xml:space="preserve"><value>Retour aux missions du suivi</value></data>
+  <data name="CoachMissions_EnAttente" xml:space="preserve"><value>Demandes en attente</value></data>
+  <data name="CoachMissions_Terminees" xml:space="preserve"><value>Missions terminées</value></data>
+  <data name="CoachMissions_Terminees_Hint" xml:space="preserve"><value>Consultez le retour rempli par le jeune après chaque mission terminée.</value></data>
+  <data name="AucuneMissionTerminee" xml:space="preserve"><value>Aucune mission terminée pour ce jeune.</value></data>
 </root>

@@ -147,6 +147,67 @@ public sealed class MissionService(
         return await DeciderAcceptationAsync(coachUserId, missionAcceptationId, valider: false, cancellationToken);
     }
 
+    public async Task<bool> MarquerTermineeAsync(string jeuneUserId, int missionAcceptationId, CancellationToken cancellationToken = default)
+    {
+        var jeune = await jeuneProfileService.TryGetByUserIdAsync(jeuneUserId, cancellationToken);
+        if (jeune is null)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var acceptation = await db.MissionAcceptations
+            .Include(a => a.Mission)
+            .FirstOrDefaultAsync(a => a.Id == missionAcceptationId, cancellationToken);
+
+        if (acceptation is null)
+            return false;
+
+        if (acceptation.JeuneProfileId != jeune.Id)
+            return false;
+
+        if (acceptation.Statut != MissionAcceptationStatut.ValideeParCoach)
+            return false;
+
+        if (acceptation.Mission.Statut != MissionStatut.Attribuee)
+            return false;
+
+        acceptation.Mission.Statut = MissionStatut.Terminee;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<IReadOnlyList<MissionJeuneView>> GetMissionsTermineesPourJeuneSuiviAsync(
+        string coachUserId,
+        string suiviUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var autorise = await coachingService.GetSuiviUserIdSiAutoriseAsync(suiviUserId, coachUserId, cancellationToken);
+        if (autorise is null)
+            return [];
+
+        var jeune = await jeuneProfileService.TryGetByUserIdAsync(suiviUserId, cancellationToken);
+        if (jeune is null)
+            return [];
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var rows = await db.MissionAcceptations.AsNoTracking()
+            .Include(a => a.Mission)
+            .Where(a => a.JeuneProfileId == jeune.Id
+                && a.Statut == MissionAcceptationStatut.ValideeParCoach
+                && a.Mission.Statut == MissionStatut.Terminee)
+            .OrderByDescending(a => a.DecideeLe ?? a.AccepteeLe)
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(a => new MissionJeuneView(
+            a.Id,
+            a.MissionId,
+            a.Mission.Titre,
+            a.Mission.Lieu,
+            a.Mission.Statut,
+            a.Statut,
+            a.AccepteeLe,
+            a.DecideeLe)).ToList();
+    }
+
     public async Task<IReadOnlyList<MissionResumeView>> GetMesMissionsPublieesAsync(string particulierUserId, CancellationToken cancellationToken = default)
     {
         var particulier = await particulierProfileService.TryGetByUserIdAsync(particulierUserId, cancellationToken);

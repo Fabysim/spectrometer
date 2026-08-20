@@ -12,6 +12,7 @@ public sealed class MissionsDbContext(DbContextOptions<MissionsDbContext> option
     public DbSet<Mission> Missions => Set<Mission>();
     public DbSet<MissionAcceptation> MissionAcceptations => Set<MissionAcceptation>();
     public DbSet<MissionPreparationCoche> MissionPreparationCoches => Set<MissionPreparationCoche>();
+    public DbSet<MissionRetour> MissionRetours => Set<MissionRetour>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -47,6 +48,15 @@ public sealed class MissionsDbContext(DbContextOptions<MissionsDbContext> option
             e.HasOne(c => c.MissionAcceptation)
                 .WithMany()
                 .HasForeignKey(c => c.MissionAcceptationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<MissionRetour>(e =>
+        {
+            e.HasIndex(r => r.MissionAcceptationId).IsUnique();
+            e.HasOne(r => r.MissionAcceptation)
+                .WithMany()
+                .HasForeignKey(r => r.MissionAcceptationId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }
