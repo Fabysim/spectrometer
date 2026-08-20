@@ -1,0 +1,106 @@
+@page "/particulier/publier-mission"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.Missions.Entities
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionService MissionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["PublierMission_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+    <h1 class="missions-title">@Localizer["PublierMission_Heading"]</h1>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="missions-success">@_message</div>
+    }
+
+    <div class="missions-card">
+        <div class="missions-field">
+            <label>@Localizer["Mission_Titre"]</label>
+            <input @bind="_titre" />
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Mission_Description"]</label>
+            <textarea rows="4" @bind="_description"></textarea>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Mission_Lieu"]</label>
+            <input @bind="_lieu" />
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Mission_Duree"]</label>
+            <input @bind="_duree" placeholder="@Localizer["Mission_DureeHint"]" />
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Mission_Difficulte"]</label>
+            <select @bind="_difficulte">
+                @foreach (var d in Enum.GetValues<MissionDifficulte>())
+                {
+                    <option value="@d">@Localizer[$"Difficulte_{d}"]</option>
+                }
+            </select>
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Mission_Remuneration"]</label>
+            <input type="number" step="0.01" @bind="_remuneration" />
+        </div>
+        <div class="missions-field">
+            <label>@Localizer["Mission_Competences"]</label>
+            <textarea rows="2" @bind="_competences"></textarea>
+        </div>
+        <div class="missions-actions">
+            <button type="button" class="missions-btn missions-btn-primary" disabled="@_saving" @onclick="PublierAsync">
+                @Localizer["PublierMission_Bouton"]
+            </button>
+            <a href="/particulier/mes-missions" class="missions-btn missions-btn-secondary">@Localizer["MesMissions_Lien"]</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? _userId;
+    private string _titre = "";
+    private string _description = "";
+    private string? _lieu;
+    private string? _duree;
+    private MissionDifficulte _difficulte = MissionDifficulte.Facile;
+    private decimal? _remuneration;
+    private string? _competences;
+    private bool _saving;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    }
+
+    private async Task PublierAsync()
+    {
+        if (_userId is null) return;
+        _saving = true;
+        _message = null;
+
+        var id = await MissionService.PublierMissionAsync(_userId, new PublierMissionInput(
+            _titre, _description, _lieu, _duree, _difficulte, _remuneration, _competences));
+
+        if (id is null)
+            _message = Localizer["Erreur_Publication"];
+        else
+        {
+            _message = Localizer["PublierMission_Succes"];
+            _titre = _description = "";
+            _lieu = _duree = _competences = null;
+            _remuneration = null;
+        }
+
+        _saving = false;
+    }
+}

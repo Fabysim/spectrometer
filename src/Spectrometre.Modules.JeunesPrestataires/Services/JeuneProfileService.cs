@@ -23,6 +23,14 @@ public sealed class JeuneProfileService(
         return entity is null ? null : ToView(entity);
     }
 
+    public async Task<JeuneProfileView?> TryGetByIdAsync(int jeuneProfileId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.JeuneProfiles.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == jeuneProfileId, cancellationToken);
+        return entity is null ? null : ToView(entity);
+    }
+
     public async Task<InvitationJeunePrestataireDraft?> TryGetDraftForInvitationAsync(int invitationId, CancellationToken cancellationToken = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);

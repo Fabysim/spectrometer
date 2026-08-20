@@ -80,6 +80,14 @@ public interface IModuleRegistry
     Task<bool> IsActiveForCoachAsync(int coachProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 
     Task ActivateForCoachAsync(int coachProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
+
+    // --- Équivalents côté particulier ---
+
+    Task<IReadOnlyList<string>> GetActiveModuleCodesForParticulierAsync(int particulierProfileId, CoreDbContext db, CancellationToken cancellationToken = default);
+
+    Task<bool> IsActiveForParticulierAsync(int particulierProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
+
+    Task ActivateForParticulierAsync(int particulierProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default);
 }
 
 public sealed class ModuleRegistry : IModuleRegistry
@@ -138,6 +146,10 @@ public sealed class ModuleRegistry : IModuleRegistry
             case ModuleActivationSubjectType.Coach:
                 return await db.CoachSubscriptions.AsNoTracking()
                     .AnyAsync(s => s.CoachProfileId == subjectId && (s.Status == SubscriptionStatus.Essai || s.Status == SubscriptionStatus.Active), cancellationToken);
+
+            case ModuleActivationSubjectType.Particulier:
+                return await db.ParticulierSubscriptions.AsNoTracking()
+                    .AnyAsync(s => s.ParticulierProfileId == subjectId && (s.Status == SubscriptionStatus.Essai || s.Status == SubscriptionStatus.Active), cancellationToken);
 
             default:
                 throw new NotSupportedException($"Type de sujet d'activation non pris en charge : {subjectType}");
@@ -209,4 +221,15 @@ public sealed class ModuleRegistry : IModuleRegistry
 
     public Task ActivateForCoachAsync(int coachProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default) =>
         ActivateAsync(ModuleActivationSubjectType.Coach, coachProfileId, moduleCode, db, cancellationToken);
+
+    // --- Enveloppes "particulier" ---
+
+    public Task<IReadOnlyList<string>> GetActiveModuleCodesForParticulierAsync(int particulierProfileId, CoreDbContext db, CancellationToken cancellationToken = default) =>
+        GetActiveModuleCodesAsync(ModuleActivationSubjectType.Particulier, particulierProfileId, db, cancellationToken);
+
+    public Task<bool> IsActiveForParticulierAsync(int particulierProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default) =>
+        IsActiveAsync(ModuleActivationSubjectType.Particulier, particulierProfileId, moduleCode, db, cancellationToken);
+
+    public Task ActivateForParticulierAsync(int particulierProfileId, string moduleCode, CoreDbContext db, CancellationToken cancellationToken = default) =>
+        ActivateAsync(ModuleActivationSubjectType.Particulier, particulierProfileId, moduleCode, db, cancellationToken);
 }

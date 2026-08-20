@@ -10,6 +10,7 @@
     <Project Path="src/Spectrometre.Modules.Entretien/Spectrometre.Modules.Entretien.csproj" />
     <Project Path="src/Spectrometre.Modules.GestionDuTemps/Spectrometre.Modules.GestionDuTemps.csproj" />
     <Project Path="src/Spectrometre.Modules.JeunesPrestataires/Spectrometre.Modules.JeunesPrestataires.csproj" />
+    <Project Path="src/Spectrometre.Modules.Missions/Spectrometre.Modules.Missions.csproj" />
     <Project Path="src/Spectrometre.Modules.Recrutement/Spectrometre.Modules.Recrutement.csproj" />
     <Project Path="src/Spectrometre.Modules.ProfilCandidat/Spectrometre.Modules.ProfilCandidat.csproj" />
     <Project Path="src/Spectrometre.Modules.ProfilCoach/Spectrometre.Modules.ProfilCoach.csproj" />

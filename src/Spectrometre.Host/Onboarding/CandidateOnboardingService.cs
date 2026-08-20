@@ -20,6 +20,12 @@ public sealed class CandidateOnboardingService(
     IModuleRegistry moduleRegistry)
 {
     /// <summary>Seul module activé automatiquement à l'inscription candidat — gratuit, inclus dans <see cref="PlanCodes.Standard"/>.</summary>
+    /// <remarks>
+    /// Pour un jeune prestataire (<c>InvitationType.JeunePrestataire</c>), cette activation est un effet de bord
+    /// accepté : elle crée le <see cref="CandidateProfile"/> / abonnement requis par Gestion du temps.
+    /// L'UI générique « Profil candidat » (questionnaire emploi, postes, historique…) reste masquée côté Host
+    /// (<c>MainLayout</c>, <c>Dashboard</c>) — ne pas retirer ProfilCandidat ici sans casser GDT / Mon CV.
+    /// </remarks>
     private static readonly IReadOnlyList<string> FreeTierModuleCodes = [ProfilCandidatModule.Manifest.Code];
 
     public async Task<int> CreateCandidateAsync(string userId, CoreDbContext coreDb, CancellationToken cancellationToken = default)

@@ -23,6 +23,8 @@ using Spectrometre.Modules.GestionDuTemps;
 using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.JeunesPrestataires;
 using Spectrometre.Modules.JeunesPrestataires.Data;
+using Spectrometre.Modules.Missions;
+using Spectrometre.Modules.Missions.Data;
 using Spectrometre.Modules.Recrutement;
 using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
@@ -59,6 +61,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSpectrometreCore(builder.Configuration);
 builder.Services.AddProfilCandidatModule(builder.Configuration);
 builder.Services.AddJeunesPrestatairesModule(builder.Configuration);
+builder.Services.AddMissionsModule(builder.Configuration);
 builder.Services.AddProfilEntrepriseModule(builder.Configuration);
 builder.Services.AddCompatibiliteModule(builder.Configuration);
 builder.Services.AddRecrutementModule(builder.Configuration);
@@ -104,6 +107,7 @@ builder.Services.AddScoped<IProfileChangeRecorder, ProfileChangeRecorder>();
 builder.Services.AddScoped<CompanyOnboardingService>();
 builder.Services.AddScoped<CandidateOnboardingService>();
 builder.Services.AddScoped<CoachOnboardingService>();
+builder.Services.AddScoped<ParticulierOnboardingService>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -164,6 +168,7 @@ using (var startupScope = app.Services.CreateScope())
     var moduleRegistry = startupScope.ServiceProvider.GetRequiredService<IModuleRegistry>();
     moduleRegistry.Register(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.JeunesPrestataires.ServiceCollectionExtensions.Manifest);
+    moduleRegistry.Register(Spectrometre.Modules.Missions.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
     moduleRegistry.Register(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest);
@@ -199,6 +204,14 @@ using (var startupScope = app.Services.CreateScope())
                .CreateDbContext())
     {
         jeunesPrestatairesDb.Database.Migrate();
+    }
+
+    // Missions / Particulier : schéma fixe non tenant-scopé — migré globalement ici.
+    using (var missionsDb = startupScope.ServiceProvider
+               .GetRequiredService<IDbContextFactory<MissionsDbContext>>()
+               .CreateDbContext())
+    {
+        missionsDb.Database.Migrate();
     }
 
     // SuiviEvolutif candidat : schéma fixe non tenant-scopé, comme ProfilCandidat — migré globalement ici,
@@ -522,6 +535,7 @@ app.MapRazorComponents<App>()
         typeof(Spectrometre.Host.Client._Imports).Assembly,
         typeof(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.JeunesPrestataires.ServiceCollectionExtensions).Assembly,
+        typeof(Spectrometre.Modules.Missions.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions).Assembly,
         typeof(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions).Assembly,

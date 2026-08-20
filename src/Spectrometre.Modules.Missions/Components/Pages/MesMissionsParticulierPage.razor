@@ -1,0 +1,50 @@
+@page "/particulier/mes-missions"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.Missions.Entities
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionService MissionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["MesMissionsParticulier_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+    <h1 class="missions-title">@Localizer["MesMissionsParticulier_Heading"]</h1>
+    <p><a href="/particulier/publier-mission">@Localizer["PublierMission_Lien"]</a></p>
+
+    @if (_missions.Count == 0)
+    {
+        <p class="missions-empty">@Localizer["AucuneMission"]</p>
+    }
+    else
+    {
+        @foreach (var m in _missions)
+        {
+            <div class="missions-card">
+                <h3>@m.Titre</h3>
+                <p class="missions-meta">@Localizer[$"Statut_{m.Statut}"] · @Localizer[$"Difficulte_{m.Difficulte}"]</p>
+                @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
+                @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@r.ToString("C", CultureInfo.CurrentCulture)</p> }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private string? _userId;
+    private IReadOnlyList<MissionResumeView> _missions = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is not null)
+            _missions = await MissionService.GetMesMissionsPublieesAsync(_userId);
+    }
+}

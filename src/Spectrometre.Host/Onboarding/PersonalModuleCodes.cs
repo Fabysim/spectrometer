@@ -17,5 +17,5 @@ namespace Spectrometre.Host.Onboarding;
 /// </remarks>
 public static class PersonalModuleCodes
 {
-    public static readonly IReadOnlySet<string> Codes = new HashSet<string> { "ProfilCandidat" };
+    public static readonly IReadOnlySet<string> Codes = new HashSet<string> { "ProfilCandidat", "ProfilParticulier" };
 }

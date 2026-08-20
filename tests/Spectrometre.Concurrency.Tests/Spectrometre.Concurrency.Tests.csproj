@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\src\Spectrometre.Core\Spectrometre.Core.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.ProfilCandidat\Spectrometre.Modules.ProfilCandidat.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.JeunesPrestataires\Spectrometre.Modules.JeunesPrestataires.csproj" />
+    <ProjectReference Include="..\..\src\Spectrometre.Modules.Missions\Spectrometre.Modules.Missions.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.ProfilEntreprise\Spectrometre.Modules.ProfilEntreprise.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.Compatibilite\Spectrometre.Modules.Compatibilite.csproj" />
     <ProjectReference Include="..\..\src\Spectrometre.Modules.Recrutement\Spectrometre.Modules.Recrutement.csproj" />

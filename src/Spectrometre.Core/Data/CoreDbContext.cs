@@ -23,6 +23,7 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
     public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
     public DbSet<CandidateSubscription> CandidateSubscriptions => Set<CandidateSubscription>();
     public DbSet<CoachSubscription> CoachSubscriptions => Set<CoachSubscription>();
+    public DbSet<ParticulierSubscription> ParticulierSubscriptions => Set<ParticulierSubscription>();
     public DbSet<ModulePrix> ModulePrix => Set<ModulePrix>();
     public DbSet<PaiementEnregistre> PaiementsEnregistres => Set<PaiementEnregistre>();
     public DbSet<PosteIndexEntry> PosteIndexEntries => Set<PosteIndexEntry>();
@@ -69,6 +70,11 @@ public sealed class CoreDbContext(DbContextOptions<CoreDbContext> options) : Ide
         builder.Entity<CoachSubscription>(e =>
         {
             e.HasIndex(s => s.CoachProfileId).IsUnique();
+        });
+
+        builder.Entity<ParticulierSubscription>(e =>
+        {
+            e.HasIndex(s => s.ParticulierProfileId).IsUnique();
         });
 
         builder.Entity<PaiementEnregistre>(e =>

@@ -34,6 +34,7 @@
     <ProjectReference Include="..\Spectrometre.Modules.Analytics\Spectrometre.Modules.Analytics.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.GestionDuTemps\Spectrometre.Modules.GestionDuTemps.csproj" />
     <ProjectReference Include="..\Spectrometre.Modules.JeunesPrestataires\Spectrometre.Modules.JeunesPrestataires.csproj" />
+    <ProjectReference Include="..\Spectrometre.Modules.Missions\Spectrometre.Modules.Missions.csproj" />
     <!-- Admin est référencé UNIQUEMENT par Host — jamais par un autre module (voir sa ServiceCollectionExtensions). -->
     <ProjectReference Include="..\Spectrometre.Modules.Admin\Spectrometre.Modules.Admin.csproj" />
   </ItemGroup>

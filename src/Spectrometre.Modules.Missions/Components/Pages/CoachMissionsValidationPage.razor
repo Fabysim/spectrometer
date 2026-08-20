@@ -1,0 +1,91 @@
+@page "/coach/suivis/{SuiviUserId}/missions"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.Missions.Entities
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionService MissionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["CoachMissions_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+    <h1 class="missions-title">@Localizer["CoachMissions_Heading"]</h1>
+    <p><a href="/coach/suivis">@Localizer["RetourSuivis"]</a></p>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="missions-success">@_message</div>
+    }
+
+    @if (_demandes.Count == 0)
+    {
+        <p class="missions-empty">@Localizer["AucuneDemandeEnAttente"]</p>
+    }
+    else
+    {
+        @foreach (var d in _demandes)
+        {
+            <div class="missions-card">
+                <h3>@d.MissionTitre</h3>
+                <p class="missions-meta">@d.JeunePrenoms @d.JeuneNom</p>
+                <p class="missions-meta">@Localizer["AccepteeLe", d.AccepteeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]</p>
+                <div class="missions-actions">
+                    <button type="button" class="missions-btn missions-btn-primary" @onclick="() => ValiderAsync(d.AcceptationId)">
+                        @Localizer["Valider"]
+                    </button>
+                    <button type="button" class="missions-btn missions-btn-danger" @onclick="() => RefuserAsync(d.AcceptationId)">
+                        @Localizer["Refuser"]
+                    </button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public string? SuiviUserId { get; set; }
+
+    private string? _coachUserId;
+    private IReadOnlyList<MissionAcceptationView> _demandes = [];
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _coachUserId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (_coachUserId is null || string.IsNullOrWhiteSpace(SuiviUserId))
+        {
+            _demandes = [];
+            return;
+        }
+
+        _demandes = await MissionService.GetDemandesEnAttentePourJeuneSuiviAsync(_coachUserId, SuiviUserId);
+    }
+
+    private async Task ValiderAsync(int acceptationId)
+    {
+        if (_coachUserId is null) return;
+        var ok = await MissionService.ValiderAcceptationAsync(_coachUserId, acceptationId);
+        _message = ok ? Localizer["Validation_Succes"] : Localizer["Action_Echec"];
+        await RefreshAsync();
+    }
+
+    private async Task RefuserAsync(int acceptationId)
+    {
+        if (_coachUserId is null) return;
+        var ok = await MissionService.RefuserAcceptationAsync(_coachUserId, acceptationId);
+        _message = ok ? Localizer["Refus_Succes"] : Localizer["Action_Echec"];
+        await RefreshAsync();
+    }
+}

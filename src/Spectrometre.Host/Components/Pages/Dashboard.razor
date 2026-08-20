@@ -15,6 +15,7 @@
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject ICoachSubjectResolver CoachSubjectResolver
+@inject IParticulierSubjectResolver ParticulierSubjectResolver
 @inject IAdminService AdminService
 @inject IJeuneProfileService JeuneProfileService
 @inject IConsentementParentalService ConsentementParentalService
@@ -45,7 +46,7 @@
                     @Localizer["Home_AdminVoirFacturation"]
                 </a>
             }
-            else if (_company is null && !_estCandidatOuCoach && !_estJeune)
+            else if (_company is null && !_estCandidatOuCoach && !_estJeune && !_estParticulier)
             {
                 <a href="/entreprise/creer" class="btn-primary-modern-dashboard">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
@@ -226,6 +227,24 @@
                             </div>
                             <div class="quick-action-label-dashboard">@Localizer["Home_GrilleObservation"]</div>
                         </a>
+                        <a href="/candidat/cv" class="quick-action-btn-dashboard">
+                            <div class="quick-action-icon-dashboard tone-blue">
+                                <i class="bi bi-file-earmark-person" aria-hidden="true"></i>
+                            </div>
+                            <div class="quick-action-label-dashboard">@Localizer["Home_MonCv"]</div>
+                        </a>
+                        <a href="/jeune/missions-disponibles" class="quick-action-btn-dashboard">
+                            <div class="quick-action-icon-dashboard tone-green">
+                                <i class="bi bi-briefcase" aria-hidden="true"></i>
+                            </div>
+                            <div class="quick-action-label-dashboard">@Localizer["Home_MissionsDisponibles"]</div>
+                        </a>
+                        <a href="/jeune/mes-missions" class="quick-action-btn-dashboard">
+                            <div class="quick-action-icon-dashboard tone-orange">
+                                <i class="bi bi-list-check" aria-hidden="true"></i>
+                            </div>
+                            <div class="quick-action-label-dashboard">@Localizer["Home_MesMissionsJeune"]</div>
+                        </a>
                         @if (_consentementParentalACompleter)
                         {
                             <a href="/candidat/consentement-parental" class="quick-action-btn-dashboard">
@@ -297,7 +316,8 @@
             </section>
             }
 
-            @if (_candidateLinks.Count > 0)
+            @* Jeune : pas de section « Profil candidat » adulte — ProfilCandidat actif en base uniquement pour GDT/CV. *@
+            @if (_candidateLinks.Count > 0 && !_estJeune)
             {
                 <section class="card-modern-dashboard">
                     <div class="card-header-modern-dashboard">
@@ -314,6 +334,30 @@
                         @for (var i = 0; i < _candidateLinks.Count; i++)
                         {
                             var link = _candidateLinks[i];
+                            <a href="@link.Href" class="quick-action-btn-dashboard">
+                                <div class="quick-action-icon-dashboard @IconTone(i)">
+                                    <i class="bi @IconForCode(link.Code)" aria-hidden="true"></i>
+                                </div>
+                                <div class="quick-action-label-dashboard">@link.Label</div>
+                            </a>
+                        }
+                    </div>
+                </section>
+            }
+
+            @if (_particulierLinks.Count > 0)
+            {
+                <section class="card-modern-dashboard">
+                    <div class="card-header-modern-dashboard">
+                        <h2 class="card-title-modern-dashboard">
+                            <i class="bi bi-house-heart" aria-hidden="true"></i>
+                            @Localizer["Home_ProfilParticulier"]
+                        </h2>
+                    </div>
+                    <div class="quick-actions-dashboard">
+                        @for (var i = 0; i < _particulierLinks.Count; i++)
+                        {
+                            var link = _particulierLinks[i];
                             <a href="@link.Href" class="quick-action-btn-dashboard">
                                 <div class="quick-action-icon-dashboard @IconTone(i)">
                                     <i class="bi @IconForCode(link.Code)" aria-hidden="true"></i>
@@ -363,6 +407,7 @@
     private bool _isPlatformAdmin;
     private bool _estCandidatOuCoach;
     private bool _estJeune;
+    private bool _estParticulier;
     private bool _consentementParentalACompleter;
     private Company? _company;
     private AdminGlobalCounts? _compteurs;
@@ -372,6 +417,7 @@
     private readonly List<DashboardLink> _companyLinks = [];
     private readonly List<DashboardLink> _candidateLinks = [];
     private readonly List<DashboardLink> _coachLinks = [];
+    private readonly List<DashboardLink> _particulierLinks = [];
 
     private const int HorizonEcheanceJours = 14;
 
@@ -395,6 +441,9 @@
         "Entretien" => "bi-chat-dots",
         "ProfilCandidat" => "bi-ui-checks-grid",
         "ProfilCoach" => "bi-person-badge",
+        "ProfilParticulier" => "bi-house-heart",
+        "PublierMission" => "bi-plus-circle",
+        "MesMissionsPubliees" => "bi-journal-text",
         "MesPersonnesSuivies" => "bi-people",
         _ => "bi-grid-1x2"
     };
@@ -424,6 +473,12 @@
     {
         "ProfilCoach" => "/coach/profil",
         "GestionDuTemps" => "/gestion-du-temps",
+        _ => null
+    };
+
+    private static string? HrefForParticulierModule(string code) => code switch
+    {
+        "ProfilParticulier" => "/particulier/publier-mission",
         _ => null
     };
 
@@ -530,16 +585,21 @@
             await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, "ProfilCandidat", CoreDb)
             || await ModuleRegistry.IsActiveForCoachAsync(coachProfileId, "ProfilCoach", CoreDb);
 
-        foreach (var manifest in ModuleRegistry.AllModules)
+        // Jeune prestataire : ne pas remplir la grille « Profil candidat » (contenu adulte emploi) — voir
+        // CandidateOnboardingService : ProfilCandidat reste actif en base pour Gestion du temps / CV.
+        if (!_estJeune)
         {
-            if (!await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, CoreDb))
-                continue;
+            foreach (var manifest in ModuleRegistry.AllModules)
+            {
+                if (!await ModuleRegistry.IsActiveForCandidateAsync(candidateProfileId, manifest.Code, CoreDb))
+                    continue;
 
-            var href = HrefForCandidateModule(manifest.Code);
-            if (href is null)
-                continue;
+                var href = HrefForCandidateModule(manifest.Code);
+                if (href is null)
+                    continue;
 
-            _candidateLinks.Add(new DashboardLink(manifest.Code, DisplayNameFor(manifest), href));
+                _candidateLinks.Add(new DashboardLink(manifest.Code, DisplayNameFor(manifest), href));
+            }
         }
 
         // Un utilisateur peut cumuler plusieurs profils (voir CoachOnboardingService) — même schéma que la
@@ -566,6 +626,17 @@
         // que les sections entreprise/candidat (une seule grille de tuiles, pas de rangée de boutons à part).
         if (_coachLinks.Count > 0)
             _coachLinks.Insert(0, new DashboardLink("MesPersonnesSuivies", Localizer["Home_MesPersonnesSuivies"].Value, "/coach/suivis"));
+
+        var particulierProfileId = await ParticulierSubjectResolver.TryGetParticulierProfileIdAsync(userId);
+        if (particulierProfileId is int pid)
+        {
+            _estParticulier = await ModuleRegistry.IsActiveForParticulierAsync(pid, "ProfilParticulier", CoreDb);
+            if (_estParticulier)
+            {
+                _particulierLinks.Add(new DashboardLink("PublierMission", Localizer["Home_PublierMission"].Value, "/particulier/publier-mission"));
+                _particulierLinks.Add(new DashboardLink("MesMissionsPubliees", Localizer["Home_MesMissionsPubliees"].Value, "/particulier/mes-missions"));
+            }
+        }
     }
 
     /// <summary>

@@ -16,6 +16,7 @@
 @inject CompanyOnboardingService CompanyOnboarding
 @inject CandidateOnboardingService CandidateOnboarding
 @inject CoachOnboardingService CoachOnboarding
+@inject ParticulierOnboardingService ParticulierOnboarding
 @inject CoreDbContext CoreDb
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> Localizer
@@ -155,6 +156,10 @@
                                                 <InputRadio Value="@("Coach")" />
                                                 <span>@Localizer["Coach"]</span>
                                             </label>
+                                            <label class="profil-option">
+                                                <InputRadio Value="@("Particulier")" />
+                                                <span>@Localizer["Particulier"]</span>
+                                            </label>
                                         </div>
                                     </InputRadioGroup>
 
@@ -278,7 +283,7 @@
     {
         _message = null;
 
-        if (_model.Profil != "Entreprise" && _model.Profil != "Candidat" && _model.Profil != "Coach")
+        if (_model.Profil != "Entreprise" && _model.Profil != "Candidat" && _model.Profil != "Coach" && _model.Profil != "Particulier")
         {
             _message = Localizer["Inscription_ChoisirProfil"];
             _startOnStep2 = true;
@@ -311,6 +316,8 @@
             await CompanyOnboarding.CreateCompanyAsync(_model.NomEntreprise!.Trim(), user.Id, CoreDb);
         else if (_model.Profil == "Coach")
             await CoachOnboarding.CreateCoachAsync(user.Id, CoreDb);
+        else if (_model.Profil == "Particulier")
+            await ParticulierOnboarding.CreateParticulierAsync(user.Id, _model.Nom.Trim(), _model.Prenom.Trim(), CoreDb);
         else
             await CandidateOnboarding.CreateCandidateAsync(user.Id, CoreDb);
 

@@ -19,6 +19,7 @@
 @inject ICompanyProvisioningService CompanyProvisioningService
 @inject ICandidateSubjectResolver CandidateSubjectResolver
 @inject ICoachSubjectResolver CoachSubjectResolver
+@inject IParticulierSubjectResolver ParticulierSubjectResolver
 @inject IDbContextFactory<CoreDbContext> CoreDbFactory
 @inject IStringLocalizer<SharedResource> Localizer
 @inject NavigationManager Navigation
@@ -131,7 +132,7 @@
                         </div>
                     </div>
                 }
-                else if (!_estCandidatOuCoach && !_isPlatformAdmin && !_estJeune)
+                else if (!_estCandidatOuCoach && !_isPlatformAdmin && !_estJeune && !_estParticulier)
                 {
                     <a href="/entreprise/creer" class="nav-item-auth @ActiveClass("/entreprise/creer")">
                         <span class="nav-icon"><i class="bi bi-building-add" aria-hidden="true"></i></span>
@@ -160,6 +161,18 @@
                                 <span class="nav-icon"><i class="bi bi-clipboard2-data" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_GrilleObservation"]</span>
                             </a>
+                            <a href="/candidat/cv" class="nav-item-auth nav-sub-item @ActiveClass("/candidat/cv")">
+                                <span class="nav-icon"><i class="bi bi-file-earmark-person" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_MonCv"]</span>
+                            </a>
+                            <a href="/jeune/missions-disponibles" class="nav-item-auth nav-sub-item @ActiveClass("/jeune/missions-disponibles")">
+                                <span class="nav-icon"><i class="bi bi-briefcase" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_MissionsDisponibles"]</span>
+                            </a>
+                            <a href="/jeune/mes-missions" class="nav-item-auth nav-sub-item @ActiveClass("/jeune/mes-missions")">
+                                <span class="nav-icon"><i class="bi bi-list-check" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_MesMissionsJeune"]</span>
+                            </a>
                             @if (_consentementParentalACompleter)
                             {
                                 <a href="/candidat/consentement-parental" class="nav-item-auth nav-sub-item @ActiveClass("/candidat/consentement-parental")">
@@ -171,7 +184,10 @@
                     </div>
                 }
 
-                @if (_candidateActiveModules.Contains("ProfilCandidat"))
+                @* Jeune prestataire : ProfilCandidat reste actif en base (CreateCandidateAsync pour Gestion du temps)
+                   mais l'UI « candidat adulte » (questionnaire emploi, postes, historique…) est masquée — voir
+                   CandidateOnboardingService et Dashboard.razor. Seul Mon CV est exposé dans Espace jeune. *@
+                @if (_candidateActiveModules.Contains("ProfilCandidat") && !_estJeune)
                 {
                     <div class="nav-group @(IsGroupActive("candidat") ? "open" : "")" data-nav-group="candidat">
                         <div class="nav-group-row">
@@ -248,6 +264,31 @@
                                     <span>@Localizer["Nav_MonCoach"]</span>
                                 </a>
                             }
+                        </div>
+                    </div>
+                }
+
+                @if (_estParticulier)
+                {
+                    <div class="nav-group @(IsGroupActive("particulier") ? "open" : "")" data-nav-group="particulier">
+                        <div class="nav-group-row">
+                            <a href="/particulier/publier-mission" class="nav-item-auth nav-group-primary @ActiveClass("/particulier/publier-mission")">
+                                <span class="nav-icon"><i class="bi bi-house-heart" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_ProfilParticulier"]</span>
+                            </a>
+                            <button type="button" class="nav-group-caret" onclick="spectrometreToggleNavGroup(this)" aria-expanded="@(IsGroupActive("particulier") ? "true" : "false")" aria-label="@Localizer["Particulier"]">
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="nav-submenu">
+                            <a href="/particulier/publier-mission" class="nav-item-auth nav-sub-item @ActiveClass("/particulier/publier-mission")">
+                                <span class="nav-icon"><i class="bi bi-plus-circle" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_PublierMission"]</span>
+                            </a>
+                            <a href="/particulier/mes-missions" class="nav-item-auth nav-sub-item @ActiveClass("/particulier/mes-missions")">
+                                <span class="nav-icon"><i class="bi bi-journal-text" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_MesMissionsPubliees"]</span>
+                            </a>
                         </div>
                     </div>
                 }
@@ -389,10 +430,12 @@
     private bool _hasCompany;
     private bool _estCandidatOuCoach;
     private bool _estJeune;
+    private bool _estParticulier;
     private bool _consentementParentalACompleter;
     private readonly HashSet<string> _companyActiveModules = [];
     private readonly HashSet<string> _candidateActiveModules = [];
     private readonly HashSet<string> _coachActiveModules = [];
+    private readonly HashSet<string> _particulierActiveModules = [];
     private bool _showGestionDuTemps;
     /// <summary>Sujet Candidat uniquement — voir IGestionDuTempsAccessService.HasCandidateAccessAsync : une entreprise avec Gestion du temps actif ne doit pas voir « Mon coach ».</summary>
     private bool _showMonCoach;
@@ -490,6 +533,18 @@
         {
             _consentementParentalACompleter = true;
         }
+
+        var particulierProfileId = await ParticulierSubjectResolver.TryGetParticulierProfileIdAsync(userId);
+        if (particulierProfileId is int pid)
+        {
+            foreach (var manifest in ModuleRegistry.AllModules)
+            {
+                if (await ModuleRegistry.IsActiveForParticulierAsync(pid, manifest.Code, coreDb))
+                    _particulierActiveModules.Add(manifest.Code);
+            }
+
+            _estParticulier = _particulierActiveModules.Contains("ProfilParticulier");
+        }
     }
 
     private bool CurrentCultureIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr";
@@ -534,7 +589,9 @@
                  || CurrentPath.StartsWith("/mon-coach", StringComparison.OrdinalIgnoreCase),
         "coach" => CurrentPath.StartsWith("/coach/suivis", StringComparison.OrdinalIgnoreCase),
         "jeune" => CurrentPath.StartsWith("/jeune", StringComparison.OrdinalIgnoreCase)
-                   || CurrentPath.StartsWith("/candidat/consentement-parental", StringComparison.OrdinalIgnoreCase),
+                   || CurrentPath.StartsWith("/candidat/consentement-parental", StringComparison.OrdinalIgnoreCase)
+                   || CurrentPath.StartsWith("/candidat/cv", StringComparison.OrdinalIgnoreCase),
+        "particulier" => CurrentPath.StartsWith("/particulier", StringComparison.OrdinalIgnoreCase),
         "admin" => CurrentPath.StartsWith("/admin", StringComparison.OrdinalIgnoreCase) && !CurrentPath.Equals("/admin", StringComparison.OrdinalIgnoreCase),
         _ => false
     };

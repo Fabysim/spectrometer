@@ -1,0 +1,77 @@
+@page "/jeune/missions-disponibles"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.Missions.Entities
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionService MissionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["MissionsDisponibles_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+    <h1 class="missions-title">@Localizer["MissionsDisponibles_Heading"]</h1>
+    <p><a href="/jeune/mes-missions">@Localizer["MesMissionsJeune_Lien"]</a></p>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="missions-success">@_message</div>
+    }
+
+    @if (_missions.Count == 0)
+    {
+        <p class="missions-empty">@Localizer["AucuneMissionDisponible"]</p>
+    }
+    else
+    {
+        @foreach (var m in _missions)
+        {
+            <div class="missions-card">
+                <h3>@m.Titre</h3>
+                <p class="missions-meta">@Localizer[$"Difficulte_{m.Difficulte}"]</p>
+                @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
+                @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@r.ToString("C", CultureInfo.CurrentCulture)</p> }
+                <div class="missions-actions">
+                    <button type="button" class="missions-btn missions-btn-primary"
+                            disabled="@_acceptingId.HasValue"
+                            @onclick="() => AccepterAsync(m.MissionId)">
+                        @Localizer["AccepterMission"]
+                    </button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private string? _userId;
+    private IReadOnlyList<MissionResumeView> _missions = [];
+    private int? _acceptingId;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync() => _missions = await MissionService.GetMissionsDisponiblesAsync();
+
+    private async Task AccepterAsync(int missionId)
+    {
+        if (_userId is null) return;
+        _acceptingId = missionId;
+        _message = null;
+
+        var ok = await MissionService.AccepterMissionAsync(_userId, missionId);
+        _message = ok ? Localizer["Acceptation_Succes"] : Localizer["Acceptation_Echec"];
+        await RefreshAsync();
+        _acceptingId = null;
+    }
+}

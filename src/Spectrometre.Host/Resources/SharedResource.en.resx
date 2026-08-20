@@ -136,6 +136,9 @@
   <data name="Coach" xml:space="preserve">
     <value>Coach</value>
   </data>
+  <data name="Particulier" xml:space="preserve">
+    <value>Individual</value>
+  </data>
   <data name="NomDeLEntreprise" xml:space="preserve">
     <value>Company name</value>
   </data>
@@ -146,7 +149,7 @@
     <value>Already have an account? Log in</value>
   </data>
   <data name="Inscription_ChoisirProfil" xml:space="preserve">
-    <value>Please choose a profile (Company, Candidate, or Coach).</value>
+    <value>Please choose a profile (Company, Candidate, Coach, or Individual).</value>
   </data>
   <data name="Inscription_NomEntrepriseRequis" xml:space="preserve">
     <value>The company name is required.</value>
@@ -259,6 +262,21 @@
   <data name="Home_ProfilCoach" xml:space="preserve">
     <value>Coach profile</value>
   </data>
+  <data name="Home_ProfilParticulier" xml:space="preserve">
+    <value>Individual</value>
+  </data>
+  <data name="Home_PublierMission" xml:space="preserve">
+    <value>Post a mission</value>
+  </data>
+  <data name="Home_MesMissionsPubliees" xml:space="preserve">
+    <value>My published missions</value>
+  </data>
+  <data name="Home_MissionsDisponibles" xml:space="preserve">
+    <value>Available missions</value>
+  </data>
+  <data name="Home_MesMissionsJeune" xml:space="preserve">
+    <value>My missions</value>
+  </data>
   <data name="Home_MesPersonnesSuivies" xml:space="preserve">
     <value>My clients</value>
   </data>
@@ -273,6 +291,9 @@
   </data>
   <data name="Home_GrilleObservation" xml:space="preserve">
     <value>Socio-professional observation grid</value>
+  </data>
+  <data name="Home_MonCv" xml:space="preserve">
+    <value>My CV</value>
   </data>
   <data name="Home_ConsentementParental" xml:space="preserve">
     <value>Parental consent</value>

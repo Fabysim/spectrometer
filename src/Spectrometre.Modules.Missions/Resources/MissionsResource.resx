@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PublierMission_Title" xml:space="preserve"><value>Publier une mission · Spectromètre</value></data>
+  <data name="PublierMission_Heading" xml:space="preserve"><value>Publier une mission</value></data>
+  <data name="PublierMission_Bouton" xml:space="preserve"><value>Publier</value></data>
+  <data name="PublierMission_Succes" xml:space="preserve"><value>Mission publiée — elle est maintenant visible par les jeunes.</value></data>
+  <data name="PublierMission_Lien" xml:space="preserve"><value>Publier une mission</value></data>
+  <data name="MesMissions_Lien" xml:space="preserve"><value>Mes missions publiées</value></data>
+  <data name="MesMissionsParticulier_Title" xml:space="preserve"><value>Mes missions · Spectromètre</value></data>
+  <data name="MesMissionsParticulier_Heading" xml:space="preserve"><value>Mes missions publiées</value></data>
+  <data name="MissionsDisponibles_Title" xml:space="preserve"><value>Missions disponibles · Spectromètre</value></data>
+  <data name="MissionsDisponibles_Heading" xml:space="preserve"><value>Missions disponibles</value></data>
+  <data name="MissionsDisponibles_Lien" xml:space="preserve"><value>Missions disponibles</value></data>
+  <data name="MesMissionsJeune_Title" xml:space="preserve"><value>Mes missions · Spectromètre</value></data>
+  <data name="MesMissionsJeune_Heading" xml:space="preserve"><value>Mes missions</value></data>
+  <data name="MesMissionsJeune_Lien" xml:space="preserve"><value>Mes missions</value></data>
+  <data name="CoachMissions_Title" xml:space="preserve"><value>Validation des missions · Spectromètre</value></data>
+  <data name="CoachMissions_Heading" xml:space="preserve"><value>Demandes de mission en attente</value></data>
+  <data name="RetourSuivis" xml:space="preserve"><value>Retour aux personnes suivies</value></data>
+  <data name="Mission_Titre" xml:space="preserve"><value>Titre</value></data>
+  <data name="Mission_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Mission_Lieu" xml:space="preserve"><value>Lieu</value></data>
+  <data name="Mission_Duree" xml:space="preserve"><value>Durée estimée</value></data>
+  <data name="Mission_DureeHint" xml:space="preserve"><value>Ex. 2 h, une demi-journée…</value></data>
+  <data name="Mission_Difficulte" xml:space="preserve"><value>Difficulté</value></data>
+  <data name="Mission_Remuneration" xml:space="preserve"><value>Rémunération (€)</value></data>
+  <data name="Mission_Competences" xml:space="preserve"><value>Compétences travaillées</value></data>
+  <data name="AccepterMission" xml:space="preserve"><value>Accepter la mission</value></data>
+  <data name="Acceptation_Succes" xml:space="preserve"><value>Mission acceptée — en attente de validation par votre coach.</value></data>
+  <data name="Acceptation_Echec" xml:space="preserve"><value>Cette mission n'est plus disponible.</value></data>
+  <data name="Valider" xml:space="preserve"><value>Valider</value></data>
+  <data name="Refuser" xml:space="preserve"><value>Refuser</value></data>
+  <data name="Validation_Succes" xml:space="preserve"><value>Acceptation validée — la mission est attribuée au jeune.</value></data>
+  <data name="Refus_Succes" xml:space="preserve"><value>Acceptation refusée — la mission est de nouveau disponible.</value></data>
+  <data name="Action_Echec" xml:space="preserve"><value>Action impossible.</value></data>
+  <data name="Erreur_Publication" xml:space="preserve"><value>Impossible de publier la mission. Vérifiez les champs obligatoires.</value></data>
+  <data name="AucuneMission" xml:space="preserve"><value>Vous n'avez pas encore publié de mission.</value></data>
+  <data name="AucuneMissionDisponible" xml:space="preserve"><value>Aucune mission disponible pour le moment.</value></data>
+  <data name="AucuneMissionJeune" xml:space="preserve"><value>Vous n'avez pas encore accepté de mission.</value></data>
+  <data name="AucuneDemandeEnAttente" xml:space="preserve"><value>Aucune demande en attente de validation.</value></data>
+  <data name="AccepteeLe" xml:space="preserve"><value>Acceptée le {0}</value></data>
+
+  <data name="Statut_Disponible" xml:space="preserve"><value>Disponible</value></data>
+  <data name="Statut_EnAttenteValidation" xml:space="preserve"><value>En attente de validation coach</value></data>
+  <data name="Statut_Attribuee" xml:space="preserve"><value>Attribuée</value></data>
+  <data name="Statut_Terminee" xml:space="preserve"><value>Terminée</value></data>
+  <data name="Statut_Annulee" xml:space="preserve"><value>Annulée</value></data>
+
+  <data name="StatutMission_Disponible" xml:space="preserve"><value>Disponible</value></data>
+  <data name="StatutMission_EnAttenteValidation" xml:space="preserve"><value>En attente validation</value></data>
+  <data name="StatutMission_Attribuee" xml:space="preserve"><value>Attribuée</value></data>
+  <data name="StatutMission_Terminee" xml:space="preserve"><value>Terminée</value></data>
+  <data name="StatutMission_Annulee" xml:space="preserve"><value>Annulée</value></data>
+
+  <data name="StatutAcceptation_EnAttenteValidationCoach" xml:space="preserve"><value>En attente de validation coach</value></data>
+  <data name="StatutAcceptation_ValideeParCoach" xml:space="preserve"><value>Validée par le coach</value></data>
+  <data name="StatutAcceptation_RefuseeParCoach" xml:space="preserve"><value>Refusée par le coach</value></data>
+
+  <data name="Difficulte_Facile" xml:space="preserve"><value>Facile</value></data>
+  <data name="Difficulte_Intermediaire" xml:space="preserve"><value>Intermédiaire</value></data>
+  <data name="Difficulte_Exigeante" xml:space="preserve"><value>Exigeante</value></data>
+</root>

@@ -28,6 +28,8 @@ using Spectrometre.Modules.GestionDuTemps;
 using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.JeunesPrestataires;
 using Spectrometre.Modules.JeunesPrestataires.Data;
+using Spectrometre.Modules.Missions;
+using Spectrometre.Modules.Missions.Data;
 using Spectrometre.Modules.GestionDuTemps.Services;
 using Spectrometre.Modules.ProfilCoach;
 using Spectrometre.Modules.ProfilCoach.Data;
@@ -148,6 +150,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.AddScoped<ITenantContext, TenantContext>();
         services.AddProfilCandidatModule(config);
         services.AddJeunesPrestatairesModule(config);
+        services.AddMissionsModule(config);
         services.AddProfilEntrepriseModule(config);
         services.AddCompatibiliteModule(config);
         services.AddRecrutementModule(config);
@@ -188,6 +191,7 @@ public sealed class ServiceFixture : IAsyncLifetime
             var moduleRegistry = scope.ServiceProvider.GetRequiredService<IModuleRegistry>();
             moduleRegistry.Register(Spectrometre.Modules.ProfilCandidat.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.JeunesPrestataires.ServiceCollectionExtensions.Manifest);
+            moduleRegistry.Register(Spectrometre.Modules.Missions.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.ProfilEntreprise.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Compatibilite.ServiceCollectionExtensions.Manifest);
             moduleRegistry.Register(Spectrometre.Modules.Recrutement.ServiceCollectionExtensions.Manifest);
@@ -212,6 +216,9 @@ public sealed class ServiceFixture : IAsyncLifetime
 
         await using var jeunesPrestatairesDb = await Services.GetRequiredService<IDbContextFactory<JeunesPrestatairesDbContext>>().CreateDbContextAsync();
         await jeunesPrestatairesDb.Database.MigrateAsync();
+
+        await using var missionsDb = await Services.GetRequiredService<IDbContextFactory<MissionsDbContext>>().CreateDbContextAsync();
+        await missionsDb.Database.MigrateAsync();
 
         await using var entrepriseDb = await Services.GetRequiredService<IDbContextFactory<ProfilEntrepriseDbContext>>().CreateDbContextAsync();
         await entrepriseDb.Database.MigrateAsync();

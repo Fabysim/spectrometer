@@ -595,6 +595,16 @@ public sealed class AdminService(
                     sub.PlanCode = planCode.Trim();
                 break;
             }
+            case ModuleActivationSubjectType.Particulier:
+            {
+                var sub = await coreDb.ParticulierSubscriptions.FirstOrDefaultAsync(s => s.ParticulierProfileId == subjectId, cancellationToken)
+                    ?? throw new InvalidOperationException("Abonnement particulier introuvable.");
+                sub.Status = SubscriptionStatus.Active;
+                sub.RenewalDate = renewal;
+                if (!string.IsNullOrWhiteSpace(planCode))
+                    sub.PlanCode = planCode.Trim();
+                break;
+            }
             default:
                 throw new ArgumentOutOfRangeException(nameof(subjectType));
         }
@@ -742,6 +752,13 @@ public sealed class AdminService(
                 sub.Status = SubscriptionStatus.Suspendue;
                 break;
             }
+            case ModuleActivationSubjectType.Particulier:
+            {
+                var sub = await coreDb.ParticulierSubscriptions.FirstOrDefaultAsync(s => s.ParticulierProfileId == subjectId, cancellationToken)
+                    ?? throw new InvalidOperationException("Abonnement particulier introuvable.");
+                sub.Status = SubscriptionStatus.Suspendue;
+                break;
+            }
             default:
                 throw new ArgumentOutOfRangeException(nameof(subjectType));
         }
@@ -823,6 +840,20 @@ public sealed class AdminService(
                 null));
         }
 
+        var particulierSubs = await coreDb.ParticulierSubscriptions.AsNoTracking().ToListAsync(cancellationToken);
+        foreach (var sub in particulierSubs)
+        {
+            if (enRetardUniquement && !EstEnRetard(sub.Status, sub.RenewalDate, today))
+                continue;
+            stubs.Add(new AbonnementStub(
+                ModuleActivationSubjectType.Particulier,
+                sub.ParticulierProfileId,
+                sub.PlanCode,
+                sub.Status,
+                sub.RenewalDate,
+                null));
+        }
+
         var ordered = stubs
             .OrderBy(a => a.SubjectType.ToString())
             .ThenBy(a => a.LibelleHint ?? a.SubjectId.ToString())
@@ -895,6 +926,7 @@ public sealed class AdminService(
                 ModuleActivationSubjectType.Company => stub.LibelleHint ?? $"Entreprise #{stub.SubjectId}",
                 ModuleActivationSubjectType.Candidate => candidateLabels.GetValueOrDefault(stub.SubjectId, $"Candidat #{stub.SubjectId}"),
                 ModuleActivationSubjectType.Coach => coachLabels.GetValueOrDefault(stub.SubjectId, $"Coach #{stub.SubjectId}"),
+                ModuleActivationSubjectType.Particulier => $"Particulier #{stub.SubjectId}",
                 _ => $"#{stub.SubjectId}"
             };
 

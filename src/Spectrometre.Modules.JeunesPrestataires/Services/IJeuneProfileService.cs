@@ -7,6 +7,8 @@ public interface IJeuneProfileService
 {
     Task<JeuneProfileView?> TryGetByUserIdAsync(string userId, CancellationToken cancellationToken = default);
 
+    Task<JeuneProfileView?> TryGetByIdAsync(int jeuneProfileId, CancellationToken cancellationToken = default);
+
     Task<InvitationJeunePrestataireDraft?> TryGetDraftForInvitationAsync(int invitationId, CancellationToken cancellationToken = default);
 
     /// <summary>

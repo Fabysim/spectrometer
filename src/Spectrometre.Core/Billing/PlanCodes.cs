@@ -21,4 +21,7 @@ public static class PlanCodes
 
     /// <summary>Étiquette historique Coach + Gestion du temps.</summary>
     public const string CoachPlusTemps = "CoachPlusTemps";
+
+    /// <summary>Étiquette du profil Particulier (publication de missions).</summary>
+    public const string Particulier = "Particulier";
 }
