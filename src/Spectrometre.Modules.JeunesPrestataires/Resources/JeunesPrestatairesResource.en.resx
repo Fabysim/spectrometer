@@ -280,4 +280,105 @@
   <data name="AutoObs_AccesRefuse_Titre" xml:space="preserve"><value>Access denied</value></data>
   <data name="AutoObs_AccesRefuse_Message" xml:space="preserve"><value>This questionnaire is reserved for invited young providers and their referring coach.</value></data>
   <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Self-observation questionnaire</value></data>
+
+  <data name="Charte_Title" xml:space="preserve"><value>Mission charter · Spectrometre</value></data>
+  <data name="Charte_Heading" xml:space="preserve"><value>Formal charter of missions, behaviours and support</value></data>
+  <data name="Charte_Intro" xml:space="preserve"><value>This charter defines the framework for collaboration between the platform, young providers, individual clients, referring coaches, associations and partner companies. It aims to ensure missions that are simple, supervised, safe and useful for the socio-professional development of young providers.</value></data>
+  <data name="Charte_Intro2" xml:space="preserve"><value>It sets out the commitments of each party, the limits of the scheme, expected behaviours, safety rules, the conditions of supervision by the coach, and the possible consequences if the agreed framework is not respected.</value></data>
+  <data name="Charte_AccesRefuse_Titre" xml:space="preserve"><value>Access restricted</value></data>
+  <data name="Charte_AccesRefuse_Message" xml:space="preserve"><value>This page is for young providers only.</value></data>
+  <data name="Charte_Coach_AccesRefuse_Titre" xml:space="preserve"><value>Access restricted</value></data>
+  <data name="Charte_Coach_AccesRefuse_Message" xml:space="preserve"><value>Downloading the charter is reserved for coaches.</value></data>
+  <data name="Charte_Coach_Intro" xml:space="preserve"><value>This charter can be downloaded by the coach at any time.</value></data>
+  <data name="Charte_TelechargerPdf" xml:space="preserve"><value>Download PDF</value></data>
+  <data name="Charte_PdfPied" xml:space="preserve"><value>Spectrometre — mission charter</value></data>
+  <data name="Charte_Confirmation_Titre" xml:space="preserve"><value>Confirmation</value></data>
+  <data name="Charte_Confirmation_Intro" xml:space="preserve"><value>Type your name to confirm. This is not a qualified electronic signature. The “Responsible parent” line in the source document is not a second consent flow: parental commitment is already collected in parental consent.</value></data>
+  <data name="Charte_Confirmation_LectureSeule" xml:space="preserve"><value>You have already accepted this charter. It remains in force.</value></data>
+  <data name="Charte_NomConfirmation" xml:space="preserve"><value>Provider’s name</value></data>
+  <data name="Charte_BoutonAccepter" xml:space="preserve"><value>I accept</value></data>
+  <data name="Charte_AccepteeLe" xml:space="preserve"><value>Charter accepted on {0}</value></data>
+  <data name="Charte_ErreurAcceptation" xml:space="preserve"><value>Could not save. Check that a name is entered, or that the charter has not already been accepted.</value></data>
+
+  <data name="Charte_S_objet_Titre" xml:space="preserve"><value>1. Purpose and aim of the charter</value></data>
+  <data name="Charte_S_objet_Corps" xml:space="preserve"><value>The purpose of the platform is to connect individuals who have small jobs to be done with young providers who wish to gain experience, build their confidence, strengthen their practical skills and progress in their socio-professional attitudes. Proposed missions must remain simple, limited, not dangerous, and compatible with a supported learning approach.</value></data>
+
+  <data name="Charte_S_principes_generaux_Titre" xml:space="preserve"><value>2. General principles of the scheme</value></data>
+  <data name="Charte_S_principes_generaux_Corps" xml:space="preserve"><value>• respect the client, their home, their belongings and their environment; The young provider adopts a simple and professional attitude: greet the client, listen to their instructions, stay in the areas provided, do not rummage through or move objects unnecessarily, handle equipment with care, protect the premises during the work, tidy and clean after the mission, report immediately any damage or difficulty, and respect the client’s privacy by taking no photos and sharing no information about what they have seen or heard.
+• carry out only the tasks that were accepted and clearly defined before the mission;
+• respect the agreed times;
+• give prompt notice in case of delay, inability to attend, or difficulty;
+• ask for explanations when an instruction is not clear;
+• refuse any dangerous, illegal or unplanned task;
+• accept constructive feedback after the mission.</value></data>
+
+  <data name="Charte_S_engagement_particulier_Titre" xml:space="preserve"><value>3. Commitment of the individual client</value></data>
+  <data name="Charte_S_engagement_particulier_Corps" xml:space="preserve"><value>The individual client undertakes to use the tool, the platform and the referring coaches to formulate, have validated, organise, follow and have the work carried out when they wish to benefit from the coach’s supervision, assistance, support or possible intervention. They understand that this supervision is possible only if the mission is declared, validated and followed within the framework provided by the platform.
+
+The individual client also undertakes to describe the mission clearly and completely, to specify the expected tasks, the place, the estimated duration, any constraints, the equipment available, special instructions, safety rules and any element that may affect the proper completion of the mission. They undertake not to ask the young provider to carry out tasks that were not planned, that are dangerous, illegal, humiliating, or that require a specific qualification.</value></data>
+
+  <data name="Charte_S_ententes_hors_Titre" xml:space="preserve"><value>4. Arrangements made outside the platform</value></data>
+  <data name="Charte_S_ententes_hors_Corps" xml:space="preserve"><value>Arrangements, missions or payments agreed directly between an individual client and a young provider without going through the tool, without validation by the platform or without informing the referring coach are solely the responsibility of the people concerned. In that case, the coach, the association, the partner company or the platform cannot be considered responsible for the organisation, performance, payment, follow-up, an incident or a dispute linked to that direct arrangement.
+
+The individual client acknowledges that, if they choose to conclude a mission directly with a young provider outside the tool, they waive for that mission the benefit of the framework of supervision, assistance, mediation and follow-up offered by the referring coach, unless there is prior and explicit agreement from the platform or the coach concerned.</value></data>
+
+  <data name="Charte_S_responsabilite_coach_Titre" xml:space="preserve"><value>5. Responsibility of the referring coach</value></data>
+  <data name="Charte_S_responsabilite_coach_Corps" xml:space="preserve"><value>The referring coach acts as a supporter, observer, mediator and educational resource in the context of missions declared and followed via the platform. Their role is to help the young provider prepare, understand expectations, progress in their socio-professional attitudes, receive constructive feedback and draw learning from each mission.
+
+The coach’s responsibility is limited to missions of which they are aware, which have been entered in the tool, validated according to the agreed framework and followed under the conditions defined by the platform. The coach is not the young provider’s employer, does not stand in for the individual client in defining the concrete need, does not guarantee a professional result equivalent to that of a specialised company, and cannot be held responsible for agreements concluded outside the scheme.
+
+In the event of difficulty, incident, misunderstanding or dissatisfaction in a declared mission, the coach may step in to clarify the situation, recall the framework, support the young person, gather the individual client’s observations, propose mediation or recommend an adjustment of the pathway. Their intervention remains a support and educational supervision role, within the limits of the information brought to their attention and of reasonably available means.</value></data>
+
+  <data name="Charte_S_missions_autorisees_Titre" xml:space="preserve"><value>6. Types of authorised missions</value></data>
+  <data name="Charte_S_missions_autorisees_Corps" xml:space="preserve"><value>• simple gardening: mowing, weeding, collecting leaves;
+• tidying a cellar, garage, attic or cluttered room;
+• light cleaning: terrace, accessible windows, simple indoor cleaning;
+• help with shopping or light carrying of objects;
+• help with a light move;
+• simple furniture assembly;
+• small repairs with no danger;
+• simple small painting jobs;
+• any other task validated in advance by the platform or the referring coach.</value></data>
+
+  <data name="Charte_S_missions_interdites_Titre" xml:space="preserve"><value>7. Forbidden or high-risk missions</value></data>
+  <data name="Charte_S_missions_interdites_Corps" xml:space="preserve"><value>• electrical work, complex plumbing, gas, heating or technical installations;
+• work at height, roofs, or use of dangerous machinery;
+• personal care, childminding without a specific framework, or transporting people;
+• handling of dangerous products;
+• any illegal, humiliating, discriminatory task, or any task contrary to the dignity of the person.
+
+If in doubt, the provider must suspend the mission and ask the platform or the referring coach for advice.</value></data>
+
+  <data name="Charte_S_deroulement_Titre" xml:space="preserve"><value>8. How the mission unfolds</value></data>
+  <data name="Charte_S_deroulement_Corps" xml:space="preserve"><value>• Before the mission: read the description, check the place, time and duration, confirm attendance, wear suitable clothing, and do not accept a mission one does not feel able to carry out properly or safely.
+• During the mission: introduce oneself politely, listen to instructions, ask questions if needed, work with care, respect the home, avoid excessive phone use, do not smoke or consume alcohol or prohibited substances, report any incident.
+• After the mission: check with the client that the task is finished, put equipment away, leave the premises clean, report what could not be done, thank the client and accept constructive feedback.</value></data>
+
+  <data name="Charte_S_comportements_Titre" xml:space="preserve"><value>9. Expected behaviours of the young provider</value></data>
+  <data name="Charte_S_comportements_Corps" xml:space="preserve"><value>• punctuality;
+• politeness;
+• reliability;
+• honesty;
+• respect for instructions;
+• ability to ask for help;
+• care taken with the work;
+• respect for the client;
+• ability to acknowledge a mistake;
+• willingness to learn and to progress.</value></data>
+
+  <data name="Charte_S_confidentialite_Titre" xml:space="preserve"><value>10. Confidentiality, safety and support</value></data>
+  <data name="Charte_S_confidentialite_Corps" xml:space="preserve"><value>The provider respects the client’s privacy: they disclose no information, do not photograph the premises without authorisation, and publish nothing on social media about the mission. Safety remains the priority: no mission must put the provider, the client or a third party in danger. Observations gathered during or after missions may be used to support the provider in their socio-professional progress, without a definitive judgement.</value></data>
+
+  <data name="Charte_S_engagement_prestataire_Titre" xml:space="preserve"><value>11. Commitment of the young provider</value></data>
+  <data name="Charte_S_engagement_prestataire_Corps" xml:space="preserve"><value>By joining the platform, the provider undertakes to respect this charter and to carry out missions in a spirit of seriousness, respect and learning. They understand that their behaviour contributes to clients’ trust, to the credibility of the platform, to the success of the social project and to the development of their own socio-professional profile.</value></data>
+
+  <data name="Charte_S_consequences_Titre" xml:space="preserve"><value>12. Consequences in case of non-compliance</value></data>
+  <data name="Charte_S_consequences_Corps" xml:space="preserve"><value>If the charter is not respected, the platform or the referring coach may recall the rules, propose a support discussion, temporarily suspend access to missions, refuse certain future missions, or exclude the provider in the event of serious behaviour: theft, violence, threat, discrimination, consumption of alcohol or drugs during a mission, wilful damage, or infringement of the client’s privacy.</value></data>
+
+  <data name="Charte_S_formule_engagement_Titre" xml:space="preserve"><value>13. Statement of commitment</value></data>
+  <data name="Charte_S_formule_engagement_Corps" xml:space="preserve"><value>I acknowledge that I have read and understood this charter. I undertake to respect the mission, safety and behaviour rules defined by the platform. I understand that each mission is an opportunity to learn, to progress and to develop my socio-professional behaviour.
+
+Date: _______________________________
+Provider’s name: _______________________________  Signature: _______________________________
+Responsible parent: _______________________________  Signature: _______________________________</value></data>
 </root>

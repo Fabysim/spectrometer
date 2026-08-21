@@ -1,0 +1,64 @@
+@page "/coach/charte"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using Spectrometre.Core.Modules
+@using Spectrometre.Modules.JeunesPrestataires.Catalog
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject ICoachSubjectResolver CoachSubjectResolver
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<JeunesPrestatairesResource> Localizer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>@Localizer["Charte_Title"]</PageTitle>
+
+<div class="jp-page">
+    @if (_chargement)
+    {
+        <p class="jp-state">@Localizer["Chargement"]</p>
+    }
+    else if (!_estCoach)
+    {
+        <section class="jp-card">
+            <h1 class="jp-title">@Localizer["Charte_Coach_AccesRefuse_Titre"]</h1>
+            <p>@Localizer["Charte_Coach_AccesRefuse_Message"]</p>
+        </section>
+    }
+    else
+    {
+        <header class="jp-header">
+            <h1 class="jp-title">@Localizer["Charte_Heading"]</h1>
+            <p class="jp-subtitle">@Localizer["Charte_Intro"]</p>
+            <p class="jp-subtitle" style="margin-top:0.5rem">@Localizer["Charte_Intro2"]</p>
+            <p class="jp-subtitle" style="margin-top:0.5rem">@Localizer["Charte_Coach_Intro"]</p>
+            <p style="margin-top:0.75rem">
+                <a class="jp-btn-primary" href="/coach/charte/pdf" data-enhance-nav="false">
+                    @Localizer["Charte_TelechargerPdf"]
+                </a>
+            </p>
+        </header>
+
+        @foreach (var section in CharteCatalog.Sections)
+        {
+            <section class="jp-card">
+                <h2 class="jp-section-title">@Localizer[$"Charte_S_{section.Key}_Titre"]</h2>
+                <p class="jp-charte-corps">@Localizer[$"Charte_S_{section.Key}_Corps"]</p>
+            </section>
+        }
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _estCoach;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is not null)
+            _estCoach = await CoachSubjectResolver.TryGetCoachProfileIdAsync(userId) is not null;
+        _chargement = false;
+    }
+}

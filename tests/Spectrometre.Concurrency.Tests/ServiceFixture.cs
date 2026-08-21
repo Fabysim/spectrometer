@@ -28,6 +28,7 @@ using Spectrometre.Modules.GestionDuTemps;
 using Spectrometre.Modules.GestionDuTemps.Data;
 using Spectrometre.Modules.JeunesPrestataires;
 using Spectrometre.Modules.JeunesPrestataires.Data;
+using Spectrometre.Modules.JeunesPrestataires.Services;
 using Spectrometre.Modules.Missions;
 using Spectrometre.Modules.Missions.Data;
 using Spectrometre.Modules.GestionDuTemps.Services;
@@ -102,6 +103,18 @@ public sealed class ServiceFixture : IAsyncLifetime
     private readonly System.Collections.Concurrent.ConcurrentBag<string> _usersToCleanup = [];
 
     public void TrackUserForCleanup(string userId) => _usersToCleanup.Add(userId);
+
+    /// <summary>
+    /// Les tests de missions supposent un jeune qui a déjà accepté la charte.
+    /// Les jeunes de développement existants ne sont pas rattrapés ici.
+    /// </summary>
+    public async Task GarantirCharteAccepteeAsync(string jeuneUserId)
+    {
+        var charte = Services.GetRequiredService<ICharteService>();
+        if (await charte.EstAccepteeAsync(jeuneUserId))
+            return;
+        Assert.True(await charte.AccepterAsync(jeuneUserId, "Confirmation test"));
+    }
 
     public async Task InitializeAsync()
     {
@@ -183,6 +196,8 @@ public sealed class ServiceFixture : IAsyncLifetime
         // Idem pour ProfilCandidat/ProfilEntreprise → SuiviEvolutif : implémentation réelle par-dessus le
         // no-op (absent ici puisqu'on n'appelle pas AddSpectrometreCore — on l'enregistre directement).
         services.AddScoped<IProfileChangeRecorder, ProfileChangeRecorder>();
+
+        services.AddLocalization();
 
         Services = services.BuildServiceProvider();
 

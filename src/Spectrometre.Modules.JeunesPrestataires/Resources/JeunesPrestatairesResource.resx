@@ -282,4 +282,105 @@
   <data name="GuideEntrevue_Peur_peur_experience_passee_Levier" xml:space="preserve"><value>Identifier les conditions qui rendent la nouvelle expérience plus sécurisée</value></data>
 
   <data name="GuideEntrevue_Posture" xml:space="preserve"><value>Le coach peut adopter une posture en trois temps : accueillir la peur sans la minimiser, la rendre plus précise, puis construire une première action sécurisée. Par exemple : « C'est normal d'avoir une appréhension quand on commence quelque chose de nouveau. Quand tu dis que tu n'es pas sûr de toi, est-ce plutôt la peur de mal faire, de ne pas comprendre ou du regard de l'autre ? Quelle petite première étape te permettrait d'essayer sans te sentir mis en danger ? »</value></data>
+
+  <data name="Charte_Title" xml:space="preserve"><value>Charte des missions · Spectromètre</value></data>
+  <data name="Charte_Heading" xml:space="preserve"><value>Charte formelle des missions, des comportements et de l'accompagnement</value></data>
+  <data name="Charte_Intro" xml:space="preserve"><value>La présente charte définit le cadre de collaboration entre la plateforme, les jeunes prestataires, les particuliers, les coachs référents, les associations et les entreprises partenaires. Elle vise à garantir des missions simples, encadrées, sécurisées et utiles au développement socioprofessionnel des jeunes prestataires.</value></data>
+  <data name="Charte_Intro2" xml:space="preserve"><value>Elle précise les engagements de chaque partie, les limites du dispositif, les comportements attendus, les règles de sécurité, les conditions de supervision par le coach et les conséquences éventuelles en cas de non-respect du cadre prévu.</value></data>
+  <data name="Charte_AccesRefuse_Titre" xml:space="preserve"><value>Accès réservé</value></data>
+  <data name="Charte_AccesRefuse_Message" xml:space="preserve"><value>Cette page est réservée aux jeunes prestataires.</value></data>
+  <data name="Charte_Coach_AccesRefuse_Titre" xml:space="preserve"><value>Accès réservé</value></data>
+  <data name="Charte_Coach_AccesRefuse_Message" xml:space="preserve"><value>Le téléchargement de la charte est réservé aux coachs.</value></data>
+  <data name="Charte_Coach_Intro" xml:space="preserve"><value>Cette charte peut être téléchargée par le coach en tout temps.</value></data>
+  <data name="Charte_TelechargerPdf" xml:space="preserve"><value>Télécharger le PDF</value></data>
+  <data name="Charte_PdfPied" xml:space="preserve"><value>Spectromètre — charte des missions</value></data>
+  <data name="Charte_Confirmation_Titre" xml:space="preserve"><value>Confirmation</value></data>
+  <data name="Charte_Confirmation_Intro" xml:space="preserve"><value>Tapez votre nom pour confirmer. Ce n'est pas une signature électronique qualifiée. La ligne « Parent responsable » du document source n'est pas un second circuit : l'engagement parental est déjà recueilli dans le consentement parental.</value></data>
+  <data name="Charte_Confirmation_LectureSeule" xml:space="preserve"><value>Vous avez déjà accepté cette charte. Elle reste en vigueur.</value></data>
+  <data name="Charte_NomConfirmation" xml:space="preserve"><value>Nom du prestataire</value></data>
+  <data name="Charte_BoutonAccepter" xml:space="preserve"><value>J'accepte</value></data>
+  <data name="Charte_AccepteeLe" xml:space="preserve"><value>Charte acceptée le {0}</value></data>
+  <data name="Charte_ErreurAcceptation" xml:space="preserve"><value>Impossible d'enregistrer. Vérifiez que le nom est renseigné, ou que la charte n'a pas déjà été acceptée.</value></data>
+
+  <data name="Charte_S_objet_Titre" xml:space="preserve"><value>1. Objet et finalité de la charte</value></data>
+  <data name="Charte_S_objet_Corps" xml:space="preserve"><value>La plateforme a pour objet de mettre en relation des particuliers ayant de petits travaux à faire avec de jeunes prestataires souhaitant acquérir de l'expérience, développer leur confiance, renforcer leurs compétences pratiques et progresser dans leurs attitudes socioprofessionnelles. Les missions proposées doivent rester simples, limitées, non dangereuses et compatibles avec une démarche d'apprentissage accompagnée.</value></data>
+
+  <data name="Charte_S_principes_generaux_Titre" xml:space="preserve"><value>2. Principes généraux du dispositif</value></data>
+  <data name="Charte_S_principes_generaux_Corps" xml:space="preserve"><value>• respecter le client, son domicile, ses biens et son environnement ; Le jeune prestataire adopte une attitude simple et professionnelle : saluer le client, écouter ses consignes, rester dans les espaces prévus, ne pas fouiller ni déplacer inutilement les objets, manipuler le matériel avec soin, protéger les lieux pendant le travail, ranger et nettoyer après la mission, signaler immédiatement tout dégât ou difficulté, et respecter la vie privée du client en ne prenant aucune photo ni en partageant d'informations sur ce qu'il a vu ou entendu.
+• réaliser uniquement les tâches acceptées et clairement définies avant la mission ;
+• respecter les horaires convenus ;
+• prévenir rapidement en cas de retard, d'empêchement ou de difficulté ;
+• demander des explications lorsqu'une consigne n'est pas claire ;
+• refuser toute tâche dangereuse, illégale ou non prévue ;
+• accepter un retour constructif après la mission.</value></data>
+
+  <data name="Charte_S_engagement_particulier_Titre" xml:space="preserve"><value>3. Engagement du particulier</value></data>
+  <data name="Charte_S_engagement_particulier_Corps" xml:space="preserve"><value>Le particulier s'engage à utiliser l'outil, la plateforme et les coachs référents pour formuler, faire valider, organiser, suivre et faire exécuter les travaux lorsqu'il souhaite bénéficier de la supervision, de l'assistance, de l'accompagnement ou de l'intervention éventuelle du coach. Il comprend que cette supervision n'est possible que si la mission est déclarée, validée et suivie dans le cadre prévu par la plateforme.
+
+Le particulier s'engage également à décrire la mission de manière claire et complète, à préciser les tâches attendues, le lieu, la durée estimée, les contraintes éventuelles, le matériel disponible, les consignes particulières, les règles de sécurité et tout élément pouvant influencer la bonne réalisation de la mission. Il s'engage à ne pas demander au jeune prestataire d'exécuter des tâches non prévues, dangereuses, illégales, humiliantes ou nécessitant une qualification spécifique.</value></data>
+
+  <data name="Charte_S_ententes_hors_Titre" xml:space="preserve"><value>4. Ententes conclues hors plateforme</value></data>
+  <data name="Charte_S_ententes_hors_Corps" xml:space="preserve"><value>Les ententes, arrangements, missions ou paiements convenus directement entre un particulier et un jeune prestataire sans passer par l'outil, sans validation de la plateforme ou sans information du coach référent relèvent uniquement de la responsabilité des personnes concernées. Dans ce cas, le coach, l'association, l'entreprise partenaire ou la plateforme ne peuvent être considérés comme responsables de l'organisation, de l'exécution, du paiement, du suivi, d'un incident ou d'un litige lié à cette entente directe.
+
+Le particulier reconnaît que, s'il choisit de conclure directement une mission avec un jeune prestataire en dehors de l'outil, il renonce pour cette mission au bénéfice du cadre de supervision, d'assistance, de médiation et de suivi proposé par le coach référent, sauf accord préalable et explicite de la plateforme ou du coach concerné.</value></data>
+
+  <data name="Charte_S_responsabilite_coach_Titre" xml:space="preserve"><value>5. Responsabilité du coach référent</value></data>
+  <data name="Charte_S_responsabilite_coach_Corps" xml:space="preserve"><value>Le coach référent intervient comme accompagnateur, observateur, médiateur et soutien pédagogique dans le cadre des missions déclarées et suivies via la plateforme. Son rôle consiste à aider le jeune prestataire à se préparer, à comprendre les attentes, à progresser dans ses attitudes socioprofessionnelles, à recevoir des retours constructifs et à tirer des apprentissages de chaque mission.
+
+La responsabilité du coach est limitée aux missions dont il a connaissance, qui ont été introduites dans l'outil, validées selon le cadre prévu et suivies dans les conditions définies par la plateforme. Le coach n'est pas l'employeur du jeune prestataire, ne se substitue pas au particulier dans la définition concrète du besoin, ne garantit pas un résultat professionnel équivalent à celui d'une entreprise spécialisée et ne peut être tenu responsable des accords conclus en dehors du dispositif.
+
+En cas de difficulté, d'incident, de malentendu ou d'insatisfaction dans une mission déclarée, le coach peut intervenir pour clarifier la situation, rappeler le cadre, soutenir le jeune, recueillir les observations du particulier, proposer une médiation ou recommander une adaptation du parcours. Son intervention reste une mission d'accompagnement et de supervision pédagogique, dans les limites des informations portées à sa connaissance et des moyens raisonnablement disponibles.</value></data>
+
+  <data name="Charte_S_missions_autorisees_Titre" xml:space="preserve"><value>6. Types de missions autorisées</value></data>
+  <data name="Charte_S_missions_autorisees_Corps" xml:space="preserve"><value>• jardinage simple : tonte, désherbage, ramassage de feuilles ;
+• rangement de cave, garage, grenier ou pièce encombrée ;
+• nettoyage léger : terrasse, vitres accessibles, intérieur simple ;
+• aide aux courses ou transport léger d'objets ;
+• aide au déménagement léger ;
+• montage simple de meubles ;
+• petites réparations sans danger ;
+• petits travaux de peinture simples ;
+• toute autre tâche validée au préalable par la plateforme ou le référent.</value></data>
+
+  <data name="Charte_S_missions_interdites_Titre" xml:space="preserve"><value>7. Missions interdites ou à risque</value></data>
+  <data name="Charte_S_missions_interdites_Corps" xml:space="preserve"><value>• travaux électriques, plomberie complexe, gaz, chauffage ou installations techniques ;
+• travaux en hauteur, toiture ou utilisation de machines dangereuses ;
+• soins aux personnes, garde d'enfants sans cadre spécifique ou transport de personnes ;
+• manipulation de produits dangereux ;
+• toute tâche illégale, humiliante, discriminatoire ou contraire à la dignité de la personne.
+
+En cas de doute, le prestataire doit suspendre la mission et demander conseil à la plateforme ou au référent.</value></data>
+
+  <data name="Charte_S_deroulement_Titre" xml:space="preserve"><value>8. Déroulement de la mission</value></data>
+  <data name="Charte_S_deroulement_Corps" xml:space="preserve"><value>• Avant la mission : lire la description, vérifier le lieu, l'heure et la durée, confirmer sa présence, porter une tenue adaptée et ne pas accepter une mission que l'on ne se sent pas capable de réaliser correctement ou en sécurité.
+• Pendant la mission : se présenter poliment, écouter les consignes, poser des questions si nécessaire, travailler avec soin, respecter le domicile, éviter l'usage excessif du téléphone, ne pas fumer ni consommer d'alcool ou de substances interdites, signaler tout incident.
+• Après la mission : vérifier avec le client que la tâche est terminée, ranger le matériel, laisser les lieux propres, signaler ce qui n'a pas pu être fait, remercier le client et accepter un retour constructif.</value></data>
+
+  <data name="Charte_S_comportements_Titre" xml:space="preserve"><value>9. Comportements attendus du jeune prestataire</value></data>
+  <data name="Charte_S_comportements_Corps" xml:space="preserve"><value>• ponctualité ;
+• politesse ;
+• fiabilité ;
+• honnêteté ;
+• respect des consignes ;
+• capacité à demander de l'aide ;
+• soin apporté au travail ;
+• respect du client ;
+• capacité à reconnaître une erreur ;
+• volonté d'apprendre et de progresser.</value></data>
+
+  <data name="Charte_S_confidentialite_Titre" xml:space="preserve"><value>10. Confidentialité, sécurité et accompagnement</value></data>
+  <data name="Charte_S_confidentialite_Corps" xml:space="preserve"><value>Le prestataire respecte la vie privée du client : il ne divulgue aucune information, ne photographie pas les lieux sans autorisation et ne publie rien sur les réseaux sociaux concernant la mission. La sécurité reste prioritaire : aucune mission ne doit mettre en danger le prestataire, le client ou un tiers. Les observations recueillies pendant ou après les missions peuvent servir à accompagner le prestataire dans sa progression socioprofessionnelle, sans jugement définitif.</value></data>
+
+  <data name="Charte_S_engagement_prestataire_Titre" xml:space="preserve"><value>11. Engagement du jeune prestataire</value></data>
+  <data name="Charte_S_engagement_prestataire_Corps" xml:space="preserve"><value>En rejoignant la plateforme, le prestataire s'engage à respecter cette charte et à réaliser les missions dans un esprit de sérieux, de respect et d'apprentissage. Il comprend que son comportement contribue à la confiance des clients, à la crédibilité de la plateforme, à la réussite du projet social et au développement de son propre profil socioprofessionnel.</value></data>
+
+  <data name="Charte_S_consequences_Titre" xml:space="preserve"><value>12. Conséquences en cas de non-respect</value></data>
+  <data name="Charte_S_consequences_Corps" xml:space="preserve"><value>En cas de non-respect de la charte, la plateforme ou le référent peut rappeler les règles, proposer un échange d'accompagnement, suspendre temporairement l'accès aux missions, refuser certaines missions futures ou exclure le prestataire en cas de comportement grave : vol, violence, menace, discrimination, consommation d'alcool ou de drogues pendant une mission, dégradation volontaire ou atteinte à la vie privée du client.</value></data>
+
+  <data name="Charte_S_formule_engagement_Titre" xml:space="preserve"><value>13. Formule d'engagement</value></data>
+  <data name="Charte_S_formule_engagement_Corps" xml:space="preserve"><value>Je reconnais avoir lu et compris la présente charte. Je m'engage à respecter les règles de mission, de sécurité et de comportement définies par la plateforme. Je comprends que chaque mission est une occasion d'apprendre, de progresser et de développer mon comportement socioprofessionnel.
+
+Date : _______________________________
+Nom du prestataire : _______________________________  Signature : _______________________________
+Parent responsable : _______________________________  Signature : _______________________________</value></data>
 </root>

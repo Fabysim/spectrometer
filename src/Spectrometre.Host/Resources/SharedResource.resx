@@ -285,6 +285,9 @@
   <data name="Home_MesAstuces" xml:space="preserve">
     <value>Mes astuces</value>
   </data>
+  <data name="Home_Charte" xml:space="preserve">
+    <value>Charte</value>
+  </data>
   <data name="Home_MesPersonnesSuivies" xml:space="preserve">
     <value>Mes personnes suivies</value>
   </data>

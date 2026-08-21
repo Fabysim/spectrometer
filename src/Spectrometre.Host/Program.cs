@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Spectrometre.Core;
 using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
@@ -366,6 +367,25 @@ app.MapGet("/candidat/cv/pdf", async (
     var pdfBytes = cvPdfService.GenerateCvPdf(cv);
 
     return Results.File(pdfBytes, "application/pdf", "cv.pdf");
+}).RequireAuthorization();
+
+// PDF de la charte — document de référence générique, tout coach authentifié (pas lié à un jeune).
+// Même pattern que /candidat/cv/pdf (endpoint minimal : Blazor ne streame pas un binaire).
+app.MapGet("/coach/charte/pdf", async (
+    HttpContext httpContext,
+    ICoachSubjectResolver coachSubjectResolver,
+    Spectrometre.Modules.JeunesPrestataires.Services.IChartePdfService chartePdfService,
+    IStringLocalizer<Spectrometre.Modules.JeunesPrestataires.Resources.JeunesPrestatairesResource> charteLocalizer) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    if (await coachSubjectResolver.TryGetCoachProfileIdAsync(userId) is null)
+        return Results.Forbid();
+
+    var pdfBytes = chartePdfService.GeneratePdf(charteLocalizer);
+    return Results.File(pdfBytes, "application/pdf", "charte-missions.pdf");
 }).RequireAuthorization();
 
 // Export PDF de l'analyse IA poste/candidature — même pattern que /candidat/cv/pdf (endpoint minimal

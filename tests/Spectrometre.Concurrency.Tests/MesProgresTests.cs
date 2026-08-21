@@ -99,6 +99,7 @@ public sealed class MesProgresTests(ServiceFixture fixture)
 
         var profile = await jeuneService.FinaliserDepuisInvitationAsync(invitation, jeuneUserId);
         await coachingService.FinaliserJeunePrestataireDepuisInvitationAsync(invitation, jeuneUserId);
+        await fixture.GarantirCharteAccepteeAsync(jeuneUserId);
         await ActiverGestionDuTempsApresAcceptationJeuneAsync(jeuneUserId, coreDb);
         await fixture.Services.GetRequiredService<IInvitationService>().MarquerAccepteeAsync(invitation.Id, coreDb);
 

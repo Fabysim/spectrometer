@@ -283,6 +283,9 @@
   <data name="Home_MesAstuces" xml:space="preserve">
     <value>My tips</value>
   </data>
+  <data name="Home_Charte" xml:space="preserve">
+    <value>Charter</value>
+  </data>
   <data name="Home_MesPersonnesSuivies" xml:space="preserve">
     <value>My clients</value>
   </data>

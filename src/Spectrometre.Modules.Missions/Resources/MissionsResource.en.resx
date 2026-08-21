@@ -61,6 +61,8 @@
   <data name="AccepterMission" xml:space="preserve"><value>Accept mission</value></data>
   <data name="Acceptation_Succes" xml:space="preserve"><value>Mission accepted — waiting for your coach's approval.</value></data>
   <data name="Acceptation_Echec" xml:space="preserve"><value>This mission is no longer available.</value></data>
+  <data name="Acceptation_CharteRequise" xml:space="preserve"><value>Accept the mission charter first before you can apply.</value></data>
+  <data name="Acceptation_CharteLien" xml:space="preserve"><value>Open the charter</value></data>
   <data name="Valider" xml:space="preserve"><value>Approve</value></data>
   <data name="Refuser" xml:space="preserve"><value>Decline</value></data>
   <data name="Validation_Succes" xml:space="preserve"><value>Acceptance approved — the mission is assigned to the young provider.</value></data>

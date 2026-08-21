@@ -205,6 +205,7 @@ public sealed class MissionEvaluationParticulierTests(ServiceFixture fixture)
 
         await jeuneService.FinaliserDepuisInvitationAsync(invitation, jeuneUserId);
         await coachingService.FinaliserJeunePrestataireDepuisInvitationAsync(invitation, jeuneUserId);
+        await fixture.GarantirCharteAccepteeAsync(jeuneUserId);
         await ActiverGestionDuTempsApresAcceptationJeuneAsync(jeuneUserId, coreDb);
         await fixture.Services.GetRequiredService<IInvitationService>().MarquerAccepteeAsync(invitation.Id, coreDb);
 

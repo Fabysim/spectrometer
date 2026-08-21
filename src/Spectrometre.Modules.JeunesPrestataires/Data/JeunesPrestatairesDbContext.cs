@@ -18,6 +18,7 @@ public sealed class JeunesPrestatairesDbContext(DbContextOptions<JeunesPrestatai
     public DbSet<GrilleObservationCritere> GrilleObservationCriteres => Set<GrilleObservationCritere>();
     public DbSet<GuideEntrevue> GuidesEntrevue => Set<GuideEntrevue>();
     public DbSet<GuideEntrevuePeurNote> GuideEntrevuePeurNotes => Set<GuideEntrevuePeurNote>();
+    public DbSet<CharteAcceptation> CharteAcceptations => Set<CharteAcceptation>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -82,6 +83,11 @@ public sealed class JeunesPrestatairesDbContext(DbContextOptions<JeunesPrestatai
                 .WithMany(g => g.PeurNotes)
                 .HasForeignKey(n => n.GuideEntrevueId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<CharteAcceptation>(e =>
+        {
+            e.HasIndex(c => c.JeuneProfileId).IsUnique();
         });
     }
 }

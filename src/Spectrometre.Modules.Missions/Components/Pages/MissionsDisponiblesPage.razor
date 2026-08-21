@@ -5,8 +5,10 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Spectrometre.Modules.Missions.Entities
+@using Spectrometre.Modules.JeunesPrestataires.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IMissionService MissionService
+@inject ICharteService CharteService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<MissionsResource> Localizer
 
@@ -16,6 +18,14 @@
 <div class="missions-page">
     <h1 class="missions-title">@Localizer["MissionsDisponibles_Heading"]</h1>
     <p><a href="/jeune/mes-missions">@Localizer["MesMissionsJeune_Lien"]</a></p>
+
+    @if (_charteManquante)
+    {
+        <p class="missions-meta">
+            @Localizer["Acceptation_CharteRequise"]
+            <a href="/jeune/charte">@Localizer["Acceptation_CharteLien"]</a>
+        </p>
+    }
 
     @if (!string.IsNullOrEmpty(_message))
     {
@@ -56,7 +66,7 @@
                 @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
                 <div class="missions-actions">
                     <button type="button" class="missions-btn missions-btn-primary"
-                            disabled="@_acceptingId.HasValue"
+                            disabled="@(_acceptingId.HasValue || _charteManquante)"
                             @onclick="() => AccepterAsync(m.MissionId)">
                         @Localizer["AccepterMission"]
                     </button>
@@ -71,11 +81,14 @@
     private IReadOnlyList<MissionResumeView> _missions = [];
     private int? _acceptingId;
     private string? _message;
+    private bool _charteManquante;
 
     protected override async Task OnInitializedAsync()
     {
         var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is not null)
+            _charteManquante = !await CharteService.EstAccepteeAsync(_userId);
         await RefreshAsync();
     }
 

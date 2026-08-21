@@ -18,7 +18,8 @@ public sealed class MissionService(
     IParticulierProfileService particulierProfileService,
     IJeuneProfileService jeuneProfileService,
     ICoachingService coachingService,
-    INotificationService notificationService) : IMissionService
+    INotificationService notificationService,
+    ICharteService charteService) : IMissionService
 {
     public async Task<int?> PublierMissionAsync(string particulierUserId, PublierMissionInput input, CancellationToken cancellationToken = default)
     {
@@ -88,6 +89,12 @@ public sealed class MissionService(
     {
         var jeune = await jeuneProfileService.TryGetByUserIdAsync(jeuneUserId, cancellationToken);
         if (jeune is null)
+            return false;
+
+        // Garde charte : en rejoignant la plateforme, le prestataire s'engage à respecter la charte.
+        // Les jeunes déjà présents en base de développement sans CharteAcceptation ne pourront plus
+        // accepter de mission tant qu'un rattrapage n'aura pas été décidé (hors de ce cycle).
+        if (!await charteService.EstAccepteeAsync(jeuneUserId, cancellationToken))
             return false;
 
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);

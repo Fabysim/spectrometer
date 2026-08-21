@@ -37,6 +37,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAutoObservationService, AutoObservationService>();
         services.AddScoped<IGrilleObservationService, GrilleObservationService>();
         services.AddScoped<IGuideEntrevueService, GuideEntrevueService>();
+        services.AddScoped<ICharteService, CharteService>();
+        services.AddScoped<IChartePdfService, ChartePdfService>();
         return services;
     }
 }

@@ -10,6 +10,10 @@ public interface IMissionService
 
     Task<IReadOnlyList<MissionJeuneView>> GetMesMissionsAsync(string jeuneUserId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Accepte une mission <c>Disponible</c>. Refuse aussi si la charte n'est pas acceptée
+    /// (<see cref="Spectrometre.Modules.JeunesPrestataires.Services.ICharteService"/>).
+    /// </summary>
     Task<bool> AccepterMissionAsync(string jeuneUserId, int missionId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<MissionAcceptationView>> GetDemandesEnAttentePourCoachAsync(string coachUserId, CancellationToken cancellationToken = default);

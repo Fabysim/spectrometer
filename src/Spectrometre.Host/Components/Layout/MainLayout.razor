@@ -182,6 +182,10 @@
                                 <span class="nav-icon"><i class="bi bi-lightbulb" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_MesAstuces"]</span>
                             </a>
+                            <a href="/jeune/charte" class="nav-item-auth nav-sub-item @ActiveClass("/jeune/charte")">
+                                <span class="nav-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_Charte"]</span>
+                            </a>
                             @if (_consentementParentalACompleter)
                             {
                                 <a href="/candidat/consentement-parental" class="nav-item-auth nav-sub-item @ActiveClass("/candidat/consentement-parental")">
@@ -318,6 +322,10 @@
                             <a href="/coach/suivis" class="nav-item-auth nav-sub-item @ActiveClass("/coach/suivis")">
                                 <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_MesPersonnesSuivies"]</span>
+                            </a>
+                            <a href="/coach/charte" class="nav-item-auth nav-sub-item @ActiveClass("/coach/charte")">
+                                <span class="nav-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_Charte"]</span>
                             </a>
                             <a href="/coach/modules" class="nav-item-auth nav-sub-item @ActiveClass("/coach/modules")">
                                 <span class="nav-icon"><i class="bi bi-plus-square" aria-hidden="true"></i></span>
@@ -595,7 +603,8 @@
         "gdt" => (CurrentPath.StartsWith("/gestion-du-temps", StringComparison.OrdinalIgnoreCase)
                   && !CurrentPath.Equals("/gestion-du-temps", StringComparison.OrdinalIgnoreCase))
                  || CurrentPath.StartsWith("/mon-coach", StringComparison.OrdinalIgnoreCase),
-        "coach" => CurrentPath.StartsWith("/coach/suivis", StringComparison.OrdinalIgnoreCase),
+        "coach" => CurrentPath.StartsWith("/coach/suivis", StringComparison.OrdinalIgnoreCase)
+                   || CurrentPath.StartsWith("/coach/charte", StringComparison.OrdinalIgnoreCase),
         "jeune" => CurrentPath.StartsWith("/jeune", StringComparison.OrdinalIgnoreCase)
                    || CurrentPath.StartsWith("/candidat/consentement-parental", StringComparison.OrdinalIgnoreCase)
                    || CurrentPath.StartsWith("/candidat/cv", StringComparison.OrdinalIgnoreCase),

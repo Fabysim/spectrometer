@@ -61,6 +61,8 @@
   <data name="AccepterMission" xml:space="preserve"><value>Accepter la mission</value></data>
   <data name="Acceptation_Succes" xml:space="preserve"><value>Mission acceptée — en attente de validation par votre coach.</value></data>
   <data name="Acceptation_Echec" xml:space="preserve"><value>Cette mission n'est plus disponible.</value></data>
+  <data name="Acceptation_CharteRequise" xml:space="preserve"><value>Accepte d'abord la charte des missions pour pouvoir postuler.</value></data>
+  <data name="Acceptation_CharteLien" xml:space="preserve"><value>Ouvrir la charte</value></data>
   <data name="Valider" xml:space="preserve"><value>Valider</value></data>
   <data name="Refuser" xml:space="preserve"><value>Refuser</value></data>
   <data name="Validation_Succes" xml:space="preserve"><value>Acceptation validée — la mission est attribuée au jeune.</value></data>

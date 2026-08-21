@@ -211,6 +211,7 @@ public sealed class CoachDashboardActionsRapidesTests(ServiceFixture fixture)
         var invitation = await coreDb.Invitations.FirstAsync(i => i.Id == invite.Invitation!.Id);
         var profile = await jeuneService.FinaliserDepuisInvitationAsync(invitation, jeuneId);
         await coachingService.FinaliserJeunePrestataireDepuisInvitationAsync(invitation, jeuneId);
+        await fixture.GarantirCharteAccepteeAsync(jeuneId);
         return (jeuneId, profile.Id);
     }
 
