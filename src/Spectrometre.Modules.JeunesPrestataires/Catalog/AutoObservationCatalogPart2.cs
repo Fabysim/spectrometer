@@ -331,6 +331,7 @@ public static partial class AutoObservationCatalog
                 Open("p2.s12.signes_fatigue", "Signes que je suis fatigué, stressé ou dépassé"),
                 Open("p2.s12.aide_coach", "Ce que le coach peut faire pour m'aider"),
             ]),
+        ..CategorieASections,
         new(
             "p2.s13",
             2,

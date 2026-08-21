@@ -355,6 +355,7 @@ public static partial class AutoObservationCatalog
                 Open("p0.s8.personne_aide", "La personne qui peut m'aider à garder le cap est :"),
                 Open("p0.s8.apprendre_soi", "Ce que je veux apprendre sur moi-même pendant cette étape est :"),
             ]),
+        ..CategorieBSections,
     ];
 
     /// <summary>

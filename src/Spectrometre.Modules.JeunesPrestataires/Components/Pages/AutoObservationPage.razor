@@ -100,7 +100,7 @@ else
                         <li>
                             <button type="button" class="ao-section-btn @(_sectionKey == s.Key ? "active" : "") @(IsSaved(s.Key) ? "saved" : "")"
                                     @onclick="() => SelectSectionAsync(s.Key)">
-                                @s.Title
+                                @TexteCatalogue($"AutoObs_S_{s.Key}", s.Title)
                             </button>
                         </li>
                     }
@@ -112,10 +112,10 @@ else
         <main class="ao-main ao-card">
             @if (_sectionDef is not null)
             {
-                <h2 class="ao-section-title">@_sectionDef.Title</h2>
+                <h2 class="ao-section-title">@TexteCatalogue($"AutoObs_S_{_sectionDef.Key}", _sectionDef.Title)</h2>
                 @if (!string.IsNullOrWhiteSpace(_sectionDef.Intro))
                 {
-                    <p class="ao-hint">@_sectionDef.Intro</p>
+                    <p class="ao-hint">@TexteCatalogue($"AutoObs_I_{_sectionDef.Key}", _sectionDef.Intro)</p>
                 }
 
                 @if (_sectionDef.Key == "p2.s1")
@@ -240,7 +240,7 @@ else
                         }
 
                         <div class="ao-question">
-                            <label class="ao-question-label">@q.Label</label>
+                            <label class="ao-question-label">@TexteCatalogue($"AutoObs_Q_{q.Key}", q.Label)</label>
                             @switch (q.FieldType)
                             {
                                 case AutoObservationFieldType.OpenText:
@@ -249,14 +249,16 @@ else
                                     break;
                                 case AutoObservationFieldType.MultiCheckbox:
                                     <div class="ao-checkboxes">
+                                        @{ var optIndex = 0; }
                                         @foreach (var opt in q.Options ?? [])
                                         {
+                                            var i = optIndex++;
                                             var isAutre = opt.StartsWith("Autre", StringComparison.Ordinal);
                                             <label class="ao-checkbox">
                                                 <input type="checkbox" disabled="@(!_canEdit)"
                                                        checked="@IsChecked(q.Key, opt)"
                                                        @onchange="e => ToggleMulti(q.Key, opt, (bool)e.Value!)" />
-                                                @opt
+                                                @TexteCatalogue($"AutoObs_O_{q.Key}_{i}", opt)
                                             </label>
                                             @if (isAutre && q.AutreKey is not null)
                                             {
@@ -268,13 +270,15 @@ else
                                     break;
                                 case AutoObservationFieldType.SingleChoice:
                                     <div class="ao-radios">
+                                        @{ var radioIndex = 0; }
                                         @foreach (var opt in q.Options ?? [])
                                         {
+                                            var i = radioIndex++;
                                             <label class="ao-radio">
                                                 <input type="radio" name="@q.Key" disabled="@(!_canEdit)"
                                                        checked="@(_textValues.GetValueOrDefault(q.Key) == opt)"
                                                        @onchange="() => _textValues[q.Key] = opt" />
-                                                @opt
+                                                @TexteCatalogue($"AutoObs_O_{q.Key}_{i}", opt)
                                             </label>
                                         }
                                     </div>
@@ -409,6 +413,12 @@ else
         }
 
         _chargement = false;
+    }
+
+    private string TexteCatalogue(string resourceKey, string fallback)
+    {
+        var loc = Localizer[resourceKey];
+        return loc.ResourceNotFound ? fallback : loc.Value;
     }
 
     private bool IsSaved(string key) =>

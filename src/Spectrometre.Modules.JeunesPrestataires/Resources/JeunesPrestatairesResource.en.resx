@@ -434,4 +434,286 @@ If in doubt, the provider must suspend the mission and ask the platform or the r
 Date: _______________________________
 Provider’s name: _______________________________  Signature: _______________________________
 Responsible parent: _______________________________  Signature: _______________________________</value></data>
+
+  <!-- Contenu enrichi Catégorie A / B -->
+  <data name="AutoObs_S_p2.s14" xml:space="preserve"><value>A.1 Missions I feel able to try</value></data>
+  <data name="AutoObs_S_p2.s15" xml:space="preserve"><value>A.2 Work habits to develop</value></data>
+  <data name="AutoObs_S_p2.s16" xml:space="preserve"><value>A.3 Need for support and safety</value></data>
+  <data name="AutoObs_S_p2.s17" xml:space="preserve"><value>A.4 Context preferences and current limits</value></data>
+  <data name="AutoObs_S_p2.s18" xml:space="preserve"><value>A.5 Immediate motivation and progress</value></data>
+  <data name="AutoObs_S_p0.s9" xml:space="preserve"><value>B.1 Past experience and learning</value></data>
+  <data name="AutoObs_S_p0.s10" xml:space="preserve"><value>B.2 Interests, preferences and sources of energy</value></data>
+  <data name="AutoObs_S_p0.s11" xml:space="preserve"><value>B.3 Professional values and conditions for success</value></data>
+  <data name="AutoObs_S_p0.s12" xml:space="preserve"><value>B.4 Study, occupation or career paths</value></data>
+  <data name="AutoObs_S_p0.s13" xml:space="preserve"><value>B.5 Decision, experimentation and action plan</value></data>
+  <data name="AutoObs_I_p2.s14" xml:space="preserve"><value>This part should be presented as a simple, reassuring and concrete pathway. It aims to identify accessible missions, support needs and habits to develop step by step.</value></data>
+  <data name="AutoObs_I_p0.s9" xml:space="preserve"><value>This part should help the young person review their experiences, identify their deeper interests, values, conditions for success, and study or career paths to explore in practice.</value></data>
+  <data name="AutoObs_Q_p2.s14.essayer" xml:space="preserve"><value>Among the following small jobs, which would you like to try?</value></data>
+  <data name="AutoObs_Q_p2.s14.faciles" xml:space="preserve"><value>Which missions seem easy to start with a little explanation?</value></data>
+  <data name="AutoObs_Q_p2.s14.accompagne" xml:space="preserve"><value>Which missions would you only want to try if someone supports you at the start?</value></data>
+  <data name="AutoObs_Q_p2.s14.eviter" xml:space="preserve"><value>Are there missions you would rather avoid for now? Which ones?</value></data>
+  <data name="AutoObs_Q_p2.s14.confiance" xml:space="preserve"><value>Which small mission would give you the most confidence if you succeeded at it?</value></data>
+  <data name="AutoObs_Q_p2.s15.ponctuel" xml:space="preserve"><value>Do you generally arrive on time for an appointment or an activity?</value></data>
+  <data name="AutoObs_Q_p2.s15.aide_ponctualite" xml:space="preserve"><value>What could help you be punctual: phone reminder, message from the coach, preparing the day before, accompanied travel, other?</value></data>
+  <data name="AutoObs_Q_p2.s15.consigne_forme" xml:space="preserve"><value>When you receive an instruction, do you prefer it to be given orally, in writing, by demonstration, or step by step?</value></data>
+  <data name="AutoObs_Q_p2.s15.demander_precision" xml:space="preserve"><value>Do you dare ask for clarification if you have not understood?</value></data>
+  <data name="AutoObs_Q_p2.s15.ranger" xml:space="preserve"><value>After a task, do you think to put the equipment away and leave the place clean?</value></data>
+  <data name="AutoObs_Q_p2.s15.habitudes" xml:space="preserve"><value>Which habits do you want to improve first:</value></data>
+  <data name="AutoObs_Q_p2.s16.besoin_depart" xml:space="preserve"><value>To start a mission, what do you need:</value></data>
+  <data name="AutoObs_Q_p2.s16.accompagnement" xml:space="preserve"><value>Do you prefer to be supported:</value></data>
+  <data name="AutoObs_Q_p2.s16.rassurer" xml:space="preserve"><value>What could reassure you before going to an individual&#x27;s home for a first mission?</value></data>
+  <data name="AutoObs_Q_p2.s16.contacter_coach" xml:space="preserve"><value>In which situations would you like to be able to contact the coach quickly?</value></data>
+  <data name="AutoObs_Q_p2.s16.retour" xml:space="preserve"><value>What kind of feedback do you need after a mission:</value></data>
+  <data name="AutoObs_Q_p2.s17.lieu" xml:space="preserve"><value>Do you prefer to work:</value></data>
+  <data name="AutoObs_Q_p2.s17.avec_qui" xml:space="preserve"><value>Do you prefer to work:</value></data>
+  <data name="AutoObs_Q_p2.s17.difficulte" xml:space="preserve"><value>Which situations could put you in difficulty:</value></data>
+  <data name="AutoObs_Q_p2.s17.eviter" xml:space="preserve"><value>Which missions or situations should we avoid for now? Why?</value></data>
+  <data name="AutoObs_Q_p2.s17.conditions" xml:space="preserve"><value>What conditions would make a first mission easier and safer for you? Why?</value></data>
+  <data name="AutoObs_Q_p2.s18.pourquoi" xml:space="preserve"><value>Why do you want to start with small one-off jobs:</value></data>
+  <data name="AutoObs_Q_p2.s18.premiere_mission" xml:space="preserve"><value>Which first mission seems realistic in the coming weeks? Why?</value></data>
+  <data name="AutoObs_Q_p2.s18.habitude_premier" xml:space="preserve"><value>Which work habit do you want to develop first?</value></data>
+  <data name="AutoObs_Q_p2.s18.progres" xml:space="preserve"><value>How will you know you have progressed after one or two missions?</value></data>
+  <data name="AutoObs_Q_p2.s18.cv" xml:space="preserve"><value>Which qualities and skills would you like to be able to write on your CV, as after your learning, to increase your self-confidence?</value></data>
+  <data name="AutoObs_Q_p0.s9.experiences" xml:space="preserve"><value>What experiences have you already had:</value></data>
+  <data name="AutoObs_Q_p0.s9.ressenti" xml:space="preserve"><value>In which experience did you feel</value></data>
+  <data name="AutoObs_Q_p0.s9.ressenti_pourquoi" xml:space="preserve"><value>Why?</value></data>
+  <data name="AutoObs_Q_p0.s9.plu" xml:space="preserve"><value>What did you like in your previous experiences?</value></data>
+  <data name="AutoObs_Q_p0.s9.fatigue" xml:space="preserve"><value>What tired, stressed or discouraged you?</value></data>
+  <data name="AutoObs_Q_p0.s9.appris_travailler" xml:space="preserve"><value>What did you learn about the way you work?</value></data>
+  <data name="AutoObs_Q_p0.s9.appris_communiquer" xml:space="preserve"><value>What did you learn about the way you communicate?</value></data>
+  <data name="AutoObs_Q_p0.s9.appris_organiser" xml:space="preserve"><value>What did you learn about the way you organise yourself?</value></data>
+  <data name="AutoObs_Q_p0.s9.eviter" xml:space="preserve"><value>Which experiences would you like to avoid repeating?</value></data>
+  <data name="AutoObs_Q_p0.s10.activites" xml:space="preserve"><value>Which types of activities make you want to learn more:</value></data>
+  <data name="AutoObs_Q_p0.s10.notion_temps" xml:space="preserve"><value>In which activities do you lose track of time because you are interested?</value></data>
+  <data name="AutoObs_Q_p0.s10.preferes" xml:space="preserve"><value>Do you prefer:</value></data>
+  <data name="AutoObs_Q_p0.s10.energie" xml:space="preserve"><value>Which tasks give you energy even if they take effort?</value></data>
+  <data name="AutoObs_Q_p0.s10.satisfaction" xml:space="preserve"><value>Which situations give you a feeling of satisfaction?</value></data>
+  <data name="AutoObs_Q_p0.s11.valeurs" xml:space="preserve"><value>Which values are most important to you at work:</value></data>
+  <data name="AutoObs_Q_p0.s11.environnement" xml:space="preserve"><value>What kind of environment lets you give your best?</value></data>
+  <data name="AutoObs_Q_p0.s11.motivation_long_terme" xml:space="preserve"><value>Which conditions must be present for you to stay motivated in the long term?</value></data>
+  <data name="AutoObs_Q_p0.s12.envisagees" xml:space="preserve"><value>Which training programmes, studies or occupations have you already considered?</value></data>
+  <data name="AutoObs_Q_p0.s12.energie" xml:space="preserve"><value>Which path gives you the most energy when you talk about it?</value></data>
+  <data name="AutoObs_Q_p0.s12.realiste" xml:space="preserve"><value>Which path seems realistic if you are supported at the start?</value></data>
+  <data name="AutoObs_Q_p0.s12.peur" xml:space="preserve"><value>Which path scares you but still attracts you?</value></data>
+  <data name="AutoObs_Q_p0.s12.valeurs" xml:space="preserve"><value>Which path best matches your values and your strengths?</value></data>
+  <data name="AutoObs_Q_p0.s12.tester" xml:space="preserve"><value>Which path could be tested through a mission, an internship, a job-shadowing meeting or a short course?</value></data>
+  <data name="AutoObs_Q_p0.s13.priorite" xml:space="preserve"><value>Among the paths identified, which one do you want to explore first?</value></data>
+  <data name="AutoObs_Q_p0.s13.action_30j" xml:space="preserve"><value>What first concrete action could you take in the next 30 days?</value></data>
+  <data name="AutoObs_Q_p0.s13.informations" xml:space="preserve"><value>What information do you still need before deciding?</value></data>
+  <data name="AutoObs_Q_p0.s13.aide" xml:space="preserve"><value>Who could help you confirm or qualify this path: coach, professional, teacher, parent, former employer?</value></data>
+  <data name="AutoObs_Q_p0.s13.signe" xml:space="preserve"><value>What sign will show you that this path is worth continuing?</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_0" xml:space="preserve"><value>Gardening</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_1" xml:space="preserve"><value>Tidying</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_2" xml:space="preserve"><value>Cleaning</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_3" xml:space="preserve"><value>Help with shopping</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_4" xml:space="preserve"><value>Simple assembly</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_5" xml:space="preserve"><value>Simple painting</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_6" xml:space="preserve"><value>Light move</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_7" xml:space="preserve"><value>Car wash</value></data>
+  <data name="AutoObs_O_p2.s14.essayer_8" xml:space="preserve"><value>Other</value></data>
+  <data name="AutoObs_O_p2.s15.ponctuel_0" xml:space="preserve"><value>Yes</value></data>
+  <data name="AutoObs_O_p2.s15.ponctuel_1" xml:space="preserve"><value>No</value></data>
+  <data name="AutoObs_O_p2.s15.ponctuel_2" xml:space="preserve"><value>Sometimes</value></data>
+  <data name="AutoObs_O_p2.s15.consigne_forme_0" xml:space="preserve"><value>orally</value></data>
+  <data name="AutoObs_O_p2.s15.consigne_forme_1" xml:space="preserve"><value>in writing</value></data>
+  <data name="AutoObs_O_p2.s15.consigne_forme_2" xml:space="preserve"><value>by demonstration</value></data>
+  <data name="AutoObs_O_p2.s15.consigne_forme_3" xml:space="preserve"><value>step by step</value></data>
+  <data name="AutoObs_O_p2.s15.demander_precision_0" xml:space="preserve"><value>Yes</value></data>
+  <data name="AutoObs_O_p2.s15.demander_precision_1" xml:space="preserve"><value>No</value></data>
+  <data name="AutoObs_O_p2.s15.demander_precision_2" xml:space="preserve"><value>It depends</value></data>
+  <data name="AutoObs_O_p2.s15.ranger_0" xml:space="preserve"><value>Yes</value></data>
+  <data name="AutoObs_O_p2.s15.ranger_1" xml:space="preserve"><value>No</value></data>
+  <data name="AutoObs_O_p2.s15.ranger_2" xml:space="preserve"><value>To learn</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_0" xml:space="preserve"><value>punctuality</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_1" xml:space="preserve"><value>Discipline</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_2" xml:space="preserve"><value>politeness</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_3" xml:space="preserve"><value>order</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_4" xml:space="preserve"><value>cleanliness</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_5" xml:space="preserve"><value>self-care and neat appearance</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_6" xml:space="preserve"><value>autonomy</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_7" xml:space="preserve"><value>respectful communication</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_8" xml:space="preserve"><value>perseverance</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_9" xml:space="preserve"><value>Attendance</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_10" xml:space="preserve"><value>commitment</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_11" xml:space="preserve"><value>responsibility</value></data>
+  <data name="AutoObs_O_p2.s15.habitudes_12" xml:space="preserve"><value>Other</value></data>
+  <data name="AutoObs_O_p2.s16.besoin_depart_0" xml:space="preserve"><value>a clear explanation and instructions</value></data>
+  <data name="AutoObs_O_p2.s16.besoin_depart_1" xml:space="preserve"><value>a practical demonstration</value></data>
+  <data name="AutoObs_O_p2.s16.besoin_depart_2" xml:space="preserve"><value>a checklist</value></data>
+  <data name="AutoObs_O_p2.s16.besoin_depart_3" xml:space="preserve"><value>support</value></data>
+  <data name="AutoObs_O_p2.s16.besoin_depart_4" xml:space="preserve"><value>a reference person I can ask questions</value></data>
+  <data name="AutoObs_O_p2.s16.accompagnement_0" xml:space="preserve"><value>throughout the mission</value></data>
+  <data name="AutoObs_O_p2.s16.accompagnement_1" xml:space="preserve"><value>only at the start</value></data>
+  <data name="AutoObs_O_p2.s16.accompagnement_2" xml:space="preserve"><value>be independent after the explanations</value></data>
+  <data name="AutoObs_O_p2.s16.retour_0" xml:space="preserve"><value>encouragement</value></data>
+  <data name="AutoObs_O_p2.s16.retour_1" xml:space="preserve"><value>precise correction</value></data>
+  <data name="AutoObs_O_p2.s16.retour_2" xml:space="preserve"><value>practical advice</value></data>
+  <data name="AutoObs_O_p2.s16.retour_3" xml:space="preserve"><value>debrief with the coach</value></data>
+  <data name="AutoObs_O_p2.s17.lieu_0" xml:space="preserve"><value>indoors</value></data>
+  <data name="AutoObs_O_p2.s17.lieu_1" xml:space="preserve"><value>outdoors</value></data>
+  <data name="AutoObs_O_p2.s17.lieu_2" xml:space="preserve"><value>it depends on the mission</value></data>
+  <data name="AutoObs_O_p2.s17.avec_qui_0" xml:space="preserve"><value>alone</value></data>
+  <data name="AutoObs_O_p2.s17.avec_qui_1" xml:space="preserve"><value>with another person</value></data>
+  <data name="AutoObs_O_p2.s17.avec_qui_2" xml:space="preserve"><value>with a reassuring presence at the start</value></data>
+  <data name="AutoObs_O_p2.s17.avec_qui_3" xml:space="preserve"><value>alternating between working alone and working in a team</value></data>
+  <data name="AutoObs_O_p2.s17.difficulte_0" xml:space="preserve"><value>talking to a stranger</value></data>
+  <data name="AutoObs_O_p2.s17.difficulte_1" xml:space="preserve"><value>entering a home</value></data>
+  <data name="AutoObs_O_p2.s17.difficulte_2" xml:space="preserve"><value>being watched while working</value></data>
+  <data name="AutoObs_O_p2.s17.difficulte_3" xml:space="preserve"><value>receiving comments on my work</value></data>
+  <data name="AutoObs_O_p2.s17.difficulte_4" xml:space="preserve"><value>not knowing what to do</value></data>
+  <data name="AutoObs_O_p2.s18.pourquoi_0" xml:space="preserve"><value>earn an income</value></data>
+  <data name="AutoObs_O_p2.s18.pourquoi_1" xml:space="preserve"><value>build confidence</value></data>
+  <data name="AutoObs_O_p2.s18.pourquoi_2" xml:space="preserve"><value>learn</value></data>
+  <data name="AutoObs_O_p2.s18.pourquoi_3" xml:space="preserve"><value>be of service</value></data>
+  <data name="AutoObs_O_p2.s18.pourquoi_4" xml:space="preserve"><value>build your CV</value></data>
+  <data name="AutoObs_O_p2.s18.pourquoi_5" xml:space="preserve"><value>fund a project</value></data>
+  <data name="AutoObs_O_p2.s18.progres_0" xml:space="preserve"><value>I set goals to reach</value></data>
+  <data name="AutoObs_O_p2.s18.progres_1" xml:space="preserve"><value>I compare what I could do before and what I can do now</value></data>
+  <data name="AutoObs_O_p2.s18.progres_2" xml:space="preserve"><value>I notice I understand instructions better</value></data>
+  <data name="AutoObs_O_p2.s18.progres_3" xml:space="preserve"><value>I make fewer mistakes than at the start</value></data>
+  <data name="AutoObs_O_p2.s18.progres_4" xml:space="preserve"><value>I finish the mission with more autonomy</value></data>
+  <data name="AutoObs_O_p2.s18.progres_5" xml:space="preserve"><value>I better respect schedules and planned steps</value></data>
+  <data name="AutoObs_O_p2.s18.progres_6" xml:space="preserve"><value>I ask for help only when needed</value></data>
+  <data name="AutoObs_O_p2.s18.progres_7" xml:space="preserve"><value>I take more initiative</value></data>
+  <data name="AutoObs_O_p2.s18.progres_8" xml:space="preserve"><value>I feel more at ease with the person I work for</value></data>
+  <data name="AutoObs_O_p2.s18.progres_9" xml:space="preserve"><value>I put equipment away and leave the place clean without being reminded</value></data>
+  <data name="AutoObs_O_p2.s18.progres_10" xml:space="preserve"><value>I receive positive feedback from the coach, the client or the team</value></data>
+  <data name="AutoObs_O_p2.s18.progres_11" xml:space="preserve"><value>I can explain what I learned after the mission</value></data>
+  <data name="AutoObs_O_p2.s18.progres_12" xml:space="preserve"><value>I can identify what I still need to improve</value></data>
+  <data name="AutoObs_O_p2.s18.progres_13" xml:space="preserve"><value>I feel more confident to do a similar mission again</value></data>
+  <data name="AutoObs_O_p2.s18.progres_14" xml:space="preserve"><value>Other</value></data>
+  <data name="AutoObs_O_p2.s18.cv_0" xml:space="preserve"><value>Punctuality</value></data>
+  <data name="AutoObs_O_p2.s18.cv_1" xml:space="preserve"><value>Attendance</value></data>
+  <data name="AutoObs_O_p2.s18.cv_2" xml:space="preserve"><value>Reliability</value></data>
+  <data name="AutoObs_O_p2.s18.cv_3" xml:space="preserve"><value>Sense of responsibility</value></data>
+  <data name="AutoObs_O_p2.s18.cv_4" xml:space="preserve"><value>Following instructions</value></data>
+  <data name="AutoObs_O_p2.s18.cv_5" xml:space="preserve"><value>Politeness and neat appearance</value></data>
+  <data name="AutoObs_O_p2.s18.cv_6" xml:space="preserve"><value>Respectful communication</value></data>
+  <data name="AutoObs_O_p2.s18.cv_7" xml:space="preserve"><value>Ability to ask for help at the right time</value></data>
+  <data name="AutoObs_O_p2.s18.cv_8" xml:space="preserve"><value>Growing autonomy</value></data>
+  <data name="AutoObs_O_p2.s18.cv_9" xml:space="preserve"><value>Team spirit</value></data>
+  <data name="AutoObs_O_p2.s18.cv_10" xml:space="preserve"><value>Mutual help and collaboration</value></data>
+  <data name="AutoObs_O_p2.s18.cv_11" xml:space="preserve"><value>Service mindset</value></data>
+  <data name="AutoObs_O_p2.s18.cv_12" xml:space="preserve"><value>Perseverance</value></data>
+  <data name="AutoObs_O_p2.s18.cv_13" xml:space="preserve"><value>Motivation</value></data>
+  <data name="AutoObs_O_p2.s18.cv_14" xml:space="preserve"><value>Commitment</value></data>
+  <data name="AutoObs_O_p2.s18.cv_15" xml:space="preserve"><value>Adaptability</value></data>
+  <data name="AutoObs_O_p2.s18.cv_16" xml:space="preserve"><value>Organisation</value></data>
+  <data name="AutoObs_O_p2.s18.cv_17" xml:space="preserve"><value>Working method</value></data>
+  <data name="AutoObs_O_p2.s18.cv_18" xml:space="preserve"><value>Rigour</value></data>
+  <data name="AutoObs_O_p2.s18.cv_19" xml:space="preserve"><value>Attention to detail</value></data>
+  <data name="AutoObs_O_p2.s18.cv_20" xml:space="preserve"><value>Care of equipment</value></data>
+  <data name="AutoObs_O_p2.s18.cv_21" xml:space="preserve"><value>Respect for the workplace</value></data>
+  <data name="AutoObs_O_p2.s18.cv_22" xml:space="preserve"><value>Order and cleanliness</value></data>
+  <data name="AutoObs_O_p2.s18.cv_23" xml:space="preserve"><value>Time management</value></data>
+  <data name="AutoObs_O_p2.s18.cv_24" xml:space="preserve"><value>Meeting deadlines</value></data>
+  <data name="AutoObs_O_p2.s18.cv_25" xml:space="preserve"><value>Initiative</value></data>
+  <data name="AutoObs_O_p2.s18.cv_26" xml:space="preserve"><value>Curiosity and willingness to learn</value></data>
+  <data name="AutoObs_O_p2.s18.cv_27" xml:space="preserve"><value>Ability to learn by doing</value></data>
+  <data name="AutoObs_O_p2.s18.cv_28" xml:space="preserve"><value>Ability to accept constructive comments</value></data>
+  <data name="AutoObs_O_p2.s18.cv_29" xml:space="preserve"><value>Ability to progress after feedback</value></data>
+  <data name="AutoObs_O_p2.s18.cv_30" xml:space="preserve"><value>Self-confidence</value></data>
+  <data name="AutoObs_O_p2.s18.cv_31" xml:space="preserve"><value>Patience</value></data>
+  <data name="AutoObs_O_p2.s18.cv_32" xml:space="preserve"><value>Focus</value></data>
+  <data name="AutoObs_O_p2.s18.cv_33" xml:space="preserve"><value>Solving small problems</value></data>
+  <data name="AutoObs_O_p2.s18.cv_34" xml:space="preserve"><value>Careful work</value></data>
+  <data name="AutoObs_O_p2.s18.cv_35" xml:space="preserve"><value>Working safely</value></data>
+  <data name="AutoObs_O_p2.s18.cv_36" xml:space="preserve"><value>Ability to finish a task once started</value></data>
+  <data name="AutoObs_O_p2.s18.cv_37" xml:space="preserve"><value>Ability to work in a private home with respect</value></data>
+  <data name="AutoObs_O_p2.s18.cv_38" xml:space="preserve"><value>Willingness to make an effort</value></data>
+  <data name="AutoObs_O_p2.s18.cv_39" xml:space="preserve"><value>Other</value></data>
+  <data name="AutoObs_O_p0.s9.experiences_0" xml:space="preserve"><value>work</value></data>
+  <data name="AutoObs_O_p0.s9.experiences_1" xml:space="preserve"><value>internship</value></data>
+  <data name="AutoObs_O_p0.s9.experiences_2" xml:space="preserve"><value>volunteering</value></data>
+  <data name="AutoObs_O_p0.s9.experiences_3" xml:space="preserve"><value>training</value></data>
+  <data name="AutoObs_O_p0.s9.experiences_4" xml:space="preserve"><value>family help</value></data>
+  <data name="AutoObs_O_p0.s9.experiences_5" xml:space="preserve"><value>service provided to individuals</value></data>
+  <data name="AutoObs_O_p0.s9.ressenti_0" xml:space="preserve"><value>most useful</value></data>
+  <data name="AutoObs_O_p0.s9.ressenti_1" xml:space="preserve"><value>most competent</value></data>
+  <data name="AutoObs_O_p0.s10.activites_0" xml:space="preserve"><value>manual</value></data>
+  <data name="AutoObs_O_p0.s10.activites_1" xml:space="preserve"><value>Help</value></data>
+  <data name="AutoObs_O_p0.s10.activites_2" xml:space="preserve"><value>care</value></data>
+  <data name="AutoObs_O_p0.s10.activites_3" xml:space="preserve"><value>technical</value></data>
+  <data name="AutoObs_O_p0.s10.activites_4" xml:space="preserve"><value>intellectual</value></data>
+  <data name="AutoObs_O_p0.s10.activites_5" xml:space="preserve"><value>artistic</value></data>
+  <data name="AutoObs_O_p0.s10.activites_6" xml:space="preserve"><value>creative</value></data>
+  <data name="AutoObs_O_p0.s10.activites_7" xml:space="preserve"><value>relational</value></data>
+  <data name="AutoObs_O_p0.s10.activites_8" xml:space="preserve"><value>digital</value></data>
+  <data name="AutoObs_O_p0.s10.activites_9" xml:space="preserve"><value>entrepreneurial</value></data>
+  <data name="AutoObs_O_p0.s10.activites_10" xml:space="preserve"><value>managerial</value></data>
+  <data name="AutoObs_O_p0.s10.notion_temps_0" xml:space="preserve"><value>Intellectual</value></data>
+  <data name="AutoObs_O_p0.s10.notion_temps_1" xml:space="preserve"><value>Manual</value></data>
+  <data name="AutoObs_O_p0.s10.notion_temps_2" xml:space="preserve"><value>Technical</value></data>
+  <data name="AutoObs_O_p0.s10.notion_temps_3" xml:space="preserve"><value>Routine</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_0" xml:space="preserve"><value>solving people problems</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_1" xml:space="preserve"><value>solving mechanical problems</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_2" xml:space="preserve"><value>creating</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_3" xml:space="preserve"><value>helping</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_4" xml:space="preserve"><value>organising</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_5" xml:space="preserve"><value>repairing</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_6" xml:space="preserve"><value>building</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_7" xml:space="preserve"><value>communicating</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_8" xml:space="preserve"><value>researching</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_9" xml:space="preserve"><value>analysing</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_10" xml:space="preserve"><value>investigating</value></data>
+  <data name="AutoObs_O_p0.s10.preferes_11" xml:space="preserve"><value>assembling</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_0" xml:space="preserve"><value>The completed work</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_1" xml:space="preserve"><value>The effort made to complete a task I enjoy</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_2" xml:space="preserve"><value>When completing a task gives me a sense of usefulness</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_3" xml:space="preserve"><value>When I see a concrete result of my work</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_4" xml:space="preserve"><value>When someone recognises the quality of what I did</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_5" xml:space="preserve"><value>When I managed to overcome a difficulty</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_6" xml:space="preserve"><value>When I learned something new by doing the task</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_7" xml:space="preserve"><value>When I was able to help someone or be of service</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_8" xml:space="preserve"><value>When I worked seriously through to the end</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_9" xml:space="preserve"><value>When I feel proud of my progress</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_10" xml:space="preserve"><value>When my skills were useful in a real situation</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_11" xml:space="preserve"><value>When I met an important deadline or instruction</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_12" xml:space="preserve"><value>When I contributed to a collective project</value></data>
+  <data name="AutoObs_O_p0.s10.satisfaction_13" xml:space="preserve"><value>Other</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_0" xml:space="preserve"><value>autonomy</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_1" xml:space="preserve"><value>Commitment</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_2" xml:space="preserve"><value>Humility</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_3" xml:space="preserve"><value>self-respect</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_4" xml:space="preserve"><value>Self-esteem</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_5" xml:space="preserve"><value>Fairness</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_6" xml:space="preserve"><value>Honesty</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_7" xml:space="preserve"><value>Integrity</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_8" xml:space="preserve"><value>Freedom</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_9" xml:space="preserve"><value>Dignity</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_10" xml:space="preserve"><value>Credibility</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_11" xml:space="preserve"><value>Responsibility</value></data>
+  <data name="AutoObs_O_p0.s11.valeurs_12" xml:space="preserve"><value>Order and cleanliness</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_0" xml:space="preserve"><value>Mutual help and collaboration</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_1" xml:space="preserve"><value>A clear framework with precise instructions</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_2" xml:space="preserve"><value>A calm and respectful atmosphere</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_3" xml:space="preserve"><value>A supportive team where questions are welcome</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_4" xml:space="preserve"><value>Well-defined responsibilities</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_5" xml:space="preserve"><value>A balance between autonomy and support</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_6" xml:space="preserve"><value>Concrete, realistic goals</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_7" xml:space="preserve"><value>The possibility of learning step by step</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_8" xml:space="preserve"><value>Recognition of effort and work done</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_9" xml:space="preserve"><value>Simple, direct and constructive communication</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_10" xml:space="preserve"><value>A clean, orderly and reassuring environment</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_11" xml:space="preserve"><value>A suitable work pace, without excessive pressure</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_12" xml:space="preserve"><value>The possibility of working alone at times and in a team at others</value></data>
+  <data name="AutoObs_O_p0.s11.environnement_13" xml:space="preserve"><value>Other</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_0" xml:space="preserve"><value>Understanding the meaning and usefulness of what I do</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_1" xml:space="preserve"><value>Having clear, realistic and progressive goals</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_2" xml:space="preserve"><value>Seeing my progress over time</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_3" xml:space="preserve"><value>Receiving encouragement and constructive feedback</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_4" xml:space="preserve"><value>Feeling respected and listened to</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_5" xml:space="preserve"><value>Working in a stable, structured and reassuring environment</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_6" xml:space="preserve"><value>Having a good balance between autonomy and support</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_7" xml:space="preserve"><value>Being able to learn new things regularly</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_8" xml:space="preserve"><value>Having varied tasks, but not too scattered</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_9" xml:space="preserve"><value>Feeling that my efforts are recognised</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_10" xml:space="preserve"><value>Being able to contribute to something useful or concrete</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_11" xml:space="preserve"><value>Having a trusting relationship with the supervisor, the coach or the team</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_12" xml:space="preserve"><value>Having clear instructions and suitable follow-up</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_13" xml:space="preserve"><value>Being able to ask questions without feeling judged</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_14" xml:space="preserve"><value>Having a work pace that is sustainable over time</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_15" xml:space="preserve"><value>Feeling safe, physically and emotionally</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_16" xml:space="preserve"><value>Having prospects for development, training or responsibility</value></data>
+  <data name="AutoObs_O_p0.s11.motivation_long_terme_17" xml:space="preserve"><value>Other</value></data>
 </root>

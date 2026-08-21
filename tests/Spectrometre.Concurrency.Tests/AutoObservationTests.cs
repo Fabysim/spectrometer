@@ -115,6 +115,13 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
         var conclusion = Assert.Single(sections, s => s.Key == "p0.s8");
         Assert.Equal(7, conclusion.Questions.Count);
 
+        Assert.Equal("p0.s13", AutoObservationCatalog.Part0Sections[^1].Key);
+        Assert.Equal(5, AutoObservationCatalog.CategorieBSections.Count);
+        Assert.Equal(5, AutoObservationCatalog.CategorieASections.Count);
+        Assert.Equal("p2.s14", AutoObservationCatalog.Part2Sections[^6].Key);
+        Assert.Equal("p2.s18", AutoObservationCatalog.Part2Sections[^2].Key);
+        Assert.Equal("p2.s13", AutoObservationCatalog.Part2Sections[^1].Key);
+
         // Part1/Part2 conservées après Part0, clés inchangées
         var idxP1 = sections.ToList().FindIndex(s => s.Key == "p1.s1");
         var idxP2 = sections.ToList().FindIndex(s => s.Key == "p2.s1");
@@ -161,6 +168,50 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
         var section = await svc.TryGetSectionAsync(jeuneId, profileId, "p0.s7");
         Assert.NotNull(section);
         Assert.Equal(4, section!.Answers.First(a => a.QuestionKey == "p0.s7.piste1.motivation").NumericValue);
+    }
+
+    [Fact]
+    public async Task CategorieA_SauvegardeSansToucherSectionExistante()
+    {
+        var (_, jeuneId, profileId) = await CreerJeuneAvecCoachAsync();
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+
+        Assert.True(await svc.SaveSectionAsync(
+            jeuneId,
+            profileId,
+            "p0.s1",
+            [new AutoObservationAnswerInput("p0.s1.experiences", "de stage|de bénévolat", null)]));
+
+        Assert.True(await svc.SaveSectionAsync(
+            jeuneId,
+            profileId,
+            "p2.s14",
+            [
+                new AutoObservationAnswerInput("p2.s14.essayer", "Jardinage|Autre", null),
+                new AutoObservationAnswerInput("p2.s14.essayer.autre", "Arrosage", null),
+                new AutoObservationAnswerInput("p2.s14.faciles", "Rangement", null),
+            ]));
+
+        var existante = await svc.TryGetSectionAsync(jeuneId, profileId, "p0.s1");
+        Assert.Equal("de stage|de bénévolat", existante!.Answers.Single(a => a.QuestionKey == "p0.s1.experiences").TextValue);
+
+        var enrichie = await svc.TryGetSectionAsync(jeuneId, profileId, "p2.s14");
+        Assert.Equal("Jardinage|Autre", enrichie!.Answers.Single(a => a.QuestionKey == "p2.s14.essayer").TextValue);
+        Assert.Equal("Arrosage", enrichie.Answers.Single(a => a.QuestionKey == "p2.s14.essayer.autre").TextValue);
+        Assert.Equal("Rangement", enrichie.Answers.Single(a => a.QuestionKey == "p2.s14.faciles").TextValue);
+    }
+
+    [Fact]
+    public void AllSections_CompteLesSectionsEnrichiesAEtB()
+    {
+        const int part0Avant = 8;
+        const int part1 = 5;
+        const int part2Avant = 13;
+        Assert.Equal(part0Avant + 5, AutoObservationCatalog.Part0Sections.Count);
+        Assert.Equal(part2Avant + 5, AutoObservationCatalog.Part2Sections.Count);
+        Assert.Equal(part0Avant + 5 + part1 + part2Avant + 5, AutoObservationCatalog.AllSections.Count);
+        Assert.Equal(1, AutoObservationCatalog.Part0Sections.Count(s => s.Key == "p0.s1"));
+        Assert.Equal(1, AutoObservationCatalog.TryGetSection("p0.s1")!.Questions.Count);
     }
 
     [Fact]
