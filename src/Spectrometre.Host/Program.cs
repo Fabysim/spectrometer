@@ -388,6 +388,31 @@ app.MapGet("/coach/charte/pdf", async (
     return Results.File(pdfBytes, "application/pdf", "charte-missions.pdf");
 }).RequireAuthorization();
 
+// PDF du consentement parental du jeune connecté — jamais un identifiant dans l'URL (même motif que
+// /candidat/cv/pdf). Uniquement si le consentement est validé : il n'y a rien de définitif à télécharger avant.
+app.MapGet("/candidat/consentement-parental/pdf", async (
+    HttpContext httpContext,
+    Spectrometre.Modules.JeunesPrestataires.Services.IJeuneProfileService jeuneProfileService,
+    Spectrometre.Modules.JeunesPrestataires.Services.IConsentementParentalService consentementService,
+    Spectrometre.Modules.JeunesPrestataires.Services.IConsentementParentalPdfService consentementPdfService,
+    IStringLocalizer<Spectrometre.Modules.JeunesPrestataires.Resources.JeunesPrestatairesResource> consentementLocalizer) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var jeune = await jeuneProfileService.TryGetByUserIdAsync(userId);
+    if (jeune is null)
+        return Results.NotFound();
+
+    var vue = await consentementService.GetAsync(jeune.Id);
+    if (!vue.EstValide)
+        return Results.NotFound();
+
+    var pdfBytes = consentementPdfService.GeneratePdf(jeune, vue, consentementLocalizer);
+    return Results.File(pdfBytes, "application/pdf", "consentement-parental.pdf");
+}).RequireAuthorization();
+
 // Export PDF de l'analyse IA poste/candidature — même pattern que /candidat/cv/pdf (endpoint minimal
 // car un composant Blazor ne streame pas un binaire). Accès : l'utilisateur doit être lié à
 // l'entreprise propriétaire du poste (UserCompanyLink via GetCompaniesForUserAsync) ; la candidature

@@ -92,6 +92,28 @@ public sealed record ConsentementConfirmationResult(
     bool Success,
     IReadOnlyList<string> ChampsManquants);
 
+/// <summary>
+/// Lecture coach des coordonnées parentales (consentement validé uniquement).
+/// Les parents ont consenti (section 8 du document) à ce que ces informations servent à
+/// l'accompagnement par le coach référent — pas de filtre supplémentaire sur nom / lien /
+/// téléphone / e-mail. Le reste du formulaire (revenus, image, adresses) n'est pas exposé ici.
+/// </summary>
+public sealed record RepresentantLegalCoachView(
+    string Nom,
+    string? Lien,
+    string? Telephone,
+    string? Email);
+
+public sealed record ConsentementParentalCoachView(
+    RepresentantLegalCoachView Parent1,
+    RepresentantLegalCoachView? Parent2,
+    DateTimeOffset ValideLe,
+    bool EngagementScolariteSanteEquilibre,
+    bool EngagementInformerContraintes,
+    bool EngagementEncouragerCharte,
+    bool EngagementSignalerMissionInadaptee,
+    bool EngagementCollaborerCoach);
+
 /// <summary>Identifiants de champs manquants — clés de ressources <c>Champ_*</c>.</summary>
 public static class ConsentementChamps
 {

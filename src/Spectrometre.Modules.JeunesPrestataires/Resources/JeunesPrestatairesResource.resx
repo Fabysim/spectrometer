@@ -136,6 +136,9 @@
   <data name="Btn_SauvegarderBrouillon" xml:space="preserve"><value>Enregistrer le brouillon</value></data>
   <data name="Btn_Confirmer" xml:space="preserve"><value>Confirmer le consentement</value></data>
   <data name="Btn_Modifier" xml:space="preserve"><value>Modifier</value></data>
+  <data name="Consentement_TelechargerPdf" xml:space="preserve"><value>Télécharger le PDF</value></data>
+  <data name="Consentement_PdfPied" xml:space="preserve"><value>Spectromètre — consentement parental</value></data>
+  <data name="Consentement_DateValidation" xml:space="preserve"><value>Date de validation</value></data>
   <data name="Badge_Valide" xml:space="preserve"><value>Consentement validé le {0}</value></data>
   <data name="Message_BrouillonEnregistre" xml:space="preserve"><value>Brouillon enregistré.</value></data>
   <data name="Message_ConfirmationReussie" xml:space="preserve"><value>Consentement confirmé.</value></data>

@@ -6,12 +6,14 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Spectrometre.Modules.JeunesPrestataires.Entities
+@using Spectrometre.Modules.JeunesPrestataires.Resources
 @using Spectrometre.Modules.JeunesPrestataires.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IFicheSuiviCoachService FicheSuiviService
 @inject IJeuneProfileService JeuneProfileService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<MissionsResource> Localizer
+@inject IStringLocalizer<JeunesPrestatairesResource> JpLocalizer
 
 <PageTitle>@Localizer["FicheSuivi_Title"]</PageTitle>
 <link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
@@ -56,6 +58,68 @@ else
             }
         </div>
     </div>
+
+    @if (_view.ContactParental is { } contact)
+    {
+        <div class="missions-card">
+            <h2 class="missions-section-title">@Localizer["FicheSuivi_ContactParent_Titre"]</h2>
+            <p class="missions-meta">@Localizer["FicheSuivi_ContactParent_Aide"]</p>
+            <p class="mes-progres-stat">@Localizer["FicheSuivi_ContactParent_Parent1"]</p>
+            <p class="missions-meta">@contact.Parent1.Nom</p>
+            @if (!string.IsNullOrWhiteSpace(contact.Parent1.Lien))
+            {
+                <p class="missions-meta">@Localizer["FicheSuivi_ContactParent_Lien"] : @contact.Parent1.Lien</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(contact.Parent1.Telephone))
+            {
+                <p class="missions-meta">@Localizer["FicheSuivi_ContactParent_Telephone"] : @contact.Parent1.Telephone</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(contact.Parent1.Email))
+            {
+                <p class="missions-meta">@Localizer["FicheSuivi_ContactParent_Email"] : @contact.Parent1.Email</p>
+            }
+            @if (contact.Parent2 is { } parent2)
+            {
+                <p class="mes-progres-stat">@Localizer["FicheSuivi_ContactParent_Parent2"]</p>
+                <p class="missions-meta">@parent2.Nom</p>
+                @if (!string.IsNullOrWhiteSpace(parent2.Lien))
+                {
+                    <p class="missions-meta">@Localizer["FicheSuivi_ContactParent_Lien"] : @parent2.Lien</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(parent2.Telephone))
+                {
+                    <p class="missions-meta">@Localizer["FicheSuivi_ContactParent_Telephone"] : @parent2.Telephone</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(parent2.Email))
+                {
+                    <p class="missions-meta">@Localizer["FicheSuivi_ContactParent_Email"] : @parent2.Email</p>
+                }
+            }
+            <p class="mes-progres-stat">@Localizer["FicheSuivi_ContactParent_Engagements"]</p>
+            <ul class="missions-meta">
+                @if (contact.EngagementScolariteSanteEquilibre)
+                {
+                    <li>@JpLocalizer["EngagementScolariteSanteEquilibre"]</li>
+                }
+                @if (contact.EngagementInformerContraintes)
+                {
+                    <li>@JpLocalizer["EngagementInformerContraintes"]</li>
+                }
+                @if (contact.EngagementEncouragerCharte)
+                {
+                    <li>@JpLocalizer["EngagementEncouragerCharte"]</li>
+                }
+                @if (contact.EngagementSignalerMissionInadaptee)
+                {
+                    <li>@JpLocalizer["EngagementSignalerMissionInadaptee"]</li>
+                }
+                @if (contact.EngagementCollaborerCoach)
+                {
+                    <li>@JpLocalizer["EngagementCollaborerCoach"]</li>
+                }
+            </ul>
+        </div>
+    }
 
     <div class="missions-card">
         <h2 class="missions-section-title">@Localizer["FicheSuivi_Missions_Titre"]</h2>

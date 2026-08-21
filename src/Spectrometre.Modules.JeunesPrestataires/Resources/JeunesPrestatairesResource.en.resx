@@ -112,6 +112,9 @@
   <data name="Btn_SauvegarderBrouillon" xml:space="preserve"><value>Save draft</value></data>
   <data name="Btn_Confirmer" xml:space="preserve"><value>Confirm consent</value></data>
   <data name="Btn_Modifier" xml:space="preserve"><value>Edit</value></data>
+  <data name="Consentement_TelechargerPdf" xml:space="preserve"><value>Download PDF</value></data>
+  <data name="Consentement_PdfPied" xml:space="preserve"><value>Spectrometre — parental consent</value></data>
+  <data name="Consentement_DateValidation" xml:space="preserve"><value>Validation date</value></data>
   <data name="Badge_Valide" xml:space="preserve"><value>Consent validated on {0}</value></data>
   <data name="Message_BrouillonEnregistre" xml:space="preserve"><value>Draft saved.</value></data>
   <data name="Message_ConfirmationReussie" xml:space="preserve"><value>Consent confirmed.</value></data>

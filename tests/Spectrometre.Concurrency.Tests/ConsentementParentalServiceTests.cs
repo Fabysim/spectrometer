@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Spectrometre.Core.Identity;
 using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
+using Spectrometre.Modules.JeunesPrestataires.Resources;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Xunit;
 
@@ -92,6 +94,72 @@ public sealed class ConsentementParentalServiceTests(ServiceFixture fixture)
         var jeuneProfileId = await CreerJeuneProfileAsync(DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-15)));
 
         Assert.False(await ConsentementService.EstConsentementValideAsync(jeuneProfileId));
+    }
+
+    [Fact]
+    public async Task GetAsync_SansGardeCoach_ResteDisponiblePourLeJeune()
+    {
+        var jeuneProfileId = await CreerJeuneProfileAsync(DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-15)));
+        await ConsentementService.SaveBrouillonAsync(jeuneProfileId, CreerFormulaireComplet());
+
+        var vue = await ConsentementService.GetAsync(jeuneProfileId);
+
+        Assert.False(vue.EstValide);
+        Assert.Equal("Marie Martin", vue.Entity.Parent1Nom);
+        Assert.Equal("0470123456", vue.Entity.Parent1Telephone);
+    }
+
+    [Fact]
+    public async Task TryGetPourCoachAsync_SansLienCoaching_RetourneNullMemeSiValide()
+    {
+        var jeuneProfileId = await CreerJeuneProfileAsync(DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-15)));
+        await ConsentementService.SaveBrouillonAsync(jeuneProfileId, CreerFormulaireComplet());
+        Assert.True((await ConsentementService.ConfirmerAsync(jeuneProfileId, "Léa Dupont", "Marie Martin", null)).Success);
+
+        Assert.Null(await ConsentementService.TryGetPourCoachAsync("coach-inexistant", jeuneProfileId));
+    }
+
+    [Fact]
+    public void GeneratePdf_ProduitUnPdfNonVide()
+    {
+        var jeune = new JeuneProfileView(
+            1,
+            "user",
+            "Dupont",
+            "Léa",
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-15)),
+            1,
+            DateTimeOffset.UtcNow,
+            ProfilAccompagnement.SansExperience);
+        var entity = new ConsentementParental
+        {
+            Parent1Nom = "Marie Martin",
+            Parent1Lien = "Mère",
+            Parent1Adresse = "10 rue Centrale",
+            Parent1Telephone = "0470123456",
+            Parent1Email = "marie.martin@example.com",
+            AutorisationMissions = true,
+            AutorisationRevenus = true,
+            PartParascolairePourcent = 70m,
+            PartArgentDePochePourcent = 30m,
+            AutorisationDonneesEtImage = true,
+            EngagementScolariteSanteEquilibre = true,
+            EngagementInformerContraintes = true,
+            EngagementEncouragerCharte = true,
+            EngagementSignalerMissionInadaptee = true,
+            EngagementCollaborerCoach = true,
+            NomJeuneConfirmation = "Léa Dupont",
+            NomParent1Confirmation = "Marie Martin",
+            ValideLe = DateTimeOffset.UtcNow,
+        };
+        var vue = new ConsentementParentalView(entity, true);
+        var pdf = fixture.Services.GetRequiredService<IConsentementParentalPdfService>();
+        var localizer = fixture.Services.GetRequiredService<IStringLocalizer<JeunesPrestatairesResource>>();
+
+        var bytes = pdf.GeneratePdf(jeune, vue, localizer);
+
+        Assert.NotEmpty(bytes);
+        Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(bytes, 0, 4));
     }
 
     private async Task<int> CreerJeuneProfileAsync(DateOnly dateNaissance)

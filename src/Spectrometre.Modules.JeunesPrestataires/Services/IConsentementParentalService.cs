@@ -21,4 +21,14 @@ public interface IConsentementParentalService
         CancellationToken cancellationToken = default);
 
     Task<bool> EstConsentementValideAsync(int jeuneProfileId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Coordonnées des représentants légaux + engagements (section 6), pour un coach suiveur.
+    /// <c>null</c> si non autorisé, profil introuvable, ou consentement pas encore validé.
+    /// N'altère pas <see cref="GetAsync"/> (écran jeune inchangé).
+    /// </summary>
+    Task<ConsentementParentalCoachView?> TryGetPourCoachAsync(
+        string coachUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default);
 }

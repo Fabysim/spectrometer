@@ -251,6 +251,14 @@
   <data name="FicheSuivi_Consentement_Majeur" xml:space="preserve"><value>Majeur (non requis)</value></data>
   <data name="FicheSuivi_Consentement_MineurValide" xml:space="preserve"><value>Mineur — validé</value></data>
   <data name="FicheSuivi_Consentement_MineurAttente" xml:space="preserve"><value>Mineur — en attente</value></data>
+  <data name="FicheSuivi_ContactParent_Titre" xml:space="preserve"><value>Contact parent / représentant légal</value></data>
+  <data name="FicheSuivi_ContactParent_Aide" xml:space="preserve"><value>Coordonnées communiquées dans le consentement parental, pour joindre le représentant en cas de question ou d'incident.</value></data>
+  <data name="FicheSuivi_ContactParent_Parent1" xml:space="preserve"><value>Représentant légal 1</value></data>
+  <data name="FicheSuivi_ContactParent_Parent2" xml:space="preserve"><value>Représentant légal 2</value></data>
+  <data name="FicheSuivi_ContactParent_Lien" xml:space="preserve"><value>Lien</value></data>
+  <data name="FicheSuivi_ContactParent_Telephone" xml:space="preserve"><value>Téléphone</value></data>
+  <data name="FicheSuivi_ContactParent_Email" xml:space="preserve"><value>E-mail</value></data>
+  <data name="FicheSuivi_ContactParent_Engagements" xml:space="preserve"><value>Engagements des parents</value></data>
   <data name="FicheSuivi_Missions_Titre" xml:space="preserve"><value>Missions</value></data>
   <data name="FicheSuivi_Retours_Titre" xml:space="preserve"><value>Retours des particuliers</value></data>
   <data name="FicheSuivi_Retours_Vide" xml:space="preserve"><value>Aucun retour pour l'instant.</value></data>

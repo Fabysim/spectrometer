@@ -34,7 +34,8 @@ public sealed record FicheSuiviCoachView(
     bool GuideEntrevueRempli,
     int? LienCoachingId,
     ProfilAccompagnement ProfilAccompagnement,
-    IReadOnlyList<RetourParticulierCoachItem> RetoursParticuliersRecents);
+    IReadOnlyList<RetourParticulierCoachItem> RetoursParticuliersRecents,
+    ConsentementParentalCoachView? ContactParental);
 
 public interface IFicheSuiviCoachService
 {
@@ -105,6 +106,10 @@ public sealed class FicheSuiviCoachService(
         var retours = await retoursParticuliersQuery.GetHistoriquePourCoachAsync(
             coachUserId, jeune.Id, cancellationToken);
 
+        var contactParental = consentementStatut == FicheSuiviConsentementStatut.MineurValide
+            ? await consentementParentalService.TryGetPourCoachAsync(coachUserId, jeune.Id, cancellationToken)
+            : null;
+
         return new FicheSuiviCoachView(
             suiviUserId,
             jeune.Nom,
@@ -120,6 +125,7 @@ public sealed class FicheSuiviCoachService(
             guideRempli,
             lienId,
             jeune.ProfilAccompagnement,
-            retours.Take(NbRetoursResumes).ToList());
+            retours.Take(NbRetoursResumes).ToList(),
+            contactParental);
     }
 }

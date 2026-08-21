@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IGuideEntrevueService, GuideEntrevueService>();
         services.AddScoped<ICharteService, CharteService>();
         services.AddScoped<IChartePdfService, ChartePdfService>();
+        services.AddScoped<IConsentementParentalPdfService, ConsentementParentalPdfService>();
         return services;
     }
 }

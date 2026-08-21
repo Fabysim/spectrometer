@@ -86,6 +86,7 @@ public sealed class FicheSuiviCoachTests(ServiceFixture fixture)
         Assert.Equal(lienActif.Id, view.LienCoachingId);
         Assert.Equal(Spectrometre.Modules.JeunesPrestataires.Entities.ProfilAccompagnement.SansExperience, view.ProfilAccompagnement);
         Assert.Empty(view.RetoursParticuliersRecents);
+        Assert.Null(view.ContactParental);
 
         await CleanupMissionAsync(missionId.Value, particulierUserId);
     }
@@ -100,6 +101,67 @@ public sealed class FicheSuiviCoachTests(ServiceFixture fixture)
 
         Assert.NotNull(await fiche.GetAsync(coachUserId, jeuneUserId));
         Assert.Null(await fiche.GetAsync(autreCoach, jeuneUserId));
+    }
+
+    [Fact]
+    public async Task GetAsync_ConsentementValide_ExposeCoordonneesParent_CoachNonAutoriseNeLesVoitPas()
+    {
+        var fiche = fixture.Services.GetRequiredService<IFicheSuiviCoachService>();
+        var consentement = fixture.Services.GetRequiredService<IConsentementParentalService>();
+
+        var (coachUserId, jeuneUserId, jeuneProfileId) = await CreerJeuneAvecCoachAsync(
+            "Bernard", "Nina", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-15)));
+        var autreCoach = await CreerUtilisateurAsync($"autre-coach-consent-{Guid.NewGuid()}@test.local");
+
+        Assert.Null((await fiche.GetAsync(coachUserId, jeuneUserId))!.ContactParental);
+        Assert.Null(await consentement.TryGetPourCoachAsync(coachUserId, jeuneProfileId));
+
+        await consentement.SaveBrouillonAsync(jeuneProfileId, new ConsentementParentalFormModel
+        {
+            Parent1Nom = "Claire Bernard",
+            Parent1Lien = "Mère",
+            Parent1Adresse = "1 rue du Parc",
+            Parent1Telephone = "0470112233",
+            Parent1Email = "claire.bernard@example.com",
+            Parent2Nom = "Paul Bernard",
+            Parent2Lien = "Père",
+            Parent2Telephone = "0470445566",
+            Parent2Email = "paul.bernard@example.com",
+            AutorisationMissions = true,
+            AutorisationRevenus = true,
+            PartParascolairePourcent = 50m,
+            PartArgentDePochePourcent = 50m,
+            AutorisationDonneesEtImage = true,
+            EngagementScolariteSanteEquilibre = true,
+            EngagementInformerContraintes = true,
+            EngagementEncouragerCharte = true,
+            EngagementSignalerMissionInadaptee = true,
+            EngagementCollaborerCoach = true,
+        });
+        Assert.True((await consentement.ConfirmerAsync(
+            jeuneProfileId, "Nina Bernard", "Claire Bernard", "Paul Bernard")).Success);
+
+        var vueJeune = await consentement.GetAsync(jeuneProfileId);
+        Assert.True(vueJeune.EstValide);
+        Assert.Equal("Claire Bernard", vueJeune.Entity.Parent1Nom);
+
+        var view = await fiche.GetAsync(coachUserId, jeuneUserId);
+        Assert.NotNull(view);
+        Assert.Equal(FicheSuiviConsentementStatut.MineurValide, view!.ConsentementStatut);
+        Assert.NotNull(view.ContactParental);
+        Assert.Equal("Claire Bernard", view.ContactParental!.Parent1.Nom);
+        Assert.Equal("Mère", view.ContactParental.Parent1.Lien);
+        Assert.Equal("0470112233", view.ContactParental.Parent1.Telephone);
+        Assert.Equal("claire.bernard@example.com", view.ContactParental.Parent1.Email);
+        Assert.NotNull(view.ContactParental.Parent2);
+        Assert.Equal("Paul Bernard", view.ContactParental.Parent2!.Nom);
+        Assert.Equal("Père", view.ContactParental.Parent2.Lien);
+        Assert.Equal("0470445566", view.ContactParental.Parent2.Telephone);
+        Assert.Equal("paul.bernard@example.com", view.ContactParental.Parent2.Email);
+        Assert.True(view.ContactParental.EngagementCollaborerCoach);
+
+        Assert.Null(await fiche.GetAsync(autreCoach, jeuneUserId));
+        Assert.Null(await consentement.TryGetPourCoachAsync(autreCoach, jeuneProfileId));
     }
 
     private async Task<(string CoachUserId, string JeuneUserId, int ProfileId)> CreerJeuneAvecCoachAsync(

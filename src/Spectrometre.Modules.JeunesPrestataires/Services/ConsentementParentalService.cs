@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
 
 namespace Spectrometre.Modules.JeunesPrestataires.Services;
 
 public sealed class ConsentementParentalService(
-    IDbContextFactory<JeunesPrestatairesDbContext> dbFactory) : IConsentementParentalService
+    IDbContextFactory<JeunesPrestatairesDbContext> dbFactory,
+    ICoachingService coachingService,
+    IJeuneProfileService jeuneProfileService) : IConsentementParentalService
 {
     public async Task<ConsentementParentalView> GetAsync(int jeuneProfileId, CancellationToken cancellationToken = default)
     {
@@ -108,6 +111,56 @@ public sealed class ConsentementParentalService(
             .AsNoTracking()
             .AnyAsync(c => c.JeuneProfileId == jeuneProfileId && c.ValideLe != null, cancellationToken);
     }
+
+    public async Task<ConsentementParentalCoachView?> TryGetPourCoachAsync(
+        string coachUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default)
+    {
+        var jeune = await jeuneProfileService.TryGetByIdAsync(jeuneProfileId, cancellationToken);
+        if (jeune is null)
+            return null;
+
+        var autorise = await coachingService.GetSuiviUserIdSiAutoriseAsync(
+            jeune.UserId, coachUserId, cancellationToken);
+        if (autorise is null)
+            return null;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.ConsentementsParentaux.AsNoTracking()
+            .FirstOrDefaultAsync(
+                c => c.JeuneProfileId == jeuneProfileId && c.ValideLe != null,
+                cancellationToken);
+        if (entity is null || entity.ValideLe is not { } valideLe || string.IsNullOrWhiteSpace(entity.Parent1Nom))
+            return null;
+
+        RepresentantLegalCoachView? parent2 = null;
+        if (!string.IsNullOrWhiteSpace(entity.Parent2Nom))
+        {
+            parent2 = new RepresentantLegalCoachView(
+                entity.Parent2Nom.Trim(),
+                TrimOrNull(entity.Parent2Lien),
+                TrimOrNull(entity.Parent2Telephone),
+                TrimOrNull(entity.Parent2Email));
+        }
+
+        return new ConsentementParentalCoachView(
+            new RepresentantLegalCoachView(
+                entity.Parent1Nom.Trim(),
+                TrimOrNull(entity.Parent1Lien),
+                TrimOrNull(entity.Parent1Telephone),
+                TrimOrNull(entity.Parent1Email)),
+            parent2,
+            valideLe,
+            entity.EngagementScolariteSanteEquilibre,
+            entity.EngagementInformerContraintes,
+            entity.EngagementEncouragerCharte,
+            entity.EngagementSignalerMissionInadaptee,
+            entity.EngagementCollaborerCoach);
+    }
+
+    private static string? TrimOrNull(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     internal static List<string> CollecterChampsObligatoiresManquants(
         ConsentementParental entity,
