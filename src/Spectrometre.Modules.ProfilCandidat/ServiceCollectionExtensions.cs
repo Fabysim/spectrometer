@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICandidateProfileService, CandidateProfileService>();
         services.AddScoped<ICandidateSubjectResolver, CandidateSubjectResolver>();
         services.AddScoped<ICvPdfService, CvPdfService>();
+        services.AddScoped<ICvWordService, CvWordService>();
         services.AddScoped<ICvCoachQuery, CvCoachQuery>();
         services.AddScoped<ICvDocumentTextExtractor, CvDocumentTextExtractor>();
         services.AddScoped<ICvImportIaService, CvImportIaService>();

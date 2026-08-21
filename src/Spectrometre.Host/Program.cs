@@ -376,6 +376,68 @@ app.MapGet("/candidat/cv/pdf", async (
     return Results.File(pdfBytes, "application/pdf", "cv.pdf");
 }).RequireAuthorization();
 
+// Export Word du propre CV du candidat connecté — même autorisation et même CvView que /candidat/cv/pdf
+// (jeune et candidat classique). Mise en page uniquement (ICvWordService), pas de second modèle de données.
+app.MapGet("/candidat/cv/docx", async (
+    HttpContext httpContext,
+    Spectrometre.Core.Modules.ICandidateSubjectResolver candidateSubjectResolver,
+    ICandidateProfileService candidateProfileService,
+    ICvWordService cvWordService) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var candidateProfileId = await candidateSubjectResolver.GetOrCreateCandidateProfileIdAsync(userId);
+    var cv = await candidateProfileService.GetCvAsync(candidateProfileId);
+    var wordBytes = cvWordService.GenerateCvWord(cv);
+
+    return Results.File(
+        wordBytes,
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "cv.docx");
+}).RequireAuthorization();
+
+// Export PDF/Word du CV d'un jeune suivi — autorisé uniquement via ICvCoachQuery (même lecture que la
+// page /coach/suivis/{id}/cv). Jamais /candidat/cv/pdf ici : ce serait le CV du coach connecté.
+// 404 si non autorisé (ne pas confirmer l'existence du suivi à un tiers).
+app.MapGet("/coach/suivis/{suiviUserId}/cv/pdf", async (
+    string suiviUserId,
+    HttpContext httpContext,
+    ICvCoachQuery cvCoachQuery,
+    ICvPdfService cvPdfService) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var cv = await cvCoachQuery.TryGetPourCoachAsync(userId, suiviUserId);
+    if (cv is null)
+        return Results.NotFound();
+
+    return Results.File(cvPdfService.GenerateCvPdf(cv), "application/pdf", "cv.pdf");
+}).RequireAuthorization();
+
+app.MapGet("/coach/suivis/{suiviUserId}/cv/docx", async (
+    string suiviUserId,
+    HttpContext httpContext,
+    ICvCoachQuery cvCoachQuery,
+    ICvWordService cvWordService) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var cv = await cvCoachQuery.TryGetPourCoachAsync(userId, suiviUserId);
+    if (cv is null)
+        return Results.NotFound();
+
+    return Results.File(
+        cvWordService.GenerateCvWord(cv),
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "cv.docx");
+}).RequireAuthorization();
+
 // PDF de la charte — document de référence générique, tout coach authentifié (pas lié à un jeune).
 // Même pattern que /candidat/cv/pdf (endpoint minimal : Blazor ne streame pas un binaire).
 app.MapGet("/coach/charte/pdf", async (

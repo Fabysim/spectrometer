@@ -70,6 +70,7 @@
   <data name="CurriculumVitae" xml:space="preserve"><value>Resume</value></data>
   <data name="Cv_Intro" xml:space="preserve"><value>This form is separate from the self-knowledge questionnaire — it's a classic structured resume, saved section by section.</value></data>
   <data name="Cv_TelechargerPdf" xml:space="preserve"><value>Download as PDF</value></data>
+  <data name="Cv_TelechargerWord" xml:space="preserve"><value>Download as Word</value></data>
   <data name="Cv_Import_Titre" xml:space="preserve"><value>Import an existing resume</value></data>
   <data name="Cv_Import_Intro" xml:space="preserve"><value>PDF or Word (.docx), 5 MB max. You will review and confirm before anything is saved. If this fails, fill in the form by hand.</value></data>
   <data name="Cv_Import_Bouton" xml:space="preserve"><value>Import an existing resume</value></data>

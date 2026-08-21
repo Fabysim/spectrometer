@@ -44,13 +44,30 @@ else
                 </p>
             }
         </div>
-        @if (!_lectureSeule)
-        {
-            <a class="cv-link" href="/candidat/cv/pdf" data-enhance-nav="false">
-                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
-                @Localizer["Cv_TelechargerPdf"]
-            </a>
-        }
+        <div class="cv-downloads">
+            @if (_lectureSeule)
+            {
+                <a class="cv-link" href="/coach/suivis/@SuiviUserId/cv/pdf" data-enhance-nav="false">
+                    <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+                    @Localizer["Cv_TelechargerPdf"]
+                </a>
+                <a class="cv-link" href="/coach/suivis/@SuiviUserId/cv/docx" data-enhance-nav="false">
+                    <i class="bi bi-file-earmark-word" aria-hidden="true"></i>
+                    @Localizer["Cv_TelechargerWord"]
+                </a>
+            }
+            else
+            {
+                <a class="cv-link" href="/candidat/cv/pdf" data-enhance-nav="false">
+                    <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+                    @Localizer["Cv_TelechargerPdf"]
+                </a>
+                <a class="cv-link" href="/candidat/cv/docx" data-enhance-nav="false">
+                    <i class="bi bi-file-earmark-word" aria-hidden="true"></i>
+                    @Localizer["Cv_TelechargerWord"]
+                </a>
+            }
+        </div>
     </header>
 
     @if (!_lectureSeule)

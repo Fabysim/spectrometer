@@ -271,6 +271,8 @@
   <data name="FicheSuivi_Liens_Titre" xml:space="preserve"><value>Écrans détaillés</value></data>
   <data name="FicheSuivi_Lien_AutoObs" xml:space="preserve"><value>Auto-observation</value></data>
   <data name="FicheSuivi_Lien_Cv" xml:space="preserve"><value>Voir le CV</value></data>
+  <data name="FicheSuivi_Lien_CvPdf" xml:space="preserve"><value>Télécharger le CV (PDF)</value></data>
+  <data name="FicheSuivi_Lien_CvWord" xml:space="preserve"><value>Télécharger le CV (Word)</value></data>
   <data name="FicheSuivi_Lien_Grille" xml:space="preserve"><value>Grille d'observation</value></data>
   <data name="FicheSuivi_Lien_Guide" xml:space="preserve"><value>Guide d'entrevue</value></data>
   <data name="FicheSuivi_Lien_Missions" xml:space="preserve"><value>Missions</value></data>

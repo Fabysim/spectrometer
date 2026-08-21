@@ -69,6 +69,7 @@
   <data name="CurriculumVitae" xml:space="preserve"><value>Curriculum vitæ</value></data>
   <data name="Cv_Intro" xml:space="preserve"><value>Ce formulaire est distinct du questionnaire de connaissance de soi — il s'agit d'un CV structuré classique, enregistré section par section.</value></data>
   <data name="Cv_TelechargerPdf" xml:space="preserve"><value>Télécharger en PDF</value></data>
+  <data name="Cv_TelechargerWord" xml:space="preserve"><value>Télécharger en Word</value></data>
   <data name="Cv_Import_Titre" xml:space="preserve"><value>Importer un CV existant</value></data>
   <data name="Cv_Import_Intro" xml:space="preserve"><value>PDF ou Word (.docx), 5 Mo maximum. Vous relirez et confirmerez avant tout enregistrement. En cas d'échec, remplissez le formulaire manuellement.</value></data>
   <data name="Cv_Import_Bouton" xml:space="preserve"><value>Importer un CV existant</value></data>

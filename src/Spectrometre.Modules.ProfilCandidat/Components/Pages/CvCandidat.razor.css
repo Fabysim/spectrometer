@@ -46,6 +46,13 @@
     line-height: 1.5;
 }
 
+.cv-downloads {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+}
+
 .cv-link {
     color: var(--bs-primary, #345f6d);
     font-weight: 600;
