@@ -204,6 +204,14 @@
   <data name="SignalerProbleme_Annuler" xml:space="preserve"><value>Cancel</value></data>
   <data name="SignalerProbleme_Succes" xml:space="preserve"><value>The coach has been notified of the reported problem.</value></data>
   <data name="SignalerProbleme_Echec" xml:space="preserve"><value>Unable to send the report (mission not assigned or no active coach).</value></data>
+  <data name="ContactCoach_Bouton" xml:space="preserve"><value>Ask to be contacted</value></data>
+  <data name="ContactCoach_BoutonJeune" xml:space="preserve"><value>Contact my coach</value></data>
+  <data name="ContactCoach_Label" xml:space="preserve"><value>Your message for the coach (optional)</value></data>
+  <data name="ContactCoach_LabelJeune" xml:space="preserve"><value>Your message for your coach (optional)</value></data>
+  <data name="ContactCoach_Placeholder" xml:space="preserve"><value>E.g. I have a question, please call me back…</value></data>
+  <data name="ContactCoach_Envoyer" xml:space="preserve"><value>Send the request</value></data>
+  <data name="ContactCoach_Succes" xml:space="preserve"><value>Your coach has been notified. This is not a direct exchange with the other party.</value></data>
+  <data name="ContactCoach_Echec" xml:space="preserve"><value>Unable to send the request (mission not assigned or no active coach).</value></data>
 
   <data name="MesProgres_Title" xml:space="preserve"><value>My progress · Spectrometre</value></data>
   <data name="MesProgres_Heading" xml:space="preserve"><value>My progress</value></data>

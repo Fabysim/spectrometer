@@ -133,7 +133,7 @@ public sealed class PreferenceNotificationService(
             }
 
             case NotificationCategoryCodes.Missions:
-                // Particulier (publication / validation) ou coach (ex. Missions.ProblemeSignale).
+                // Particulier (publication / validation) ou coach (ex. Missions.ProblemeSignale / Missions.DemandeContact).
                 if (await particulierSubjectResolver.TryGetParticulierProfileIdAsync(userId, cancellationToken) is not null)
                     return true;
                 return await coachSubjectResolver.TryGetCoachProfileIdAsync(userId, cancellationToken) is not null;

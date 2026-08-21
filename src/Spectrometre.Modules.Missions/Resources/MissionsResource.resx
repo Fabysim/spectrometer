@@ -204,6 +204,14 @@
   <data name="SignalerProbleme_Annuler" xml:space="preserve"><value>Annuler</value></data>
   <data name="SignalerProbleme_Succes" xml:space="preserve"><value>Le coach a été informé du problème signalé.</value></data>
   <data name="SignalerProbleme_Echec" xml:space="preserve"><value>Impossible d'envoyer le signalement (mission non attribuée ou aucun coach actif).</value></data>
+  <data name="ContactCoach_Bouton" xml:space="preserve"><value>Demander à être contacté</value></data>
+  <data name="ContactCoach_BoutonJeune" xml:space="preserve"><value>Contacter mon coach</value></data>
+  <data name="ContactCoach_Label" xml:space="preserve"><value>Votre message pour le coach (optionnel)</value></data>
+  <data name="ContactCoach_LabelJeune" xml:space="preserve"><value>Votre message pour votre coach (optionnel)</value></data>
+  <data name="ContactCoach_Placeholder" xml:space="preserve"><value>Ex. : j'ai une question, merci de me rappeler…</value></data>
+  <data name="ContactCoach_Envoyer" xml:space="preserve"><value>Envoyer la demande</value></data>
+  <data name="ContactCoach_Succes" xml:space="preserve"><value>Votre coach a été informé. Ce n'est pas un échange direct avec l'autre partie.</value></data>
+  <data name="ContactCoach_Echec" xml:space="preserve"><value>Impossible d'envoyer la demande (mission non attribuée ou aucun coach actif).</value></data>
 
   <data name="MesProgres_Title" xml:space="preserve"><value>Mes progrès · Spectromètre</value></data>
   <data name="MesProgres_Heading" xml:space="preserve"><value>Mes progrès</value></data>

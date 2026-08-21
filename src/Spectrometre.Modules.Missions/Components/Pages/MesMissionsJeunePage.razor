@@ -67,6 +67,33 @@
                                 @onclick="() => MarquerTermineeAsync(m.AcceptationId)">
                             @Localizer["MarquerTerminee"]
                         </button>
+                        @if (_formulaireAcceptationId == m.AcceptationId)
+                        {
+                            <div class="missions-field" style="flex: 1 1 100%">
+                                <label>@(_formulaireProbleme ? Localizer["SignalerProbleme_Label"] : Localizer["ContactCoach_LabelJeune"])</label>
+                                <textarea rows="2" @bind="_formulaireMessage" maxlength="500"
+                                          placeholder="@(_formulaireProbleme ? Localizer["SignalerProbleme_Placeholder"] : Localizer["ContactCoach_Placeholder"])"></textarea>
+                            </div>
+                            <button type="button" class="missions-btn @(_formulaireProbleme ? "missions-btn-danger" : "missions-btn-primary")" disabled="@_busy"
+                                    @onclick="() => ConfirmerFormulaireJeuneAsync(m.AcceptationId)">
+                                @(_formulaireProbleme ? Localizer["SignalerProbleme_Envoyer"] : Localizer["ContactCoach_Envoyer"])
+                            </button>
+                            <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
+                                    @onclick="FermerFormulaire">
+                                @Localizer["SignalerProbleme_Annuler"]
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
+                                    @onclick="() => OuvrirFormulaire(m.AcceptationId, probleme: false)">
+                                @Localizer["ContactCoach_BoutonJeune"]
+                            </button>
+                            <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
+                                    @onclick="() => OuvrirFormulaire(m.AcceptationId, probleme: true)">
+                                @Localizer["SignalerProbleme_Bouton"]
+                            </button>
+                        }
                     </div>
                 }
                 else if (m.MissionStatut == MissionStatut.Terminee)
@@ -78,6 +105,29 @@
                         <a class="missions-btn missions-btn-secondary" href="/jeune/missions/@m.AcceptationId/evaluation-particulier">
                             @Localizer["EvaluationParticulier_Lire"]
                         </a>
+                        @if (_formulaireAcceptationId == m.AcceptationId && !_formulaireProbleme)
+                        {
+                            <div class="missions-field" style="flex: 1 1 100%">
+                                <label>@Localizer["ContactCoach_LabelJeune"]</label>
+                                <textarea rows="2" @bind="_formulaireMessage" maxlength="500"
+                                          placeholder="@Localizer["ContactCoach_Placeholder"]"></textarea>
+                            </div>
+                            <button type="button" class="missions-btn missions-btn-primary" disabled="@_busy"
+                                    @onclick="() => ConfirmerFormulaireJeuneAsync(m.AcceptationId)">
+                                @Localizer["ContactCoach_Envoyer"]
+                            </button>
+                            <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
+                                    @onclick="FermerFormulaire">
+                                @Localizer["SignalerProbleme_Annuler"]
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
+                                    @onclick="() => OuvrirFormulaire(m.AcceptationId, probleme: false)">
+                                @Localizer["ContactCoach_BoutonJeune"]
+                            </button>
+                        }
                     </div>
                 }
             </div>
@@ -90,6 +140,9 @@
     private IReadOnlyList<MissionJeuneView> _missions = [];
     private string? _message;
     private bool _busy;
+    private int? _formulaireAcceptationId;
+    private bool _formulaireProbleme;
+    private string _formulaireMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,6 +173,44 @@
             var ok = await MissionService.MarquerTermineeAsync(_userId, acceptationId);
             _message = ok ? Localizer["MarquerTerminee_Succes"] : Localizer["Action_Echec"];
             await RefreshAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void OuvrirFormulaire(int acceptationId, bool probleme)
+    {
+        _formulaireAcceptationId = acceptationId;
+        _formulaireProbleme = probleme;
+        _formulaireMessage = "";
+        _message = null;
+    }
+
+    private void FermerFormulaire()
+    {
+        _formulaireAcceptationId = null;
+        _formulaireProbleme = false;
+        _formulaireMessage = "";
+    }
+
+    private async Task ConfirmerFormulaireJeuneAsync(int acceptationId)
+    {
+        if (_userId is null || _busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = _formulaireProbleme
+                ? await MissionService.SignalerProblemeJeuneAsync(_userId, acceptationId, _formulaireMessage)
+                : await MissionService.DemanderContactCoachAsync(_userId, acceptationId, _formulaireMessage);
+            _message = ok
+                ? (_formulaireProbleme ? Localizer["SignalerProbleme_Succes"] : Localizer["ContactCoach_Succes"])
+                : (_formulaireProbleme ? Localizer["SignalerProbleme_Echec"] : Localizer["ContactCoach_Echec"]);
+            if (ok)
+                FermerFormulaire();
         }
         finally
         {

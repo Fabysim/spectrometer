@@ -97,10 +97,42 @@ public interface IMissionService
     /// <summary>
     /// Signale un problème pendant une mission <c>Attribuee</c> : notifie le coach suiveur actif du jeune.
     /// <c>false</c> si non propriétaire, statut ≠ Attribuee, ou aucun coach actif.
+    /// Signature inchangée — incident réel uniquement ; le contact simple est
+    /// <see cref="DemanderContactParticulierAsync"/> (TypeCode distinct).
     /// </summary>
     Task<bool> SignalerProblemeAsync(
         string particulierUserId,
         int missionId,
+        string? message,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Demande de contact non urgente du particulier vers le coach (même canal que
+    /// <see cref="SignalerProblemeAsync"/>, pas de fil de discussion). Mission <c>Attribuee</c>.
+    /// </summary>
+    Task<bool> DemanderContactParticulierAsync(
+        string particulierUserId,
+        int missionId,
+        string? message,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Demande de contact non urgente du jeune vers son coach référent — jamais un échange
+    /// direct avec le particulier. Titulaire de l'acceptation, mission <c>Attribuee</c> ou <c>Terminee</c>.
+    /// </summary>
+    Task<bool> DemanderContactCoachAsync(
+        string jeuneUserId,
+        int missionAcceptationId,
+        string? message,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Signalement d'un problème par le jeune (même garde que <see cref="DemanderContactCoachAsync"/>).
+    /// Méthode séparée de <see cref="SignalerProblemeAsync"/> : identifiant d'acceptation, pas de missionId.
+    /// </summary>
+    Task<bool> SignalerProblemeJeuneAsync(
+        string jeuneUserId,
+        int missionAcceptationId,
         string? message,
         CancellationToken cancellationToken = default);
 }

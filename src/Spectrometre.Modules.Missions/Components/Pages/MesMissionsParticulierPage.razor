@@ -61,26 +61,30 @@
                 else if (m.Statut == MissionStatut.Attribuee)
                 {
                     <div class="missions-actions">
-                        @if (_signalementMissionId == m.MissionId)
+                        @if (_formulaireMissionId == m.MissionId)
                         {
                             <div class="missions-field" style="flex: 1 1 100%">
-                                <label>@Localizer["SignalerProbleme_Label"]</label>
-                                <textarea rows="2" @bind="_signalementMessage" maxlength="500"
-                                          placeholder="@Localizer["SignalerProbleme_Placeholder"]"></textarea>
+                                <label>@(_formulaireProbleme ? Localizer["SignalerProbleme_Label"] : Localizer["ContactCoach_Label"])</label>
+                                <textarea rows="2" @bind="_formulaireMessage" maxlength="500"
+                                          placeholder="@(_formulaireProbleme ? Localizer["SignalerProbleme_Placeholder"] : Localizer["ContactCoach_Placeholder"])"></textarea>
                             </div>
-                            <button type="button" class="missions-btn missions-btn-primary" disabled="@_busy"
-                                    @onclick="() => ConfirmerSignalementAsync(m.MissionId)">
-                                @Localizer["SignalerProbleme_Envoyer"]
+                            <button type="button" class="missions-btn @(_formulaireProbleme ? "missions-btn-danger" : "missions-btn-primary")" disabled="@_busy"
+                                    @onclick="() => ConfirmerFormulaireParticulierAsync(m.MissionId)">
+                                @(_formulaireProbleme ? Localizer["SignalerProbleme_Envoyer"] : Localizer["ContactCoach_Envoyer"])
                             </button>
                             <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
-                                    @onclick="AnnulerSignalementUi">
+                                    @onclick="FermerFormulaire">
                                 @Localizer["SignalerProbleme_Annuler"]
                             </button>
                         }
                         else
                         {
                             <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
-                                    @onclick="() => OuvrirSignalement(m.MissionId)">
+                                    @onclick="() => OuvrirFormulaire(m.MissionId, probleme: false)">
+                                @Localizer["ContactCoach_Bouton"]
+                            </button>
+                            <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
+                                    @onclick="() => OuvrirFormulaire(m.MissionId, probleme: true)">
                                 @Localizer["SignalerProbleme_Bouton"]
                             </button>
                         }
@@ -104,8 +108,9 @@
     private IReadOnlyList<MissionResumeView> _missions = [];
     private string? _message;
     private bool _busy;
-    private int? _signalementMissionId;
-    private string _signalementMessage = "";
+    private int? _formulaireMissionId;
+    private bool _formulaireProbleme;
+    private string _formulaireMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,20 +148,22 @@
         }
     }
 
-    private void OuvrirSignalement(int missionId)
+    private void OuvrirFormulaire(int missionId, bool probleme)
     {
-        _signalementMissionId = missionId;
-        _signalementMessage = "";
+        _formulaireMissionId = missionId;
+        _formulaireProbleme = probleme;
+        _formulaireMessage = "";
         _message = null;
     }
 
-    private void AnnulerSignalementUi()
+    private void FermerFormulaire()
     {
-        _signalementMissionId = null;
-        _signalementMessage = "";
+        _formulaireMissionId = null;
+        _formulaireProbleme = false;
+        _formulaireMessage = "";
     }
 
-    private async Task ConfirmerSignalementAsync(int missionId)
+    private async Task ConfirmerFormulaireParticulierAsync(int missionId)
     {
         if (_userId is null || _busy)
             return;
@@ -164,10 +171,14 @@
         _busy = true;
         try
         {
-            var ok = await MissionService.SignalerProblemeAsync(_userId, missionId, _signalementMessage);
-            _message = ok ? Localizer["SignalerProbleme_Succes"] : Localizer["SignalerProbleme_Echec"];
+            var ok = _formulaireProbleme
+                ? await MissionService.SignalerProblemeAsync(_userId, missionId, _formulaireMessage)
+                : await MissionService.DemanderContactParticulierAsync(_userId, missionId, _formulaireMessage);
+            _message = ok
+                ? (_formulaireProbleme ? Localizer["SignalerProbleme_Succes"] : Localizer["ContactCoach_Succes"])
+                : (_formulaireProbleme ? Localizer["SignalerProbleme_Echec"] : Localizer["ContactCoach_Echec"]);
             if (ok)
-                AnnulerSignalementUi();
+                FermerFormulaire();
         }
         finally
         {

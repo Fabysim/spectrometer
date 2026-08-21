@@ -416,11 +416,48 @@ public sealed class MissionService(
         return true;
     }
 
-    public async Task<bool> SignalerProblemeAsync(
+    public Task<bool> SignalerProblemeAsync(
         string particulierUserId,
         int missionId,
         string? message,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        NotifierCoachDepuisParticulierAsync(
+            particulierUserId, missionId, message, estProbleme: true, cancellationToken);
+
+    public Task<bool> DemanderContactParticulierAsync(
+        string particulierUserId,
+        int missionId,
+        string? message,
+        CancellationToken cancellationToken = default) =>
+        NotifierCoachDepuisParticulierAsync(
+            particulierUserId, missionId, message, estProbleme: false, cancellationToken);
+
+    public Task<bool> DemanderContactCoachAsync(
+        string jeuneUserId,
+        int missionAcceptationId,
+        string? message,
+        CancellationToken cancellationToken = default) =>
+        NotifierCoachDepuisJeuneAsync(
+            jeuneUserId, missionAcceptationId, message, estProbleme: false, cancellationToken);
+
+    public Task<bool> SignalerProblemeJeuneAsync(
+        string jeuneUserId,
+        int missionAcceptationId,
+        string? message,
+        CancellationToken cancellationToken = default) =>
+        NotifierCoachDepuisJeuneAsync(
+            jeuneUserId, missionAcceptationId, message, estProbleme: true, cancellationToken);
+
+    /// <summary>
+    /// Canal unique vers le coach (notification in-app). Pas de fil, pas de coordonnées exposées.
+    /// <paramref name="estProbleme"/> distingue l'incident du rappel simple (TypeCodes distincts).
+    /// </summary>
+    private async Task<bool> NotifierCoachDepuisParticulierAsync(
+        string particulierUserId,
+        int missionId,
+        string? message,
+        bool estProbleme,
+        CancellationToken cancellationToken)
     {
         var particulier = await particulierProfileService.TryGetByUserIdAsync(particulierUserId, cancellationToken);
         if (particulier is null)
@@ -447,7 +484,53 @@ public sealed class MissionService(
         if (jeune is null)
             return false;
 
-        var coachUserId = await FindCoachReferentAsync(jeune.UserId, cancellationToken);
+        return await EnvoyerNotificationCoachAsync(
+            jeune.UserId, jeune.Prenoms, jeune.Nom, mission, message, estProbleme, depuisJeune: false, cancellationToken);
+    }
+
+    private async Task<bool> NotifierCoachDepuisJeuneAsync(
+        string jeuneUserId,
+        int missionAcceptationId,
+        string? message,
+        bool estProbleme,
+        CancellationToken cancellationToken)
+    {
+        var jeune = await jeuneProfileService.TryGetByUserIdAsync(jeuneUserId, cancellationToken);
+        if (jeune is null)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var acceptation = await db.MissionAcceptations
+            .Include(a => a.Mission)
+            .FirstOrDefaultAsync(a => a.Id == missionAcceptationId, cancellationToken);
+        if (acceptation is null)
+            return false;
+
+        if (acceptation.JeuneProfileId != jeune.Id)
+            return false;
+
+        if (acceptation.Statut != MissionAcceptationStatut.ValideeParCoach)
+            return false;
+
+        // Contact (et signalement) possibles pendant la mission et juste après — pas avant attribution.
+        if (acceptation.Mission.Statut is not (MissionStatut.Attribuee or MissionStatut.Terminee))
+            return false;
+
+        return await EnvoyerNotificationCoachAsync(
+            jeune.UserId, jeune.Prenoms, jeune.Nom, acceptation.Mission, message, estProbleme, depuisJeune: true, cancellationToken);
+    }
+
+    private async Task<bool> EnvoyerNotificationCoachAsync(
+        string jeuneUserId,
+        string jeunePrenoms,
+        string jeuneNom,
+        Mission mission,
+        string? message,
+        bool estProbleme,
+        bool depuisJeune,
+        CancellationToken cancellationToken)
+    {
+        var coachUserId = await FindCoachReferentAsync(jeuneUserId, cancellationToken);
         if (coachUserId is null)
             return false;
 
@@ -455,13 +538,31 @@ public sealed class MissionService(
         var detail = string.IsNullOrWhiteSpace(message)
             ? "Aucun détail supplémentaire."
             : message.Trim();
+        var auteur = depuisJeune ? "Le jeune" : "Le particulier";
+        var identiteJeune = $"{jeunePrenoms} {jeuneNom}".Trim();
+
+        string titre;
+        string corps;
+        string typeCode;
+        if (estProbleme)
+        {
+            titre = "Problème signalé pendant une mission";
+            corps = $"{auteur} signale un problème sur la mission « {titreMission} » (jeune : {identiteJeune}). {detail}";
+            typeCode = "Missions.ProblemeSignale";
+        }
+        else
+        {
+            titre = "Demande de contact — mission";
+            corps = $"{auteur} souhaite être contacté au sujet de la mission « {titreMission} » (jeune : {identiteJeune}). {detail}";
+            typeCode = "Missions.DemandeContact";
+        }
 
         await notificationService.CreerAsync(
             coachUserId,
-            "Problème signalé pendant une mission",
-            $"Le particulier signale un problème sur la mission « {titreMission} » (jeune : {jeune.Prenoms} {jeune.Nom}). {detail}",
-            $"/coach/suivis/{jeune.UserId}/missions",
-            "Missions.ProblemeSignale",
+            titre,
+            corps,
+            $"/coach/suivis/{jeuneUserId}/missions",
+            typeCode,
             cancellationToken);
 
         return true;

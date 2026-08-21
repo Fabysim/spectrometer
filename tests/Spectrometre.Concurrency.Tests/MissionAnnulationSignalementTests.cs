@@ -113,6 +113,72 @@ public sealed class MissionAnnulationSignalementTests(ServiceFixture fixture)
         await CleanupMissionsAsync([missionId], particulierUserId);
     }
 
+    [Fact]
+    public async Task DemanderContactCoach_TitulaireAttribuee_Notifie_SinonRefuse()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
+        var (particulierUserId, missionId) = await PublierMissionAsync();
+        var jeune = await CreerJeuneAvecCoachAsync();
+        var autreJeune = await CreerJeuneAvecCoachAsync();
+
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
+        Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
+        var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId))
+            .Single().AcceptationId;
+
+        Assert.False(await missionService.DemanderContactCoachAsync(jeune.UserId, acceptationId, "trop tôt"));
+        Assert.False(await missionService.SignalerProblemeJeuneAsync(jeune.UserId, acceptationId, "trop tôt"));
+
+        Assert.True(await missionService.ValiderAcceptationAsync(jeune.CoachUserId, acceptationId));
+
+        Assert.False(await missionService.DemanderContactCoachAsync(autreJeune.UserId, acceptationId, "pas moi"));
+        Assert.True(await missionService.DemanderContactCoachAsync(jeune.UserId, acceptationId, "Merci de me rappeler"));
+
+        var notifsCoach = await notifService.GetRecentesAsync(jeune.CoachUserId, 20);
+        var contact = Assert.Single(notifsCoach, n => n.TypeCode == "Missions.DemandeContact");
+        Assert.Contains("rappeler", contact.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Le jeune", contact.Message);
+        Assert.Equal($"/coach/suivis/{jeune.UserId}/missions", contact.Lien);
+
+        Assert.True(await missionService.SignalerProblemeJeuneAsync(jeune.UserId, acceptationId, "Ça bloque"));
+        var probleme = Assert.Single(
+            await notifService.GetRecentesAsync(jeune.CoachUserId, 20),
+            n => n.TypeCode == "Missions.ProblemeSignale");
+        Assert.Contains("bloque", probleme.Message, StringComparison.OrdinalIgnoreCase);
+
+        Assert.True(await missionService.MarquerTermineeAsync(jeune.UserId, acceptationId));
+        Assert.True(await missionService.DemanderContactCoachAsync(jeune.UserId, acceptationId, "question après coup"));
+
+        await CleanupMissionsAsync([missionId], particulierUserId);
+    }
+
+    [Fact]
+    public async Task DemanderContactParticulier_TypeCodeDistinctDuProbleme()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
+        var (particulierUserId, missionId) = await PublierMissionAsync();
+        var jeune = await CreerJeuneAvecCoachAsync();
+
+        Assert.False(await missionService.DemanderContactParticulierAsync(particulierUserId, missionId, "trop tôt"));
+
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
+        Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
+        var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId))
+            .Single().AcceptationId;
+        Assert.True(await missionService.ValiderAcceptationAsync(jeune.CoachUserId, acceptationId));
+
+        Assert.True(await missionService.DemanderContactParticulierAsync(
+            particulierUserId, missionId, "J'ai une question"));
+        var notifs = await notifService.GetRecentesAsync(jeune.CoachUserId, 20);
+        var contact = Assert.Single(notifs, n => n.TypeCode == "Missions.DemandeContact");
+        Assert.Contains("Le particulier", contact.Message);
+        Assert.DoesNotContain(notifs, n => n.TypeCode == "Missions.ProblemeSignale");
+
+        await CleanupMissionsAsync([missionId], particulierUserId);
+    }
+
     private async Task<(string UserId, int MissionId)> PublierMissionAsync()
     {
         var particulierUserId = await CreerParticulierAsync();
