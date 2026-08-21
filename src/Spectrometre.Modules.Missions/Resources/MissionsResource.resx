@@ -249,6 +249,9 @@
   <data name="FicheSuivi_Profil_Succes" xml:space="preserve"><value>Profil d'accompagnement mis à jour.</value></data>
   <data name="FicheSuivi_Profil_Erreur" xml:space="preserve"><value>Mise à jour impossible.</value></data>
   <data name="FicheSuivi_Age" xml:space="preserve"><value>{0} ans</value></data>
+  <data name="FicheSuivi_Email" xml:space="preserve"><value>E-mail</value></data>
+  <data name="FicheSuivi_Telephone" xml:space="preserve"><value>Téléphone</value></data>
+  <data name="Coordonnees_NonRenseigne" xml:space="preserve"><value>Non renseigné</value></data>
   <data name="FicheSuivi_Consentement_Majeur" xml:space="preserve"><value>Majeur (non requis)</value></data>
   <data name="FicheSuivi_Consentement_MineurValide" xml:space="preserve"><value>Mineur — validé</value></data>
   <data name="FicheSuivi_Consentement_MineurAttente" xml:space="preserve"><value>Mineur — en attente</value></data>

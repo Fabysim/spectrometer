@@ -87,6 +87,12 @@
                                                    autocomplete="username" required />
                                     </div>
                                     <div class="login-form-group">
+                                        <label for="inscription-telephone" class="login-form-label">@Localizer["TelephoneOptionnel"]</label>
+                                        <InputText id="inscription-telephone" @bind-Value="_model.Telephone" type="tel"
+                                                   class="login-form-control form-control"
+                                                   autocomplete="tel" />
+                                    </div>
+                                    <div class="login-form-group">
                                         <label for="motDePasse" class="login-form-label">@Localizer["MotDePasse"]</label>
                                         <div class="password-field-wrapper">
                                             <InputText id="motDePasse" @bind-Value="_model.MotDePasse" type="password"
@@ -212,6 +218,7 @@
         public string Nom { get; set; } = "";
         public string Prenom { get; set; } = "";
         public string Email { get; set; } = "";
+        public string? Telephone { get; set; }
         public string MotDePasse { get; set; } = "";
         public string ConfirmationMotDePasse { get; set; } = "";
         public string? Profil { get; set; }
@@ -302,6 +309,7 @@
         {
             UserName = _model.Email,
             Email = _model.Email,
+            PhoneNumber = string.IsNullOrWhiteSpace(_model.Telephone) ? null : _model.Telephone.Trim(),
             FirstName = _model.Prenom,
             LastName = _model.Nom,
         };

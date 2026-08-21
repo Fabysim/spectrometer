@@ -85,6 +85,9 @@
   <data name="Prenom" xml:space="preserve">
     <value>First name</value>
   </data>
+  <data name="TelephoneOptionnel" xml:space="preserve">
+    <value>Phone (optional)</value>
+  </data>
   <data name="Inscription_SuggererMotDePasseFort" xml:space="preserve">
     <value>Suggest a strong password</value>
   </data>

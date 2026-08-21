@@ -104,6 +104,32 @@ public sealed class FicheSuiviCoachTests(ServiceFixture fixture)
     }
 
     [Fact]
+    public async Task GetAsync_CoachAutoriseVoitEmailEtTelephoneJeune_NonAutoriseRetourneNull()
+    {
+        var fiche = fixture.Services.GetRequiredService<IFicheSuiviCoachService>();
+        var jeuneEmail = $"jeune-tel-{Guid.NewGuid()}@test.local";
+        var (coachUserId, jeuneUserId, _) = await CreerJeuneAvecCoachAsync(
+            "Petit", "Hugo", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-16)), jeuneEmail);
+        var autreCoach = await CreerUtilisateurAsync($"autre-coach-tel-{Guid.NewGuid()}@test.local");
+
+        using (var scope = fixture.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var jeune = await userManager.FindByIdAsync(jeuneUserId);
+            Assert.NotNull(jeune);
+            var setPhone = await userManager.SetPhoneNumberAsync(jeune!, "0470123456");
+            Assert.True(setPhone.Succeeded);
+        }
+
+        var view = await fiche.GetAsync(coachUserId, jeuneUserId);
+        Assert.NotNull(view);
+        Assert.Equal(jeuneEmail, view!.Email);
+        Assert.Equal("0470123456", view.Telephone);
+
+        Assert.Null(await fiche.GetAsync(autreCoach, jeuneUserId));
+    }
+
+    [Fact]
     public async Task GetAsync_ConsentementValide_ExposeCoordonneesParent_CoachNonAutoriseNeLesVoitPas()
     {
         var fiche = fixture.Services.GetRequiredService<IFicheSuiviCoachService>();
@@ -198,10 +224,11 @@ public sealed class FicheSuiviCoachTests(ServiceFixture fixture)
     private async Task<(string CoachUserId, string JeuneUserId, int ProfileId)> CreerJeuneAvecCoachAsync(
         string nom,
         string prenoms,
-        DateOnly dateNaissance)
+        DateOnly dateNaissance,
+        string? jeuneEmail = null)
     {
         var coachUserId = await CreerUtilisateurAsync($"coach-fiche-{Guid.NewGuid()}@test.local");
-        var jeuneEmail = $"jeune-fiche-{Guid.NewGuid()}@test.local";
+        jeuneEmail ??= $"jeune-fiche-{Guid.NewGuid()}@test.local";
         var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
         var coachingService = fixture.Services.GetRequiredService<ICoachingService>();
 

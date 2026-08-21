@@ -140,6 +140,36 @@ public sealed class MissionModerationTests(ServiceFixture fixture)
     }
 
     [Fact]
+    public async Task FileModeration_CoachVoitEmailEtTelephoneParticulier_NonCoachNeLesVoitPas()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var (particulierUserId, missionId, coachUserId, _) = await PublierAvecCoachEtJeuneAsync();
+
+        string? email;
+        using (var scope = fixture.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var particulier = await userManager.FindByIdAsync(particulierUserId);
+            Assert.NotNull(particulier);
+            email = particulier!.Email;
+            var setPhone = await userManager.SetPhoneNumberAsync(particulier, "0611223344");
+            Assert.True(setPhone.Succeeded);
+        }
+
+        var file = await missionService.GetMissionsEnAttenteModerationAsync(coachUserId);
+        var detail = Assert.Single(file, m => m.MissionId == missionId);
+        Assert.Equal(email, detail.ParticulierEmail);
+        Assert.Equal("0611223344", detail.ParticulierTelephone);
+
+        Assert.Empty(await missionService.GetMissionsEnAttenteModerationAsync("user-inconnu"));
+        Assert.DoesNotContain(
+            await missionService.GetMissionsEnAttenteModerationAsync(particulierUserId),
+            m => m.MissionId == missionId);
+
+        await CleanupAsync(missionId, particulierUserId);
+    }
+
+    [Fact]
     public async Task FilePartagee_AutreCoachPeutValider()
     {
         var missionService = fixture.Services.GetRequiredService<IMissionService>();

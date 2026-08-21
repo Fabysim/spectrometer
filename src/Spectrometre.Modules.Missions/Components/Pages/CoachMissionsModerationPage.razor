@@ -57,6 +57,8 @@ else
 
                 <h4 class="missions-section-title">@Localizer["Moderation_Particulier_Titre"]</h4>
                 <p class="missions-meta">@m.ParticulierPrenoms @m.ParticulierNom</p>
+                <p class="missions-meta">@Localizer["FicheSuivi_Email"] : @AfficherCoordonnee(m.ParticulierEmail)</p>
+                <p class="missions-meta">@Localizer["FicheSuivi_Telephone"] : @AfficherCoordonnee(m.ParticulierTelephone)</p>
                 <p class="missions-meta">@Localizer["Moderation_Historique_Publiees", m.MissionsDejaPublieesCount]</p>
                 @if (m.MissionsRefuseesOuAnnuleesCount > 0)
                 {
@@ -190,6 +192,9 @@ else
         await RefreshAsync();
         _busy = false;
     }
+
+    private string AfficherCoordonnee(string? valeur) =>
+        string.IsNullOrWhiteSpace(valeur) ? Localizer["Coordonnees_NonRenseigne"] : valeur;
 
     private string AfficherTitre(MissionCategorie categorie, string titre)
     {

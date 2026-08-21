@@ -84,6 +84,9 @@
   <data name="Prenom" xml:space="preserve">
     <value>Prénom</value>
   </data>
+  <data name="TelephoneOptionnel" xml:space="preserve">
+    <value>Téléphone (optionnel)</value>
+  </data>
   <data name="Inscription_SuggererMotDePasseFort" xml:space="preserve">
     <value>Suggérer un mot de passe fort</value>
   </data>

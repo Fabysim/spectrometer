@@ -67,12 +67,16 @@ public sealed record MissionDetailView(
     DateTimeOffset CreatedAt,
     /// <summary>Prénom du particulier publieur — même niveau que le jeune sur la file de validation.</summary>
     string ParticulierPrenoms = "",
-    /// <summary>Nom du particulier publieur — pas de téléphone/email.</summary>
+    /// <summary>Nom du particulier publieur.</summary>
     string ParticulierNom = "",
     /// <summary>Missions déjà déposées par ce particulier, hors la demande en cours.</summary>
     int MissionsDejaPublieesCount = 0,
     /// <summary>Refus de modération et annulations propriétaire (<see cref="MissionStatut.Annulee"/>).</summary>
-    int MissionsRefuseesOuAnnuleesCount = 0);
+    int MissionsRefuseesOuAnnuleesCount = 0,
+    /// <summary>E-mail du compte Identity du particulier — file de modération coach uniquement.</summary>
+    string? ParticulierEmail = null,
+    /// <summary>Téléphone Identity (<c>ApplicationUser.PhoneNumber</c>), ou null s'il n'a jamais été saisi.</summary>
+    string? ParticulierTelephone = null);
 
 public sealed record MissionAcceptationView(
     int AcceptationId,

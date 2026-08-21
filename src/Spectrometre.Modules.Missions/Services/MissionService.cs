@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Entities;
@@ -21,7 +23,8 @@ public sealed class MissionService(
     ICoachingService coachingService,
     ICoachSubjectResolver coachSubjectResolver,
     INotificationService notificationService,
-    ICharteService charteService) : IMissionService
+    ICharteService charteService,
+    UserManager<ApplicationUser> userManager) : IMissionService
 {
     public async Task<int?> PublierMissionAsync(string particulierUserId, PublierMissionInput input, CancellationToken cancellationToken = default)
     {
@@ -77,17 +80,34 @@ public sealed class MissionService(
             .ToListAsync(cancellationToken);
         var histoParParticulier = historiques.ToDictionary(h => h.ParticulierProfileId);
 
+        var userIds = enAttente
+            .Where(x => x.Particulier is not null)
+            .Select(x => x.Particulier!.UserId)
+            .Distinct()
+            .ToList();
+        var contacts = userIds.Count == 0
+            ? new Dictionary<string, (string? Email, string? PhoneNumber)>()
+            : await userManager.Users.AsNoTracking()
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(
+                    u => u.Id,
+                    u => (u.Email, u.PhoneNumber),
+                    cancellationToken);
+
         return enAttente.Select(x =>
         {
             histoParParticulier.TryGetValue(x.Mission.ParticulierProfileId, out var histo);
             var total = histo?.Total ?? 0;
             var dejaPubliees = Math.Max(0, total - 1);
+            contacts.TryGetValue(x.Particulier?.UserId ?? "", out var contact);
             return ToDetailView(
                 x.Mission,
                 x.Particulier?.Prenoms ?? "",
                 x.Particulier?.Nom ?? "",
                 dejaPubliees,
-                histo?.Annulees ?? 0);
+                histo?.Annulees ?? 0,
+                contact.Email,
+                contact.PhoneNumber);
         }).ToList();
     }
 
@@ -684,7 +704,9 @@ public sealed class MissionService(
         string particulierPrenoms = "",
         string particulierNom = "",
         int missionsDejaPublieesCount = 0,
-        int missionsRefuseesOuAnnuleesCount = 0) =>
+        int missionsRefuseesOuAnnuleesCount = 0,
+        string? particulierEmail = null,
+        string? particulierTelephone = null) =>
         new(
             mission.Id,
             mission.Titre,
@@ -706,7 +728,9 @@ public sealed class MissionService(
             particulierPrenoms,
             particulierNom,
             missionsDejaPublieesCount,
-            missionsRefuseesOuAnnuleesCount);
+            missionsRefuseesOuAnnuleesCount,
+            particulierEmail,
+            particulierTelephone);
 
     private async Task<string?> FindCoachReferentAsync(string jeuneUserId, CancellationToken cancellationToken)
     {

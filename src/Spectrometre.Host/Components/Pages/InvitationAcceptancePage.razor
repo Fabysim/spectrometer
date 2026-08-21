@@ -104,6 +104,12 @@
                                                autocomplete="given-name" />
                                 </div>
                                 <div class="login-form-group">
+                                    <label for="invitation-telephone" class="login-form-label">@Localizer["TelephoneOptionnel"]</label>
+                                    <InputText id="invitation-telephone" @bind-Value="_model.Telephone" type="tel"
+                                               class="login-form-control form-control"
+                                               autocomplete="tel" />
+                                </div>
+                                <div class="login-form-group">
                                     <label for="invitation-password" class="login-form-label">@Localizer["MotDePasse"]</label>
                                     <InputText id="invitation-password" @bind-Value="_model.MotDePasse" type="password"
                                                class="login-form-control form-control"
@@ -200,6 +206,7 @@
     {
         public string Nom { get; set; } = "";
         public string Prenom { get; set; } = "";
+        public string? Telephone { get; set; }
         public string MotDePasse { get; set; } = "";
         public string ConfirmationMotDePasse { get; set; } = "";
     }
@@ -272,6 +279,7 @@
             // accédant à la boîte mail visée (jeton sécurisé envoyé à _invitation.EmailInvite) — la
             // compléter EST la preuve de possession de l'adresse.
             EmailConfirmed = true,
+            PhoneNumber = string.IsNullOrWhiteSpace(_model.Telephone) ? null : _model.Telephone.Trim(),
             FirstName = _model.Prenom,
             LastName = _model.Nom,
         };

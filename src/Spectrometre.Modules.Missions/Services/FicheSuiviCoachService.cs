@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Identity;
 using Spectrometre.Core.JeunesPrestataires;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
@@ -35,7 +38,9 @@ public sealed record FicheSuiviCoachView(
     int? LienCoachingId,
     ProfilAccompagnement ProfilAccompagnement,
     IReadOnlyList<RetourParticulierCoachItem> RetoursParticuliersRecents,
-    ConsentementParentalCoachView? ContactParental);
+    ConsentementParentalCoachView? ContactParental,
+    string? Email = null,
+    string? Telephone = null);
 
 public interface IFicheSuiviCoachService
 {
@@ -55,7 +60,8 @@ public sealed class FicheSuiviCoachService(
     IMissionService missionService,
     IGrilleObservationService grilleObservationService,
     IGuideEntrevueService guideEntrevueService,
-    IRetoursParticuliersCoachQuery retoursParticuliersQuery) : IFicheSuiviCoachService
+    IRetoursParticuliersCoachQuery retoursParticuliersQuery,
+    UserManager<ApplicationUser> userManager) : IFicheSuiviCoachService
 {
     private const int NbRetoursResumes = 3;
 
@@ -110,6 +116,11 @@ public sealed class FicheSuiviCoachService(
             ? await consentementParentalService.TryGetPourCoachAsync(coachUserId, jeune.Id, cancellationToken)
             : null;
 
+        var compte = await userManager.Users.AsNoTracking()
+            .Where(u => u.Id == suiviUserId)
+            .Select(u => new { u.Email, u.PhoneNumber })
+            .FirstOrDefaultAsync(cancellationToken);
+
         return new FicheSuiviCoachView(
             suiviUserId,
             jeune.Nom,
@@ -126,6 +137,8 @@ public sealed class FicheSuiviCoachService(
             lienId,
             jeune.ProfilAccompagnement,
             retours.Take(NbRetoursResumes).ToList(),
-            contactParental);
+            contactParental,
+            compte?.Email,
+            compte?.PhoneNumber);
     }
 }

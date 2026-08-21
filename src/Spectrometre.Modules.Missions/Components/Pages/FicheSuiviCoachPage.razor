@@ -42,6 +42,8 @@ else
         <p class="mes-progres-stat">@_view.Prenoms @_view.Nom</p>
         <p class="missions-meta">@Localizer["FicheSuivi_Age", _view.Age]</p>
         <p class="missions-meta">@ConsentementLabel(_view.ConsentementStatut)</p>
+        <p class="missions-meta">@Localizer["FicheSuivi_Email"] : @AfficherCoordonnee(_view.Email)</p>
+        <p class="missions-meta">@Localizer["FicheSuivi_Telephone"] : @AfficherCoordonnee(_view.Telephone)</p>
         <div class="missions-field" style="margin-top:0.75rem;">
             <label for="profil-accompagnement">@Localizer["FicheSuivi_Profil_Label"]</label>
             <select id="profil-accompagnement" @bind="_profilChoisi">
@@ -252,6 +254,9 @@ else
         }
         _saving = false;
     }
+
+    private string AfficherCoordonnee(string? valeur) =>
+        string.IsNullOrWhiteSpace(valeur) ? Localizer["Coordonnees_NonRenseigne"] : valeur;
 
     private string ConsentementLabel(FicheSuiviConsentementStatut statut) => statut switch
     {
