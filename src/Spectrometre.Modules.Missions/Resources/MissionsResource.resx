@@ -197,6 +197,7 @@
   <data name="ModifierMission_Erreur" xml:space="preserve"><value>Impossible d'enregistrer. Vérifiez les champs obligatoires ou que la mission est encore disponible.</value></data>
   <data name="ModifierMission_Indisponible" xml:space="preserve"><value>Cette mission ne peut plus être modifiée (déjà acceptée, attribuée, ou elle ne vous appartient pas).</value></data>
   <data name="Mission_RealiseePar" xml:space="preserve"><value>Réalisée par {0}</value></data>
+  <data name="Mission_ChezParticulier" xml:space="preserve"><value>Mission chez {0}</value></data>
   <data name="SignalerProbleme_Bouton" xml:space="preserve"><value>Signaler un problème</value></data>
   <data name="SignalerProbleme_Label" xml:space="preserve"><value>Décrivez brièvement le problème (optionnel)</value></data>
   <data name="SignalerProbleme_Placeholder" xml:space="preserve"><value>Ex. : retard, difficulté sur place…</value></data>

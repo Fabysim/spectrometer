@@ -101,7 +101,13 @@ public sealed record MissionJeuneView(
     bool AccesDifficile,
     string? RisqueParticulier,
     DateTimeOffset AccepteeLe,
-    DateTimeOffset? DecideeLe);
+    DateTimeOffset? DecideeLe,
+    /// <summary>
+    /// Prénom du particulier uniquement si la mission est <see cref="MissionStatut.Attribuee"/>
+    /// ou <see cref="MissionStatut.Terminee"/> — jamais avant (y compris <c>EnAttenteValidation</c>).
+    /// Pas de nom de famille ni de coordonnées.
+    /// </summary>
+    string? ParticulierPrenom = null);
 
 /// <summary>État mutable du formulaire publier / modifier (évite de dupliquer les champs Razor).</summary>
 public sealed class MissionFormModel

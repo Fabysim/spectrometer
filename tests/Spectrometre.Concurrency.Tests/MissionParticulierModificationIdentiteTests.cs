@@ -54,6 +54,41 @@ public sealed class MissionParticulierModificationIdentiteTests(ServiceFixture f
     }
 
     [Fact]
+    public async Task GetMesMissions_PrenomParticulier_UniquementApresAttribution()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var particulierUserId = await CreerParticulierAsync("Martin-Test", "Claire");
+        var missionId = await missionService.PublierMissionAsync(
+            particulierUserId,
+            Input(MissionCategorie.JardinageSimple, titre: null, description: "Desc"));
+        Assert.NotNull(missionId);
+        var jeune = await CreerJeuneAvecCoachAsync("Léa", "Dupont-Test");
+
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId.Value);
+        Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId.Value));
+
+        var enAttente = Assert.Single(await missionService.GetMesMissionsAsync(jeune.UserId), m => m.MissionId == missionId.Value);
+        Assert.Equal(MissionStatut.EnAttenteValidation, enAttente.MissionStatut);
+        Assert.Null(enAttente.ParticulierPrenom);
+
+        var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId))
+            .Single().AcceptationId;
+        Assert.True(await missionService.ValiderAcceptationAsync(jeune.CoachUserId, acceptationId));
+
+        var attribuee = Assert.Single(await missionService.GetMesMissionsAsync(jeune.UserId), m => m.MissionId == missionId.Value);
+        Assert.Equal(MissionStatut.Attribuee, attribuee.MissionStatut);
+        Assert.Equal("Claire", attribuee.ParticulierPrenom);
+        Assert.DoesNotContain("Martin", attribuee.ParticulierPrenom, StringComparison.OrdinalIgnoreCase);
+
+        Assert.True(await missionService.MarquerTermineeAsync(jeune.UserId, acceptationId));
+        var terminee = Assert.Single(await missionService.GetMesMissionsAsync(jeune.UserId), m => m.MissionId == missionId.Value);
+        Assert.Equal(MissionStatut.Terminee, terminee.MissionStatut);
+        Assert.Equal("Claire", terminee.ParticulierPrenom);
+
+        await CleanupMissionsAsync([missionId.Value], particulierUserId);
+    }
+
+    [Fact]
     public async Task ModifierMission_UniquementDisponibleEtProprietaire_MemeValidationPublication()
     {
         var missionService = fixture.Services.GetRequiredService<IMissionService>();
@@ -158,14 +193,14 @@ public sealed class MissionParticulierModificationIdentiteTests(ServiceFixture f
         return (particulierUserId, missionId.Value);
     }
 
-    private async Task<string> CreerParticulierAsync()
+    private async Task<string> CreerParticulierAsync(string nom = "Part", string prenoms = "Mod")
     {
         var userId = await CreerUtilisateurAsync($"part-mod-{Guid.NewGuid()}@test.local");
         var particulierService = fixture.Services.GetRequiredService<IParticulierProfileService>();
         var moduleRegistry = fixture.Services.GetRequiredService<IModuleRegistry>();
         await using var coreDb = await fixture.Services.GetRequiredService<IDbContextFactory<CoreDbContext>>().CreateDbContextAsync();
 
-        var profileId = await particulierService.GetOrCreateProfileIdAsync(userId, "Part", "Mod");
+        var profileId = await particulierService.GetOrCreateProfileIdAsync(userId, nom, prenoms);
         if (!await coreDb.ParticulierSubscriptions.AnyAsync(s => s.ParticulierProfileId == profileId))
         {
             coreDb.ParticulierSubscriptions.Add(new ParticulierSubscription

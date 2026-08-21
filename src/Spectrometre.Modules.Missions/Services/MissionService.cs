@@ -177,7 +177,7 @@ public sealed class MissionService(
             .OrderByDescending(a => a.AccepteeLe)
             .ToListAsync(cancellationToken);
 
-        return rows.Select(ToMissionJeuneView).ToList();
+        return await MapToJeuneViewsAsync(db, rows, cancellationToken);
     }
 
     public async Task<bool> AccepterMissionAsync(string jeuneUserId, int missionId, CancellationToken cancellationToken = default)
@@ -335,7 +335,7 @@ public sealed class MissionService(
             .OrderByDescending(a => a.DecideeLe ?? a.AccepteeLe)
             .ToListAsync(cancellationToken);
 
-        return rows.Select(ToMissionJeuneView).ToList();
+        return await MapToJeuneViewsAsync(db, rows, cancellationToken);
     }
 
     public async Task<IReadOnlyList<MissionResumeView>> GetMesMissionsPublieesAsync(string particulierUserId, CancellationToken cancellationToken = default)
@@ -747,7 +747,27 @@ public sealed class MissionService(
         }
     }
 
-    private static MissionJeuneView ToMissionJeuneView(MissionAcceptation a) =>
+    private async Task<IReadOnlyList<MissionJeuneView>> MapToJeuneViewsAsync(
+        MissionsDbContext db,
+        List<MissionAcceptation> rows,
+        CancellationToken cancellationToken)
+    {
+        if (rows.Count == 0)
+            return [];
+
+        var particulierIds = rows.Select(a => a.Mission.ParticulierProfileId).Distinct().ToList();
+        var prenoms = await db.ParticulierProfiles.AsNoTracking()
+            .Where(p => particulierIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, p => p.Prenoms, cancellationToken);
+
+        return rows.Select(a =>
+        {
+            prenoms.TryGetValue(a.Mission.ParticulierProfileId, out var prenom);
+            return ToMissionJeuneView(a, prenom);
+        }).ToList();
+    }
+
+    private static MissionJeuneView ToMissionJeuneView(MissionAcceptation a, string? particulierPrenoms) =>
         new(
             a.Id,
             a.MissionId,
@@ -763,7 +783,11 @@ public sealed class MissionService(
             a.Mission.AccesDifficile,
             a.Mission.RisqueParticulier,
             a.AccepteeLe,
-            a.DecideeLe);
+            a.DecideeLe,
+            a.Mission.Statut is MissionStatut.Attribuee or MissionStatut.Terminee
+                && !string.IsNullOrWhiteSpace(particulierPrenoms)
+                ? particulierPrenoms
+                : null);
 
     private async Task<bool> DeciderAcceptationAsync(
         string coachUserId,
