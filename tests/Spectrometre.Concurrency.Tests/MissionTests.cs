@@ -130,6 +130,13 @@ public sealed class MissionTests(ServiceFixture fixture)
         var demandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId);
         var acceptationId = demandes.Single().AcceptationId;
 
+        var notifCoachDemande = Assert.Single(
+            await notifService.GetRecentesAsync(jeune.CoachUserId, 20),
+            n => n.TypeCode == "Missions.DemandeAcceptationEnAttente");
+        Assert.Equal($"/coach/suivis/{jeune.UserId}/missions", notifCoachDemande.Lien);
+        Assert.Contains("Léa", notifCoachDemande.Message);
+        Assert.Contains("Test mission", notifCoachDemande.Message);
+
         // Refus → notif jeune MissionRefusee ; particulier sans aucune notif Missions
         Assert.True(await missionService.RefuserAcceptationAsync(jeune.CoachUserId, acceptationId));
         Assert.DoesNotContain(
@@ -149,6 +156,10 @@ public sealed class MissionTests(ServiceFixture fixture)
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         demandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId);
         acceptationId = demandes.Single().AcceptationId;
+        Assert.Equal(
+            2,
+            (await notifService.GetRecentesAsync(jeune.CoachUserId, 20))
+                .Count(n => n.TypeCode == "Missions.DemandeAcceptationEnAttente"));
         Assert.True(await missionService.ValiderAcceptationAsync(jeune.CoachUserId, acceptationId));
 
         var notifParticulier = Assert.Single(

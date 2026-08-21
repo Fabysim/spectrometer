@@ -184,6 +184,10 @@ public sealed class MissionService(
         });
         await db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
+
+        var mission = await db.Missions.AsNoTracking()
+            .FirstAsync(m => m.Id == missionId, cancellationToken);
+        await NotifierCoachsDemandeAcceptationAsync(jeune, mission, cancellationToken);
         return true;
     }
 
@@ -686,6 +690,39 @@ public sealed class MissionService(
     {
         var liens = await coachingService.GetLiensPourSuiviAsync(jeuneUserId, cancellationToken);
         return liens.FirstOrDefault(l => l.Statut == LienCoachingStatut.Actif)?.CoachUserId;
+    }
+
+    /// <summary>
+    /// Tous les coachs avec un lien <see cref="LienCoachingStatut.Actif"/> — le modèle n'interdit pas
+    /// plusieurs suivis actifs ; <see cref="FindCoachReferentAsync"/> n'en retient qu'un pour les
+    /// signalements (premier). Ici on notifie chaque suiveur actif (UserId distinct).
+    /// </summary>
+    private async Task NotifierCoachsDemandeAcceptationAsync(
+        JeuneProfileView jeune,
+        Mission mission,
+        CancellationToken cancellationToken)
+    {
+        var coachUserIds = (await coachingService.GetLiensPourSuiviAsync(jeune.UserId, cancellationToken))
+            .Where(l => l.Statut == LienCoachingStatut.Actif)
+            .Select(l => l.CoachUserId)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        if (coachUserIds.Count == 0)
+            return;
+
+        var titreMission = MissionDisplay.TitreAffiche(mission.Categorie, mission.Titre);
+        var jeuneNom = $"{jeune.Prenoms} {jeune.Nom}".Trim();
+        var lien = $"/coach/suivis/{jeune.UserId}/missions";
+        foreach (var coachUserId in coachUserIds)
+        {
+            await notificationService.CreerAsync(
+                coachUserId,
+                "Demande de mission à valider",
+                $"{jeuneNom} a accepté la mission « {titreMission} ». Merci de valider ou de refuser.",
+                lien,
+                "Missions.DemandeAcceptationEnAttente",
+                cancellationToken);
+        }
     }
 
     private static MissionJeuneView ToMissionJeuneView(MissionAcceptation a) =>
