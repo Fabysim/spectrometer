@@ -310,6 +310,23 @@ public sealed class AutoObservationService(
         return true;
     }
 
+    public async Task<bool> ASyntheseEnAttenteDeValidationAsync(
+        string requestingUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveAccessAsync(requestingUserId, jeuneProfileId, cancellationToken);
+        if (access is null || access.Value.Profile.Id != jeuneProfileId)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var etat = await db.AutoObservationSynthesesGenerees.AsNoTracking()
+            .Where(s => s.JeuneProfileId == jeuneProfileId)
+            .Select(s => new { s.ValideeLe })
+            .FirstOrDefaultAsync(cancellationToken);
+        return etat is not null && etat.ValideeLe is null;
+    }
+
     public async Task<bool> EnregistrerOrientationAsync(
         string requestingUserId,
         int jeuneProfileId,

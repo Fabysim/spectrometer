@@ -13,9 +13,16 @@ namespace Spectrometre.Modules.Missions.Services;
 /// </summary>
 /// <remarks>
 /// <para><b>Dossiers incomplets</b> — le document Bouchra ne définit pas la métrique. Interprétation
-/// retenue pour ce cycle : jeune suivi actif, mineur, et consentement parental non encore validé
-/// (<see cref="IConsentementParentalService.EstConsentementValideAsync"/> = false). Un majeur n'entre
-/// jamais dans ce compteur (consentement parental hors périmètre).</para>
+/// retenue : jeune suivi actif, et au moins une des raisons suivantes (un jeune n'est compté
+/// qu'une fois) :
+/// <list type="bullet">
+/// <item>mineur dont le consentement parental n'est pas encore validé
+/// (<see cref="IConsentementParentalService.EstConsentementValideAsync"/> = false) — un majeur n'entre
+/// jamais par cette raison (consentement parental hors périmètre) ;</item>
+/// <item>synthèse d'auto-observation persistée jamais relue/validée par le coach
+/// (<c>AutoObservationSyntheseGeneree.ValideeLe</c> null). Absence de synthèse = le jeune n'a pas
+/// encore avancé jusqu'à génération : rien à valider, ne compte pas.</item>
+/// </list></para>
 /// <para><b>Alertes</b> — invitations jeunes encore en attente avec <c>EstExpiree</c> (à relancer ou
 /// annuler). <b>Signalements / demandes de contact</b> — notifications non lues
 /// <c>Missions.ProblemeSignale</c> et <c>Missions.DemandeContact</c> (messagerie légère,
@@ -29,6 +36,7 @@ public sealed class CoachDashboardService(
     IMissionService missionService,
     IJeuneProfileService jeuneProfileService,
     IConsentementParentalService consentementParentalService,
+    IAutoObservationService autoObservationService,
     IJeunePrestataireInvitationQuery invitationQuery,
     IGuideEntrevueService guideEntrevueService,
     IObjectifsCoachingService objectifsCoachingService,
@@ -55,10 +63,12 @@ public sealed class CoachDashboardService(
             if (jeune is null)
                 continue;
 
-            if (!jeuneProfileService.EstMineur(jeune.DateNaissance))
-                continue;
+            var consentementManquant = jeuneProfileService.EstMineur(jeune.DateNaissance)
+                && !await consentementParentalService.EstConsentementValideAsync(jeune.Id, cancellationToken);
+            var syntheseAValider = await autoObservationService.ASyntheseEnAttenteDeValidationAsync(
+                coachUserId, jeune.Id, cancellationToken);
 
-            if (!await consentementParentalService.EstConsentementValideAsync(jeune.Id, cancellationToken))
+            if (consentementManquant || syntheseAValider)
                 dossiersIncomplets++;
         }
 

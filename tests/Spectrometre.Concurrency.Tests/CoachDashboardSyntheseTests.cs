@@ -65,6 +65,31 @@ public sealed class CoachDashboardSyntheseTests(ServiceFixture fixture)
     }
 
     [Fact]
+    public async Task GetSyntheseAsync_SyntheseNonValidee_CompteDossierIncomplet_UneSeuleFoisSiCumul()
+    {
+        var coachId = await CreerUtilisateurAsync($"coach-dash-syn-{Guid.NewGuid()}@test.local");
+        var dashboard = fixture.Services.GetRequiredService<ICoachDashboardService>();
+        var aoSvc = fixture.Services.GetRequiredService<IAutoObservationService>();
+
+        var majeurSansSynthese = await CreerJeunePourCoachAsync(
+            coachId, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-20)), "M0");
+        Assert.Equal(0, (await dashboard.GetSyntheseAsync(coachId)).DossiersIncomplets);
+
+        Assert.NotNull(await aoSvc.RegenererSyntheseAsync(coachId, majeurSansSynthese.ProfileId));
+        Assert.Equal(1, (await dashboard.GetSyntheseAsync(coachId)).DossiersIncomplets);
+
+        Assert.True(await aoSvc.ValiderSyntheseAsync(coachId, majeurSansSynthese.ProfileId));
+        Assert.Equal(0, (await dashboard.GetSyntheseAsync(coachId)).DossiersIncomplets);
+
+        var mineurSansConsentement = await CreerJeunePourCoachAsync(
+            coachId, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-15)), "Min");
+        Assert.Equal(1, (await dashboard.GetSyntheseAsync(coachId)).DossiersIncomplets);
+
+        Assert.NotNull(await aoSvc.RegenererSyntheseAsync(coachId, mineurSansConsentement.ProfileId));
+        Assert.Equal(1, (await dashboard.GetSyntheseAsync(coachId)).DossiersIncomplets);
+    }
+
+    [Fact]
     public async Task GetSyntheseAsync_CompteSignalementsEtDemandesNonLus()
     {
         var coachId = await CreerUtilisateurAsync($"coach-dash-sig-{Guid.NewGuid()}@test.local");

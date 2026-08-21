@@ -56,4 +56,13 @@ public interface IAutoObservationService
         string requestingCoachUserId,
         int jeuneProfileId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// True s'il existe une synthèse persistée jamais validée par le coach.
+    /// False si absente, déjà validée, ou accès refusé.
+    /// </summary>
+    Task<bool> ASyntheseEnAttenteDeValidationAsync(
+        string requestingUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default);
 }
