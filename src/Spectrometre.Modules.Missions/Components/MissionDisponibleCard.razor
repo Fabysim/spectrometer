@@ -1,0 +1,56 @@
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.Missions.Entities
+@using Spectrometre.Modules.Missions.Resources
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<div class="missions-card">
+    <h3>@AfficherTitre(Mission.Categorie, Mission.Titre)</h3>
+    <p class="missions-meta">@Localizer[$"Difficulte_{Mission.Difficulte}"]</p>
+    <p class="missions-meta">@Localizer["Mission_NiveauEncadrement"] : @Localizer[$"Encadrement_{Mission.NiveauEncadrement}"]</p>
+    @if (Mission.PresenceEscaliers || Mission.PresenceAnimaux || Mission.PortDeCharge || Mission.AccesDifficile)
+    {
+        <p class="missions-meta">
+            @Localizer["Mission_ConditionsSecurite"] :
+            @{
+                var secs = new List<string>();
+                if (Mission.PresenceEscaliers) secs.Add(Localizer["Mission_PresenceEscaliers"]);
+                if (Mission.PresenceAnimaux) secs.Add(Localizer["Mission_PresenceAnimaux"]);
+                if (Mission.PortDeCharge) secs.Add(Localizer["Mission_PortDeCharge"]);
+                if (Mission.AccesDifficile) secs.Add(Localizer["Mission_AccesDifficile"]);
+            }
+            @string.Join(" · ", secs)
+        </p>
+    }
+    @if (!string.IsNullOrWhiteSpace(Mission.RisqueParticulier))
+    {
+        <p class="missions-meta">@Localizer["Mission_RisqueParticulier"] : @Mission.RisqueParticulier</p>
+    }
+    @if (Mission.Lieu is not null) { <p class="missions-meta">@Mission.Lieu</p> }
+    @if (Mission.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
+    <div class="missions-actions">
+        <button type="button" class="missions-btn missions-btn-primary"
+                disabled="@Disabled"
+                @onclick="() => OnAccepter.InvokeAsync(Mission.MissionId)">
+            @Localizer["AccepterMission"]
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public MissionResumeView Mission { get; set; } = null!;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnAccepter { get; set; }
+
+    private string AfficherTitre(MissionCategorie categorie, string titre)
+    {
+        if (categorie == MissionCategorie.Autre)
+            return string.IsNullOrWhiteSpace(titre) ? Localizer["Categorie_Autre"] : titre;
+        var label = Localizer[$"Categorie_{categorie}"].Value;
+        return string.IsNullOrWhiteSpace(titre) ? label : $"{label} — {titre}";
+    }
+}

@@ -5,9 +5,11 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Spectrometre.Modules.Missions.Entities
+@using Spectrometre.Modules.Missions.Services
 @using Spectrometre.Modules.JeunesPrestataires.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IMissionService MissionService
+@inject IMissionSuggestionsService Suggestions
 @inject ICharteService CharteService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<MissionsResource> Localizer
@@ -32,6 +34,18 @@
         <div class="missions-success">@_message</div>
     }
 
+    @if (_recommandees.Count > 0)
+    {
+        <h2 class="missions-section-title">@Localizer["MissionsDisponibles_Recommandees_Titre"]</h2>
+        @foreach (var m in _recommandees)
+        {
+            <MissionDisponibleCard Mission="m"
+                                   Disabled="@(_acceptingId.HasValue || _charteManquante)"
+                                   OnAccepter="AccepterAsync" />
+        }
+        <h2 class="missions-section-title">@Localizer["MissionsDisponibles_Toutes_Titre"]</h2>
+    }
+
     @if (_missions.Count == 0)
     {
         <p class="missions-empty">@Localizer["AucuneMissionDisponible"]</p>
@@ -40,38 +54,9 @@
     {
         @foreach (var m in _missions)
         {
-            <div class="missions-card">
-                <h3>@AfficherTitre(m.Categorie, m.Titre)</h3>
-                <p class="missions-meta">@Localizer[$"Difficulte_{m.Difficulte}"]</p>
-                <p class="missions-meta">@Localizer["Mission_NiveauEncadrement"] : @Localizer[$"Encadrement_{m.NiveauEncadrement}"]</p>
-                @if (m.PresenceEscaliers || m.PresenceAnimaux || m.PortDeCharge || m.AccesDifficile)
-                {
-                    <p class="missions-meta">
-                        @Localizer["Mission_ConditionsSecurite"] :
-                        @{
-                            var secs = new List<string>();
-                            if (m.PresenceEscaliers) secs.Add(Localizer["Mission_PresenceEscaliers"]);
-                            if (m.PresenceAnimaux) secs.Add(Localizer["Mission_PresenceAnimaux"]);
-                            if (m.PortDeCharge) secs.Add(Localizer["Mission_PortDeCharge"]);
-                            if (m.AccesDifficile) secs.Add(Localizer["Mission_AccesDifficile"]);
-                        }
-                        @string.Join(" · ", secs)
-                    </p>
-                }
-                @if (!string.IsNullOrWhiteSpace(m.RisqueParticulier))
-                {
-                    <p class="missions-meta">@Localizer["Mission_RisqueParticulier"] : @m.RisqueParticulier</p>
-                }
-                @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
-                @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
-                <div class="missions-actions">
-                    <button type="button" class="missions-btn missions-btn-primary"
-                            disabled="@(_acceptingId.HasValue || _charteManquante)"
-                            @onclick="() => AccepterAsync(m.MissionId)">
-                        @Localizer["AccepterMission"]
-                    </button>
-                </div>
-            </div>
+            <MissionDisponibleCard Mission="m"
+                                   Disabled="@(_acceptingId.HasValue || _charteManquante)"
+                                   OnAccepter="AccepterAsync" />
         }
     }
 </div>
@@ -79,6 +64,7 @@
 @code {
     private string? _userId;
     private IReadOnlyList<MissionResumeView> _missions = [];
+    private IReadOnlyList<MissionResumeView> _recommandees = [];
     private int? _acceptingId;
     private string? _message;
     private bool _charteManquante;
@@ -92,7 +78,16 @@
         await RefreshAsync();
     }
 
-    private async Task RefreshAsync() => _missions = await MissionService.GetMissionsDisponiblesAsync();
+    private async Task RefreshAsync()
+    {
+        _missions = await MissionService.GetMissionsDisponiblesAsync();
+        _recommandees = [];
+        if (_userId is not null)
+        {
+            var recos = await Suggestions.GetRecommandeesAsync(_userId);
+            _recommandees = recos ?? [];
+        }
+    }
 
     private async Task AccepterAsync(int missionId)
     {
@@ -104,13 +99,5 @@
         _message = ok ? Localizer["Acceptation_Succes"] : Localizer["Acceptation_Echec"];
         await RefreshAsync();
         _acceptingId = null;
-    }
-
-    private string AfficherTitre(MissionCategorie categorie, string titre)
-    {
-        if (categorie == MissionCategorie.Autre)
-            return string.IsNullOrWhiteSpace(titre) ? Localizer["Categorie_Autre"] : titre;
-        var label = Localizer[$"Categorie_{categorie}"].Value;
-        return string.IsNullOrWhiteSpace(titre) ? label : $"{label} — {titre}";
     }
 }

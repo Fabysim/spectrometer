@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMesProgresService, MesProgresService>();
         services.AddScoped<IBadgeService, BadgeService>();
         services.AddScoped<IMesAstucesRecommandationService, MesAstucesRecommandationService>();
+        services.AddScoped<IMissionSuggestionsService, MissionSuggestionsService>();
         services.AddScoped<IFicheSuiviCoachService, FicheSuiviCoachService>();
         services.AddScoped<ICoachDashboardService, CoachDashboardService>();
         return services;
