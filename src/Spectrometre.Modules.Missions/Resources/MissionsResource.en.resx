@@ -273,4 +273,44 @@
 
   <data name="MesAstuces_Fiche_finir_mission_Titre" xml:space="preserve"><value>How to finish a mission</value></data>
   <data name="MesAstuces_Fiche_finir_mission_Texte" xml:space="preserve"><value>Before you leave, ask if everything is okay and if you can still help. Put away what you used, say thank you and goodbye. If something wasn’t finished, say so clearly rather than leaving without mentioning it.</value></data>
+
+  <data name="MesBadges_Title" xml:space="preserve"><value>My badges · Spectrometre</value></data>
+  <data name="MesBadges_Heading" xml:space="preserve"><value>My badges</value></data>
+  <data name="MesBadges_Intro" xml:space="preserve"><value>Achievements computed from your missions, client feedback and your coach’s observation grid. Nothing is stored separately — the display updates on its own.</value></data>
+  <data name="MesBadges_AccesRefuse_Titre" xml:space="preserve"><value>Access restricted</value></data>
+  <data name="MesBadges_AccesRefuse_Message" xml:space="preserve"><value>This page is for young providers only.</value></data>
+  <data name="MesBadges_Compteur" xml:space="preserve"><value>{0} / {1} badges unlocked</value></data>
+  <data name="MesBadges_DebloqueLe" xml:space="preserve"><value>Unlocked on {0}</value></data>
+  <data name="MesBadges_Verrouille" xml:space="preserve"><value>Not unlocked yet</value></data>
+  <data name="MesBadges_Progression" xml:space="preserve"><value>Progress: {0} / {1}</value></data>
+  <data name="MesBadges_Teaser" xml:space="preserve"><value>My badges ({0} unlocked)</value></data>
+
+  <data name="Badge_premiere_mission_Titre" xml:space="preserve"><value>First mission</value></data>
+  <data name="Badge_premiere_mission_Description" xml:space="preserve"><value>You have completed your first mission.</value></data>
+  <data name="Badge_ponctuel_1_Titre" xml:space="preserve"><value>Punctual</value></data>
+  <data name="Badge_ponctuel_1_Description" xml:space="preserve"><value>A client confirmed your punctuality.</value></data>
+  <data name="Badge_ponctuel_5_Titre" xml:space="preserve"><value>Punctual 5 times</value></data>
+  <data name="Badge_ponctuel_5_Description" xml:space="preserve"><value>Your punctuality has been confirmed 5 times.</value></data>
+  <data name="Badge_ponctuel_10_Titre" xml:space="preserve"><value>Punctual 10 times</value></data>
+  <data name="Badge_ponctuel_10_Description" xml:space="preserve"><value>Your punctuality has been confirmed 10 times.</value></data>
+  <data name="Badge_mission_reussie_1_Titre" xml:space="preserve"><value>Successful mission</value></data>
+  <data name="Badge_mission_reussie_1_Description" xml:space="preserve"><value>A client confirmed that the task was done well.</value></data>
+  <data name="Badge_mission_reussie_5_Titre" xml:space="preserve"><value>5 successful missions</value></data>
+  <data name="Badge_mission_reussie_5_Description" xml:space="preserve"><value>The task was judged well done 5 times.</value></data>
+  <data name="Badge_mission_reussie_10_Titre" xml:space="preserve"><value>10 successful missions</value></data>
+  <data name="Badge_mission_reussie_10_Description" xml:space="preserve"><value>The task was judged well done 10 times.</value></data>
+  <data name="Badge_toujours_partant_Titre" xml:space="preserve"><value>Always game</value></data>
+  <data name="Badge_toujours_partant_Description" xml:space="preserve"><value>Three clients would have you back for another mission.</value></data>
+  <data name="Badge_autonome_Titre" xml:space="preserve"><value>Independent</value></data>
+  <data name="Badge_autonome_Description" xml:space="preserve"><value>Your coach rated you 4/5 or more on independence.</value></data>
+  <data name="Badge_bon_communicant_Titre" xml:space="preserve"><value>Good communication</value></data>
+  <data name="Badge_bon_communicant_Description" xml:space="preserve"><value>Your coach rated you 4/5 or more on communication.</value></data>
+  <data name="Badge_esprit_initiative_Titre" xml:space="preserve"><value>Initiative</value></data>
+  <data name="Badge_esprit_initiative_Description" xml:space="preserve"><value>Your coach rated you 4/5 or more on initiative.</value></data>
+  <data name="Badge_charte_Titre" xml:space="preserve"><value>Charter accepted</value></data>
+  <data name="Badge_charte_Description" xml:space="preserve"><value>You have read and accepted the mission charter.</value></data>
+  <data name="Badge_respectueux_Titre" xml:space="preserve"><value>Respectful</value></data>
+  <data name="Badge_respectueux_Description" xml:space="preserve"><value>Three clients confirmed a respectful attitude.</value></data>
+  <data name="Badge_soin_travail_Titre" xml:space="preserve"><value>Careful work</value></data>
+  <data name="Badge_soin_travail_Description" xml:space="preserve"><value>Your coach rated you 4/5 or more on care taken with the work.</value></data>
 </root>

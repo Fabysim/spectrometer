@@ -1,0 +1,68 @@
+@page "/jeune/mes-badges"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IBadgeService BadgeService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["MesBadges_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (_badges is null)
+{
+    <div class="missions-card">
+        <h1 class="missions-title">@Localizer["MesBadges_AccesRefuse_Titre"]</h1>
+        <p class="missions-meta">@Localizer["MesBadges_AccesRefuse_Message"]</p>
+    </div>
+}
+else
+{
+    <h1 class="missions-title">@Localizer["MesBadges_Heading"]</h1>
+    <p class="missions-meta">@Localizer["MesBadges_Intro"]</p>
+    <p class="mes-progres-stat">@Localizer["MesBadges_Compteur", _badges.Count(b => b.Debloque), _badges.Count]</p>
+
+    <div class="badges-grid">
+        @foreach (var badge in _badges)
+        {
+            <article class="missions-card badge-card @(badge.Debloque ? "badge-card-on" : "badge-card-off")">
+                <div class="badge-emoji" aria-hidden="true">@badge.Emoji</div>
+                <h2 class="missions-section-title">@Localizer[$"Badge_{badge.Key}_Titre"]</h2>
+                <p class="missions-meta">@Localizer[$"Badge_{badge.Key}_Description"]</p>
+                @if (badge.Debloque && badge.DebloqueLe is DateTimeOffset le)
+                {
+                    <p class="badge-etat">@Localizer["MesBadges_DebloqueLe", le.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]</p>
+                }
+                else
+                {
+                    <p class="badge-etat">@Localizer["MesBadges_Verrouille"]</p>
+                    <p class="missions-meta">@Localizer["MesBadges_Progression", badge.Actuel, badge.Seuil]</p>
+                }
+            </article>
+        }
+    </div>
+}
+</div>
+
+@code {
+    private bool _chargement = true;
+    private IReadOnlyList<BadgeView>? _badges;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is not null)
+            _badges = await BadgeService.GetBadgesAsync(userId);
+        _chargement = false;
+    }
+}
