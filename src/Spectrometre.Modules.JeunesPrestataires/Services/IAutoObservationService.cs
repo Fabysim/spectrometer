@@ -47,4 +47,13 @@ public interface IAutoObservationService
         string requestingUserId,
         int jeuneProfileId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Le coach suiveur confirme avoir relu la synthèse auto-générée (horodatage + UserId).
+    /// N'édite pas le texte. Une régénération efface cette validation.
+    /// </summary>
+    Task<bool> ValiderSyntheseAsync(
+        string requestingCoachUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default);
 }

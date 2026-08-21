@@ -19,6 +19,7 @@ public sealed class JeunesPrestatairesDbContext(DbContextOptions<JeunesPrestatai
     public DbSet<GuideEntrevue> GuidesEntrevue => Set<GuideEntrevue>();
     public DbSet<GuideEntrevuePeurNote> GuideEntrevuePeurNotes => Set<GuideEntrevuePeurNote>();
     public DbSet<CharteAcceptation> CharteAcceptations => Set<CharteAcceptation>();
+    public DbSet<PlanActionAutoObservation> PlansActionAutoObservation => Set<PlanActionAutoObservation>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -92,6 +93,11 @@ public sealed class JeunesPrestatairesDbContext(DbContextOptions<JeunesPrestatai
         builder.Entity<CharteAcceptation>(e =>
         {
             e.HasIndex(c => c.JeuneProfileId).IsUnique();
+        });
+
+        builder.Entity<PlanActionAutoObservation>(e =>
+        {
+            e.HasIndex(p => p.JeuneProfileId).IsUnique();
         });
     }
 }

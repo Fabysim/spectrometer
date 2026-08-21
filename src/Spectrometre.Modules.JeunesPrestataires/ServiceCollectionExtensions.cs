@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAutoObservationService, AutoObservationService>();
         services.AddScoped<IGrilleObservationService, GrilleObservationService>();
         services.AddScoped<IGuideEntrevueService, GuideEntrevueService>();
+        services.AddScoped<IPlanActionAutoObservationService, PlanActionAutoObservationService>();
         services.AddScoped<ICharteService, CharteService>();
         services.AddScoped<IChartePdfService, ChartePdfService>();
         services.AddScoped<IConsentementParentalPdfService, ConsentementParentalPdfService>();

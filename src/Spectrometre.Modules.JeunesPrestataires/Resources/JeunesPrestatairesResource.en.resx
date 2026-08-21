@@ -303,6 +303,21 @@
   <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Self-observation questionnaire</value></data>
   <data name="AutoObs_Synthese_Theme" xml:space="preserve"><value>Theme</value></data>
   <data name="AutoObs_Synthese_Contenu" xml:space="preserve"><value>Content</value></data>
+  <data name="AutoObs_Synthese_PasEncoreRelue" xml:space="preserve"><value>This summary has not yet been reviewed by the coach.</value></data>
+  <data name="AutoObs_Synthese_ValideeLe" xml:space="preserve"><value>Summary reviewed and confirmed by the coach on {0}.</value></data>
+  <data name="AutoObs_Synthese_Valider" xml:space="preserve"><value>Confirm the summary</value></data>
+  <data name="AutoObs_Synthese_Validee" xml:space="preserve"><value>Summary confirmed.</value></data>
+  <data name="AutoObs_Synthese_ValidationImpossible" xml:space="preserve"><value>Could not confirm. Generate the summary first.</value></data>
+  <data name="PlanAction_Titre" xml:space="preserve"><value>Table 3 — Action plan</value></data>
+  <data name="PlanAction_IntroCoach" xml:space="preserve"><value>Write the action plan from the summary. The young person will see it read-only once saved. This is not a rewrite of tables 1/2: confirm = the “Confirm the summary” button above; add nuance = this plan and the interview guide.</value></data>
+  <data name="PlanAction_ObjectifPrincipal" xml:space="preserve"><value>Main objective</value></data>
+  <data name="PlanAction_PremiereAction" xml:space="preserve"><value>First action</value></data>
+  <data name="PlanAction_ResponsableSuivi" xml:space="preserve"><value>Person responsible for follow-up</value></data>
+  <data name="PlanAction_Echeance" xml:space="preserve"><value>Deadline</value></data>
+  <data name="PlanAction_IndicateurReussite" xml:space="preserve"><value>Success indicator</value></data>
+  <data name="PlanAction_Enregistrer" xml:space="preserve"><value>Save the action plan</value></data>
+  <data name="PlanAction_Enregistre" xml:space="preserve"><value>Action plan saved.</value></data>
+  <data name="PlanAction_Erreur" xml:space="preserve"><value>Could not save.</value></data>
   <data name="Orientation_Titre" xml:space="preserve"><value>A few questions to guide you</value></data>
   <data name="Orientation_Intro" xml:space="preserve"><value>Your answers help us suggest suitable support. You can skip this step: your coach’s choice will then stay unchanged.</value></data>
   <data name="Orientation_Aide" xml:space="preserve"><value>Once only — then you continue to the self-observation questionnaire.</value></data>

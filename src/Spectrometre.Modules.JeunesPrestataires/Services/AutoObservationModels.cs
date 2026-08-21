@@ -23,7 +23,8 @@ public sealed record AutoObservationPageView(
     AutoObservationSyntheseDocument? Synthese,
     DateTimeOffset? SyntheseGenereeLe,
     IReadOnlyList<AutoObservationSectionProgressView> SectionProgress,
-    bool OrientationAFaire);
+    bool OrientationAFaire,
+    DateTimeOffset? SyntheseValideeLe);
 
 public sealed record AutoObservationSectionView(
     AutoObservationAccessMode AccessMode,

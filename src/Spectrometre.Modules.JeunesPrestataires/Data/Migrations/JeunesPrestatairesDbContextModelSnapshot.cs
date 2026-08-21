@@ -100,6 +100,12 @@ namespace Spectrometre.Modules.JeunesPrestataires.Data.Migrations
                     b.Property<int>("JeuneProfileId")
                         .HasColumnType("integer");
 
+                    b.Property<DateTimeOffset?>("ValideeLe")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ValideeParCoachUserId")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("JeuneProfileId")
@@ -443,6 +449,46 @@ namespace Spectrometre.Modules.JeunesPrestataires.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("JeuneProfiles", "jeunes_prestataires");
+                });
+
+            modelBuilder.Entity("Spectrometre.Modules.JeunesPrestataires.Entities.PlanActionAutoObservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("Echeance")
+                        .HasColumnType("date");
+
+                    b.Property<string>("IndicateurReussite")
+                        .HasColumnType("text");
+
+                    b.Property<int>("JeuneProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ObjectifPrincipal")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PremiereAction")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ResponsableSuivi")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JeuneProfileId")
+                        .IsUnique();
+
+                    b.ToTable("PlansActionAutoObservation", "jeunes_prestataires");
                 });
 
             modelBuilder.Entity("Spectrometre.Modules.JeunesPrestataires.Entities.GrilleObservationCritere", b =>

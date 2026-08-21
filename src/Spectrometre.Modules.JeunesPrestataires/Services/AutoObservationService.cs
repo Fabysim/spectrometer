@@ -35,11 +35,13 @@ public sealed class AutoObservationService(
 
         AutoObservationSyntheseDocument? syntheseDoc = null;
         DateTimeOffset? syntheseLe = syntheseEntity?.GenereeLe;
+        DateTimeOffset? syntheseValideeLe = null;
         if (syntheseEntity is not null)
         {
             if (AutoObservationSyntheseDocument.TryParse(syntheseEntity.Contenu, out var parsed))
             {
                 syntheseDoc = parsed;
+                syntheseValideeLe = syntheseEntity.ValideeLe;
             }
             else
             {
@@ -59,7 +61,8 @@ public sealed class AutoObservationService(
             syntheseDoc,
             syntheseLe,
             progress,
-            orientationAFaire);
+            orientationAFaire,
+            syntheseValideeLe);
     }
 
     public async Task<AutoObservationSectionView?> TryGetSectionAsync(
@@ -276,10 +279,35 @@ public sealed class AutoObservationService(
         {
             existing.Contenu = json;
             existing.GenereeLe = maintenant;
+            existing.ValideeLe = null;
+            existing.ValideeParCoachUserId = null;
         }
 
         await db.SaveChangesAsync(cancellationToken);
         return json;
+    }
+
+    public async Task<bool> ValiderSyntheseAsync(
+        string requestingCoachUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveAccessAsync(requestingCoachUserId, jeuneProfileId, cancellationToken);
+        if (access is null
+            || access.Value.Profile.Id != jeuneProfileId
+            || access.Value.Mode != AutoObservationAccessMode.Coach)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var synthese = await db.AutoObservationSynthesesGenerees
+            .FirstOrDefaultAsync(s => s.JeuneProfileId == jeuneProfileId, cancellationToken);
+        if (synthese is null)
+            return false;
+
+        synthese.ValideeLe = DateTimeOffset.UtcNow;
+        synthese.ValideeParCoachUserId = requestingCoachUserId;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public async Task<bool> EnregistrerOrientationAsync(

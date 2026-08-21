@@ -11,6 +11,7 @@
 @using Spectrometre.Modules.JeunesPrestataires.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IAutoObservationService AutoObservationService
+@inject IPlanActionAutoObservationService PlanActionService
 @inject IJeuneProfileService JeuneProfileService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
@@ -137,6 +138,14 @@ else
                     </div>
                     @if (_page.Synthese is { } synthese)
                     {
+                        @if (_page.SyntheseValideeLe is DateTimeOffset valideeLe)
+                        {
+                            <p class="ao-hint ao-synthese-validee">@string.Format(Localizer["AutoObs_Synthese_ValideeLe"], valideeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture))</p>
+                        }
+                        else
+                        {
+                            <p class="ao-hint ao-synthese-non-validee">@Localizer["AutoObs_Synthese_PasEncoreRelue"]</p>
+                        }
                         <div class="ao-synthese">
                             @AfficherTableau(synthese.TroncCommun)
                             @if (synthese.Employabilite is { } t2a)
@@ -148,6 +157,58 @@ else
                                 @AfficherTableau(t2b)
                             }
                         </div>
+                        @if (_page.AccessMode == AutoObservationAccessMode.Coach)
+                        {
+                            <div class="ao-actions">
+                                <button type="button" class="ao-btn-secondary" @onclick="ValiderSyntheseAsync" disabled="@_saving">
+                                    @Localizer["AutoObs_Synthese_Valider"]
+                                </button>
+                            </div>
+                            <section class="ao-synthese-bloc">
+                                <h3 class="ao-synthese-titre">@Localizer["PlanAction_Titre"]</h3>
+                                <p class="ao-hint">@Localizer["PlanAction_IntroCoach"]</p>
+                                <div class="ao-question">
+                                    <label class="ao-question-label" for="pa-objectif">@Localizer["PlanAction_ObjectifPrincipal"]</label>
+                                    <textarea id="pa-objectif" class="ao-textarea" rows="2" @bind="_planObjectif"></textarea>
+                                </div>
+                                <div class="ao-question">
+                                    <label class="ao-question-label" for="pa-action">@Localizer["PlanAction_PremiereAction"]</label>
+                                    <textarea id="pa-action" class="ao-textarea" rows="2" @bind="_planAction"></textarea>
+                                </div>
+                                <div class="ao-question">
+                                    <label class="ao-question-label" for="pa-responsable">@Localizer["PlanAction_ResponsableSuivi"]</label>
+                                    <input id="pa-responsable" class="ao-input" @bind="_planResponsable" />
+                                </div>
+                                <div class="ao-question">
+                                    <label class="ao-question-label" for="pa-echeance">@Localizer["PlanAction_Echeance"]</label>
+                                    <input id="pa-echeance" class="ao-input" type="date" @bind="_planEcheance" @bind:format="yyyy-MM-dd" />
+                                </div>
+                                <div class="ao-question">
+                                    <label class="ao-question-label" for="pa-indicateur">@Localizer["PlanAction_IndicateurReussite"]</label>
+                                    <textarea id="pa-indicateur" class="ao-textarea" rows="2" @bind="_planIndicateur"></textarea>
+                                </div>
+                                <div class="ao-actions">
+                                    <button type="button" class="ao-btn-primary" @onclick="EnregistrerPlanAsync" disabled="@_saving">
+                                        @Localizer["PlanAction_Enregistrer"]
+                                    </button>
+                                </div>
+                            </section>
+                        }
+                        else if (_planLecture?.EstRempli == true)
+                        {
+                            <section class="ao-synthese-bloc">
+                                <h3 class="ao-synthese-titre">@Localizer["PlanAction_Titre"]</h3>
+                                <table class="ao-synthese-table">
+                                    <tbody>
+                                        <tr><th scope="row">@Localizer["PlanAction_ObjectifPrincipal"]</th><td>@AfficherPlanChamp(_planLecture.ObjectifPrincipal)</td></tr>
+                                        <tr><th scope="row">@Localizer["PlanAction_PremiereAction"]</th><td>@AfficherPlanChamp(_planLecture.PremiereAction)</td></tr>
+                                        <tr><th scope="row">@Localizer["PlanAction_ResponsableSuivi"]</th><td>@AfficherPlanChamp(_planLecture.ResponsableSuivi)</td></tr>
+                                        <tr><th scope="row">@Localizer["PlanAction_Echeance"]</th><td>@(_planLecture.Echeance?.ToString("d", CultureInfo.CurrentCulture) ?? Localizer["ValeurNonRenseignee"].Value)</td></tr>
+                                        <tr><th scope="row">@Localizer["PlanAction_IndicateurReussite"]</th><td>@AfficherPlanChamp(_planLecture.IndicateurReussite)</td></tr>
+                                    </tbody>
+                                </table>
+                            </section>
+                        }
                     }
                     else
                     {
@@ -294,6 +355,12 @@ else
     private DateTimeOffset? _sectionSavedAt;
     private string? _message;
     private string? _userId;
+    private PlanActionAutoObservationView? _planLecture;
+    private string? _planObjectif;
+    private string? _planAction;
+    private string? _planResponsable;
+    private DateOnly? _planEcheance;
+    private string? _planIndicateur;
 
     private readonly Dictionary<string, string?> _textValues = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int?> _numericValues = new(StringComparer.Ordinal);
@@ -328,6 +395,8 @@ else
         }
 
         _page = await AutoObservationService.TryGetPageAsync(_userId, profileId);
+        if (_page is not null)
+            await ChargerPlanAsync();
 
         if (_page is not null && !(_page.AccessMode == AutoObservationAccessMode.Jeune && _page.OrientationAFaire))
         {
@@ -523,6 +592,63 @@ else
         _page = await AutoObservationService.TryGetPageAsync(_userId, _page.JeuneProfile.Id);
         _saving = false;
     }
+
+    private async Task ValiderSyntheseAsync()
+    {
+        if (_page is null || _userId is null)
+            return;
+
+        _saving = true;
+        var ok = await AutoObservationService.ValiderSyntheseAsync(_userId, _page.JeuneProfile.Id);
+        _page = await AutoObservationService.TryGetPageAsync(_userId, _page.JeuneProfile.Id);
+        _message = ok ? Localizer["AutoObs_Synthese_Validee"] : Localizer["AutoObs_Synthese_ValidationImpossible"];
+        _saving = false;
+    }
+
+    private async Task EnregistrerPlanAsync()
+    {
+        if (_page is null || _userId is null)
+            return;
+
+        _saving = true;
+        var ok = await PlanActionService.SaveAsync(
+            _userId,
+            _page.JeuneProfile.Id,
+            new PlanActionAutoObservationInput(
+                _planObjectif,
+                _planAction,
+                _planResponsable,
+                _planEcheance,
+                _planIndicateur));
+        _message = ok ? Localizer["PlanAction_Enregistre"] : Localizer["PlanAction_Erreur"];
+        if (ok)
+            await ChargerPlanAsync();
+        _saving = false;
+    }
+
+    private async Task ChargerPlanAsync()
+    {
+        if (_page is null || _userId is null)
+            return;
+
+        if (_page.AccessMode == AutoObservationAccessMode.Coach)
+        {
+            var plan = await PlanActionService.GetOrCreateAsync(_userId, _page.JeuneProfile.Id);
+            _planLecture = plan;
+            _planObjectif = plan?.ObjectifPrincipal;
+            _planAction = plan?.PremiereAction;
+            _planResponsable = plan?.ResponsableSuivi;
+            _planEcheance = plan?.Echeance;
+            _planIndicateur = plan?.IndicateurReussite;
+        }
+        else
+        {
+            _planLecture = await PlanActionService.GetLectureAsync(_userId, _page.JeuneProfile.Id);
+        }
+    }
+
+    private string AfficherPlanChamp(string? valeur) =>
+        string.IsNullOrWhiteSpace(valeur) ? Localizer["ValeurNonRenseignee"] : valeur;
 
     private RenderFragment AfficherTableau(AutoObservationSyntheseTableau tableau) => __builder =>
     {

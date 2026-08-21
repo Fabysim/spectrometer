@@ -101,3 +101,5 @@
 }
 .ao-synthese-table thead th { background: #f1f5f9; font-weight: 600; }
 .ao-synthese-table tbody th { width: 34%; background: #f8fafc; font-weight: 600; }
+.ao-synthese-non-validee { background: #fef9c3; border-left: 4px solid #eab308; padding: 0.5rem 0.75rem; }
+.ao-synthese-validee { background: #ecfdf5; border-left: 4px solid #16a34a; padding: 0.5rem 0.75rem; }

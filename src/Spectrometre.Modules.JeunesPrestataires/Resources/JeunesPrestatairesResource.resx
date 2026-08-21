@@ -82,6 +82,21 @@
   <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Questionnaire d'auto-observation</value></data>
   <data name="AutoObs_Synthese_Theme" xml:space="preserve"><value>Thème</value></data>
   <data name="AutoObs_Synthese_Contenu" xml:space="preserve"><value>Contenu</value></data>
+  <data name="AutoObs_Synthese_PasEncoreRelue" xml:space="preserve"><value>Cette synthèse n'a pas encore été relue par le coach.</value></data>
+  <data name="AutoObs_Synthese_ValideeLe" xml:space="preserve"><value>Synthèse relue et validée par le coach le {0}.</value></data>
+  <data name="AutoObs_Synthese_Valider" xml:space="preserve"><value>Valider la synthèse</value></data>
+  <data name="AutoObs_Synthese_Validee" xml:space="preserve"><value>Synthèse validée.</value></data>
+  <data name="AutoObs_Synthese_ValidationImpossible" xml:space="preserve"><value>Validation impossible. Générez d'abord la synthèse.</value></data>
+  <data name="PlanAction_Titre" xml:space="preserve"><value>Tableau 3 — Plan d'action</value></data>
+  <data name="PlanAction_IntroCoach" xml:space="preserve"><value>Rédigez le plan d'action à partir de la synthèse. Le jeune le verra en lecture seule une fois enregistré. Ce n'est pas une réécriture des tableaux 1/2 : confirmer = le bouton « Valider la synthèse » ci-dessus ; nuancer = ce plan et le guide d'entrevue.</value></data>
+  <data name="PlanAction_ObjectifPrincipal" xml:space="preserve"><value>Objectif principal</value></data>
+  <data name="PlanAction_PremiereAction" xml:space="preserve"><value>Première action</value></data>
+  <data name="PlanAction_ResponsableSuivi" xml:space="preserve"><value>Responsable du suivi</value></data>
+  <data name="PlanAction_Echeance" xml:space="preserve"><value>Échéance</value></data>
+  <data name="PlanAction_IndicateurReussite" xml:space="preserve"><value>Indicateur de réussite</value></data>
+  <data name="PlanAction_Enregistrer" xml:space="preserve"><value>Enregistrer le plan d'action</value></data>
+  <data name="PlanAction_Enregistre" xml:space="preserve"><value>Plan d'action enregistré.</value></data>
+  <data name="PlanAction_Erreur" xml:space="preserve"><value>Enregistrement impossible.</value></data>
   <data name="Orientation_Titre" xml:space="preserve"><value>Quelques questions pour t'orienter</value></data>
   <data name="Orientation_Intro" xml:space="preserve"><value>Tes réponses aident à proposer un accompagnement adapté. Tu peux passer cette étape : le choix de ton coach restera alors inchangé.</value></data>
   <data name="Orientation_Aide" xml:space="preserve"><value>Une seule fois — ensuite tu continues vers le questionnaire d'auto-observation.</value></data>
