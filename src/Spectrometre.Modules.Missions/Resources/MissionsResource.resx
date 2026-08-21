@@ -267,6 +267,9 @@
   <data name="MesAstuces_Title" xml:space="preserve"><value>Mes astuces pour réussir · Spectromètre</value></data>
   <data name="MesAstuces_Heading" xml:space="preserve"><value>Mes astuces pour réussir</value></data>
   <data name="MesAstuces_Intro" xml:space="preserve"><value>Quelques repères simples pour tes missions — à relire quand tu en as besoin, sans pression.</value></data>
+  <data name="MesAstuces_Recommandees_Titre" xml:space="preserve"><value>Recommandés pour toi</value></data>
+  <data name="MesAstuces_Recommandees_Neutre" xml:space="preserve"><value>Rien de particulier à retravailler pour le moment — les fiches ci-dessous restent disponibles.</value></data>
+  <data name="MesAstuces_Toutes_Titre" xml:space="preserve"><value>Toutes les astuces</value></data>
   <data name="MesAstuces_Lien" xml:space="preserve"><value>Mes astuces pour réussir</value></data>
   <data name="MesAstuces_AccesRefuse_Titre" xml:space="preserve"><value>Accès réservé</value></data>
   <data name="MesAstuces_AccesRefuse_Message" xml:space="preserve"><value>Cette page est réservée aux jeunes prestataires.</value></data>

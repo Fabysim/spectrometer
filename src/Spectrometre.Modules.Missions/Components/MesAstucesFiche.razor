@@ -1,0 +1,13 @@
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.Missions.Resources
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<div class="missions-card">
+    <h2 class="missions-section-title">@Localizer[$"MesAstuces_Fiche_{Key}_Titre"]</h2>
+    <p class="mes-progres-extrait">@Localizer[$"MesAstuces_Fiche_{Key}_Texte"]</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Key { get; set; } = "";
+}

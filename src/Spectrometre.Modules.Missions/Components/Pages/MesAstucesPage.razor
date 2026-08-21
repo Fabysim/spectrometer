@@ -6,8 +6,10 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Spectrometre.Modules.JeunesPrestataires.Services
 @using Spectrometre.Modules.Missions.Catalog
+@using Spectrometre.Modules.Missions.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IJeuneProfileService JeuneProfileService
+@inject IMesAstucesRecommandationService Recommandations
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<MissionsResource> Localizer
 
@@ -31,12 +33,23 @@ else
     <h1 class="missions-title">@Localizer["MesAstuces_Heading"]</h1>
     <p class="missions-meta">@Localizer["MesAstuces_Intro"]</p>
 
+    <h2 class="missions-section-title">@Localizer["MesAstuces_Recommandees_Titre"]</h2>
+    @if (_recommandees.Count == 0)
+    {
+        <p class="missions-meta">@Localizer["MesAstuces_Recommandees_Neutre"]</p>
+    }
+    else
+    {
+        @foreach (var fiche in _recommandees)
+        {
+            <MesAstucesFiche Key="@fiche.Key" />
+        }
+    }
+
+    <h2 class="missions-section-title">@Localizer["MesAstuces_Toutes_Titre"]</h2>
     @foreach (var fiche in MesAstucesCatalog.Fiches)
     {
-        <div class="missions-card">
-            <h2 class="missions-section-title">@Localizer[$"MesAstuces_Fiche_{fiche.Key}_Titre"]</h2>
-            <p class="mes-progres-extrait">@Localizer[$"MesAstuces_Fiche_{fiche.Key}_Texte"]</p>
-        </div>
+        <MesAstucesFiche Key="@fiche.Key" />
     }
 }
 </div>
@@ -44,13 +57,18 @@ else
 @code {
     private bool _chargement = true;
     private bool _autorise;
+    private IReadOnlyList<MesAstucesFicheDef> _recommandees = [];
 
     protected override async Task OnInitializedAsync()
     {
         var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is not null)
+        {
             _autorise = await JeuneProfileService.TryGetByUserIdAsync(userId) is not null;
+            if (_autorise)
+                _recommandees = await Recommandations.GetRecommandeesAsync(userId) ?? [];
+        }
         _chargement = false;
     }
 }

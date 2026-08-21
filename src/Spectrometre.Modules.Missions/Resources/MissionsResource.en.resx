@@ -267,6 +267,9 @@
   <data name="MesAstuces_Title" xml:space="preserve"><value>Tips to succeed · Spectrometre</value></data>
   <data name="MesAstuces_Heading" xml:space="preserve"><value>Tips to succeed</value></data>
   <data name="MesAstuces_Intro" xml:space="preserve"><value>A few simple pointers for your missions — read them when you need them, no pressure.</value></data>
+  <data name="MesAstuces_Recommandees_Titre" xml:space="preserve"><value>Recommended for you</value></data>
+  <data name="MesAstuces_Recommandees_Neutre" xml:space="preserve"><value>Nothing specific to work on right now — the tips below remain available.</value></data>
+  <data name="MesAstuces_Toutes_Titre" xml:space="preserve"><value>All tips</value></data>
   <data name="MesAstuces_Lien" xml:space="preserve"><value>Tips to succeed</value></data>
   <data name="MesAstuces_AccesRefuse_Titre" xml:space="preserve"><value>Access restricted</value></data>
   <data name="MesAstuces_AccesRefuse_Message" xml:space="preserve"><value>This page is for young providers only.</value></data>
