@@ -7,6 +7,7 @@ using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Catalog;
+using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Xunit;
@@ -80,12 +81,15 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
             ]);
 
         var synthese = await svc.RegenererSyntheseAsync(jeuneId, profileId);
-        Assert.NotNull(synthese);
-        Assert.Contains("Forces perçues", synthese, StringComparison.Ordinal);
-        Assert.Contains("Calme", synthese, StringComparison.Ordinal);
+        Assert.True(AutoObservationSyntheseDocument.TryParse(synthese, out var doc));
+        Assert.NotNull(doc.TroncCommun);
+        Assert.Contains(doc.TroncCommun.Lignes, l => l.Theme.Contains("Forces", StringComparison.Ordinal));
+        Assert.NotNull(doc.Employabilite);
+        Assert.Null(doc.Orientation);
+        Assert.Contains("Calme", doc.TroncCommun.Lignes.First(l => l.Theme.StartsWith("Forces", StringComparison.Ordinal)).Contenu, StringComparison.Ordinal);
 
         var syntheseCoach = await svc.RegenererSyntheseAsync(coachId, profileId);
-        Assert.NotNull(syntheseCoach);
+        Assert.True(AutoObservationSyntheseDocument.TryParse(syntheseCoach, out _));
     }
 
     [Fact]
@@ -157,6 +161,65 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
         var section = await svc.TryGetSectionAsync(jeuneId, profileId, "p0.s7");
         Assert.NotNull(section);
         Assert.Equal(4, section!.Answers.First(a => a.QuestionKey == "p0.s7.piste1.motivation").NumericValue);
+    }
+
+    [Fact]
+    public async Task RegenererSynthese_SansExperience_Tableau2A_Pas2B()
+    {
+        var (_, jeuneId, profileId) = await CreerJeuneAvecCoachAsync(ProfilAccompagnement.SansExperience);
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+
+        Assert.True(AutoObservationSyntheseDocument.TryParse(
+            await svc.RegenererSyntheseAsync(jeuneId, profileId), out var doc));
+        Assert.Equal(nameof(ProfilAccompagnement.SansExperience), doc.Profil);
+        Assert.Equal(5, doc.TroncCommun.Lignes.Count);
+        Assert.Equal("T2A", doc.Employabilite!.Code);
+        Assert.Null(doc.Orientation);
+        Assert.Contains(doc.Employabilite.Lignes, l => l.Theme.StartsWith("Missions que le jeune souhaite", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task RegenererSynthese_Autonome_Tableau2B_Pas2A()
+    {
+        var (_, jeuneId, profileId) = await CreerJeuneAvecCoachAsync(ProfilAccompagnement.Autonome);
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+
+        Assert.True(AutoObservationSyntheseDocument.TryParse(
+            await svc.RegenererSyntheseAsync(jeuneId, profileId), out var doc));
+        Assert.Equal(nameof(ProfilAccompagnement.Autonome), doc.Profil);
+        Assert.Equal(5, doc.TroncCommun.Lignes.Count);
+        Assert.Null(doc.Employabilite);
+        Assert.Equal("T2B", doc.Orientation!.Code);
+        Assert.Contains(doc.Orientation.Lignes, l => l.Theme.StartsWith("Pistes d'études", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task TryGetPage_RegenereAncienFormatMarkdown()
+    {
+        var (_, jeuneId, profileId) = await CreerJeuneAvecCoachAsync();
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+
+        await using (var db = await fixture.Services.GetRequiredService<IDbContextFactory<JeunesPrestatairesDbContext>>().CreateDbContextAsync())
+        {
+            db.AutoObservationSynthesesGenerees.Add(new AutoObservationSyntheseGeneree
+            {
+                JeuneProfileId = profileId,
+                Contenu = "## Forces perçues\n- ancien format markdown",
+                GenereeLe = DateTimeOffset.UtcNow.AddDays(-2),
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var page = await svc.TryGetPageAsync(jeuneId);
+        Assert.NotNull(page!.Synthese);
+        Assert.Equal("T1", page.Synthese.TroncCommun.Code);
+        Assert.NotNull(page.Synthese.Employabilite);
+
+        await using (var db = await fixture.Services.GetRequiredService<IDbContextFactory<JeunesPrestatairesDbContext>>().CreateDbContextAsync())
+        {
+            var stored = await db.AutoObservationSynthesesGenerees.SingleAsync(s => s.JeuneProfileId == profileId);
+            Assert.True(AutoObservationSyntheseDocument.TryParse(stored.Contenu, out _));
+        }
     }
 
     [Fact]

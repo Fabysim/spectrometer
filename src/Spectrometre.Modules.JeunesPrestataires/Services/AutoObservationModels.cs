@@ -20,7 +20,7 @@ public sealed record AutoObservationSectionProgressView(string SectionKey, DateT
 public sealed record AutoObservationPageView(
     AutoObservationAccessMode AccessMode,
     JeuneProfileView JeuneProfile,
-    string? SyntheseGeneree,
+    AutoObservationSyntheseDocument? Synthese,
     DateTimeOffset? SyntheseGenereeLe,
     IReadOnlyList<AutoObservationSectionProgressView> SectionProgress,
     bool OrientationAFaire);

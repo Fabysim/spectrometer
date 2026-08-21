@@ -63,8 +63,8 @@ public sealed class MesProgresService(
         }
 
         var autoObs = await autoObservationService.TryGetPageAsync(jeuneUserId, jeune.Id, cancellationToken);
-        var synthese = autoObs?.SyntheseGeneree;
-        var aSynthese = !string.IsNullOrWhiteSpace(synthese);
+        var synthese = autoObs?.Synthese;
+        var aSynthese = synthese is not null;
 
         return new MesProgresView(
             terminees,
@@ -77,11 +77,6 @@ public sealed class MesProgresService(
             aSynthese ? Extraire(synthese!) : null);
     }
 
-    private static string Extraire(string texte)
-    {
-        var trimmed = texte.Trim();
-        if (trimmed.Length <= ExtraitMaxLength)
-            return trimmed;
-        return trimmed[..ExtraitMaxLength].TrimEnd() + "…";
-    }
+    private static string Extraire(AutoObservationSyntheseDocument document) =>
+        document.Resume(ExtraitMaxLength);
 }

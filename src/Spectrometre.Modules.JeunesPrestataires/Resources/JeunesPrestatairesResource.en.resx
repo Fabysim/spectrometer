@@ -301,6 +301,8 @@
   <data name="AutoObs_AccesRefuse_Titre" xml:space="preserve"><value>Access denied</value></data>
   <data name="AutoObs_AccesRefuse_Message" xml:space="preserve"><value>This questionnaire is reserved for invited young providers and their referring coach.</value></data>
   <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Self-observation questionnaire</value></data>
+  <data name="AutoObs_Synthese_Theme" xml:space="preserve"><value>Theme</value></data>
+  <data name="AutoObs_Synthese_Contenu" xml:space="preserve"><value>Content</value></data>
   <data name="Orientation_Titre" xml:space="preserve"><value>A few questions to guide you</value></data>
   <data name="Orientation_Intro" xml:space="preserve"><value>Your answers help us suggest suitable support. You can skip this step: your coach’s choice will then stay unchanged.</value></data>
   <data name="Orientation_Aide" xml:space="preserve"><value>Once only — then you continue to the self-observation questionnaire.</value></data>

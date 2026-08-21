@@ -28,10 +28,27 @@ public sealed class AutoObservationService(
             .Select(p => new AutoObservationSectionProgressView(p.SectionKey, p.SavedAt))
             .ToListAsync(cancellationToken);
 
-        var synthese = await db.AutoObservationSynthesesGenerees.AsNoTracking()
+        var syntheseEntity = await db.AutoObservationSynthesesGenerees.AsNoTracking()
             .Where(s => s.JeuneProfileId == access.Value.Profile.Id)
             .OrderByDescending(s => s.GenereeLe)
             .FirstOrDefaultAsync(cancellationToken);
+
+        AutoObservationSyntheseDocument? syntheseDoc = null;
+        DateTimeOffset? syntheseLe = syntheseEntity?.GenereeLe;
+        if (syntheseEntity is not null)
+        {
+            if (AutoObservationSyntheseDocument.TryParse(syntheseEntity.Contenu, out var parsed))
+            {
+                syntheseDoc = parsed;
+            }
+            else
+            {
+                var json = await PersisterSyntheseAsync(
+                    db, access.Value.Profile.Id, access.Value.Profile.ProfilAccompagnement, cancellationToken);
+                syntheseDoc = AutoObservationSyntheseDocument.TryParse(json, out var regenere) ? regenere : null;
+                syntheseLe = DateTimeOffset.UtcNow;
+            }
+        }
 
         var orientationFaite = progress.Any(p => p.SectionKey == AutoObservationOrientationCatalog.SectionKey);
         var orientationAFaire = access.Value.Mode == AutoObservationAccessMode.Jeune && !orientationFaite;
@@ -39,8 +56,8 @@ public sealed class AutoObservationService(
         return new AutoObservationPageView(
             access.Value.Mode,
             access.Value.Profile,
-            synthese?.Contenu,
-            synthese?.GenereeLe,
+            syntheseDoc,
+            syntheseLe,
             progress,
             orientationAFaire);
     }
@@ -213,7 +230,16 @@ public sealed class AutoObservationService(
             return null;
 
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        return await PersisterSyntheseAsync(
+            db, jeuneProfileId, access.Value.Profile.ProfilAccompagnement, cancellationToken);
+    }
 
+    private async Task<string> PersisterSyntheseAsync(
+        JeunesPrestatairesDbContext db,
+        int jeuneProfileId,
+        ProfilAccompagnement profil,
+        CancellationToken cancellationToken)
+    {
         var stored = await db.AutoObservationReponses.AsNoTracking()
             .Where(r => r.JeuneProfileId == jeuneProfileId)
             .ToListAsync(cancellationToken);
@@ -222,7 +248,17 @@ public sealed class AutoObservationService(
             r => r.QuestionKey,
             r => new AutoObservationAnswerView(r.QuestionKey, r.TextValue, r.NumericValue, r.UpdatedAt));
 
-        var contenu = AutoObservationSyntheseGenerator.Generer(dict);
+        var derniereGrille = await db.GrilleObservationEvaluations.AsNoTracking()
+            .Include(e => e.Criteres)
+            .Where(e => e.JeuneProfileId == jeuneProfileId)
+            .OrderByDescending(e => e.EvalueeLe)
+            .FirstOrDefaultAsync(cancellationToken);
+        IReadOnlyList<(string CritereKey, int? Score)>? grille = derniereGrille is null
+            ? null
+            : derniereGrille.Criteres.Select(c => (c.CritereKey, c.Score)).ToList();
+
+        var json = AutoObservationSyntheseGenerator.Generer(dict, profil, grille).Serialiser();
+        var maintenant = DateTimeOffset.UtcNow;
 
         var existing = await db.AutoObservationSynthesesGenerees
             .FirstOrDefaultAsync(s => s.JeuneProfileId == jeuneProfileId, cancellationToken);
@@ -232,18 +268,18 @@ public sealed class AutoObservationService(
             db.AutoObservationSynthesesGenerees.Add(new AutoObservationSyntheseGeneree
             {
                 JeuneProfileId = jeuneProfileId,
-                Contenu = contenu,
-                GenereeLe = DateTimeOffset.UtcNow,
+                Contenu = json,
+                GenereeLe = maintenant,
             });
         }
         else
         {
-            existing.Contenu = contenu;
-            existing.GenereeLe = DateTimeOffset.UtcNow;
+            existing.Contenu = json;
+            existing.GenereeLe = maintenant;
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        return contenu;
+        return json;
     }
 
     public async Task<bool> EnregistrerOrientationAsync(

@@ -135,9 +135,19 @@ else
                             @Localizer["AutoObs_RegenererSynthese"]
                         </button>
                     </div>
-                    @if (!string.IsNullOrWhiteSpace(_synthese))
+                    @if (_page.Synthese is { } synthese)
                     {
-                        <div class="ao-synthese">@_synthese</div>
+                        <div class="ao-synthese">
+                            @AfficherTableau(synthese.TroncCommun)
+                            @if (synthese.Employabilite is { } t2a)
+                            {
+                                @AfficherTableau(t2a)
+                            }
+                            @if (synthese.Orientation is { } t2b)
+                            {
+                                @AfficherTableau(t2b)
+                            }
+                        </div>
                     }
                     else
                     {
@@ -283,7 +293,6 @@ else
     private bool _canEdit;
     private DateTimeOffset? _sectionSavedAt;
     private string? _message;
-    private string? _synthese;
     private string? _userId;
 
     private readonly Dictionary<string, string?> _textValues = new(StringComparer.Ordinal);
@@ -319,7 +328,6 @@ else
         }
 
         _page = await AutoObservationService.TryGetPageAsync(_userId, profileId);
-        _synthese = _page?.SyntheseGeneree;
 
         if (_page is not null && !(_page.AccessMode == AutoObservationAccessMode.Jeune && _page.OrientationAFaire))
         {
@@ -511,8 +519,32 @@ else
             return;
 
         _saving = true;
-        _synthese = await AutoObservationService.RegenererSyntheseAsync(_userId, _page.JeuneProfile.Id);
+        await AutoObservationService.RegenererSyntheseAsync(_userId, _page.JeuneProfile.Id);
         _page = await AutoObservationService.TryGetPageAsync(_userId, _page.JeuneProfile.Id);
         _saving = false;
     }
+
+    private RenderFragment AfficherTableau(AutoObservationSyntheseTableau tableau) => __builder =>
+    {
+        <section class="ao-synthese-bloc">
+            <h3 class="ao-synthese-titre">@tableau.Titre</h3>
+            <table class="ao-synthese-table">
+                <thead>
+                    <tr>
+                        <th>@Localizer["AutoObs_Synthese_Theme"]</th>
+                        <th>@Localizer["AutoObs_Synthese_Contenu"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ligne in tableau.Lignes)
+                    {
+                        <tr>
+                            <th scope="row">@ligne.Theme</th>
+                            <td>@ligne.Contenu</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    };
 }

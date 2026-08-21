@@ -80,6 +80,8 @@
   <data name="AutoObs_AccesRefuse_Titre" xml:space="preserve"><value>Accès non autorisé</value></data>
   <data name="AutoObs_AccesRefuse_Message" xml:space="preserve"><value>Ce questionnaire est réservé aux jeunes prestataires invités et à leur coach référent.</value></data>
   <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Questionnaire d'auto-observation</value></data>
+  <data name="AutoObs_Synthese_Theme" xml:space="preserve"><value>Thème</value></data>
+  <data name="AutoObs_Synthese_Contenu" xml:space="preserve"><value>Contenu</value></data>
   <data name="Orientation_Titre" xml:space="preserve"><value>Quelques questions pour t'orienter</value></data>
   <data name="Orientation_Intro" xml:space="preserve"><value>Tes réponses aident à proposer un accompagnement adapté. Tu peux passer cette étape : le choix de ton coach restera alors inchangé.</value></data>
   <data name="Orientation_Aide" xml:space="preserve"><value>Une seule fois — ensuite tu continues vers le questionnaire d'auto-observation.</value></data>
