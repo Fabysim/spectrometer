@@ -64,7 +64,15 @@ public sealed record MissionDetailView(
     bool AccesDifficile,
     string? RisqueParticulier,
     MissionStatut Statut,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    /// <summary>Prénom du particulier publieur — même niveau que le jeune sur la file de validation.</summary>
+    string ParticulierPrenoms = "",
+    /// <summary>Nom du particulier publieur — pas de téléphone/email.</summary>
+    string ParticulierNom = "",
+    /// <summary>Missions déjà déposées par ce particulier, hors la demande en cours.</summary>
+    int MissionsDejaPublieesCount = 0,
+    /// <summary>Refus de modération et annulations propriétaire (<see cref="MissionStatut.Annulee"/>).</summary>
+    int MissionsRefuseesOuAnnuleesCount = 0);
 
 public sealed record MissionAcceptationView(
     int AcceptationId,

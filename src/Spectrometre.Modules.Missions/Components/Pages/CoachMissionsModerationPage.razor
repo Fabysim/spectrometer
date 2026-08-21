@@ -55,6 +55,14 @@ else
                 @if (m.DureeEstimee is not null) { <p class="missions-meta">@m.DureeEstimee</p> }
                 @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
 
+                <h4 class="missions-section-title">@Localizer["Moderation_Particulier_Titre"]</h4>
+                <p class="missions-meta">@m.ParticulierPrenoms @m.ParticulierNom</p>
+                <p class="missions-meta">@Localizer["Moderation_Historique_Publiees", m.MissionsDejaPublieesCount]</p>
+                @if (m.MissionsRefuseesOuAnnuleesCount > 0)
+                {
+                    <p class="missions-meta">@Localizer["Moderation_Historique_Refusees", m.MissionsRefuseesOuAnnuleesCount]</p>
+                }
+
                 <h4 class="missions-section-title">@Localizer["Moderation_Securite_Titre"]</h4>
                 <p class="missions-meta">@Localizer["Moderation_Securite_Intro"]</p>
                 <ul class="missions-meta">

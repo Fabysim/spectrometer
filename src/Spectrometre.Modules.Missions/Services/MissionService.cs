@@ -53,12 +53,42 @@ public sealed class MissionService(
             return [];
 
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
-        var missions = await db.Missions.AsNoTracking()
-            .Where(m => m.Statut == MissionStatut.EnAttenteModeration)
-            .OrderBy(m => m.CreatedAt)
-            .ToListAsync(cancellationToken);
+        var enAttente = await (
+            from m in db.Missions.AsNoTracking()
+            where m.Statut == MissionStatut.EnAttenteModeration
+            join p in db.ParticulierProfiles.AsNoTracking() on m.ParticulierProfileId equals p.Id into gj
+            from p in gj.DefaultIfEmpty()
+            orderby m.CreatedAt
+            select new { Mission = m, Particulier = p }).ToListAsync(cancellationToken);
 
-        return missions.Select(ToDetailView).ToList();
+        if (enAttente.Count == 0)
+            return [];
+
+        var particulierIds = enAttente.Select(x => x.Mission.ParticulierProfileId).Distinct().ToList();
+        var historiques = await db.Missions.AsNoTracking()
+            .Where(m => particulierIds.Contains(m.ParticulierProfileId))
+            .GroupBy(m => m.ParticulierProfileId)
+            .Select(g => new
+            {
+                ParticulierProfileId = g.Key,
+                Total = g.Count(),
+                Annulees = g.Count(m => m.Statut == MissionStatut.Annulee),
+            })
+            .ToListAsync(cancellationToken);
+        var histoParParticulier = historiques.ToDictionary(h => h.ParticulierProfileId);
+
+        return enAttente.Select(x =>
+        {
+            histoParParticulier.TryGetValue(x.Mission.ParticulierProfileId, out var histo);
+            var total = histo?.Total ?? 0;
+            var dejaPubliees = Math.Max(0, total - 1);
+            return ToDetailView(
+                x.Mission,
+                x.Particulier?.Prenoms ?? "",
+                x.Particulier?.Nom ?? "",
+                dejaPubliees,
+                histo?.Annulees ?? 0);
+        }).ToList();
     }
 
     public async Task<bool> ValiderPublicationAsync(
@@ -389,24 +419,7 @@ public sealed class MissionService(
         if (mission is null)
             return null;
 
-        return new MissionDetailView(
-            mission.Id,
-            mission.Titre,
-            mission.Categorie,
-            mission.Description,
-            mission.Lieu,
-            mission.DureeEstimee,
-            mission.Difficulte,
-            mission.NiveauEncadrement,
-            mission.RemunerationMontant,
-            mission.CompetencesTravaillees,
-            mission.PresenceEscaliers,
-            mission.PresenceAnimaux,
-            mission.PortDeCharge,
-            mission.AccesDifficile,
-            mission.RisqueParticulier,
-            mission.Statut,
-            mission.CreatedAt);
+        return ToDetailView(mission);
     }
 
     public async Task<bool> ModifierMissionAsync(
@@ -666,7 +679,12 @@ public sealed class MissionService(
         return liens.Count > 0;
     }
 
-    private static MissionDetailView ToDetailView(Mission mission) =>
+    private static MissionDetailView ToDetailView(
+        Mission mission,
+        string particulierPrenoms = "",
+        string particulierNom = "",
+        int missionsDejaPublieesCount = 0,
+        int missionsRefuseesOuAnnuleesCount = 0) =>
         new(
             mission.Id,
             mission.Titre,
@@ -684,7 +702,11 @@ public sealed class MissionService(
             mission.AccesDifficile,
             mission.RisqueParticulier,
             mission.Statut,
-            mission.CreatedAt);
+            mission.CreatedAt,
+            particulierPrenoms,
+            particulierNom,
+            missionsDejaPublieesCount,
+            missionsRefuseesOuAnnuleesCount);
 
     private async Task<string?> FindCoachReferentAsync(string jeuneUserId, CancellationToken cancellationToken)
     {

@@ -354,6 +354,9 @@
   <data name="Moderation_Heading" xml:space="preserve"><value>Missions to review</value></data>
   <data name="Moderation_Intro" xml:space="preserve"><value>Shared queue: any coach can review a request. The fields below are those entered by the client — there is no automatic danger detection.</value></data>
   <data name="Moderation_Vide" xml:space="preserve"><value>No missions waiting for review.</value></data>
+  <data name="Moderation_Particulier_Titre" xml:space="preserve"><value>Client</value></data>
+  <data name="Moderation_Historique_Publiees" xml:space="preserve"><value>{0} mission(s) already published</value></data>
+  <data name="Moderation_Historique_Refusees" xml:space="preserve"><value>{0} refusal(s) or cancellation(s)</value></data>
   <data name="Moderation_Securite_Titre" xml:space="preserve"><value>Setting and safety</value></data>
   <data name="Moderation_Securite_Intro" xml:space="preserve"><value>Check the setting, the risk level, and whether the mission fits a supported young person.</value></data>
   <data name="Moderation_PasDeRisqueSaisi" xml:space="preserve"><value>No specific risk noted.</value></data>

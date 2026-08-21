@@ -354,6 +354,9 @@
   <data name="Moderation_Heading" xml:space="preserve"><value>Missions à modérer</value></data>
   <data name="Moderation_Intro" xml:space="preserve"><value>File partagée : tout coach peut vérifier une demande. Les champs ci-dessous sont ceux saisis par le particulier — pas de détection automatique du danger.</value></data>
   <data name="Moderation_Vide" xml:space="preserve"><value>Aucune mission en attente de vérification.</value></data>
+  <data name="Moderation_Particulier_Titre" xml:space="preserve"><value>Particulier</value></data>
+  <data name="Moderation_Historique_Publiees" xml:space="preserve"><value>{0} mission(s) déjà publiée(s)</value></data>
+  <data name="Moderation_Historique_Refusees" xml:space="preserve"><value>{0} refus ou annulation(s)</value></data>
   <data name="Moderation_Securite_Titre" xml:space="preserve"><value>Cadre et sécurité</value></data>
   <data name="Moderation_Securite_Intro" xml:space="preserve"><value>Vérifier le cadre, le niveau de risque, et l'adéquation avec un jeune accompagné.</value></data>
   <data name="Moderation_PasDeRisqueSaisi" xml:space="preserve"><value>Aucun risque particulier précisé.</value></data>

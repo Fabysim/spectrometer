@@ -38,6 +38,10 @@ public sealed class MissionModerationTests(ServiceFixture fixture)
 
         var file = await missionService.GetMissionsEnAttenteModerationAsync(coachUserId);
         var detail = Assert.Single(file, m => m.MissionId == missionId);
+        Assert.Equal("Mod", detail.ParticulierPrenoms);
+        Assert.Equal("Part", detail.ParticulierNom);
+        Assert.Equal(0, detail.MissionsDejaPublieesCount);
+        Assert.Equal(0, detail.MissionsRefuseesOuAnnuleesCount);
         Assert.True(detail.PresenceEscaliers);
         Assert.True(detail.PresenceAnimaux);
         Assert.Equal("Chien nerveux", detail.RisqueParticulier);
@@ -94,6 +98,45 @@ public sealed class MissionModerationTests(ServiceFixture fixture)
             n => n.TypeCode == "Missions.PublicationValidee");
 
         await CleanupAsync(missionId, particulierUserId);
+    }
+
+    [Fact]
+    public async Task FileModeration_IdentiteParticulierEtHistorique_PlusieursMissionsDontUneRefusee()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var (particulierUserId, missionRefuseeId, coachUserId, _) = await PublierAvecCoachEtJeuneAsync();
+        Assert.True(await missionService.RefuserPublicationAsync(coachUserId, missionRefuseeId, "Cadre trop exigeant"));
+
+        var missionEnAttenteId = await missionService.PublierMissionAsync(
+            particulierUserId,
+            new PublierMissionInput(
+                "Seconde",
+                "Desc 2",
+                "Lyon",
+                "1 h",
+                MissionDifficulte.Facile,
+                10m,
+                null,
+                MissionCategorie.JardinageSimple,
+                MissionNiveauEncadrement.PresentPendantMission));
+        Assert.NotNull(missionEnAttenteId);
+
+        var file = await missionService.GetMissionsEnAttenteModerationAsync(coachUserId);
+        var detail = Assert.Single(file, m => m.MissionId == missionEnAttenteId.Value);
+        Assert.Equal("Mod", detail.ParticulierPrenoms);
+        Assert.Equal("Part", detail.ParticulierNom);
+        Assert.Equal(1, detail.MissionsDejaPublieesCount);
+        Assert.Equal(1, detail.MissionsRefuseesOuAnnuleesCount);
+
+        await using var db = await fixture.Services.GetRequiredService<IDbContextFactory<MissionsDbContext>>().CreateDbContextAsync();
+        var refusee = await db.Missions.FirstOrDefaultAsync(m => m.Id == missionRefuseeId);
+        if (refusee is not null)
+        {
+            db.Missions.Remove(refusee);
+            await db.SaveChangesAsync();
+        }
+
+        await CleanupAsync(missionEnAttenteId.Value, particulierUserId);
     }
 
     [Fact]
