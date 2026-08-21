@@ -17,7 +17,10 @@ public interface IGrilleObservationService
         int evaluationId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Coach autorisé uniquement — retourne l'id de la nouvelle évaluation ou <c>null</c> si refusé.</summary>
+    /// <summary>
+    /// Coach autorisé uniquement — retourne l'id de la nouvelle évaluation ou <c>null</c> si refusé.
+    /// Notifie le jeune (<c>JeunesPrestataires.GrilleObservationAjoutee</c>) sans scores ni commentaires.
+    /// </summary>
     Task<int?> CreerEvaluationAsync(
         string coachUserId,
         int jeuneProfileId,

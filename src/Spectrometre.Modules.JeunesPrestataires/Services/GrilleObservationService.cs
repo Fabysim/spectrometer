@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Catalog;
 using Spectrometre.Modules.JeunesPrestataires.Data;
@@ -8,7 +9,8 @@ namespace Spectrometre.Modules.JeunesPrestataires.Services;
 
 public sealed class GrilleObservationService(
     IDbContextFactory<JeunesPrestatairesDbContext> dbFactory,
-    ICoachingService coachingService) : IGrilleObservationService
+    ICoachingService coachingService,
+    INotificationService notificationService) : IGrilleObservationService
 {
     public async Task<GrilleObservationPageView?> TryGetPageAsync(
         string requestingUserId,
@@ -116,6 +118,15 @@ public sealed class GrilleObservationService(
 
         db.GrilleObservationEvaluations.Add(evaluation);
         await db.SaveChangesAsync(cancellationToken);
+
+        await notificationService.CreerAsync(
+            access.Value.Profile.UserId,
+            "Nouvelle évaluation",
+            "Ton coach a ajouté une évaluation d'observation. Tu peux la voir dans Mes progrès.",
+            "/jeune/mes-progres",
+            "JeunesPrestataires.GrilleObservationAjoutee",
+            cancellationToken);
+
         return evaluation.Id;
     }
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Xunit;
@@ -40,6 +41,47 @@ public sealed class GrilleObservationTests(ServiceFixture fixture)
         Assert.Equal(GrilleObservationAccessMode.Jeune, detailJeune!.AccessMode);
         Assert.Null(detailJeune.CommentaireGeneral);
         Assert.Equal("Très ponctuel", detailJeune.Criteres.First(c => c.CritereKey == "ponctualite").Commentaire);
+    }
+
+    [Fact]
+    public async Task CreerEvaluation_NotifieLeJeuneAChaqueFois_SansLeContenu()
+    {
+        var (coachId, jeuneId, profileId) = await CreerJeuneAvecCoachAsync();
+        var svc = fixture.Services.GetRequiredService<IGrilleObservationService>();
+        var notifSvc = fixture.Services.GetRequiredService<INotificationService>();
+        var autreCoach = await CreerUtilisateurAsync($"autre-coach-go-n-{Guid.NewGuid()}@test.local");
+
+        Assert.Null(await svc.CreerEvaluationAsync(
+            autreCoach,
+            profileId,
+            [new GrilleObservationCritereInput("ponctualite", 3, null)],
+            "Secret"));
+        Assert.DoesNotContain(
+            await notifSvc.GetRecentesAsync(jeuneId, 20),
+            n => n.TypeCode == "JeunesPrestataires.GrilleObservationAjoutee");
+
+        Assert.NotNull(await svc.CreerEvaluationAsync(
+            coachId,
+            profileId,
+            [new GrilleObservationCritereInput("autonomie", 5, "Excellent")],
+            "Note confidentielle"));
+        Assert.NotNull(await svc.CreerEvaluationAsync(
+            coachId,
+            profileId,
+            [new GrilleObservationCritereInput("ponctualite", 4, null)],
+            "Deuxième note"));
+
+        var notifs = (await notifSvc.GetRecentesAsync(jeuneId, 20))
+            .Where(n => n.TypeCode == "JeunesPrestataires.GrilleObservationAjoutee")
+            .ToList();
+        Assert.Equal(2, notifs.Count);
+        Assert.All(notifs, n =>
+        {
+            Assert.Equal("/jeune/mes-progres", n.Lien);
+            Assert.DoesNotContain("Excellent", n.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("confidentielle", n.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Deuxième note", n.Message, StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     [Fact]
