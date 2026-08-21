@@ -130,4 +130,8 @@
   <data name="TitreRequis" xml:space="preserve"><value>Le titre de l'objectif est requis.</value></data>
   <data name="ObjectifsEnregistres" xml:space="preserve"><value>Objectifs enregistrés.</value></data>
   <data name="PeriodeTerminee" xml:space="preserve"><value>Période archivée. Une nouvelle période a été ouverte.</value></data>
+  <data name="MesObjectifs_Title" xml:space="preserve"><value>Mes objectifs · Spectromètre</value></data>
+  <data name="MesObjectifs_Heading" xml:space="preserve"><value>Mes objectifs personnels</value></data>
+  <data name="MesObjectifs_LectureSeule" xml:space="preserve"><value>Ces objectifs sont définis avec votre coach. Cette page est en lecture seule.</value></data>
+  <data name="MesObjectifs_AucunePeriode" xml:space="preserve"><value>Aucun objectif n'est défini pour le moment. Votre coach pourra en ouvrir une période avec vous.</value></data>
 </root>

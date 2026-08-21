@@ -145,4 +145,43 @@ public sealed class ObjectifsCoachingTests(ServiceFixture fixture)
             Assert.NotEqual(archive.Id, nouvelle.Id);
         }
     }
+
+    [Fact]
+    public async Task Jeune_LitSaPeriodeCourante_SansObservationNiNote_NiCelleDUnAutre()
+    {
+        var (lienId, coachUserId, suiviUserId) = await CreerLienActifAsync();
+        var (autreLienId, autreCoach, autreSuivi) = await CreerLienActifAsync();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        using (var scope = NewScope())
+        {
+            var svc = scope.ServiceProvider.GetRequiredService<IObjectifsCoachingService>();
+            Assert.Null(await svc.GetPeriodeCourantePourJeuneAsync(suiviUserId));
+
+            Assert.True(await svc.SaveObjectifsAsync(lienId, coachUserId, [
+                new ObjectifCoachingInput(null, today, "Mieux gérer mon temps", "Agenda simple", AtteinteObjectifCoaching.NonDefini, "Note coach interne", 40),
+            ]));
+            Assert.True(await svc.SaveObjectifsAsync(autreLienId, autreCoach, [
+                new ObjectifCoachingInput(null, today, "Objectif secret d'un autre", null, AtteinteObjectifCoaching.Oui, "confidentiel", 99),
+            ]));
+        }
+
+        using (var scope = NewScope())
+        {
+            var svc = scope.ServiceProvider.GetRequiredService<IObjectifsCoachingService>();
+            var vue = await svc.GetPeriodeCourantePourJeuneAsync(suiviUserId);
+            Assert.NotNull(vue);
+            var objectif = Assert.Single(vue.Objectifs);
+            Assert.Equal("Mieux gérer mon temps", objectif.Titre);
+            Assert.Equal("Agenda simple", objectif.Moyens);
+            Assert.Equal(AtteinteObjectifCoaching.NonDefini, objectif.Atteinte);
+            Assert.DoesNotContain(vue.Objectifs, o => o.Titre.Contains("secret", StringComparison.OrdinalIgnoreCase));
+
+            var autre = await svc.GetPeriodeCourantePourJeuneAsync(autreSuivi);
+            Assert.NotNull(autre);
+            Assert.Equal("Objectif secret d'un autre", Assert.Single(autre.Objectifs).Titre);
+
+            Assert.Null(await svc.GetPeriodeCourantePourJeuneAsync($"inconnu-{Guid.NewGuid()}"));
+        }
+    }
 }

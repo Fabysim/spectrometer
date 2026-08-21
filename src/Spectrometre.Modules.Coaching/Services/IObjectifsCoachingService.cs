@@ -31,9 +31,9 @@ public sealed record PeriodeObjectifsCoachingView(
 
 /// <summary>
 /// Objectifs de coaching — service dédié (séparé de <see cref="ICoachingService"/>) pour ne pas alourdir
-/// le point d'entrée liens/anamnèse. Toutes les méthodes sont réservées au coach propriétaire du lien
-/// actif (<c>requestingCoachUserId == LienCoaching.CoachUserId</c> et statut Actif) — direction inverse
-/// de <see cref="ICoachingService.GetSuiviUserIdSiAutoriseAsync"/> (qui part du suiviUserId).
+/// le point d'entrée liens/anamnèse. Les méthodes d'écriture et <see cref="GetPeriodeCouranteAsync"/>
+/// restent réservées au coach propriétaire du lien actif. <see cref="GetPeriodeCourantePourJeuneAsync"/>
+/// est la lecture seule du jeune sur les mêmes entités (pas de duplication de modèle).
 /// </summary>
 public interface IObjectifsCoachingService
 {
@@ -55,4 +55,35 @@ public interface IObjectifsCoachingService
     /// <c>null</c> si aucun.
     /// </summary>
     Task<int?> TryGetPremierLienIdAvecObjectifsOuvertsAsync(string coachUserId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lecture seule pour le jeune connecté : période non archivée de son lien actif.
+    /// Ne crée pas de période (contrairement à <see cref="GetPeriodeCouranteAsync"/>).
+    /// Pas de circuit « choisir / valider » ce cycle — l'édition reste au coach.
+    /// <c>null</c> si aucun lien actif ou aucune période en cours.
+    /// </summary>
+    Task<PeriodeObjectifsCoachingJeuneView?> GetPeriodeCourantePourJeuneAsync(
+        string jeuneUserId,
+        CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Vue jeune : <c>Titre</c>, <c>Moyens</c>, <c>Atteinte</c> uniquement.
+/// <c>Observation</c> / <c>Note</c> exclus — sur la page coach ce sont un score 0–100 et un
+/// commentaire d'évaluation, pas le libellé de l'objectif (même principe que
+/// <c>GrilleObservationEvaluation.CommentaireGeneral</c>, jamais exposé au jeune).
+/// Rien dans le code ne les marque « confidentiels », mais les exposer reviendrait à montrer
+/// le jugement du coach, hors périmètre « objectif + moyen + atteinte ».
+/// </summary>
+public sealed record ObjectifCoachingJeuneView(
+    int Id,
+    DateOnly Date,
+    string Titre,
+    string? Moyens,
+    AtteinteObjectifCoaching Atteinte);
+
+public sealed record PeriodeObjectifsCoachingJeuneView(
+    int Id,
+    DateOnly DateDebut,
+    DateOnly DateFin,
+    IReadOnlyList<ObjectifCoachingJeuneView> Objectifs);

@@ -130,4 +130,8 @@
   <data name="TitreRequis" xml:space="preserve"><value>Objective title is required.</value></data>
   <data name="ObjectifsEnregistres" xml:space="preserve"><value>Objectives saved.</value></data>
   <data name="PeriodeTerminee" xml:space="preserve"><value>Period archived. A new period has been opened.</value></data>
+  <data name="MesObjectifs_Title" xml:space="preserve"><value>My goals · Spectromètre</value></data>
+  <data name="MesObjectifs_Heading" xml:space="preserve"><value>My personal goals</value></data>
+  <data name="MesObjectifs_LectureSeule" xml:space="preserve"><value>These goals are set with your coach. This page is read-only.</value></data>
+  <data name="MesObjectifs_AucunePeriode" xml:space="preserve"><value>No goals are defined yet. Your coach can open a period with you.</value></data>
 </root>

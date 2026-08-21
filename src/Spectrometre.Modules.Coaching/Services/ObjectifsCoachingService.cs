@@ -108,6 +108,37 @@ public sealed class ObjectifsCoachingService(IDbContextFactory<CoachingDbContext
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<PeriodeObjectifsCoachingJeuneView?> GetPeriodeCourantePourJeuneAsync(
+        string jeuneUserId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var db = await coachingDbFactory.CreateDbContextAsync(cancellationToken);
+
+        // Même critère d'appartenance que EstCoachActifAsync, côté suivi : lien Actif où
+        // SuiviUserId == jeune (pas GetSuiviUserIdSiAutoriseAsync, qui part du coach).
+        var lienId = await db.LiensCoaching.AsNoTracking()
+            .Where(l => l.SuiviUserId == jeuneUserId && l.Statut == LienCoachingStatut.Actif)
+            .OrderByDescending(l => l.CreatedAt)
+            .Select(l => (int?)l.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (lienId is null)
+            return null;
+
+        var periode = await db.PeriodesObjectifsCoaching.AsNoTracking()
+            .Include(p => p.Objectifs)
+            .FirstOrDefaultAsync(p => p.LienCoachingId == lienId && !p.Archivee, cancellationToken);
+        if (periode is null)
+            return null;
+
+        var objectifs = periode.Objectifs
+            .OrderBy(o => o.Date)
+            .ThenBy(o => o.Id)
+            .Select(o => new ObjectifCoachingJeuneView(o.Id, o.Date, o.Titre, o.Moyens, o.Atteinte))
+            .ToList();
+
+        return new PeriodeObjectifsCoachingJeuneView(periode.Id, periode.DateDebut, periode.DateFin, objectifs);
+    }
+
     private static async Task<bool> EstCoachActifAsync(CoachingDbContext db, int lienId, string requestingCoachUserId, CancellationToken cancellationToken)
     {
         return await db.LiensCoaching.AsNoTracking().AnyAsync(

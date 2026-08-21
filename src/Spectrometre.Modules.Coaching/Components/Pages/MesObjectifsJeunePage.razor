@@ -1,0 +1,89 @@
+@page "/jeune/mes-objectifs"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.Coaching.Entities
+@using Spectrometre.Modules.Coaching.Resources
+@using Spectrometre.Modules.Coaching.Services
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IObjectifsCoachingService ObjectifsService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<CoachingResource> Localizer
+
+<PageTitle>@Localizer["MesObjectifs_Title"]</PageTitle>
+
+<div class="obj-page">
+@if (_chargement)
+{
+    <p class="obj-state">@Localizer["Chargement"]</p>
+}
+else if (_periode is null)
+{
+    <h1 class="obj-title">@Localizer["MesObjectifs_Heading"]</h1>
+    <section class="obj-card">
+        <p class="obj-hint">@Localizer["MesObjectifs_AucunePeriode"]</p>
+    </section>
+}
+else
+{
+    <header class="obj-header">
+        <div>
+            <h1 class="obj-title">@Localizer["MesObjectifs_Heading"]</h1>
+            <p class="obj-subtitle">
+                @Localizer["Periode"] @_periode.DateDebut.ToString("d", CultureInfo.CurrentCulture)
+                – @_periode.DateFin.ToString("d", CultureInfo.CurrentCulture)
+            </p>
+            <p class="obj-hint">@Localizer["MesObjectifs_LectureSeule"]</p>
+        </div>
+    </header>
+
+    <section class="obj-card">
+        @if (_periode.Objectifs.Count == 0)
+        {
+            <p class="obj-hint">@Localizer["AucunObjectif"]</p>
+        }
+        else
+        {
+            <ul class="obj-list">
+                @foreach (var o in _periode.Objectifs)
+                {
+                    <li class="obj-item">
+                        <h2 class="obj-card-title">@o.Titre</h2>
+                        @if (!string.IsNullOrWhiteSpace(o.Moyens))
+                        {
+                            <p class="obj-meta"><strong>@Localizer["Moyens"]</strong> · @o.Moyens</p>
+                        }
+                        <p class="obj-meta"><strong>@Localizer["Atteinte"]</strong> · @LibelleAtteinte(o.Atteinte)</p>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+}
+</div>
+
+@code {
+    private bool _chargement = true;
+    private PeriodeObjectifsCoachingJeuneView? _periode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is not null)
+            _periode = await ObjectifsService.GetPeriodeCourantePourJeuneAsync(userId);
+        _chargement = false;
+    }
+
+    private string LibelleAtteinte(AtteinteObjectifCoaching atteinte) => atteinte switch
+    {
+        AtteinteObjectifCoaching.Oui => Localizer["Atteinte_Oui"],
+        AtteinteObjectifCoaching.Non => Localizer["Atteinte_Non"],
+        AtteinteObjectifCoaching.NonImputable => Localizer["Atteinte_NonImputable"],
+        _ => Localizer["Atteinte_NonDefini"],
+    };
+}
