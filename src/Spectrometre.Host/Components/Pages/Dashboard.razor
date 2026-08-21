@@ -10,6 +10,7 @@
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.Admin.Services
+@using Spectrometre.Modules.JeunesPrestataires.Entities
 @using Spectrometre.Modules.JeunesPrestataires.Services
 @using Spectrometre.Modules.Missions.Services
 @inject IModuleRegistry ModuleRegistry
@@ -247,12 +248,16 @@
                             </div>
                             <div class="quick-action-label-dashboard">@Localizer["Home_MonCv"]</div>
                         </a>
+                        @* Déclutter uniquement : Autonome n'a pas le raccourci, la route /jeune/missions-disponibles reste accessible. *@
+                        @if (_afficherMissionsDisponibles)
+                        {
                         <a href="/jeune/missions-disponibles" class="quick-action-btn-dashboard">
                             <div class="quick-action-icon-dashboard tone-green">
                                 <i class="bi bi-briefcase" aria-hidden="true"></i>
                             </div>
                             <div class="quick-action-label-dashboard">@Localizer["Home_MissionsDisponibles"]</div>
                         </a>
+                        }
                         <a href="/jeune/mes-missions" class="quick-action-btn-dashboard">
                             <div class="quick-action-icon-dashboard tone-orange">
                                 <i class="bi bi-list-check" aria-hidden="true"></i>
@@ -505,6 +510,8 @@
     private bool _isPlatformAdmin;
     private bool _estCandidatOuCoach;
     private bool _estJeune;
+    /// <summary>Masqué pour <see cref="ProfilAccompagnement.Autonome"/> — déclutter de menu, pas un refus d'accès.</summary>
+    private bool _afficherMissionsDisponibles;
     private bool _estParticulier;
     private bool _consentementParentalACompleter;
     private Company? _company;
@@ -635,6 +642,8 @@
 
         var jeuneProfile = await JeuneProfileService.TryGetByUserIdAsync(userId);
         _estJeune = jeuneProfile is not null;
+        _afficherMissionsDisponibles = jeuneProfile is not null
+            && jeuneProfile.ProfilAccompagnement != ProfilAccompagnement.Autonome;
         if (jeuneProfile is not null
             && JeuneProfileService.EstMineur(jeuneProfile.DateNaissance)
             && !await ConsentementParentalService.EstConsentementValideAsync(jeuneProfile.Id))

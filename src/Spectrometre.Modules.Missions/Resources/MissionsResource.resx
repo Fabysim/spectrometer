@@ -25,7 +25,8 @@
   <data name="PublierMission_Title" xml:space="preserve"><value>Publier une mission · Spectromètre</value></data>
   <data name="PublierMission_Heading" xml:space="preserve"><value>Publier une mission</value></data>
   <data name="PublierMission_Bouton" xml:space="preserve"><value>Publier</value></data>
-  <data name="PublierMission_Succes" xml:space="preserve"><value>Mission publiée — elle est maintenant visible par les jeunes.</value></data>
+  <data name="PublierMission_Succes" xml:space="preserve"><value>Demande envoyée. Votre demande sera vérifiée par l'association avant d'être proposée à une personne accompagnée.</value></data>
+  <data name="PublierMission_IntroModeration" xml:space="preserve"><value>Votre demande sera vérifiée par l'association avant d'être proposée à une personne accompagnée.</value></data>
   <data name="PublierMission_Lien" xml:space="preserve"><value>Publier une mission</value></data>
   <data name="MesMissions_Lien" xml:space="preserve"><value>Mes missions publiées</value></data>
   <data name="MesMissionsParticulier_Title" xml:space="preserve"><value>Mes missions · Spectromètre</value></data>
@@ -80,12 +81,14 @@
   <data name="Statut_Attribuee" xml:space="preserve"><value>Attribuée</value></data>
   <data name="Statut_Terminee" xml:space="preserve"><value>Terminée</value></data>
   <data name="Statut_Annulee" xml:space="preserve"><value>Annulée</value></data>
+  <data name="Statut_EnAttenteModeration" xml:space="preserve"><value>En attente de vérification par l'association</value></data>
 
   <data name="StatutMission_Disponible" xml:space="preserve"><value>Disponible</value></data>
   <data name="StatutMission_EnAttenteValidation" xml:space="preserve"><value>En attente validation</value></data>
   <data name="StatutMission_Attribuee" xml:space="preserve"><value>Attribuée</value></data>
   <data name="StatutMission_Terminee" xml:space="preserve"><value>Terminée</value></data>
   <data name="StatutMission_Annulee" xml:space="preserve"><value>Annulée</value></data>
+  <data name="StatutMission_EnAttenteModeration" xml:space="preserve"><value>En attente de vérification</value></data>
 
   <data name="StatutAcceptation_EnAttenteValidationCoach" xml:space="preserve"><value>En attente de validation coach</value></data>
   <data name="StatutAcceptation_ValideeParCoach" xml:space="preserve"><value>Validée par le coach</value></data>
@@ -320,4 +323,21 @@
   <data name="Badge_respectueux_Description" xml:space="preserve"><value>Trois particuliers ont confirmé une attitude respectueuse.</value></data>
   <data name="Badge_soin_travail_Titre" xml:space="preserve"><value>Soin du travail</value></data>
   <data name="Badge_soin_travail_Description" xml:space="preserve"><value>Ton coach t'a évalué(e) à 4/5 ou plus sur le soin apporté au travail.</value></data>
+  <data name="Moderation_Title" xml:space="preserve"><value>Missions à modérer · Spectromètre</value></data>
+  <data name="Moderation_Heading" xml:space="preserve"><value>Missions à modérer</value></data>
+  <data name="Moderation_Intro" xml:space="preserve"><value>File partagée : tout coach peut vérifier une demande. Les champs ci-dessous sont ceux saisis par le particulier — pas de détection automatique du danger.</value></data>
+  <data name="Moderation_Vide" xml:space="preserve"><value>Aucune mission en attente de vérification.</value></data>
+  <data name="Moderation_Securite_Titre" xml:space="preserve"><value>Cadre et sécurité</value></data>
+  <data name="Moderation_Securite_Intro" xml:space="preserve"><value>Vérifier le cadre, le niveau de risque, et l'adéquation avec un jeune accompagné.</value></data>
+  <data name="Moderation_PasDeRisqueSaisi" xml:space="preserve"><value>Aucun risque particulier précisé.</value></data>
+  <data name="Moderation_Motif_Label" xml:space="preserve"><value>Motif du refus (obligatoire)</value></data>
+  <data name="Moderation_Refuser" xml:space="preserve"><value>Refuser</value></data>
+  <data name="Moderation_Validee" xml:space="preserve"><value>Mission validée — elle est maintenant proposée aux jeunes.</value></data>
+  <data name="Moderation_Refusee" xml:space="preserve"><value>Demande refusée. Le particulier verra le motif.</value></data>
+  <data name="Moderation_MotifRequis" xml:space="preserve"><value>Le motif du refus est obligatoire.</value></data>
+  <data name="Moderation_MotifVisible" xml:space="preserve"><value>Motif : {0}</value></data>
+  <data name="Moderation_AccesRefuse_Titre" xml:space="preserve"><value>Accès réservé aux coachs</value></data>
+  <data name="Moderation_AccesRefuse_Message" xml:space="preserve"><value>Cette page est réservée aux coachs de l'association.</value></data>
+  <data name="Oui" xml:space="preserve"><value>Oui</value></data>
+  <data name="Non" xml:space="preserve"><value>Non</value></data>
 </root>

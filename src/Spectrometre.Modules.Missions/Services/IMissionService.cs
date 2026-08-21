@@ -6,6 +6,26 @@ public interface IMissionService
 {
     Task<int?> PublierMissionAsync(string particulierUserId, PublierMissionInput input, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// File partagée : tout coach authentifié (profil coach ou liens de suivi), pas de rattachement
+    /// coach↔particulier — les particuliers n'ont pas de coach dédié dans le modèle actuel.
+    /// </summary>
+    Task<IReadOnlyList<MissionDetailView>> GetMissionsEnAttenteModerationAsync(
+        string coachUserId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Passe <c>EnAttenteModeration</c> → <c>Disponible</c>. Tout coach authentifié.</summary>
+    Task<bool> ValiderPublicationAsync(string coachUserId, int missionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Passe <c>EnAttenteModeration</c> → <c>Annulee</c> avec motif obligatoire (pas de statut Refusee séparé).
+    /// </summary>
+    Task<bool> RefuserPublicationAsync(
+        string coachUserId,
+        int missionId,
+        string motif,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<MissionResumeView>> GetMissionsDisponiblesAsync(CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<MissionJeuneView>> GetMesMissionsAsync(string jeuneUserId, CancellationToken cancellationToken = default);
@@ -51,13 +71,13 @@ public interface IMissionService
     Task<IReadOnlyList<MissionResumeView>> GetMesMissionsPublieesAsync(string particulierUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Annule une mission <c>Disponible</c> du particulier propriétaire → <c>Annulee</c>.
-    /// Refuse si non propriétaire ou statut ≠ Disponible (ex. déjà en attente / attribuée).
+    /// Annule une mission <c>Disponible</c> ou <c>EnAttenteModeration</c> du propriétaire → <c>Annulee</c>.
     /// </summary>
     Task<bool> AnnulerMissionAsync(string particulierUserId, int missionId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Détail pour pré-remplir la modification. Null si non propriétaire ou statut ≠ Disponible.
+    /// Détail pour pré-remplir la modification. Null si non propriétaire ou statut
+    /// ≠ Disponible / EnAttenteModeration.
     /// </summary>
     Task<MissionDetailView?> TryGetMissionPourModificationAsync(
         string particulierUserId,
@@ -65,7 +85,7 @@ public interface IMissionService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Met à jour une mission <c>Disponible</c> du propriétaire (mêmes règles qu'à la publication).
+    /// Met à jour une mission <c>Disponible</c> ou <c>EnAttenteModeration</c> du propriétaire.
     /// Ne change ni le statut ni <c>CreatedAt</c>.
     /// </summary>
     Task<bool> ModifierMissionAsync(

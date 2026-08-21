@@ -34,6 +34,7 @@ public sealed class CoachDashboardSyntheseTests(ServiceFixture fixture)
             new PublierMissionInput("Mission dash", "Desc", null, null, MissionDifficulte.Facile, 20m, null,
                 MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         Assert.NotNull(missionId);
+        await fixture.GarantirPublicationValideeAsync(coachId, missionId.Value);
         Assert.True(await missionService.AccepterMissionAsync(jeune1.UserId, missionId.Value));
 
         // Invitation expirée (alerte) — pas d'acceptation

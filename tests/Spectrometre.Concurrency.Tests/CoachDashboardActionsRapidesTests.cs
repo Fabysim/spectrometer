@@ -38,6 +38,8 @@ public sealed class CoachDashboardActionsRapidesTests(ServiceFixture fixture)
         Assert.NotNull(missionRecentId);
         Assert.NotNull(missionAncienneId);
 
+        await fixture.GarantirPublicationValideeAsync(coachId, missionRecentId.Value);
+        await fixture.GarantirPublicationValideeAsync(coachId, missionAncienneId.Value);
         Assert.True(await missionService.AccepterMissionAsync(jeuneAncien.UserId, missionAncienneId.Value));
         await Task.Delay(50);
         Assert.True(await missionService.AccepterMissionAsync(jeuneRecent.UserId, missionRecentId.Value));
@@ -74,6 +76,7 @@ public sealed class CoachDashboardActionsRapidesTests(ServiceFixture fixture)
             new PublierMissionInput("Mission à valider", "D", null, null, MissionDifficulte.Facile, 10m, null,
                 MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         Assert.NotNull(missionId);
+        await fixture.GarantirPublicationValideeAsync(coachId, missionId.Value);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId.Value));
 
         var avant = await fixture.Services.GetRequiredService<ICoachDashboardService>()

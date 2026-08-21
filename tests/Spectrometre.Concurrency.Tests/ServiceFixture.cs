@@ -31,6 +31,7 @@ using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Spectrometre.Modules.Missions;
 using Spectrometre.Modules.Missions.Data;
+using Spectrometre.Modules.Missions.Services;
 using Spectrometre.Modules.GestionDuTemps.Services;
 using Spectrometre.Modules.ProfilCoach;
 using Spectrometre.Modules.ProfilCoach.Data;
@@ -103,6 +104,12 @@ public sealed class ServiceFixture : IAsyncLifetime
     private readonly System.Collections.Concurrent.ConcurrentBag<string> _usersToCleanup = [];
 
     public void TrackUserForCleanup(string userId) => _usersToCleanup.Add(userId);
+
+    public async Task GarantirPublicationValideeAsync(string coachUserId, int missionId)
+    {
+        var missionService = Services.GetRequiredService<IMissionService>();
+        Assert.True(await missionService.ValiderPublicationAsync(coachUserId, missionId));
+    }
 
     /// <summary>
     /// Les tests de missions supposent un jeune qui a déjà accepté la charte.

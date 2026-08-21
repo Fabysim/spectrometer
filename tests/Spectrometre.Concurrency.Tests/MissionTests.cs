@@ -39,6 +39,7 @@ public sealed class MissionTests(ServiceFixture fixture)
         var (particulierUserId, missionId) = await PublierMissionAsync();
         var jeune1 = await CreerJeuneAvecCoachAsync();
         var jeune2 = await CreerJeuneAvecCoachAsync();
+        await fixture.GarantirPublicationValideeAsync(jeune1.CoachUserId, missionId);
 
         Assert.True(await missionService.AccepterMissionAsync(jeune1.UserId, missionId));
         Assert.False(await missionService.AccepterMissionAsync(jeune2.UserId, missionId));
@@ -53,6 +54,7 @@ public sealed class MissionTests(ServiceFixture fixture)
         var (particulierUserId, missionId) = await PublierMissionAsync();
         var jeune1 = await CreerJeuneAvecCoachAsync();
         var jeune2 = await CreerJeuneAvecCoachAsync();
+        await fixture.GarantirPublicationValideeAsync(jeune1.CoachUserId, missionId);
 
         var results = new bool[2];
         await RunConcurrentlyAsync([
@@ -79,6 +81,7 @@ public sealed class MissionTests(ServiceFixture fixture)
         var (particulierUserId, missionId) = await PublierMissionAsync();
         var jeune1 = await CreerJeuneAvecCoachAsync();
         var jeune2 = await CreerJeuneAvecCoachAsync();
+        await fixture.GarantirPublicationValideeAsync(jeune1.CoachUserId, missionId);
 
         Assert.True(await missionService.AccepterMissionAsync(jeune1.UserId, missionId));
         var demandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune1.CoachUserId, jeune1.UserId);
@@ -102,6 +105,7 @@ public sealed class MissionTests(ServiceFixture fixture)
         var (particulierUserId, missionId) = await PublierMissionAsync();
         var jeune = await CreerJeuneAvecCoachAsync();
         var coachNonLie = await CreerUtilisateurAsync($"coach-etranger-{Guid.NewGuid()}@test.local");
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
 
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         var demandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId);
@@ -121,6 +125,7 @@ public sealed class MissionTests(ServiceFixture fixture)
         var (particulierUserId, missionId) = await PublierMissionAsync();
         var jeune = await CreerJeuneAvecCoachAsync();
 
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         var demandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId);
         var acceptationId = demandes.Single().AcceptationId;
@@ -166,6 +171,7 @@ public sealed class MissionTests(ServiceFixture fixture)
         // Coach non autorisé ne crée aucune notif
         var (autreParticulier, autreMissionId) = await PublierMissionAsync();
         var autreJeune = await CreerJeuneAvecCoachAsync();
+        await fixture.GarantirPublicationValideeAsync(autreJeune.CoachUserId, autreMissionId);
         Assert.True(await missionService.AccepterMissionAsync(autreJeune.UserId, autreMissionId));
         var autreDemandes = await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(autreJeune.CoachUserId, autreJeune.UserId);
         var coachEtranger = await CreerUtilisateurAsync($"coach-notif-etranger-{Guid.NewGuid()}@test.local");

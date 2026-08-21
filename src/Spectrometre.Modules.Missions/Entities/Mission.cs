@@ -30,7 +30,14 @@ public sealed class Mission
     public bool AccesDifficile { get; set; }
     public string? RisqueParticulier { get; set; }
 
-    public MissionStatut Statut { get; set; } = MissionStatut.Disponible;
+    /// <summary>
+    /// Motif renseigné au refus de publication (modération) — visible du particulier.
+    /// Pas de champ équivalent existant sur l'annulation propriétaire.
+    /// </summary>
+    public string? MotifAnnulation { get; set; }
+
+    /// <summary>Les nouvelles publications démarrent en <see cref="MissionStatut.EnAttenteModeration"/>.</summary>
+    public MissionStatut Statut { get; set; } = MissionStatut.EnAttenteModeration;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public ICollection<MissionAcceptation> Acceptations { get; set; } = [];

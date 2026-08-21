@@ -32,6 +32,7 @@ public sealed class MissionsDbContext(DbContextOptions<MissionsDbContext> option
             e.Property(m => m.RemunerationMontant).HasPrecision(18, 2);
             e.Property(m => m.Titre).IsRequired();
             e.Property(m => m.RisqueParticulier).HasMaxLength(2000);
+            e.Property(m => m.MotifAnnulation).HasMaxLength(2000);
         });
 
         builder.Entity<MissionAcceptation>(e =>

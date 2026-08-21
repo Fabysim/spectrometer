@@ -29,6 +29,7 @@ public sealed class MissionRetourTests(ServiceFixture fixture)
         var jeune1 = await CreerJeuneAvecCoachAsync();
         var jeune2 = await CreerJeuneAvecCoachAsync();
 
+        await fixture.GarantirPublicationValideeAsync(jeune1.CoachUserId, missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune1.UserId, missionId));
         var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune1.CoachUserId, jeune1.UserId))
             .Single().AcceptationId;

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Modules;
 using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
@@ -18,6 +19,7 @@ public sealed class MissionService(
     IParticulierProfileService particulierProfileService,
     IJeuneProfileService jeuneProfileService,
     ICoachingService coachingService,
+    ICoachSubjectResolver coachSubjectResolver,
     INotificationService notificationService,
     ICharteService charteService) : IMissionService
 {
@@ -35,12 +37,72 @@ public sealed class MissionService(
         {
             ParticulierProfileId = particulier.Id,
             Description = description,
-            Statut = MissionStatut.Disponible,
+            Statut = MissionStatut.EnAttenteModeration,
         };
         ApplyPublicationFields(mission, input, titre, description);
         db.Missions.Add(mission);
         await db.SaveChangesAsync(cancellationToken);
         return mission.Id;
+    }
+
+    public async Task<IReadOnlyList<MissionDetailView>> GetMissionsEnAttenteModerationAsync(
+        string coachUserId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!await EstCoachModerateurAsync(coachUserId, cancellationToken))
+            return [];
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var missions = await db.Missions.AsNoTracking()
+            .Where(m => m.Statut == MissionStatut.EnAttenteModeration)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return missions.Select(ToDetailView).ToList();
+    }
+
+    public async Task<bool> ValiderPublicationAsync(
+        string coachUserId,
+        int missionId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!await EstCoachModerateurAsync(coachUserId, cancellationToken))
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var mission = await db.Missions.FirstOrDefaultAsync(m => m.Id == missionId, cancellationToken);
+        if (mission is null || mission.Statut != MissionStatut.EnAttenteModeration)
+            return false;
+
+        mission.Statut = MissionStatut.Disponible;
+        mission.MotifAnnulation = null;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> RefuserPublicationAsync(
+        string coachUserId,
+        int missionId,
+        string motif,
+        CancellationToken cancellationToken = default)
+    {
+        if (!await EstCoachModerateurAsync(coachUserId, cancellationToken))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(motif))
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var mission = await db.Missions.FirstOrDefaultAsync(m => m.Id == missionId, cancellationToken);
+        if (mission is null || mission.Statut != MissionStatut.EnAttenteModeration)
+            return false;
+
+        mission.Statut = MissionStatut.Annulee;
+        mission.MotifAnnulation = motif.Trim();
+        if (mission.MotifAnnulation.Length > 2000)
+            mission.MotifAnnulation = mission.MotifAnnulation[..2000];
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public async Task<IReadOnlyList<MissionResumeView>> GetMissionsDisponiblesAsync(CancellationToken cancellationToken = default)
@@ -64,6 +126,7 @@ public sealed class MissionService(
                 m.AccesDifficile,
                 m.RisqueParticulier,
                 m.CreatedAt,
+                null,
                 null,
                 null))
             .ToListAsync(cancellationToken);
@@ -266,7 +329,8 @@ public sealed class MissionService(
                 m.RisqueParticulier,
                 m.CreatedAt,
                 acceptationIdEval,
-                jeunePrenom));
+                jeunePrenom,
+                m.MotifAnnulation));
         }
 
         return result;
@@ -286,7 +350,7 @@ public sealed class MissionService(
         if (mission.ParticulierProfileId != particulier.Id)
             return false;
 
-        if (mission.Statut != MissionStatut.Disponible)
+        if (mission.Statut is not (MissionStatut.Disponible or MissionStatut.EnAttenteModeration))
             return false;
 
         mission.Statut = MissionStatut.Annulee;
@@ -299,7 +363,7 @@ public sealed class MissionService(
         int missionId,
         CancellationToken cancellationToken = default)
     {
-        var mission = await TryGetMissionProprietaireDisponibleAsync(particulierUserId, missionId, cancellationToken);
+        var mission = await TryGetMissionProprietaireEditableAsync(particulierUserId, missionId, cancellationToken);
         if (mission is null)
             return null;
 
@@ -344,7 +408,7 @@ public sealed class MissionService(
         if (mission.ParticulierProfileId != particulier.Id)
             return false;
 
-        if (mission.Statut != MissionStatut.Disponible)
+        if (mission.Statut is not (MissionStatut.Disponible or MissionStatut.EnAttenteModeration))
             return false;
 
         ApplyPublicationFields(mission, input, titre, description);
@@ -442,7 +506,7 @@ public sealed class MissionService(
         mission.RisqueParticulier = string.IsNullOrWhiteSpace(input.RisqueParticulier) ? null : input.RisqueParticulier.Trim();
     }
 
-    private async Task<Mission?> TryGetMissionProprietaireDisponibleAsync(
+    private async Task<Mission?> TryGetMissionProprietaireEditableAsync(
         string particulierUserId,
         int missionId,
         CancellationToken cancellationToken)
@@ -459,13 +523,46 @@ public sealed class MissionService(
         if (mission.ParticulierProfileId != particulier.Id)
             return null;
 
-        if (mission.Statut != MissionStatut.Disponible)
+        if (mission.Statut is not (MissionStatut.Disponible or MissionStatut.EnAttenteModeration))
             return null;
 
         return mission;
     }
 
-    /// <summary>Même résolution que AutoObservationService.FindCoachReferentAsync — lien coaching Actif.</summary>
+    /// <summary>
+    /// Tout coach authentifié : profil coach déjà créé, ou au moins un lien de suivi
+    /// (les coachs de test invitent un jeune sans forcément remplir le profil).
+    /// Pas de lien avec le particulier — file d'attente partagée.
+    /// </summary>
+    private async Task<bool> EstCoachModerateurAsync(string userId, CancellationToken cancellationToken)
+    {
+        if (await coachSubjectResolver.TryGetCoachProfileIdAsync(userId, cancellationToken) is not null)
+            return true;
+
+        var liens = await coachingService.GetLiensPourCoachAsync(userId, cancellationToken);
+        return liens.Count > 0;
+    }
+
+    private static MissionDetailView ToDetailView(Mission mission) =>
+        new(
+            mission.Id,
+            mission.Titre,
+            mission.Categorie,
+            mission.Description,
+            mission.Lieu,
+            mission.DureeEstimee,
+            mission.Difficulte,
+            mission.NiveauEncadrement,
+            mission.RemunerationMontant,
+            mission.CompetencesTravaillees,
+            mission.PresenceEscaliers,
+            mission.PresenceAnimaux,
+            mission.PortDeCharge,
+            mission.AccesDifficile,
+            mission.RisqueParticulier,
+            mission.Statut,
+            mission.CreatedAt);
+
     private async Task<string?> FindCoachReferentAsync(string jeuneUserId, CancellationToken cancellationToken)
     {
         var liens = await coachingService.GetLiensPourSuiviAsync(jeuneUserId, cancellationToken);

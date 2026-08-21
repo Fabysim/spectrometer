@@ -7,6 +7,11 @@ public enum MissionStatut
     Attribuee = 2,
     Terminee = 3,
     Annulee = 4,
+    /// <summary>
+    /// File de modération association/coach, avant <see cref="Disponible"/>.
+    /// Valeur en fin d'enum pour ne pas renuméroter les statuts déjà persistés (0–4).
+    /// </summary>
+    EnAttenteModeration = 5,
 }
 
 public enum MissionDifficulte

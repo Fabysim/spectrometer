@@ -10,6 +10,7 @@
 @using Spectrometre.Host.Onboarding
 @using Spectrometre.Host.Resources
 @using Spectrometre.Modules.GestionDuTemps.Services
+@using Spectrometre.Modules.JeunesPrestataires.Entities
 @using Spectrometre.Modules.JeunesPrestataires.Services
 @using Spectrometre.Modules.Missions.Services
 @inject IJeuneProfileService JeuneProfileService
@@ -174,10 +175,14 @@
                                 <span class="nav-icon"><i class="bi bi-file-earmark-person" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_MonCv"]</span>
                             </a>
+                            @* Déclutter uniquement : Autonome n'a pas le lien, la route /jeune/missions-disponibles reste accessible. *@
+                            @if (_afficherMissionsDisponibles)
+                            {
                             <a href="/jeune/missions-disponibles" class="nav-item-auth nav-sub-item @ActiveClass("/jeune/missions-disponibles")">
                                 <span class="nav-icon"><i class="bi bi-briefcase" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_MissionsDisponibles"]</span>
                             </a>
+                            }
                             <a href="/jeune/mes-missions" class="nav-item-auth nav-sub-item @ActiveClass("/jeune/mes-missions")">
                                 <span class="nav-icon"><i class="bi bi-list-check" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_MesMissionsJeune"]</span>
@@ -327,6 +332,10 @@
                                 <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_MesPersonnesSuivies"]</span>
                             </a>
+                            <a href="/coach/missions-a-moderer" class="nav-item-auth nav-sub-item @ActiveClass("/coach/missions-a-moderer")">
+                                <span class="nav-icon"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+                                <span>@Localizer["Home_MissionsAModerer"]</span>
+                            </a>
                             <a href="/coach/charte" class="nav-item-auth nav-sub-item @ActiveClass("/coach/charte")">
                                 <span class="nav-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></span>
                                 <span>@Localizer["Home_Charte"]</span>
@@ -451,6 +460,8 @@
     private bool _hasCompany;
     private bool _estCandidatOuCoach;
     private bool _estJeune;
+    /// <summary>Masqué pour <see cref="ProfilAccompagnement.Autonome"/> — déclutter de menu, pas un refus d'accès.</summary>
+    private bool _afficherMissionsDisponibles;
     private bool _estParticulier;
     private bool _consentementParentalACompleter;
     private readonly HashSet<string> _companyActiveModules = [];
@@ -548,6 +559,8 @@
         // "aucun profil reconnu" et voit à tort le lien « Créer une entreprise ».
         var jeuneProfile = await JeuneProfileService.TryGetByUserIdAsync(userId);
         _estJeune = jeuneProfile is not null;
+        _afficherMissionsDisponibles = jeuneProfile is not null
+            && jeuneProfile.ProfilAccompagnement != ProfilAccompagnement.Autonome;
         if (jeuneProfile is not null
             && JeuneProfileService.EstMineur(jeuneProfile.DateNaissance)
             && !await ConsentementParentalService.EstConsentementValideAsync(jeuneProfile.Id))
@@ -608,7 +621,8 @@
                   && !CurrentPath.Equals("/gestion-du-temps", StringComparison.OrdinalIgnoreCase))
                  || CurrentPath.StartsWith("/mon-coach", StringComparison.OrdinalIgnoreCase),
         "coach" => CurrentPath.StartsWith("/coach/suivis", StringComparison.OrdinalIgnoreCase)
-                   || CurrentPath.StartsWith("/coach/charte", StringComparison.OrdinalIgnoreCase),
+                   || CurrentPath.StartsWith("/coach/charte", StringComparison.OrdinalIgnoreCase)
+                   || CurrentPath.StartsWith("/coach/missions-a-moderer", StringComparison.OrdinalIgnoreCase),
         "jeune" => CurrentPath.StartsWith("/jeune", StringComparison.OrdinalIgnoreCase)
                    || CurrentPath.StartsWith("/candidat/consentement-parental", StringComparison.OrdinalIgnoreCase)
                    || CurrentPath.StartsWith("/candidat/cv", StringComparison.OrdinalIgnoreCase),

@@ -37,6 +37,7 @@ public sealed class MesProgresTests(ServiceFixture fixture)
                 MissionCategorie.Autre, MissionNiveauEncadrement.PresentPendantMission));
         Assert.NotNull(missionId);
 
+        await fixture.GarantirPublicationValideeAsync(coachUserId, missionId.Value);
         Assert.True(await missionService.AccepterMissionAsync(jeuneUserId, missionId.Value));
         var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(coachUserId, jeuneUserId))
             .Single().AcceptationId;

@@ -43,7 +43,9 @@ public sealed record MissionResumeView(
     /// <summary>Acceptation validée liée (pour évaluation particulier si mission terminée).</summary>
     int? AcceptationIdPourEvaluation = null,
     /// <summary>Prénom uniquement, si mission <c>Attribuee</c> ou <c>Terminee</c>.</summary>
-    string? JeunePrenom = null);
+    string? JeunePrenom = null,
+    /// <summary>Motif de refus de publication, si la mission a été refusée en modération.</summary>
+    string? MotifAnnulation = null);
 
 public sealed record MissionDetailView(
     int MissionId,

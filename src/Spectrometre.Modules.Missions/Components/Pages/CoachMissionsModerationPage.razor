@@ -1,0 +1,193 @@
+@page "/coach/missions-a-moderer"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Core.Modules
+@using Spectrometre.Modules.Coaching.Services
+@using Spectrometre.Modules.Missions.Entities
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@inject IMissionService MissionService
+@inject ICoachSubjectResolver CoachSubjectResolver
+@inject ICoachingService CoachingService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<MissionsResource> Localizer
+
+<PageTitle>@Localizer["Moderation_Title"]</PageTitle>
+<link href="_content/Spectrometre.Modules.Missions/missions-page.css" rel="stylesheet" />
+
+<div class="missions-page">
+@if (_chargement)
+{
+    <p>@Localizer["Chargement"]</p>
+}
+else if (!_estCoach)
+{
+    <div class="missions-card">
+        <h1 class="missions-title">@Localizer["Moderation_AccesRefuse_Titre"]</h1>
+        <p class="missions-meta">@Localizer["Moderation_AccesRefuse_Message"]</p>
+    </div>
+}
+else
+{
+    <h1 class="missions-title">@Localizer["Moderation_Heading"]</h1>
+    <p class="missions-meta">@Localizer["Moderation_Intro"]</p>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="missions-success" role="status">@_message</div>
+    }
+
+    @if (_missions.Count == 0)
+    {
+        <p class="missions-empty">@Localizer["Moderation_Vide"]</p>
+    }
+    else
+    {
+        @foreach (var m in _missions)
+        {
+            <article class="missions-card">
+                <h3>@AfficherTitre(m.Categorie, m.Titre)</h3>
+                <p class="missions-meta">@m.Description</p>
+                <p class="missions-meta">@Localizer[$"Difficulte_{m.Difficulte}"] · @Localizer["Mission_NiveauEncadrement"] : @Localizer[$"Encadrement_{m.NiveauEncadrement}"]</p>
+                @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
+                @if (m.DureeEstimee is not null) { <p class="missions-meta">@m.DureeEstimee</p> }
+                @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
+
+                <h4 class="missions-section-title">@Localizer["Moderation_Securite_Titre"]</h4>
+                <p class="missions-meta">@Localizer["Moderation_Securite_Intro"]</p>
+                <ul class="missions-meta">
+                    <li>@Localizer["Mission_PresenceEscaliers"] : @(m.PresenceEscaliers ? Localizer["Oui"] : Localizer["Non"])</li>
+                    <li>@Localizer["Mission_PresenceAnimaux"] : @(m.PresenceAnimaux ? Localizer["Oui"] : Localizer["Non"])</li>
+                    <li>@Localizer["Mission_PortDeCharge"] : @(m.PortDeCharge ? Localizer["Oui"] : Localizer["Non"])</li>
+                    <li>@Localizer["Mission_AccesDifficile"] : @(m.AccesDifficile ? Localizer["Oui"] : Localizer["Non"])</li>
+                </ul>
+                @if (!string.IsNullOrWhiteSpace(m.RisqueParticulier))
+                {
+                    <p class="missions-meta"><strong>@Localizer["Mission_RisqueParticulier"]</strong> : @m.RisqueParticulier</p>
+                }
+                else
+                {
+                    <p class="missions-meta">@Localizer["Moderation_PasDeRisqueSaisi"]</p>
+                }
+
+                <div class="missions-actions">
+                    <button type="button" class="missions-btn missions-btn-primary" disabled="@_busy"
+                            @onclick="() => ValiderAsync(m.MissionId)">
+                        @Localizer["Valider"]
+                    </button>
+                    @if (_refusMissionId == m.MissionId)
+                    {
+                        <div class="missions-field" style="flex:1 1 100%">
+                            <label>@Localizer["Moderation_Motif_Label"]</label>
+                            <textarea rows="2" @bind="_refusMotif" maxlength="2000"></textarea>
+                        </div>
+                        <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
+                                @onclick="() => ConfirmerRefusAsync(m.MissionId)">
+                            @Localizer["Moderation_Refuser"]
+                        </button>
+                        <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
+                                @onclick="AnnulerRefusUi">
+                            @Localizer["SignalerProbleme_Annuler"]
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
+                                @onclick="() => OuvrirRefus(m.MissionId)">
+                            @Localizer["Moderation_Refuser"]
+                        </button>
+                    }
+                </div>
+            </article>
+        }
+    }
+}
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _estCoach;
+    private string? _userId;
+    private IReadOnlyList<MissionDetailView> _missions = [];
+    private string? _message;
+    private bool _busy;
+    private int? _refusMissionId;
+    private string _refusMotif = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (_userId is not null)
+        {
+            _estCoach = await CoachSubjectResolver.TryGetCoachProfileIdAsync(_userId) is not null
+                || (await CoachingService.GetLiensPourCoachAsync(_userId)).Count > 0;
+            if (_estCoach)
+                await RefreshAsync();
+        }
+        _chargement = false;
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (_userId is null)
+        {
+            _missions = [];
+            return;
+        }
+
+        _missions = await MissionService.GetMissionsEnAttenteModerationAsync(_userId);
+    }
+
+    private async Task ValiderAsync(int missionId)
+    {
+        if (_userId is null || _busy)
+            return;
+
+        _busy = true;
+        _message = null;
+        var ok = await MissionService.ValiderPublicationAsync(_userId, missionId);
+        _message = ok ? Localizer["Moderation_Validee"] : Localizer["Action_Echec"];
+        AnnulerRefusUi();
+        await RefreshAsync();
+        _busy = false;
+    }
+
+    private void OuvrirRefus(int missionId)
+    {
+        _refusMissionId = missionId;
+        _refusMotif = "";
+        _message = null;
+    }
+
+    private void AnnulerRefusUi()
+    {
+        _refusMissionId = null;
+        _refusMotif = "";
+    }
+
+    private async Task ConfirmerRefusAsync(int missionId)
+    {
+        if (_userId is null || _busy)
+            return;
+
+        _busy = true;
+        _message = null;
+        var ok = await MissionService.RefuserPublicationAsync(_userId, missionId, _refusMotif);
+        _message = ok ? Localizer["Moderation_Refusee"] : Localizer["Moderation_MotifRequis"];
+        if (ok)
+            AnnulerRefusUi();
+        await RefreshAsync();
+        _busy = false;
+    }
+
+    private string AfficherTitre(MissionCategorie categorie, string titre)
+    {
+        if (categorie == MissionCategorie.Autre)
+            return string.IsNullOrWhiteSpace(titre) ? Localizer["Categorie_Autre"] : titre;
+        var label = Localizer[$"Categorie_{categorie}"].Value;
+        return string.IsNullOrWhiteSpace(titre) ? label : $"{label} — {titre}";
+    }
+}

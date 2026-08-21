@@ -25,7 +25,8 @@
   <data name="PublierMission_Title" xml:space="preserve"><value>Post a mission · Spectrometre</value></data>
   <data name="PublierMission_Heading" xml:space="preserve"><value>Post a mission</value></data>
   <data name="PublierMission_Bouton" xml:space="preserve"><value>Publish</value></data>
-  <data name="PublierMission_Succes" xml:space="preserve"><value>Mission published — it is now visible to young providers.</value></data>
+  <data name="PublierMission_Succes" xml:space="preserve"><value>Request sent. The association will review it before it is offered to a supported young person.</value></data>
+  <data name="PublierMission_IntroModeration" xml:space="preserve"><value>Your request will be reviewed by the association before it is offered to a supported young person.</value></data>
   <data name="PublierMission_Lien" xml:space="preserve"><value>Post a mission</value></data>
   <data name="MesMissions_Lien" xml:space="preserve"><value>My published missions</value></data>
   <data name="MesMissionsParticulier_Title" xml:space="preserve"><value>My missions · Spectrometre</value></data>
@@ -80,12 +81,14 @@
   <data name="Statut_Attribuee" xml:space="preserve"><value>Assigned</value></data>
   <data name="Statut_Terminee" xml:space="preserve"><value>Completed</value></data>
   <data name="Statut_Annulee" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Statut_EnAttenteModeration" xml:space="preserve"><value>Pending review by the association</value></data>
 
   <data name="StatutMission_Disponible" xml:space="preserve"><value>Available</value></data>
   <data name="StatutMission_EnAttenteValidation" xml:space="preserve"><value>Pending validation</value></data>
   <data name="StatutMission_Attribuee" xml:space="preserve"><value>Assigned</value></data>
   <data name="StatutMission_Terminee" xml:space="preserve"><value>Completed</value></data>
   <data name="StatutMission_Annulee" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="StatutMission_EnAttenteModeration" xml:space="preserve"><value>Pending review</value></data>
 
   <data name="StatutAcceptation_EnAttenteValidationCoach" xml:space="preserve"><value>Pending coach approval</value></data>
   <data name="StatutAcceptation_ValideeParCoach" xml:space="preserve"><value>Approved by coach</value></data>
@@ -320,4 +323,21 @@
   <data name="Badge_respectueux_Description" xml:space="preserve"><value>Three clients confirmed a respectful attitude.</value></data>
   <data name="Badge_soin_travail_Titre" xml:space="preserve"><value>Careful work</value></data>
   <data name="Badge_soin_travail_Description" xml:space="preserve"><value>Your coach rated you 4/5 or more on care taken with the work.</value></data>
+  <data name="Moderation_Title" xml:space="preserve"><value>Missions to review · Spectromètre</value></data>
+  <data name="Moderation_Heading" xml:space="preserve"><value>Missions to review</value></data>
+  <data name="Moderation_Intro" xml:space="preserve"><value>Shared queue: any coach can review a request. The fields below are those entered by the client — there is no automatic danger detection.</value></data>
+  <data name="Moderation_Vide" xml:space="preserve"><value>No missions waiting for review.</value></data>
+  <data name="Moderation_Securite_Titre" xml:space="preserve"><value>Setting and safety</value></data>
+  <data name="Moderation_Securite_Intro" xml:space="preserve"><value>Check the setting, the risk level, and whether the mission fits a supported young person.</value></data>
+  <data name="Moderation_PasDeRisqueSaisi" xml:space="preserve"><value>No specific risk noted.</value></data>
+  <data name="Moderation_Motif_Label" xml:space="preserve"><value>Reason for refusal (required)</value></data>
+  <data name="Moderation_Refuser" xml:space="preserve"><value>Refuse</value></data>
+  <data name="Moderation_Validee" xml:space="preserve"><value>Mission approved — it is now offered to young providers.</value></data>
+  <data name="Moderation_Refusee" xml:space="preserve"><value>Request refused. The client will see the reason.</value></data>
+  <data name="Moderation_MotifRequis" xml:space="preserve"><value>A reason is required to refuse.</value></data>
+  <data name="Moderation_MotifVisible" xml:space="preserve"><value>Reason: {0}</value></data>
+  <data name="Moderation_AccesRefuse_Titre" xml:space="preserve"><value>Coaches only</value></data>
+  <data name="Moderation_AccesRefuse_Message" xml:space="preserve"><value>This page is for association coaches.</value></data>
+  <data name="Oui" xml:space="preserve"><value>Yes</value></data>
+  <data name="Non" xml:space="preserve"><value>No</value></data>
 </root>

@@ -27,9 +27,10 @@ public sealed class MissionParticulierModificationIdentiteTests(ServiceFixture f
         var jeune = await CreerJeuneAvecCoachAsync("Léa", "Dupont-Test");
 
         var avant = Assert.Single(await missionService.GetMesMissionsPublieesAsync(particulierUserId), m => m.MissionId == missionId);
-        Assert.Equal(MissionStatut.Disponible, avant.Statut);
+        Assert.Equal(MissionStatut.EnAttenteModeration, avant.Statut);
         Assert.Null(avant.JeunePrenom);
 
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         var enAttente = Assert.Single(await missionService.GetMesMissionsPublieesAsync(particulierUserId), m => m.MissionId == missionId);
         Assert.Equal(MissionStatut.EnAttenteValidation, enAttente.Statut);
@@ -100,7 +101,7 @@ public sealed class MissionParticulierModificationIdentiteTests(ServiceFixture f
         await using (var db = await fixture.Services.GetRequiredService<IDbContextFactory<MissionsDbContext>>().CreateDbContextAsync())
         {
             var mission = await db.Missions.AsNoTracking().FirstAsync(m => m.Id == missionId);
-            Assert.Equal(MissionStatut.Disponible, mission.Statut);
+            Assert.Equal(MissionStatut.EnAttenteModeration, mission.Statut);
             Assert.Equal(createdAt, mission.CreatedAt);
             Assert.Equal(MissionCategorie.Autre, mission.Categorie);
             Assert.Equal("Tâche spéciale", mission.Titre);
@@ -115,6 +116,7 @@ public sealed class MissionParticulierModificationIdentiteTests(ServiceFixture f
             Assert.Equal("Marches", mission.RisqueParticulier);
         }
 
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         Assert.False(await missionService.ModifierMissionAsync(
             particulierUserId,

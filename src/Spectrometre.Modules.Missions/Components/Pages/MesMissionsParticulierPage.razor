@@ -33,6 +33,10 @@
             <div class="missions-card">
                 <h3>@AfficherTitre(m.Categorie, m.Titre)</h3>
                 <p class="missions-meta">@Localizer[$"Statut_{m.Statut}"] · @Localizer[$"Difficulte_{m.Difficulte}"]</p>
+                @if (m.Statut == MissionStatut.Annulee && !string.IsNullOrWhiteSpace(m.MotifAnnulation))
+                {
+                    <p class="missions-meta">@Localizer["Moderation_MotifVisible", m.MotifAnnulation]</p>
+                }
                 @if ((m.Statut == MissionStatut.Attribuee || m.Statut == MissionStatut.Terminee)
                      && !string.IsNullOrWhiteSpace(m.JeunePrenom))
                 {
@@ -42,7 +46,7 @@
                 @if (m.Lieu is not null) { <p class="missions-meta">@m.Lieu</p> }
                 @if (m.RemunerationMontant is decimal r) { <p class="missions-meta">@MissionAmountFormat.Format(r)</p> }
 
-                @if (m.Statut == MissionStatut.Disponible)
+                @if (m.Statut == MissionStatut.Disponible || m.Statut == MissionStatut.EnAttenteModeration)
                 {
                     <div class="missions-actions">
                         <a class="missions-btn missions-btn-secondary" href="/particulier/mes-missions/@m.MissionId/modifier">

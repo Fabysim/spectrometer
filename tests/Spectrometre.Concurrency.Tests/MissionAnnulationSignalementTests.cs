@@ -31,6 +31,7 @@ public sealed class MissionAnnulationSignalementTests(ServiceFixture fixture)
 
         Assert.False(await missionService.AnnulerMissionAsync(autreParticulier, missionId));
 
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         Assert.False(await missionService.AnnulerMissionAsync(particulierUserId, missionId));
 
@@ -65,6 +66,7 @@ public sealed class MissionAnnulationSignalementTests(ServiceFixture fixture)
 
         Assert.False(await missionService.SignalerProblemeAsync(particulierUserId, missionId, "trop tôt"));
 
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId))
             .Single().AcceptationId;
@@ -93,6 +95,7 @@ public sealed class MissionAnnulationSignalementTests(ServiceFixture fixture)
         var (particulierUserId, missionId) = await PublierMissionAsync();
         var jeune = await CreerJeuneAvecCoachAsync();
 
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
         var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId))
             .Single().AcceptationId;

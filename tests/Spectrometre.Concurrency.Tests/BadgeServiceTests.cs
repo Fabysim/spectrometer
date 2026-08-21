@@ -174,6 +174,7 @@ public sealed class BadgeServiceTests(ServiceFixture fixture)
                 "Badge", "Desc", null, null, MissionDifficulte.Facile, 10m, null,
                 MissionCategorie.Rangement, MissionNiveauEncadrement.PresentDebutSeulement));
         Assert.NotNull(missionId);
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId.Value);
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId.Value));
         var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId))
             .Single(a => a.MissionId == missionId.Value).AcceptationId;

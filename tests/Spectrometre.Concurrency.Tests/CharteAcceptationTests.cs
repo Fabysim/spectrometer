@@ -84,6 +84,8 @@ public sealed class CharteAcceptationTests(ServiceFixture fixture)
         Assert.NotNull(missionId);
 
         Assert.False(await missionService.AccepterMissionAsync(jeune.UserId, missionId.Value));
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId.Value);
+        Assert.False(await missionService.AccepterMissionAsync(jeune.UserId, missionId.Value));
         Assert.True(await charte.AccepterAsync(jeune.UserId, "Léa Dupont"));
         Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId.Value));
 
