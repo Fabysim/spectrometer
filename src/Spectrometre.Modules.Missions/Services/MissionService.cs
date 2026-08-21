@@ -77,6 +77,7 @@ public sealed class MissionService(
         mission.Statut = MissionStatut.Disponible;
         mission.MotifAnnulation = null;
         await db.SaveChangesAsync(cancellationToken);
+        await NotifierParticulierPublicationAsync(mission, validee: true, cancellationToken);
         return true;
     }
 
@@ -102,6 +103,7 @@ public sealed class MissionService(
         if (mission.MotifAnnulation.Length > 2000)
             mission.MotifAnnulation = mission.MotifAnnulation[..2000];
         await db.SaveChangesAsync(cancellationToken);
+        await NotifierParticulierPublicationAsync(mission, validee: false, cancellationToken);
         return true;
     }
 
@@ -767,6 +769,47 @@ public sealed class MissionService(
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Même schéma que <see cref="DeciderAcceptationAsync"/> : <c>CreerAsync</c> après persistance,
+    /// TypeCode préfixe <c>Missions.</c> (catégorie déjà au catalogue). Distinct de
+    /// <c>Missions.MissionValidee</c> / <c>Missions.MissionRefusee</c> (décision sur une candidature).
+    /// </summary>
+    private async Task NotifierParticulierPublicationAsync(
+        Mission mission,
+        bool validee,
+        CancellationToken cancellationToken)
+    {
+        var particulier = await particulierProfileService.TryGetByIdAsync(
+            mission.ParticulierProfileId, cancellationToken);
+        if (particulier is null)
+            return;
+
+        var titreMission = MissionDisplay.TitreAffiche(mission.Categorie, mission.Titre);
+        if (validee)
+        {
+            await notificationService.CreerAsync(
+                particulier.UserId,
+                "Mission validée",
+                $"Votre mission « {titreMission} » a été validée et est maintenant visible des jeunes.",
+                "/particulier/mes-missions",
+                "Missions.PublicationValidee",
+                cancellationToken);
+        }
+        else
+        {
+            var motif = string.IsNullOrWhiteSpace(mission.MotifAnnulation)
+                ? "Aucune explication fournie."
+                : mission.MotifAnnulation;
+            await notificationService.CreerAsync(
+                particulier.UserId,
+                "Mission refusée",
+                $"Votre mission « {titreMission} » n'a pas été publiée. Motif : {motif}",
+                "/particulier/mes-missions",
+                "Missions.PublicationRefusee",
+                cancellationToken);
+        }
     }
 
     private async Task<HashSet<int>> GetJeuneProfileIdsSuivisActifsAsync(string coachUserId, CancellationToken cancellationToken)

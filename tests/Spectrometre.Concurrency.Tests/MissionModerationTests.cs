@@ -5,6 +5,7 @@ using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Spectrometre.Modules.Missions.Data;
@@ -30,6 +31,11 @@ public sealed class MissionModerationTests(ServiceFixture fixture)
         Assert.DoesNotContain(await missionService.GetMissionsDisponiblesAsync(), m => m.MissionId == missionId);
         Assert.False(await missionService.AccepterMissionAsync(jeuneUserId, missionId));
 
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode is "Missions.PublicationValidee" or "Missions.PublicationRefusee");
+
         var file = await missionService.GetMissionsEnAttenteModerationAsync(coachUserId);
         var detail = Assert.Single(file, m => m.MissionId == missionId);
         Assert.True(detail.PresenceEscaliers);
@@ -40,6 +46,15 @@ public sealed class MissionModerationTests(ServiceFixture fixture)
         Assert.Contains(await missionService.GetMissionsDisponiblesAsync(), m => m.MissionId == missionId);
         Assert.True(await missionService.AccepterMissionAsync(jeuneUserId, missionId));
 
+        var notifValidee = Assert.Single(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.PublicationValidee");
+        Assert.Equal("/particulier/mes-missions", notifValidee.Lien);
+        Assert.Contains("Modération", notifValidee.Message);
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.PublicationRefusee");
+
         await CleanupAsync(missionId, particulierUserId);
     }
 
@@ -49,7 +64,11 @@ public sealed class MissionModerationTests(ServiceFixture fixture)
         var missionService = fixture.Services.GetRequiredService<IMissionService>();
         var (particulierUserId, missionId, coachUserId, jeuneUserId) = await PublierAvecCoachEtJeuneAsync();
 
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
         Assert.False(await missionService.RefuserPublicationAsync(coachUserId, missionId, "   "));
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode is "Missions.PublicationValidee" or "Missions.PublicationRefusee");
         Assert.True(await missionService.RefuserPublicationAsync(coachUserId, missionId, "Trop physique pour le cadre actuel"));
 
         Assert.DoesNotContain(await missionService.GetMissionsDisponiblesAsync(), m => m.MissionId == missionId);
@@ -64,6 +83,16 @@ public sealed class MissionModerationTests(ServiceFixture fixture)
         Assert.Equal(MissionStatut.Annulee, vue.Statut);
         Assert.Equal("Trop physique pour le cadre actuel", vue.MotifAnnulation);
 
+        var notifRefusee = Assert.Single(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.PublicationRefusee");
+        Assert.Equal("/particulier/mes-missions", notifRefusee.Lien);
+        Assert.Contains("Modération", notifRefusee.Message);
+        Assert.Contains("Trop physique pour le cadre actuel", notifRefusee.Message);
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.PublicationValidee");
+
         await CleanupAsync(missionId, particulierUserId);
     }
 
@@ -75,6 +104,10 @@ public sealed class MissionModerationTests(ServiceFixture fixture)
         var autreCoach = await CreerCoachAvecJeuneAsync();
 
         Assert.False(await missionService.ValiderPublicationAsync(particulierUserId, missionId));
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode is "Missions.PublicationValidee" or "Missions.PublicationRefusee");
         Assert.Empty(await missionService.GetMissionsEnAttenteModerationAsync("user-inconnu"));
         Assert.Contains(
             await missionService.GetMissionsEnAttenteModerationAsync(autreCoach.CoachUserId),
