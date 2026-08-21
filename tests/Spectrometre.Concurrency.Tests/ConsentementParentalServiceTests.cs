@@ -2,7 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
+using Spectrometre.Core.Invitations;
+using Spectrometre.Core.Notifications;
+using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
 using Spectrometre.Modules.JeunesPrestataires.Resources;
@@ -50,6 +54,27 @@ public sealed class ConsentementParentalServiceTests(ServiceFixture fixture)
 
         Assert.True(result.Success);
         Assert.True(await ConsentementService.EstConsentementValideAsync(jeuneProfileId));
+    }
+
+    [Fact]
+    public async Task ConfirmerAsync_MineurAvecCoach_NotifieLeCoachReferent_UneSeuleFois()
+    {
+        var (coachUserId, _, jeuneProfileId) = await CreerJeuneMineurAvecCoachAsync();
+        var notifSvc = fixture.Services.GetRequiredService<INotificationService>();
+
+        await ConsentementService.SaveBrouillonAsync(jeuneProfileId, CreerFormulaireComplet());
+        Assert.True((await ConsentementService.ConfirmerAsync(
+            jeuneProfileId, "Léa Dupont", "Marie Martin", null)).Success);
+
+        var notifs = await notifSvc.GetRecentesAsync(coachUserId, 20);
+        Assert.Equal(1, notifs.Count(n => n.TypeCode == "JeunesPrestataires.ConsentementConfirme"));
+        var n = notifs.Single(x => x.TypeCode == "JeunesPrestataires.ConsentementConfirme");
+        Assert.Contains("/apercu", n.Lien, StringComparison.Ordinal);
+
+        Assert.True((await ConsentementService.ConfirmerAsync(
+            jeuneProfileId, "Léa Dupont", "Marie Martin", null)).Success);
+        Assert.Equal(1, (await notifSvc.GetRecentesAsync(coachUserId, 20))
+            .Count(x => x.TypeCode == "JeunesPrestataires.ConsentementConfirme"));
     }
 
     [Fact]
@@ -185,6 +210,43 @@ public sealed class ConsentementParentalServiceTests(ServiceFixture fixture)
         db.JeuneProfiles.Add(profile);
         await db.SaveChangesAsync();
         return profile.Id;
+    }
+
+    private async Task<(string CoachUserId, string JeuneUserId, int ProfileId)> CreerJeuneMineurAvecCoachAsync()
+    {
+        var coachUserId = await CreerUtilisateurAsync($"coach-consent-{Guid.NewGuid()}@test.local");
+        var jeuneEmail = $"jeune-consent-{Guid.NewGuid()}@test.local";
+        var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
+        var coachingService = fixture.Services.GetRequiredService<ICoachingService>();
+
+        var invite = await jeuneService.InviterJeuneAsync(
+            coachUserId,
+            jeuneEmail,
+            "Dupont",
+            "Léa",
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-15)),
+            "http://localhost");
+        Assert.True(invite.Success);
+
+        var jeuneUserId = await CreerUtilisateurAsync(jeuneEmail);
+        await using var coreDb = await fixture.Services.GetRequiredService<IDbContextFactory<CoreDbContext>>().CreateDbContextAsync();
+        var invitation = await coreDb.Invitations.FirstAsync(i => i.Id == invite.Invitation!.Id);
+
+        var profile = await jeuneService.FinaliserDepuisInvitationAsync(invitation, jeuneUserId);
+        await coachingService.FinaliserJeunePrestataireDepuisInvitationAsync(invitation, jeuneUserId);
+        await fixture.Services.GetRequiredService<IInvitationService>().MarquerAccepteeAsync(invitation.Id, coreDb);
+        return (coachUserId, jeuneUserId, profile.Id);
+    }
+
+    private async Task<string> CreerUtilisateurAsync(string email)
+    {
+        using var scope = fixture.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var user = new ApplicationUser { UserName = email, Email = email, EmailConfirmed = true };
+        var result = await userManager.CreateAsync(user, "TestPassword123!");
+        Assert.True(result.Succeeded);
+        fixture.TrackUserForCleanup(user.Id);
+        return user.Id;
     }
 
     private static ConsentementParentalFormModel CreerFormulaireComplet() => new()

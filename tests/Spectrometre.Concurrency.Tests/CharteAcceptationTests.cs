@@ -7,6 +7,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Catalog;
 using Spectrometre.Modules.JeunesPrestataires.Resources;
@@ -67,6 +68,25 @@ public sealed class CharteAcceptationTests(ServiceFixture fixture)
         Assert.False(await charte.AccepterAsync(jeune.UserId, "Autre Nom"));
         var encore = await charte.GetAsync(jeune.UserId);
         Assert.Equal("Léa Dupont", encore!.NomConfirmation);
+    }
+
+    [Fact]
+    public async Task Accepter_NotifieLeCoachReferent_UneSeuleFois()
+    {
+        var charte = fixture.Services.GetRequiredService<ICharteService>();
+        var notifSvc = fixture.Services.GetRequiredService<INotificationService>();
+        var jeune = await CreerJeuneSansCharteAsync();
+
+        Assert.True(await charte.AccepterAsync(jeune.UserId, "Léa Dupont"));
+        var notifs = await notifSvc.GetRecentesAsync(jeune.CoachUserId, 20);
+        Assert.Equal(1, notifs.Count(n => n.TypeCode == "JeunesPrestataires.CharteAcceptee"));
+        var n = notifs.Single(x => x.TypeCode == "JeunesPrestataires.CharteAcceptee");
+        Assert.Equal($"/coach/suivis/{jeune.UserId}/apercu", n.Lien);
+        Assert.Contains("missions", n.Message, StringComparison.OrdinalIgnoreCase);
+
+        Assert.False(await charte.AccepterAsync(jeune.UserId, "Léa Dupont"));
+        Assert.Equal(1, (await notifSvc.GetRecentesAsync(jeune.CoachUserId, 20))
+            .Count(x => x.TypeCode == "JeunesPrestataires.CharteAcceptee"));
     }
 
     [Fact]

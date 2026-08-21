@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Notifications;
+using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
@@ -8,7 +10,8 @@ namespace Spectrometre.Modules.JeunesPrestataires.Services;
 public sealed class ConsentementParentalService(
     IDbContextFactory<JeunesPrestatairesDbContext> dbFactory,
     ICoachingService coachingService,
-    IJeuneProfileService jeuneProfileService) : IConsentementParentalService
+    IJeuneProfileService jeuneProfileService,
+    INotificationService notificationService) : IConsentementParentalService
 {
     public async Task<ConsentementParentalView> GetAsync(int jeuneProfileId, CancellationToken cancellationToken = default)
     {
@@ -84,6 +87,8 @@ public sealed class ConsentementParentalService(
         if (manquants.Count > 0)
             return new ConsentementConfirmationResult(false, manquants);
 
+        // Uniquement la première validation : ReprendreEdition / brouillon remettent ValideLe à null.
+        var premiereConfirmation = entity.ValideLe is null;
         var now = DateTimeOffset.UtcNow;
         entity.NomJeuneConfirmation = nomJeune.Trim();
         entity.NomParent1Confirmation = nomParent1.Trim();
@@ -92,7 +97,33 @@ public sealed class ConsentementParentalService(
         entity.UpdatedAt = now;
         await db.SaveChangesAsync(cancellationToken);
 
+        if (premiereConfirmation)
+            await NotifierCoachConsentementConfirmeAsync(jeuneProfileId, cancellationToken);
+
         return new ConsentementConfirmationResult(true, []);
+    }
+
+    private async Task NotifierCoachConsentementConfirmeAsync(
+        int jeuneProfileId,
+        CancellationToken cancellationToken)
+    {
+        var jeune = await jeuneProfileService.TryGetByIdAsync(jeuneProfileId, cancellationToken);
+        if (jeune is null || !jeuneProfileService.EstMineur(jeune.DateNaissance))
+            return;
+
+        var liens = await coachingService.GetLiensPourSuiviAsync(jeune.UserId, cancellationToken);
+        var coachId = liens.FirstOrDefault(l => l.Statut == LienCoachingStatut.Actif)?.CoachUserId;
+        if (coachId is null)
+            return;
+
+        var jeuneNom = $"{jeune.Prenoms} {jeune.Nom}".Trim();
+        await notificationService.CreerAsync(
+            coachId,
+            "Consentement parental confirmé",
+            $"{jeuneNom} a un consentement parental validé.",
+            $"/coach/suivis/{jeune.UserId}/apercu",
+            "JeunesPrestataires.ConsentementConfirme",
+            cancellationToken);
     }
 
     public async Task<bool> EstConsentementValideAsync(int jeuneProfileId, CancellationToken cancellationToken = default)

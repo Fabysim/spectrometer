@@ -13,6 +13,11 @@ public interface IConsentementParentalService
 
     Task ReprendreEditionAsync(int jeuneProfileId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Finalise le consentement. Si succès et première validation d'un mineur, notifie le coach
+    /// référent (<c>JeunesPrestataires.ConsentementConfirme</c>). Service propre au module
+    /// jeunes prestataires ; un majeur n'est pas notifié (hors périmètre dashboard).
+    /// </summary>
     Task<ConsentementConfirmationResult> ConfirmerAsync(
         int jeuneProfileId,
         string nomJeune,

@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Notifications;
+using Spectrometre.Modules.Coaching.Entities;
+using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
 
@@ -6,7 +9,9 @@ namespace Spectrometre.Modules.JeunesPrestataires.Services;
 
 public sealed class CharteService(
     IDbContextFactory<JeunesPrestatairesDbContext> dbFactory,
-    IJeuneProfileService jeuneProfileService) : ICharteService
+    IJeuneProfileService jeuneProfileService,
+    ICoachingService coachingService,
+    INotificationService notificationService) : ICharteService
 {
     public async Task<CharteView?> GetAsync(string jeuneUserId, CancellationToken cancellationToken = default)
     {
@@ -50,7 +55,27 @@ public sealed class CharteService(
             CreatedAt = now,
         });
         await db.SaveChangesAsync(cancellationToken);
+        await NotifierCoachCharteAccepteeAsync(jeune, cancellationToken);
         return true;
+    }
+
+    private async Task NotifierCoachCharteAccepteeAsync(
+        JeuneProfileView jeune,
+        CancellationToken cancellationToken)
+    {
+        var liens = await coachingService.GetLiensPourSuiviAsync(jeune.UserId, cancellationToken);
+        var coachId = liens.FirstOrDefault(l => l.Statut == LienCoachingStatut.Actif)?.CoachUserId;
+        if (coachId is null)
+            return;
+
+        var jeuneNom = $"{jeune.Prenoms} {jeune.Nom}".Trim();
+        await notificationService.CreerAsync(
+            coachId,
+            "Charte acceptée",
+            $"{jeuneNom} a accepté la charte et peut désormais accepter des missions.",
+            $"/coach/suivis/{jeune.UserId}/apercu",
+            "JeunesPrestataires.CharteAcceptee",
+            cancellationToken);
     }
 
     public async Task<bool> EstAccepteeAsync(string jeuneUserId, CancellationToken cancellationToken = default)
