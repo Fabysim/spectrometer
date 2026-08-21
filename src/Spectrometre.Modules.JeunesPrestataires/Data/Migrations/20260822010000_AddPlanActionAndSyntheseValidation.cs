@@ -1,16 +1,13 @@
 using System;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Spectrometre.Modules.JeunesPrestataires.Data;
 
 #nullable disable
 
 namespace Spectrometre.Modules.JeunesPrestataires.Data.Migrations
 {
-    [DbContext(typeof(JeunesPrestatairesDbContext))]
-    [Migration("20260822010000_AddPlanActionAndSyntheseValidation")]
-    public class AddPlanActionAndSyntheseValidation : Migration
+    /// <inheritdoc />
+    public partial class AddPlanActionAndSyntheseValidation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
