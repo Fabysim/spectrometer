@@ -247,6 +247,22 @@ public sealed class MissionService(
 
         acceptation.Mission.Statut = MissionStatut.Terminee;
         await db.SaveChangesAsync(cancellationToken);
+
+        var particulier = await particulierProfileService.TryGetByIdAsync(
+            acceptation.Mission.ParticulierProfileId, cancellationToken);
+        if (particulier is not null)
+        {
+            var titreMission = MissionDisplay.TitreAffiche(
+                acceptation.Mission.Categorie, acceptation.Mission.Titre);
+            await notificationService.CreerAsync(
+                particulier.UserId,
+                "Mission terminée",
+                $"La mission « {titreMission} » est terminée. Vous pouvez laisser un court retour.",
+                "/particulier/mes-missions",
+                "Missions.MissionTerminee",
+                cancellationToken);
+        }
+
         return true;
     }
 

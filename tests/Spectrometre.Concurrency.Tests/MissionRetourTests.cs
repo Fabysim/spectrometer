@@ -6,6 +6,7 @@ using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.GestionDuTemps.Services;
 using Spectrometre.Modules.JeunesPrestataires.Services;
@@ -25,6 +26,7 @@ public sealed class MissionRetourTests(ServiceFixture fixture)
     {
         var missionService = fixture.Services.GetRequiredService<IMissionService>();
         var retourService = fixture.Services.GetRequiredService<IMissionRetourService>();
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
         var (particulierUserId, missionId) = await PublierMissionAsync();
         var jeune1 = await CreerJeuneAvecCoachAsync();
         var jeune2 = await CreerJeuneAvecCoachAsync();
@@ -45,6 +47,9 @@ public sealed class MissionRetourTests(ServiceFixture fixture)
         Assert.False(await missionService.MarquerTermineeAsync(jeune2.UserId, acceptationId));
         // Coach ne peut pas marquer terminée
         Assert.False(await missionService.MarquerTermineeAsync(jeune1.CoachUserId, acceptationId));
+        Assert.DoesNotContain(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.MissionTerminee");
 
         Assert.True(await missionService.MarquerTermineeAsync(jeune1.UserId, acceptationId));
         await using (var db = await fixture.Services.GetRequiredService<IDbContextFactory<MissionsDbContext>>().CreateDbContextAsync())
@@ -53,8 +58,18 @@ public sealed class MissionRetourTests(ServiceFixture fixture)
             Assert.Equal(MissionStatut.Terminee, mission.Statut);
         }
 
-        // Déjà Terminee → second appel refuse
+        var notifTerminee = Assert.Single(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.MissionTerminee");
+        Assert.Equal("/particulier/mes-missions", notifTerminee.Lien);
+        Assert.Contains("Mission retour", notifTerminee.Message);
+        Assert.Contains("retour", notifTerminee.Message, StringComparison.OrdinalIgnoreCase);
+
+        // Déjà Terminee → second appel refuse (pas de seconde notification)
         Assert.False(await missionService.MarquerTermineeAsync(jeune1.UserId, acceptationId));
+        Assert.Single(
+            await notifService.GetRecentesAsync(particulierUserId, 20),
+            n => n.TypeCode == "Missions.MissionTerminee");
 
         // Jeune propriétaire : lecture + écriture
         var vueJeune = await retourService.GetOrCreateAsync(jeune1.UserId, acceptationId);

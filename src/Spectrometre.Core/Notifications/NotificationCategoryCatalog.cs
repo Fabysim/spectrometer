@@ -23,7 +23,7 @@ public static class NotificationCategoryCodes
     /// <summary>Jeunes prestataires — TypeCode ex. <c>JeunesPrestataires.BesoinAide</c>.</summary>
     public const string JeunesPrestataires = "JeunesPrestataires";
 
-    /// <summary>Missions (particulier / jeune / coach) — TypeCode ex. <c>Missions.MissionValidee</c>, <c>Missions.PublicationValidee</c>, <c>Missions.PublicationRefusee</c>, <c>Missions.ProblemeSignale</c>, <c>Missions.DemandeContact</c>.</summary>
+    /// <summary>Missions (particulier / jeune / coach) — TypeCode ex. <c>Missions.MissionValidee</c>, <c>Missions.PublicationValidee</c>, <c>Missions.PublicationRefusee</c>, <c>Missions.MissionTerminee</c>, <c>Missions.ProblemeSignale</c>, <c>Missions.DemandeContact</c>.</summary>
     public const string Missions = "Missions";
 }
 
