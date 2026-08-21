@@ -323,7 +323,10 @@
     <value>Close a step (objectives)</value>
   </data>
   <data name="Home_EspaceJeune" xml:space="preserve">
-    <value>Young space</value>
+    <value>Young provider space</value>
+  </data>
+  <data name="Home_EspaceJeuneBonjour" xml:space="preserve">
+    <value>Hello {0}</value>
   </data>
   <data name="Home_EspaceJeuneIntro" xml:space="preserve">
     <value>Open your self-observation questionnaire and, if needed, parental consent.</value>

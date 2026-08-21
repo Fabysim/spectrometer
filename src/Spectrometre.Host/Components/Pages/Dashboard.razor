@@ -216,6 +216,10 @@
                             <span>@Localizer["Home_EspaceJeune"]</span>
                         </h2>
                     </div>
+                    @if (!string.IsNullOrEmpty(_jeunePrenom))
+                    {
+                        <p class="dashboard-hint">@string.Format(Localizer["Home_EspaceJeuneBonjour"].Value, _jeunePrenom)</p>
+                    }
                     <p class="dashboard-hint">@Localizer["Home_EspaceJeuneIntro"]</p>
                     <div class="quick-actions-dashboard">
                         <a href="/jeune/mes-progres" class="quick-action-btn-dashboard">
@@ -510,6 +514,7 @@
     private bool _isPlatformAdmin;
     private bool _estCandidatOuCoach;
     private bool _estJeune;
+    private string? _jeunePrenom;
     /// <summary>Masqué pour <see cref="ProfilAccompagnement.Autonome"/> — déclutter de menu, pas un refus d'accès.</summary>
     private bool _afficherMissionsDisponibles;
     private bool _estParticulier;
@@ -533,6 +538,15 @@
     private sealed record DashboardLink(string Code, string Label, string Href);
 
     private static string IconTone(int index) => IconTones[index % IconTones.Length];
+
+    private static string? PremierPrenom(string? prenoms)
+    {
+        if (string.IsNullOrWhiteSpace(prenoms))
+            return null;
+        var trimmed = prenoms.Trim();
+        var espace = trimmed.IndexOf(' ');
+        return espace < 0 ? trimmed : trimmed[..espace];
+    }
 
     private static string IconForCode(string code) => code switch
     {
@@ -642,6 +656,7 @@
 
         var jeuneProfile = await JeuneProfileService.TryGetByUserIdAsync(userId);
         _estJeune = jeuneProfile is not null;
+        _jeunePrenom = PremierPrenom(jeuneProfile?.Prenoms);
         _afficherMissionsDisponibles = jeuneProfile is not null
             && jeuneProfile.ProfilAccompagnement != ProfilAccompagnement.Autonome;
         if (jeuneProfile is not null

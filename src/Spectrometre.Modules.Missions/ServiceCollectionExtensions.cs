@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Spectrometre.Core.JeunesPrestataires;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Tenancy;
 using Spectrometre.Modules.Missions.Data;
@@ -36,6 +37,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMissionPreparationService, MissionPreparationService>();
         services.AddScoped<IMissionRetourService, MissionRetourService>();
         services.AddScoped<IMissionEvaluationParticulierService, MissionEvaluationParticulierService>();
+        services.AddScoped<IRetoursParticuliersCoachQuery>(sp =>
+            sp.GetRequiredService<IMissionEvaluationParticulierService>());
         services.AddScoped<IMesProgresService, MesProgresService>();
         services.AddScoped<IBadgeService, BadgeService>();
         services.AddScoped<IMesAstucesRecommandationService, MesAstucesRecommandationService>();

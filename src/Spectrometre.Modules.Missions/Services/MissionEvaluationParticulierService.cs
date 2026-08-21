@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.JeunesPrestataires;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Spectrometre.Modules.Missions.Data;
@@ -37,9 +38,11 @@ public sealed record MissionEvaluationParticulierView(
 
 /// <summary>
 /// Évaluation constructive après mission — écriture particulier uniquement
-/// (<c>Mission.Statut == Terminee</c>) ; lecture jeune concerné + coach suiveur.
+/// (<c>Mission.Statut == Terminee</c>) ; lecture jeune concerné + coach suiveur
+/// pour une mission donnée. L'historique agrégé (<see cref="IRetoursParticuliersCoachQuery"/>)
+/// est coach uniquement — jamais le jeune.
 /// </summary>
-public interface IMissionEvaluationParticulierService
+public interface IMissionEvaluationParticulierService : IRetoursParticuliersCoachQuery
 {
     /// <summary>
     /// Vue existante ou vide (sans créer en base). <c>null</c> si aucun accès
@@ -129,6 +132,41 @@ public sealed class MissionEvaluationParticulierService(
 
         await db.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<IReadOnlyList<RetourParticulierCoachItem>> GetHistoriquePourCoachAsync(
+        string requestingUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default)
+    {
+        var jeune = await jeuneProfileService.TryGetByIdAsync(jeuneProfileId, cancellationToken);
+        if (jeune is null)
+            return [];
+
+        var autorise = await coachingService.GetSuiviUserIdSiAutoriseAsync(
+            jeune.UserId, requestingUserId, cancellationToken);
+        if (autorise is null)
+            return [];
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var rows = await db.MissionEvaluationsParticulier.AsNoTracking()
+            .Include(e => e.MissionAcceptation)
+            .ThenInclude(a => a.Mission)
+            .Where(e => e.MissionAcceptation.JeuneProfileId == jeuneProfileId)
+            .OrderByDescending(e => e.UpdatedAt)
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(e => new RetourParticulierCoachItem(
+            e.MissionAcceptationId,
+            MissionDisplay.TitreAffiche(e.MissionAcceptation.Mission.Categorie, e.MissionAcceptation.Mission.Titre),
+            e.UpdatedAt,
+            e.Ponctualite,
+            e.ConsignesComprises,
+            e.TacheRealiseeCorrectement,
+            e.AttitudeRespectueuse,
+            e.PointsPositifs,
+            e.PointsAAmeliorer,
+            e.AccepteraitNouvelleMission)).ToList();
     }
 
     /// <summary>

@@ -252,6 +252,9 @@
   <data name="FicheSuivi_Consentement_MineurValide" xml:space="preserve"><value>Minor — validated</value></data>
   <data name="FicheSuivi_Consentement_MineurAttente" xml:space="preserve"><value>Minor — pending</value></data>
   <data name="FicheSuivi_Missions_Titre" xml:space="preserve"><value>Missions</value></data>
+  <data name="FicheSuivi_Retours_Titre" xml:space="preserve"><value>Feedback from individuals</value></data>
+  <data name="FicheSuivi_Retours_Vide" xml:space="preserve"><value>No feedback yet.</value></data>
+  <data name="FicheSuivi_Retours_VoirTout" xml:space="preserve"><value>View full history</value></data>
   <data name="FicheSuivi_Grille_Titre" xml:space="preserve"><value>Observation grid</value></data>
   <data name="FicheSuivi_Grille_Vide" xml:space="preserve"><value>No evaluation yet.</value></data>
   <data name="FicheSuivi_Guide_Titre" xml:space="preserve"><value>Interview guide</value></data>

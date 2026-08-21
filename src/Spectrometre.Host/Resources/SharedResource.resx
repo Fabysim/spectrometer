@@ -325,7 +325,10 @@
     <value>Clôturer une étape (objectifs)</value>
   </data>
   <data name="Home_EspaceJeune" xml:space="preserve">
-    <value>Espace jeune</value>
+    <value>Espace jeune prestataire</value>
+  </data>
+  <data name="Home_EspaceJeuneBonjour" xml:space="preserve">
+    <value>Bonjour {0}</value>
   </data>
   <data name="Home_EspaceJeuneIntro" xml:space="preserve">
     <value>Accédez à votre questionnaire d'auto-observation et, si besoin, au consentement parental.</value>

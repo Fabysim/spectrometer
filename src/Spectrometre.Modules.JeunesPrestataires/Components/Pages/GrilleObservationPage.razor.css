@@ -18,6 +18,21 @@
   font-size: 0.875rem;
 }
 
+.go-retours { margin-bottom: 1rem; }
+.go-retour-item {
+  border-top: 1px solid #e2e8f0;
+  padding: 0.85rem 0 0.25rem;
+  margin-top: 0.75rem;
+}
+.go-retour-item:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+.go-retour-criteres {
+  list-style: none;
+  padding: 0;
+  margin: 0.35rem 0;
+  font-size: 0.9rem;
+}
+.go-retour-criteres li { margin: 0.15rem 0; }
+
 .go-layout { display: grid; grid-template-columns: minmax(14rem, 20rem) 1fr; gap: 1rem; }
 @media (max-width: 768px) { .go-layout { grid-template-columns: 1fr; } }
 

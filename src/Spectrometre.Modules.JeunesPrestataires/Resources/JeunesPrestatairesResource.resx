@@ -163,6 +163,17 @@
   <data name="GrilleObs_PageTitle" xml:space="preserve"><value>Grille d'observation socioprofessionnelle · Spectromètre</value></data>
   <data name="GrilleObs_Titre" xml:space="preserve"><value>Grille d'observation socioprofessionnelle</value></data>
   <data name="GrilleObs_Intro" xml:space="preserve"><value>Évaluation périodique des compétences socioprofessionnelles — historique conservé à travers les missions.</value></data>
+  <data name="GrilleObs_RetoursParticuliers_Titre" xml:space="preserve"><value>Retours des particuliers</value></data>
+  <data name="GrilleObs_RetoursParticuliers_Intro" xml:space="preserve"><value>À relire avant de noter — ces retours ne sont pas visibles du jeune.</value></data>
+  <data name="GrilleObs_RetoursParticuliers_Vide" xml:space="preserve"><value>Aucun retour de particulier pour l'instant.</value></data>
+  <data name="GrilleObs_Retours_Ponctualite" xml:space="preserve"><value>Ponctualité</value></data>
+  <data name="GrilleObs_Retours_Consignes" xml:space="preserve"><value>Consignes comprises</value></data>
+  <data name="GrilleObs_Retours_Tache" xml:space="preserve"><value>Tâche réalisée correctement</value></data>
+  <data name="GrilleObs_Retours_Attitude" xml:space="preserve"><value>Attitude respectueuse</value></data>
+  <data name="GrilleObs_Retours_Positifs" xml:space="preserve"><value>Points positifs :</value></data>
+  <data name="GrilleObs_Retours_AAmeliorer" xml:space="preserve"><value>Points à améliorer :</value></data>
+  <data name="GrilleObs_Retours_Oui" xml:space="preserve"><value>Oui</value></data>
+  <data name="GrilleObs_Retours_Non" xml:space="preserve"><value>Non</value></data>
   <data name="GrilleObs_Historique" xml:space="preserve"><value>Historique des évaluations</value></data>
   <data name="GrilleObs_NouvelleEvaluation" xml:space="preserve"><value>Nouvelle évaluation</value></data>
   <data name="GrilleObs_EvaluationDu" xml:space="preserve"><value>Évaluation du {0}</value></data>

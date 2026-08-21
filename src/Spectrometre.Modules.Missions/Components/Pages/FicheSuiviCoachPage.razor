@@ -65,6 +65,29 @@ else
     </div>
 
     <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["FicheSuivi_Retours_Titre"]</h2>
+        @if (_view.RetoursParticuliersRecents.Count == 0)
+        {
+            <p class="missions-meta">@Localizer["FicheSuivi_Retours_Vide"]</p>
+        }
+        else
+        {
+            @foreach (var r in _view.RetoursParticuliersRecents)
+            {
+                <p class="mes-progres-stat">@r.MissionTitre</p>
+                <p class="missions-meta">@r.EvalueeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)</p>
+                <p class="missions-meta">
+                    @Localizer["Evaluation_Ponctualite"] : @OuiNon(r.Ponctualite)
+                    · @Localizer["Evaluation_ConsignesComprises"] : @OuiNon(r.ConsignesComprises)
+                    · @Localizer["Evaluation_TacheRealisee"] : @OuiNon(r.TacheRealiseeCorrectement)
+                    · @Localizer["Evaluation_AttitudeRespectueuse"] : @OuiNon(r.AttitudeRespectueuse)
+                </p>
+            }
+        }
+        <p><a href="/coach/suivis/@SuiviUserId/grille-observation">@Localizer["FicheSuivi_Retours_VoirTout"]</a></p>
+    </div>
+
+    <div class="missions-card">
         <h2 class="missions-section-title">@Localizer["FicheSuivi_Grille_Titre"]</h2>
         @if (_view.GrilleDerniereMoyenne is double moyenne && _view.GrilleDerniereEvaluationLe is DateTimeOffset dateEval)
         {
@@ -162,5 +185,12 @@ else
         FicheSuiviConsentementStatut.MajeurNonRequis => Localizer["FicheSuivi_Consentement_Majeur"],
         FicheSuiviConsentementStatut.MineurValide => Localizer["FicheSuivi_Consentement_MineurValide"],
         _ => Localizer["FicheSuivi_Consentement_MineurAttente"],
+    };
+
+    private string OuiNon(bool? valeur) => valeur switch
+    {
+        true => Localizer["Evaluation_Oui"],
+        false => Localizer["Evaluation_Non"],
+        _ => Localizer["Evaluation_NonRenseigne"],
     };
 }

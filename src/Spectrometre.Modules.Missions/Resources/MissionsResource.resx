@@ -252,6 +252,9 @@
   <data name="FicheSuivi_Consentement_MineurValide" xml:space="preserve"><value>Mineur — validé</value></data>
   <data name="FicheSuivi_Consentement_MineurAttente" xml:space="preserve"><value>Mineur — en attente</value></data>
   <data name="FicheSuivi_Missions_Titre" xml:space="preserve"><value>Missions</value></data>
+  <data name="FicheSuivi_Retours_Titre" xml:space="preserve"><value>Retours des particuliers</value></data>
+  <data name="FicheSuivi_Retours_Vide" xml:space="preserve"><value>Aucun retour pour l'instant.</value></data>
+  <data name="FicheSuivi_Retours_VoirTout" xml:space="preserve"><value>Voir l'historique complet</value></data>
   <data name="FicheSuivi_Grille_Titre" xml:space="preserve"><value>Grille d'observation</value></data>
   <data name="FicheSuivi_Grille_Vide" xml:space="preserve"><value>Pas encore d'évaluation.</value></data>
   <data name="FicheSuivi_Guide_Titre" xml:space="preserve"><value>Guide d'entrevue</value></data>

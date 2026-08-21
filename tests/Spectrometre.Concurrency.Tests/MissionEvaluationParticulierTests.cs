@@ -143,6 +143,55 @@ public sealed class MissionEvaluationParticulierTests(ServiceFixture fixture)
         await CleanupJeunesAsync(jeune1, jeune2);
     }
 
+    [Fact]
+    public async Task HistoriqueCoach_AutoriseVoirTrie_RefuseAuxAutres()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var evaluationService = fixture.Services.GetRequiredService<IMissionEvaluationParticulierService>();
+        var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
+        var (particulierUserId, missionId1) = await PublierMissionAsync();
+        var missionId2 = (await missionService.PublierMissionAsync(
+            particulierUserId,
+            new PublierMissionInput(
+                "Mission eval 2", "Desc", null, null, MissionDifficulte.Facile, 20m, null,
+                MissionCategorie.NettoyageLeger, MissionNiveauEncadrement.PresentDebutSeulement)))!.Value;
+        var jeune1 = await CreerJeuneAvecCoachAsync();
+        var jeune2 = await CreerJeuneAvecCoachAsync();
+        var profileId = (await jeuneService.TryGetByUserIdAsync(jeune1.UserId))!.Id;
+
+        await fixture.GarantirPublicationValideeAsync(jeune1.CoachUserId, missionId1);
+        await fixture.GarantirPublicationValideeAsync(jeune1.CoachUserId, missionId2);
+
+        async Task<int> TerminerEtEvaluerAsync(int missionId, string points)
+        {
+            Assert.True(await missionService.AccepterMissionAsync(jeune1.UserId, missionId));
+            var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune1.CoachUserId, jeune1.UserId))
+                .Single(a => a.MissionId == missionId).AcceptationId;
+            Assert.True(await missionService.ValiderAcceptationAsync(jeune1.CoachUserId, acceptationId));
+            Assert.True(await missionService.MarquerTermineeAsync(jeune1.UserId, acceptationId));
+            Assert.True(await evaluationService.SaveAsync(
+                particulierUserId, acceptationId,
+                true, true, true, true, points, "consigne", true));
+            return acceptationId;
+        }
+
+        await TerminerEtEvaluerAsync(missionId1, "premier");
+        await Task.Delay(30);
+        await TerminerEtEvaluerAsync(missionId2, "plus recent");
+
+        var historique = await evaluationService.GetHistoriquePourCoachAsync(jeune1.CoachUserId, profileId);
+        Assert.Equal(2, historique.Count);
+        Assert.Equal("plus recent", historique[0].PointsPositifs);
+        Assert.Equal("premier", historique[1].PointsPositifs);
+        Assert.True(historique[0].EvalueeLe >= historique[1].EvalueeLe);
+
+        Assert.Empty(await evaluationService.GetHistoriquePourCoachAsync(jeune2.CoachUserId, profileId));
+        Assert.Empty(await evaluationService.GetHistoriquePourCoachAsync(jeune1.UserId, profileId));
+
+        await CleanupMissionsAsync([missionId1, missionId2], particulierUserId);
+        await CleanupJeunesAsync(jeune1, jeune2);
+    }
+
     private async Task<(string UserId, int MissionId)> PublierMissionAsync()
     {
         var particulierUserId = await CreerParticulierAsync();

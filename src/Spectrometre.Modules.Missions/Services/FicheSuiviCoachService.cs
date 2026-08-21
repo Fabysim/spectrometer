@@ -1,3 +1,4 @@
+using Spectrometre.Core.JeunesPrestataires;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
@@ -32,7 +33,8 @@ public sealed record FicheSuiviCoachView(
     DateTimeOffset? GrilleDerniereEvaluationLe,
     bool GuideEntrevueRempli,
     int? LienCoachingId,
-    ProfilAccompagnement ProfilAccompagnement);
+    ProfilAccompagnement ProfilAccompagnement,
+    IReadOnlyList<RetourParticulierCoachItem> RetoursParticuliersRecents);
 
 public interface IFicheSuiviCoachService
 {
@@ -51,8 +53,11 @@ public sealed class FicheSuiviCoachService(
     IConsentementParentalService consentementParentalService,
     IMissionService missionService,
     IGrilleObservationService grilleObservationService,
-    IGuideEntrevueService guideEntrevueService) : IFicheSuiviCoachService
+    IGuideEntrevueService guideEntrevueService,
+    IRetoursParticuliersCoachQuery retoursParticuliersQuery) : IFicheSuiviCoachService
 {
+    private const int NbRetoursResumes = 3;
+
     public async Task<FicheSuiviCoachView?> GetAsync(
         string coachUserId,
         string suiviUserId,
@@ -97,6 +102,9 @@ public sealed class FicheSuiviCoachService(
             .FirstOrDefault(l => l.SuiviUserId == suiviUserId && l.Statut == LienCoachingStatut.Actif)
             ?.Id;
 
+        var retours = await retoursParticuliersQuery.GetHistoriquePourCoachAsync(
+            coachUserId, jeune.Id, cancellationToken);
+
         return new FicheSuiviCoachView(
             suiviUserId,
             jeune.Nom,
@@ -111,6 +119,7 @@ public sealed class FicheSuiviCoachService(
             derniereLe,
             guideRempli,
             lienId,
-            jeune.ProfilAccompagnement);
+            jeune.ProfilAccompagnement,
+            retours.Take(NbRetoursResumes).ToList());
     }
 }

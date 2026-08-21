@@ -139,6 +139,17 @@
   <data name="GrilleObs_PageTitle" xml:space="preserve"><value>Socio-professional observation grid · Spectrometre</value></data>
   <data name="GrilleObs_Titre" xml:space="preserve"><value>Socio-professional observation grid</value></data>
   <data name="GrilleObs_Intro" xml:space="preserve"><value>Periodic assessment of socio-professional skills — history preserved across missions.</value></data>
+  <data name="GrilleObs_RetoursParticuliers_Titre" xml:space="preserve"><value>Feedback from individuals</value></data>
+  <data name="GrilleObs_RetoursParticuliers_Intro" xml:space="preserve"><value>Read this before scoring — this feedback is not visible to the young person.</value></data>
+  <data name="GrilleObs_RetoursParticuliers_Vide" xml:space="preserve"><value>No feedback from individuals yet.</value></data>
+  <data name="GrilleObs_Retours_Ponctualite" xml:space="preserve"><value>Punctuality</value></data>
+  <data name="GrilleObs_Retours_Consignes" xml:space="preserve"><value>Instructions understood</value></data>
+  <data name="GrilleObs_Retours_Tache" xml:space="preserve"><value>Task done correctly</value></data>
+  <data name="GrilleObs_Retours_Attitude" xml:space="preserve"><value>Respectful attitude</value></data>
+  <data name="GrilleObs_Retours_Positifs" xml:space="preserve"><value>Strengths:</value></data>
+  <data name="GrilleObs_Retours_AAmeliorer" xml:space="preserve"><value>Areas to improve:</value></data>
+  <data name="GrilleObs_Retours_Oui" xml:space="preserve"><value>Yes</value></data>
+  <data name="GrilleObs_Retours_Non" xml:space="preserve"><value>No</value></data>
   <data name="GrilleObs_Historique" xml:space="preserve"><value>Evaluation history</value></data>
   <data name="GrilleObs_NouvelleEvaluation" xml:space="preserve"><value>New evaluation</value></data>
   <data name="GrilleObs_EvaluationDu" xml:space="preserve"><value>Evaluation on {0}</value></data>

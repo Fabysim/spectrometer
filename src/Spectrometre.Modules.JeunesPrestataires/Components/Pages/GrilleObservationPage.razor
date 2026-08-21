@@ -6,11 +6,13 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Core.JeunesPrestataires
 @using Spectrometre.Modules.JeunesPrestataires.Catalog
 @using Spectrometre.Modules.JeunesPrestataires.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IGrilleObservationService GrilleObservationService
 @inject IJeuneProfileService JeuneProfileService
+@inject IRetoursParticuliersCoachQuery RetoursParticuliers
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 @inject IStringLocalizer<JeunesPrestatairesResource> Localizer
@@ -42,6 +44,42 @@ else
             </span>
         }
     </header>
+
+    @if (_page.AccessMode == GrilleObservationAccessMode.Coach)
+    {
+        <section class="go-card go-retours" aria-labelledby="go-retours-title">
+            <h2 id="go-retours-title" class="go-sidebar-title">@Localizer["GrilleObs_RetoursParticuliers_Titre"]</h2>
+            <p class="go-hint">@Localizer["GrilleObs_RetoursParticuliers_Intro"]</p>
+            @if (_retours.Count == 0)
+            {
+                <p class="go-hint">@Localizer["GrilleObs_RetoursParticuliers_Vide"]</p>
+            }
+            else
+            {
+                @foreach (var r in _retours)
+                {
+                    <article class="go-retour-item">
+                        <p class="go-critere-label">@r.MissionTitre</p>
+                        <p class="go-hint">@r.EvalueeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)</p>
+                        <ul class="go-retour-criteres">
+                            <li>@Localizer["GrilleObs_Retours_Ponctualite"] : @OuiNon(r.Ponctualite)</li>
+                            <li>@Localizer["GrilleObs_Retours_Consignes"] : @OuiNon(r.ConsignesComprises)</li>
+                            <li>@Localizer["GrilleObs_Retours_Tache"] : @OuiNon(r.TacheRealiseeCorrectement)</li>
+                            <li>@Localizer["GrilleObs_Retours_Attitude"] : @OuiNon(r.AttitudeRespectueuse)</li>
+                        </ul>
+                        @if (!string.IsNullOrWhiteSpace(r.PointsPositifs))
+                        {
+                            <p class="go-hint"><strong>@Localizer["GrilleObs_Retours_Positifs"]</strong> @r.PointsPositifs</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(r.PointsAAmeliorer))
+                        {
+                            <p class="go-hint"><strong>@Localizer["GrilleObs_Retours_AAmeliorer"]</strong> @r.PointsAAmeliorer</p>
+                        }
+                    </article>
+                }
+            }
+        </section>
+    }
 
     @if (!string.IsNullOrEmpty(_message))
     {
@@ -200,6 +238,7 @@ else
     private bool _saving;
     private string? _userId;
     private GrilleObservationPageView? _page;
+    private IReadOnlyList<RetourParticulierCoachItem> _retours = [];
     private GrilleObservationEvaluationDetailView? _detail;
     private ViewMode _mode = ViewMode.Aucune;
     private int? _selectedEvaluationId;
@@ -226,6 +265,11 @@ else
         }
 
         _page = await GrilleObservationService.TryGetPageAsync(_userId, profileId);
+        if (_page?.AccessMode == GrilleObservationAccessMode.Coach)
+        {
+            _retours = await RetoursParticuliers.GetHistoriquePourCoachAsync(_userId, _page.JeuneProfile.Id);
+        }
+
         if (_page?.CanCreateEvaluation == true)
         {
             InitFormDictionaries();
@@ -253,6 +297,13 @@ else
 
     private string CritereLabel(string key) => Localizer[$"GrilleObs_Critere_{key}"];
     private string CritereDefinition(string key) => Localizer[$"GrilleObs_Def_{key}"];
+
+    private string OuiNon(bool? valeur) => valeur switch
+    {
+        true => Localizer["GrilleObs_Retours_Oui"],
+        false => Localizer["GrilleObs_Retours_Non"],
+        _ => Localizer["GrilleObs_NonRenseigne"],
+    };
 
     private void SetScore(string key, int? score) => _scores[key] = score;
 
