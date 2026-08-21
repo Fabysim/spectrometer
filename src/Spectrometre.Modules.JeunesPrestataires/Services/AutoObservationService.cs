@@ -292,5 +292,5 @@ public sealed class AutoObservationService(
     }
 
     private static JeuneProfileView ToView(JeuneProfile entity) =>
-        new(entity.Id, entity.UserId, entity.Nom, entity.Prenoms, entity.DateNaissance, entity.InvitationId, entity.CreatedAt);
+        new(entity.Id, entity.UserId, entity.Nom, entity.Prenoms, entity.DateNaissance, entity.InvitationId, entity.CreatedAt, entity.ProfilAccompagnement);
 }

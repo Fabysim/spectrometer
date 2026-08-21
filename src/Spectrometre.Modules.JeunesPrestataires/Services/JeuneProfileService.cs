@@ -4,6 +4,7 @@ using Spectrometre.Core.Email;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.JeunesPrestataires;
+using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Data;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
 
@@ -13,7 +14,8 @@ public sealed class JeuneProfileService(
     IDbContextFactory<JeunesPrestatairesDbContext> dbFactory,
     IDbContextFactory<CoreDbContext> coreDbFactory,
     IInvitationService invitationService,
-    IResendEmailService resendEmailService) : IJeuneProfileService, IJeunePrestataireInvitationQuery
+    IResendEmailService resendEmailService,
+    ICoachingService coachingService) : IJeuneProfileService, IJeunePrestataireInvitationQuery
 {
     public async Task<JeuneProfileView?> TryGetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
@@ -63,6 +65,7 @@ public sealed class JeuneProfileService(
             Nom = draft.Nom.Trim(),
             Prenoms = draft.Prenoms.Trim(),
             DateNaissance = draft.DateNaissance,
+            ProfilAccompagnement = draft.ProfilAccompagnement,
             InvitationId = invitation.Id,
             CreatedAt = DateTimeOffset.UtcNow,
         };
@@ -78,6 +81,7 @@ public sealed class JeuneProfileService(
         string prenoms,
         DateOnly dateNaissance,
         string lienAcceptationBaseUrl,
+        ProfilAccompagnement profilAccompagnement = ProfilAccompagnement.SansExperience,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(nom) || string.IsNullOrWhiteSpace(prenoms))
@@ -100,6 +104,7 @@ public sealed class JeuneProfileService(
             Nom = nom.Trim(),
             Prenoms = prenoms.Trim(),
             DateNaissance = dateNaissance,
+            ProfilAccompagnement = profilAccompagnement,
         });
         await db.SaveChangesAsync(cancellationToken);
 
@@ -116,6 +121,26 @@ public sealed class JeuneProfileService(
             cancellationToken);
 
         return new InviterJeuneResult(true, null, invitation, lien, emailEnvoye);
+    }
+
+    public async Task<bool> MettreAJourProfilAccompagnementAsync(
+        string coachUserId,
+        string jeuneUserId,
+        ProfilAccompagnement profilAccompagnement,
+        CancellationToken cancellationToken = default)
+    {
+        var autorise = await coachingService.GetSuiviUserIdSiAutoriseAsync(jeuneUserId, coachUserId, cancellationToken);
+        if (autorise is null)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.JeuneProfiles.FirstOrDefaultAsync(p => p.UserId == jeuneUserId, cancellationToken);
+        if (entity is null)
+            return false;
+
+        entity.ProfilAccompagnement = profilAccompagnement;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public async Task<IReadOnlyList<JeunePrestataireInvitationPendingView>> GetInvitationsEnvoyeesEnAttenteAsync(
@@ -220,6 +245,7 @@ public sealed class JeuneProfileService(
                 Nom = draft.Nom,
                 Prenoms = draft.Prenoms,
                 DateNaissance = draft.DateNaissance,
+                ProfilAccompagnement = draft.ProfilAccompagnement,
             });
             await db.SaveChangesAsync(cancellationToken);
             nouvelleInvitationCreee = true;
@@ -276,5 +302,5 @@ public sealed class JeuneProfileService(
     }
 
     private static JeuneProfileView ToView(JeuneProfile entity) =>
-        new(entity.Id, entity.UserId, entity.Nom, entity.Prenoms, entity.DateNaissance, entity.InvitationId, entity.CreatedAt);
+        new(entity.Id, entity.UserId, entity.Nom, entity.Prenoms, entity.DateNaissance, entity.InvitationId, entity.CreatedAt, entity.ProfilAccompagnement);
 }

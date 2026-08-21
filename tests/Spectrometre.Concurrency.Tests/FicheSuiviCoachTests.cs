@@ -83,6 +83,7 @@ public sealed class FicheSuiviCoachTests(ServiceFixture fixture)
         Assert.NotNull(view.GrilleDerniereEvaluationLe);
         Assert.False(view.GuideEntrevueRempli);
         Assert.Equal(lienActif.Id, view.LienCoachingId);
+        Assert.Equal(Spectrometre.Modules.JeunesPrestataires.Entities.ProfilAccompagnement.SansExperience, view.ProfilAccompagnement);
 
         await CleanupMissionAsync(missionId.Value, particulierUserId);
     }

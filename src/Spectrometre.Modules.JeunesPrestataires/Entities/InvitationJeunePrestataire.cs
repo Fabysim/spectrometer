@@ -14,4 +14,7 @@ public sealed class InvitationJeunePrestataire
     public required string Nom { get; set; }
     public required string Prenoms { get; set; }
     public DateOnly DateNaissance { get; set; }
+
+    /// <summary>Copié vers <see cref="JeuneProfile"/> à l'acceptation.</summary>
+    public ProfilAccompagnement ProfilAccompagnement { get; set; } = ProfilAccompagnement.SansExperience;
 }

@@ -42,16 +42,19 @@ else
                 <i class="bi bi-eye" aria-hidden="true"></i>
                 @string.Format(Localizer["AutoObs_ModeCoach"], _page.JeuneProfile.Prenoms, _page.JeuneProfile.Nom)
             </p>
+            <p class="ao-hint">@Localizer["AutoObs_ProfilAccompagnement", Localizer[$"ProfilAccompagnement_{_page.JeuneProfile.ProfilAccompagnement}"]]</p>
         }
     </header>
 
     <div class="ao-layout">
         <aside class="ao-sidebar ao-card">
             <h2 class="ao-sidebar-title">@Localizer["AutoObs_Progression"]</h2>
+            @foreach (var partie in AutoObservationCatalog.GetPartiesOrdonnees(_page.JeuneProfile.ProfilAccompagnement))
+            {
             <details open class="ao-part">
-                <summary>@Localizer["AutoObs_Partie0"]</summary>
+                <summary>@Localizer[$"AutoObs_Partie{partie.PartNumber}"]</summary>
                 <ul class="ao-section-list">
-                    @foreach (var s in AutoObservationCatalog.Part0Sections)
+                    @foreach (var s in partie.Sections)
                     {
                         <li>
                             <button type="button" class="ao-section-btn @(_sectionKey == s.Key ? "active" : "") @(IsSaved(s.Key) ? "saved" : "")"
@@ -62,34 +65,7 @@ else
                     }
                 </ul>
             </details>
-            <details open class="ao-part">
-                <summary>@Localizer["AutoObs_Partie1"]</summary>
-                <ul class="ao-section-list">
-                    @foreach (var s in AutoObservationCatalog.Part1Sections)
-                    {
-                        <li>
-                            <button type="button" class="ao-section-btn @(_sectionKey == s.Key ? "active" : "") @(IsSaved(s.Key) ? "saved" : "")"
-                                    @onclick="() => SelectSectionAsync(s.Key)">
-                                @s.Title
-                            </button>
-                        </li>
-                    }
-                </ul>
-            </details>
-            <details open class="ao-part">
-                <summary>@Localizer["AutoObs_Partie2"]</summary>
-                <ul class="ao-section-list">
-                    @foreach (var s in AutoObservationCatalog.Part2Sections)
-                    {
-                        <li>
-                            <button type="button" class="ao-section-btn @(_sectionKey == s.Key ? "active" : "") @(IsSaved(s.Key) ? "saved" : "")"
-                                    @onclick="() => SelectSectionAsync(s.Key)">
-                                @s.Title
-                            </button>
-                        </li>
-                    }
-                </ul>
-            </details>
+            }
         </aside>
 
         <main class="ao-main ao-card">
@@ -285,8 +261,9 @@ else
 
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         var query = QueryHelpers.ParseQuery(uri.Query);
-        if (query.TryGetValue("section", out var sectionParam))
-            _sectionKey = sectionParam.ToString();
+        var sectionFromQuery = query.TryGetValue("section", out var sectionParam)
+            ? sectionParam.ToString()
+            : null;
 
         int? profileId = null;
         if (!string.IsNullOrWhiteSpace(SuiviUserId))
@@ -299,7 +276,14 @@ else
         _synthese = _page?.SyntheseGeneree;
 
         if (_page is not null)
+        {
+            var ordonnees = AutoObservationCatalog.GetSectionsOrdonnees(_page.JeuneProfile.ProfilAccompagnement);
+            _sectionKey = !string.IsNullOrWhiteSpace(sectionFromQuery)
+                && AutoObservationCatalog.TryGetSection(sectionFromQuery) is not null
+                ? sectionFromQuery
+                : (ordonnees[0].Key);
             await LoadSectionAsync(_sectionKey);
+        }
 
         _chargement = false;
     }

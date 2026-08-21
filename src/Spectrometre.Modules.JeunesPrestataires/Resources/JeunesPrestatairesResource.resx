@@ -48,6 +48,13 @@
   <data name="InviterJeune_SuccesEmail" xml:space="preserve"><value>Un e-mail d'invitation a été envoyé à {0}.</value></data>
   <data name="InviterJeune_SuccesLien" xml:space="preserve"><value>Invitation créée. L'e-mail n'a pas pu être envoyé automatiquement — partagez le lien ci-dessous avec le jeune.</value></data>
   <data name="InviterJeune_LienHint" xml:space="preserve"><value>Copiez ce lien et transmettez-le au jeune.</value></data>
+  <data name="InviterJeune_Profil_Legend" xml:space="preserve"><value>Profil d'accompagnement</value></data>
+  <data name="InviterJeune_Profil_Aide" xml:space="preserve"><value>Ce choix oriente l'ordre du questionnaire d'auto-observation. Vous pourrez le corriger plus tard sur la fiche de suivi.</value></data>
+  <data name="InviterJeune_Profil_SansExperience_Desc" xml:space="preserve"><value>À accompagner d'abord vers des micro-tâches concrètes, la motivation et la mise en confiance.</value></data>
+  <data name="InviterJeune_Profil_Autonome_Desc" xml:space="preserve"><value>A déjà une petite expérience, est autonome, cherche à s'orienter professionnellement.</value></data>
+  <data name="ProfilAccompagnement_SansExperience" xml:space="preserve"><value>Sans expérience</value></data>
+  <data name="ProfilAccompagnement_Autonome" xml:space="preserve"><value>Autonome en recherche d'orientation</value></data>
+  <data name="AutoObs_ProfilAccompagnement" xml:space="preserve"><value>Profil d'accompagnement : {0}</value></data>
   <data name="Erreur_NomPrenomRequis" xml:space="preserve"><value>Le nom et les prénoms du jeune sont obligatoires.</value></data>
   <data name="Erreur_DateNaissanceRequise" xml:space="preserve"><value>La date de naissance est obligatoire.</value></data>
   <data name="Erreur_InvitationEchec" xml:space="preserve"><value>L'invitation n'a pas pu être créée.</value></data>

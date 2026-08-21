@@ -229,6 +229,13 @@
   <data name="FicheSuivi_AccesRefuse_Titre" xml:space="preserve"><value>Accès refusé</value></data>
   <data name="FicheSuivi_AccesRefuse_Message" xml:space="preserve"><value>Cette fiche n'est disponible que pour un jeune que vous suivez.</value></data>
   <data name="FicheSuivi_Identite_Titre" xml:space="preserve"><value>Identité</value></data>
+  <data name="FicheSuivi_Profil_Label" xml:space="preserve"><value>Profil d'accompagnement</value></data>
+  <data name="FicheSuivi_Profil_SansExperience" xml:space="preserve"><value>Sans expérience</value></data>
+  <data name="FicheSuivi_Profil_Autonome" xml:space="preserve"><value>Autonome en recherche d'orientation</value></data>
+  <data name="FicheSuivi_Profil_Aide" xml:space="preserve"><value>Change l'ordre du questionnaire d'auto-observation (opérationnel d'abord, ou orientation d'abord).</value></data>
+  <data name="FicheSuivi_Profil_Enregistrer" xml:space="preserve"><value>Enregistrer le profil</value></data>
+  <data name="FicheSuivi_Profil_Succes" xml:space="preserve"><value>Profil d'accompagnement mis à jour.</value></data>
+  <data name="FicheSuivi_Profil_Erreur" xml:space="preserve"><value>Mise à jour impossible.</value></data>
   <data name="FicheSuivi_Age" xml:space="preserve"><value>{0} ans</value></data>
   <data name="FicheSuivi_Consentement_Majeur" xml:space="preserve"><value>Majeur (non requis)</value></data>
   <data name="FicheSuivi_Consentement_MineurValide" xml:space="preserve"><value>Mineur — validé</value></data>

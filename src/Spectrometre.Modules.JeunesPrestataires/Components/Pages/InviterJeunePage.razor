@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Localization
+@using Spectrometre.Modules.JeunesPrestataires.Entities
 @using Spectrometre.Modules.JeunesPrestataires.Resources
 @using Spectrometre.Modules.JeunesPrestataires.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
@@ -89,6 +90,26 @@ else
                 <label for="inviter-dob">@Localizer["DateNaissance"]</label>
                 <input id="inviter-dob" class="inviter-input" type="date" @bind="_dateNaissance" />
             </div>
+            <fieldset class="inviter-field inviter-profil">
+                <legend>@Localizer["InviterJeune_Profil_Legend"]</legend>
+                <p class="inviter-card-desc">@Localizer["InviterJeune_Profil_Aide"]</p>
+                <label class="inviter-choice">
+                    <input type="radio" name="profil-accompagnement" checked="@(_profil == ProfilAccompagnement.SansExperience)"
+                           @onchange="() => _profil = ProfilAccompagnement.SansExperience" />
+                    <span>
+                        <strong>@Localizer["ProfilAccompagnement_SansExperience"]</strong>
+                        <span class="inviter-choice-desc">@Localizer["InviterJeune_Profil_SansExperience_Desc"]</span>
+                    </span>
+                </label>
+                <label class="inviter-choice">
+                    <input type="radio" name="profil-accompagnement" checked="@(_profil == ProfilAccompagnement.Autonome)"
+                           @onchange="() => _profil = ProfilAccompagnement.Autonome" />
+                    <span>
+                        <strong>@Localizer["ProfilAccompagnement_Autonome"]</strong>
+                        <span class="inviter-choice-desc">@Localizer["InviterJeune_Profil_Autonome_Desc"]</span>
+                    </span>
+                </label>
+            </fieldset>
         </div>
 
         <div class="inviter-actions">
@@ -115,6 +136,7 @@ else
     private string _nom = "";
     private string _prenoms = "";
     private DateOnly? _dateNaissance;
+    private ProfilAccompagnement _profil = ProfilAccompagnement.SansExperience;
     private bool _operationEnCours;
     private string? _messageSucces;
     private string? _errorKey;
@@ -149,7 +171,8 @@ else
                 _nom,
                 _prenoms,
                 _dateNaissance.Value,
-                baseUrl);
+                baseUrl,
+                _profil);
 
             if (!result.Success)
             {

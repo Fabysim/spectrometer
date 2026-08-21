@@ -5,8 +5,11 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Spectrometre.Modules.JeunesPrestataires.Entities
+@using Spectrometre.Modules.JeunesPrestataires.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IFicheSuiviCoachService FicheSuiviService
+@inject IJeuneProfileService JeuneProfileService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<MissionsResource> Localizer
 
@@ -37,6 +40,21 @@ else
         <p class="mes-progres-stat">@_view.Prenoms @_view.Nom</p>
         <p class="missions-meta">@Localizer["FicheSuivi_Age", _view.Age]</p>
         <p class="missions-meta">@ConsentementLabel(_view.ConsentementStatut)</p>
+        <div class="missions-field" style="margin-top:0.75rem;">
+            <label for="profil-accompagnement">@Localizer["FicheSuivi_Profil_Label"]</label>
+            <select id="profil-accompagnement" @bind="_profilChoisi">
+                <option value="@ProfilAccompagnement.SansExperience">@Localizer["FicheSuivi_Profil_SansExperience"]</option>
+                <option value="@ProfilAccompagnement.Autonome">@Localizer["FicheSuivi_Profil_Autonome"]</option>
+            </select>
+            <p class="missions-meta">@Localizer["FicheSuivi_Profil_Aide"]</p>
+            <button type="button" class="missions-btn missions-btn-secondary" @onclick="EnregistrerProfilAsync" disabled="@_saving">
+                @Localizer["FicheSuivi_Profil_Enregistrer"]
+            </button>
+            @if (_profilMessage is not null)
+            {
+                <p class="missions-meta">@_profilMessage</p>
+            }
+        </div>
     </div>
 
     <div class="missions-card">
@@ -103,7 +121,10 @@ else
 
     private string? _userId;
     private bool _chargement = true;
+    private bool _saving;
     private FicheSuiviCoachView? _view;
+    private ProfilAccompagnement _profilChoisi;
+    private string? _profilMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -111,7 +132,29 @@ else
         _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (_userId is not null && !string.IsNullOrWhiteSpace(SuiviUserId))
             _view = await FicheSuiviService.GetAsync(_userId, SuiviUserId);
+            if (_view is not null)
+                _profilChoisi = _view.ProfilAccompagnement;
         _chargement = false;
+    }
+
+    private async Task EnregistrerProfilAsync()
+    {
+        if (_userId is null || string.IsNullOrWhiteSpace(SuiviUserId))
+            return;
+
+        _saving = true;
+        _profilMessage = null;
+        var ok = await JeuneProfileService.MettreAJourProfilAccompagnementAsync(_userId, SuiviUserId, _profilChoisi);
+        if (ok)
+        {
+            _view = await FicheSuiviService.GetAsync(_userId, SuiviUserId);
+            _profilMessage = Localizer["FicheSuivi_Profil_Succes"];
+        }
+        else
+        {
+            _profilMessage = Localizer["FicheSuivi_Profil_Erreur"];
+        }
+        _saving = false;
     }
 
     private string ConsentementLabel(FicheSuiviConsentementStatut statut) => statut switch

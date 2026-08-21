@@ -1,5 +1,6 @@
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.JeunesPrestataires;
+using Spectrometre.Modules.JeunesPrestataires.Entities;
 
 namespace Spectrometre.Modules.JeunesPrestataires.Services;
 
@@ -29,6 +30,16 @@ public interface IJeuneProfileService
         string prenoms,
         DateOnly dateNaissance,
         string lienAcceptationBaseUrl,
+        ProfilAccompagnement profilAccompagnement = ProfilAccompagnement.SansExperience,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Corrige le profil d'accompagnement après l'invitation (coach suiveur uniquement).
+    /// </summary>
+    Task<bool> MettreAJourProfilAccompagnementAsync(
+        string coachUserId,
+        string jeuneUserId,
+        ProfilAccompagnement profilAccompagnement,
         CancellationToken cancellationToken = default);
 
     /// <summary>Calcule l'âge à partir de la date de naissance (affichage).</summary>

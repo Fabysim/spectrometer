@@ -10,6 +10,7 @@ using Spectrometre.Core.Modules;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.GestionDuTemps.Services;
+using Spectrometre.Modules.JeunesPrestataires.Entities;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Xunit;
@@ -34,6 +35,7 @@ public sealed class JeunePrestataireInvitationTests(ServiceFixture fixture)
         Assert.Equal(LienCoachingStatut.Actif, lien.Statut);
         Assert.Equal("Dupont", profile.Nom);
         Assert.Equal("Léa", profile.Prenoms);
+        Assert.Equal(ProfilAccompagnement.SansExperience, profile.ProfilAccompagnement);
     }
 
     [Fact]
@@ -45,6 +47,28 @@ public sealed class JeunePrestataireInvitationTests(ServiceFixture fixture)
             DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-20)));
 
         Assert.False(jeuneService.EstMineur(profile.DateNaissance));
+    }
+
+    [Fact]
+    public async Task InviterJeune_ProfilAutonome_EstCopieSurLeProfil()
+    {
+        var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
+        var (coachUserId, jeuneUserId, profile) = await InviterEtAccepterAsync(
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-17)),
+            ProfilAccompagnement.Autonome);
+
+        Assert.Equal(ProfilAccompagnement.Autonome, profile.ProfilAccompagnement);
+
+        Assert.True(await jeuneService.MettreAJourProfilAccompagnementAsync(
+            coachUserId, jeuneUserId, ProfilAccompagnement.SansExperience));
+        var misAJour = await jeuneService.TryGetByUserIdAsync(jeuneUserId);
+        Assert.Equal(ProfilAccompagnement.SansExperience, misAJour!.ProfilAccompagnement);
+
+        var autreCoach = await CreerUtilisateurAsync($"autre-coach-profil-{Guid.NewGuid()}@test.local");
+        Assert.False(await jeuneService.MettreAJourProfilAccompagnementAsync(
+            autreCoach, jeuneUserId, ProfilAccompagnement.Autonome));
+        misAJour = await jeuneService.TryGetByUserIdAsync(jeuneUserId);
+        Assert.Equal(ProfilAccompagnement.SansExperience, misAJour!.ProfilAccompagnement);
     }
 
     [Fact]
@@ -226,7 +250,8 @@ public sealed class JeunePrestataireInvitationTests(ServiceFixture fixture)
     }
 
     private async Task<(string CoachUserId, string JeuneUserId, JeuneProfileView Profile)> InviterEtAccepterAsync(
-        DateOnly dateNaissance)
+        DateOnly dateNaissance,
+        ProfilAccompagnement profil = ProfilAccompagnement.SansExperience)
     {
         var coachUserId = await CreerUtilisateurAsync($"coach-{Guid.NewGuid()}@test.local");
         var jeuneEmail = $"jeune-{Guid.NewGuid()}@test.local";
@@ -240,7 +265,8 @@ public sealed class JeunePrestataireInvitationTests(ServiceFixture fixture)
             "Dupont",
             "Léa",
             dateNaissance,
-            "http://localhost");
+            "http://localhost",
+            profil);
 
         Assert.True(invite.Success);
         Assert.NotNull(invite.Invitation);

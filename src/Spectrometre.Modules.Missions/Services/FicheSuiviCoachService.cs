@@ -1,5 +1,6 @@
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
+using Spectrometre.Modules.JeunesPrestataires.Entities;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 
 namespace Spectrometre.Modules.Missions.Services;
@@ -30,7 +31,8 @@ public sealed record FicheSuiviCoachView(
     double? GrilleDerniereMoyenne,
     DateTimeOffset? GrilleDerniereEvaluationLe,
     bool GuideEntrevueRempli,
-    int? LienCoachingId);
+    int? LienCoachingId,
+    ProfilAccompagnement ProfilAccompagnement);
 
 public interface IFicheSuiviCoachService
 {
@@ -108,6 +110,7 @@ public sealed class FicheSuiviCoachService(
             derniereMoyenne,
             derniereLe,
             guideRempli,
-            lienId);
+            lienId,
+            jeune.ProfilAccompagnement);
     }
 }

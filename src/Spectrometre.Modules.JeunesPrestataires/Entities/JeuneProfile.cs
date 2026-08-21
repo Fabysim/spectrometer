@@ -15,6 +15,12 @@ public sealed class JeuneProfile
     public required string Prenoms { get; set; }
     public DateOnly DateNaissance { get; set; }
 
+    /// <summary>
+    /// Décidé par le coach à l'invitation. Défaut <see cref="ProfilAccompagnement.SansExperience"/>
+    /// (micro-tâches d'abord). Peut être corrigé ensuite sur la fiche de suivi.
+    /// </summary>
+    public ProfilAccompagnement ProfilAccompagnement { get; set; } = ProfilAccompagnement.SansExperience;
+
     /// <summary>Invitation ayant créé ce profil (traçabilité).</summary>
     public int InvitationId { get; set; }
 

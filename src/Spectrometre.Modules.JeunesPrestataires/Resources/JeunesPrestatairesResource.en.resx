@@ -48,6 +48,13 @@
   <data name="InviterJeune_SuccesEmail" xml:space="preserve"><value>An invitation email was sent to {0}.</value></data>
   <data name="InviterJeune_SuccesLien" xml:space="preserve"><value>Invitation created. The email could not be sent automatically — share the link below with the young person.</value></data>
   <data name="InviterJeune_LienHint" xml:space="preserve"><value>Copy this link and send it to the young person.</value></data>
+  <data name="InviterJeune_Profil_Legend" xml:space="preserve"><value>Support profile</value></data>
+  <data name="InviterJeune_Profil_Aide" xml:space="preserve"><value>This choice sets the order of the self-observation questionnaire. You can change it later on the follow-up sheet.</value></data>
+  <data name="InviterJeune_Profil_SansExperience_Desc" xml:space="preserve"><value>To be guided first toward concrete micro-tasks, motivation and building confidence.</value></data>
+  <data name="InviterJeune_Profil_Autonome_Desc" xml:space="preserve"><value>Already has some experience, is independent, and is looking for career direction.</value></data>
+  <data name="ProfilAccompagnement_SansExperience" xml:space="preserve"><value>No work experience</value></data>
+  <data name="ProfilAccompagnement_Autonome" xml:space="preserve"><value>Independent, exploring orientation</value></data>
+  <data name="AutoObs_ProfilAccompagnement" xml:space="preserve"><value>Support profile: {0}</value></data>
   <data name="Erreur_NomPrenomRequis" xml:space="preserve"><value>The young person's last name and first name(s) are required.</value></data>
   <data name="Erreur_DateNaissanceRequise" xml:space="preserve"><value>Date of birth is required.</value></data>
   <data name="Erreur_InvitationEchec" xml:space="preserve"><value>The invitation could not be created.</value></data>

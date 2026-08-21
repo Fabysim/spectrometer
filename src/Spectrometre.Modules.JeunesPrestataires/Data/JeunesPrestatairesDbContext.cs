@@ -29,11 +29,15 @@ public sealed class JeunesPrestatairesDbContext(DbContextOptions<JeunesPrestatai
         {
             e.HasIndex(p => p.UserId).IsUnique();
             e.HasIndex(p => p.InvitationId).IsUnique();
+            e.Property(p => p.ProfilAccompagnement)
+                .HasDefaultValue(ProfilAccompagnement.SansExperience);
         });
 
         builder.Entity<InvitationJeunePrestataire>(e =>
         {
             e.HasIndex(d => d.InvitationId).IsUnique();
+            e.Property(d => d.ProfilAccompagnement)
+                .HasDefaultValue(ProfilAccompagnement.SansExperience);
         });
 
         builder.Entity<ConsentementParental>(e =>

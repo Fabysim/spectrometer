@@ -7,6 +7,7 @@ using Spectrometre.Core.Invitations;
 using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Catalog;
+using Spectrometre.Modules.JeunesPrestataires.Entities;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Xunit;
 
@@ -115,6 +116,27 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
         var idxP2 = sections.ToList().FindIndex(s => s.Key == "p2.s1");
         Assert.True(idxP1 > 0);
         Assert.True(idxP2 > idxP1);
+    }
+
+    [Fact]
+    public void GetSectionsOrdonnees_DependDuProfilAccompagnement()
+    {
+        var sansExp = AutoObservationCatalog.GetSectionsOrdonnees(ProfilAccompagnement.SansExperience);
+        Assert.Equal(2, sansExp[0].PartNumber);
+        Assert.Equal("p2.s1", sansExp[0].Key);
+        Assert.Equal(
+            AutoObservationCatalog.Part2Sections.Count
+            + AutoObservationCatalog.Part1Sections.Count
+            + AutoObservationCatalog.Part0Sections.Count,
+            sansExp.Count);
+        Assert.Equal("p0.s1", sansExp[^AutoObservationCatalog.Part0Sections.Count].Key);
+
+        var autonome = AutoObservationCatalog.GetSectionsOrdonnees(ProfilAccompagnement.Autonome);
+        Assert.Equal(0, autonome[0].PartNumber);
+        Assert.Equal("p0.s1", autonome[0].Key);
+        Assert.Equal("p2.s1", autonome[AutoObservationCatalog.Part0Sections.Count].Key);
+
+        Assert.Equal("p0.s1", AutoObservationCatalog.AllSections[0].Key);
     }
 
     [Fact]

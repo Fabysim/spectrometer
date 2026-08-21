@@ -1,3 +1,5 @@
+using Spectrometre.Modules.JeunesPrestataires.Entities;
+
 namespace Spectrometre.Modules.JeunesPrestataires.Services;
 
 public sealed record JeuneProfileView(
@@ -7,7 +9,8 @@ public sealed record JeuneProfileView(
     string Prenoms,
     DateOnly DateNaissance,
     int InvitationId,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    ProfilAccompagnement ProfilAccompagnement);
 
 public sealed record InvitationJeunePrestataireDraft(
     string Nom,

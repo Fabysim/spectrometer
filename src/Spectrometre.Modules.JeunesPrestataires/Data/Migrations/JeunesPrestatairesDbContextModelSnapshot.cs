@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Spectrometre.Modules.JeunesPrestataires.Entities;
 using Spectrometre.Modules.JeunesPrestataires.Data;
 
 #nullable disable
@@ -386,6 +387,11 @@ namespace Spectrometre.Modules.JeunesPrestataires.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("ProfilAccompagnement")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(ProfilAccompagnement.SansExperience);
+
                     b.HasKey("Id");
 
                     b.HasIndex("InvitationId")
@@ -418,6 +424,11 @@ namespace Spectrometre.Modules.JeunesPrestataires.Data.Migrations
                     b.Property<string>("Prenoms")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("ProfilAccompagnement")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(ProfilAccompagnement.SansExperience);
 
                     b.Property<string>("UserId")
                         .IsRequired()

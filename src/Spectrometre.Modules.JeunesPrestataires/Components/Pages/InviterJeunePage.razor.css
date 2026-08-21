@@ -291,3 +291,20 @@
     width: 100%;
   }
 }
+
+.inviter-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  background: #f8fafc;
+}
+
+.inviter-choice input { margin-top: 0.2rem; flex-shrink: 0; }
+.inviter-choice strong { display: block; font-size: 0.9rem; color: #0f172a; }
+.inviter-choice-desc { display: block; font-size: 0.8rem; color: #64748b; line-height: 1.4; margin-top: 0.2rem; }
+.inviter-profil legend { font-size: 0.8125rem; font-weight: 600; color: #334155; padding: 0; }
