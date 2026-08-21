@@ -5,7 +5,12 @@ public sealed record CoachDashboardSynthese(
     int JeunesSuivisActifs,
     int MissionsAValider,
     int DossiersIncomplets,
-    int AlertesInvitationsExpirees);
+    int AlertesInvitationsExpirees,
+    /// <summary>
+    /// Notifications non lues <c>Missions.ProblemeSignale</c> ou <c>Missions.DemandeContact</c>
+    /// (mêmes TypeCode que <c>MissionService</c> — messagerie légère).
+    /// </summary>
+    int SignalementsEtDemandesNonLus);
 
 /// <summary>
 /// Deep-links des actions rapides du tableau de bord coach. Chaque href est <c>null</c> si l'action
@@ -20,8 +25,12 @@ public sealed record CoachDashboardSynthese(
 /// (<c>IMissionService.PublierMissionAsync</c>). Un coach n'a pas ce rôle ; pas de mécanisme inventé ici.
 /// </item>
 /// <item>
-/// <b>Demander une précision</b> — aucune messagerie libre coach→jeune (seule la notification « Besoin
-/// d'aide » jeune→coach existe, à sens unique). Pas inventée ici.
+/// <b>Demander une précision</b> — il n'existe toujours pas de messagerie libre <c>coach→jeune</c>
+/// (pas de fil de discussion, pas d'envoi depuis le coach). Ce qui existe depuis le cycle
+/// « messagerie légère » : notifications in-app <c>jeune→coach</c> ou <c>particulier→coach</c>
+/// uniquement (<c>Missions.ProblemeSignale</c>, <c>Missions.DemandeContact</c>), consultables
+/// dans la cloche. L'action Bouchra « Demander une précision » (coach qui interroge le jeune)
+/// n'est donc toujours pas inventée ici.
 /// </item>
 /// </list>
 /// </remarks>

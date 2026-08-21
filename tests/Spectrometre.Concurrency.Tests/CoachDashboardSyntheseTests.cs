@@ -5,6 +5,7 @@ using Spectrometre.Core.Billing;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Spectrometre.Modules.Missions.Entities;
@@ -60,6 +61,44 @@ public sealed class CoachDashboardSyntheseTests(ServiceFixture fixture)
         Assert.Equal(1, synth.MissionsAValider);
         Assert.Equal(1, synth.DossiersIncomplets);
         Assert.Equal(1, synth.AlertesInvitationsExpirees);
+        Assert.Equal(0, synth.SignalementsEtDemandesNonLus);
+    }
+
+    [Fact]
+    public async Task GetSyntheseAsync_CompteSignalementsEtDemandesNonLus()
+    {
+        var coachId = await CreerUtilisateurAsync($"coach-dash-sig-{Guid.NewGuid()}@test.local");
+        var dashboard = fixture.Services.GetRequiredService<ICoachDashboardService>();
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
+
+        var jeune = await CreerJeunePourCoachAsync(coachId, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-16)), "S");
+        var particulierId = await CreerParticulierAsync();
+        var missionId = await missionService.PublierMissionAsync(
+            particulierId,
+            new PublierMissionInput("Mission sig", "Desc", null, null, MissionDifficulte.Facile, 20m, null,
+                MissionCategorie.Rangement, MissionNiveauEncadrement.PresentPendantMission));
+        Assert.NotNull(missionId);
+        await fixture.GarantirPublicationValideeAsync(coachId, missionId.Value);
+        Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId.Value));
+        var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(coachId, jeune.UserId))
+            .Single().AcceptationId;
+        Assert.True(await missionService.ValiderAcceptationAsync(coachId, acceptationId));
+
+        Assert.Equal(0, (await dashboard.GetSyntheseAsync(coachId)).SignalementsEtDemandesNonLus);
+
+        Assert.NotEqual(0, await notifService.CreerAsync(
+            coachId, "Autre", "Ignore", null, "Missions.MissionValidee"));
+        Assert.Equal(0, (await dashboard.GetSyntheseAsync(coachId)).SignalementsEtDemandesNonLus);
+
+        Assert.True(await missionService.SignalerProblemeAsync(particulierId, missionId.Value, "retard"));
+        Assert.Equal(1, (await dashboard.GetSyntheseAsync(coachId)).SignalementsEtDemandesNonLus);
+
+        Assert.True(await missionService.DemanderContactCoachAsync(jeune.UserId, acceptationId, "rappel"));
+        Assert.Equal(2, (await dashboard.GetSyntheseAsync(coachId)).SignalementsEtDemandesNonLus);
+
+        await notifService.MarquerToutesLuesAsync(coachId);
+        Assert.Equal(0, (await dashboard.GetSyntheseAsync(coachId)).SignalementsEtDemandesNonLus);
     }
 
     private async Task<(string UserId, int ProfileId)> CreerJeunePourCoachAsync(string coachId, DateOnly dateNaissance, string suffix)

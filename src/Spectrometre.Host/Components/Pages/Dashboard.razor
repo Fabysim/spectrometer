@@ -442,6 +442,10 @@
                                 <span class="dashboard-admin-stat-value">@_coachSynthese.AlertesInvitationsExpirees</span>
                                 <span class="dashboard-admin-stat-label">@Localizer["Home_CoachAlertes"]</span>
                             </a>
+                            <a href="#notifications" class="dashboard-admin-stat @(_coachSynthese.SignalementsEtDemandesNonLus > 0 ? "is-alert" : "")">
+                                <span class="dashboard-admin-stat-value">@_coachSynthese.SignalementsEtDemandesNonLus</span>
+                                <span class="dashboard-admin-stat-label">@Localizer["Home_CoachSignalements"]</span>
+                            </a>
                         </div>
                     }
                     @if (_coachActionsRapides is not null && CoachActionsRapidesVisibles(_coachActionsRapides))

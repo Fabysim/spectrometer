@@ -304,6 +304,9 @@
   <data name="Home_CoachAlertes" xml:space="preserve">
     <value>Alerts</value>
   </data>
+  <data name="Home_CoachSignalements" xml:space="preserve">
+    <value>Reports and contact requests</value>
+  </data>
   <data name="Home_CoachVoirPriorites" xml:space="preserve">
     <value>See my priorities for today</value>
   </data>

@@ -9,7 +9,7 @@
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> Localizer
 
-<div class="notif-bell" @onclick:stopPropagation="true">
+<div class="notif-bell" id="notifications" @onclick:stopPropagation="true">
     <button type="button"
             class="notif-bell-btn"
             @onclick="TogglePanelAsync"

@@ -1,4 +1,5 @@
 using Spectrometre.Core.JeunesPrestataires;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Services;
@@ -16,7 +17,10 @@ namespace Spectrometre.Modules.Missions.Services;
 /// (<see cref="IConsentementParentalService.EstConsentementValideAsync"/> = false). Un majeur n'entre
 /// jamais dans ce compteur (consentement parental hors périmètre).</para>
 /// <para><b>Alertes</b> — invitations jeunes encore en attente avec <c>EstExpiree</c> (à relancer ou
-/// annuler). Pas de carte « rendez-vous » : aucune notion RDV/planification coach↔jeune en base.</para>
+/// annuler). <b>Signalements / demandes de contact</b> — notifications non lues
+/// <c>Missions.ProblemeSignale</c> et <c>Missions.DemandeContact</c> (messagerie légère,
+/// jeune ou particulier → coach). Pas de carte « rendez-vous » : aucune notion RDV/planification
+/// coach↔jeune en base.</para>
 /// <para><b>Actions rapides omises</b> — voir <see cref="CoachDashboardActionsRapides"/> (Proposer une
 /// mission, Demander une précision).</para>
 /// </remarks>
@@ -27,8 +31,16 @@ public sealed class CoachDashboardService(
     IConsentementParentalService consentementParentalService,
     IJeunePrestataireInvitationQuery invitationQuery,
     IGuideEntrevueService guideEntrevueService,
-    IObjectifsCoachingService objectifsCoachingService) : ICoachDashboardService
+    IObjectifsCoachingService objectifsCoachingService,
+    INotificationService notificationService) : ICoachDashboardService
 {
+    /// <summary>Identiques aux TypeCode écrits par <c>MissionService.EnvoyerNotificationCoachAsync</c>.</summary>
+    private static readonly HashSet<string> TypeCodesSignalementOuContact = new(StringComparer.Ordinal)
+    {
+        "Missions.ProblemeSignale",
+        "Missions.DemandeContact",
+    };
+
     public async Task<CoachDashboardSynthese> GetSyntheseAsync(string coachUserId, CancellationToken cancellationToken = default)
     {
         var liens = await coachingService.GetLiensPourCoachAsync(coachUserId, cancellationToken);
@@ -53,11 +65,15 @@ public sealed class CoachDashboardService(
         var invitations = await invitationQuery.GetInvitationsEnvoyeesEnAttenteAsync(coachUserId, cancellationToken);
         var alertes = invitations.Count(i => i.EstExpiree);
 
+        var nonLues = await notificationService.GetNonLuesAsync(coachUserId, cancellationToken);
+        var signalements = nonLues.Count(n => TypeCodesSignalementOuContact.Contains(n.TypeCode));
+
         return new CoachDashboardSynthese(
             JeunesSuivisActifs: actifs.Count,
             MissionsAValider: missions.Count,
             DossiersIncomplets: dossiersIncomplets,
-            AlertesInvitationsExpirees: alertes);
+            AlertesInvitationsExpirees: alertes,
+            SignalementsEtDemandesNonLus: signalements);
     }
 
     public async Task<CoachDashboardActionsRapides> GetActionsRapidesAsync(
@@ -148,4 +164,4 @@ public sealed class CoachDashboardService(
         return ($"/coach/suivis/{premier.SuiviUserId}/guide-entrevue", true);
     }
 }
-
+
