@@ -50,8 +50,12 @@ public interface ICoachingService
     /// Transfert immédiat d'un jeune prestataire vers un autre coach : le coach source doit être le
     /// suiveur <see cref="LienCoachingStatut.Actif"/>. Clôture son lien (<see cref="LienCoachingStatut.Revoque"/>,
     /// <c>ClotureLe</c>) et active le lien cible dans la même sauvegarde — jamais deux actifs en parallèle.
-    /// Pas d'étape EnAttente : les coachs de l'association se font déjà confiance (file de modération
-    /// partagée). Hors jeune prestataire, ou si le demandeur n'est pas le coach actif, retourne <c>false</c>.
+    /// La période d'objectifs non archivée (et ses <c>ObjectifCoaching</c>, via la FK période) et
+    /// l'anamnèse courante sont rattachées au nouveau lien — pas de duplication. Les périodes déjà
+    /// archivées restent sur l'ancien lien (<c>GetArchivesAsync</c> est un historique de relation,
+    /// pas un dossier portable). Pas d'étape EnAttente : les coachs de l'association se font déjà
+    /// confiance (file de modération partagée). Hors jeune prestataire, ou si le demandeur n'est pas
+    /// le coach actif, retourne <c>false</c>.
     /// </summary>
     Task<bool> TransfererJeunePrestataireAsync(
         string coachSourceUserId,

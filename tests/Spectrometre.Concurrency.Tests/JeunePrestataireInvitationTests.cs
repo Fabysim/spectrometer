@@ -8,6 +8,7 @@ using Spectrometre.Core.Invitations;
 using Spectrometre.Core.JeunesPrestataires;
 using Spectrometre.Core.Modules;
 using Spectrometre.Core.Notifications;
+using Spectrometre.Modules.Coaching.Data;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.GestionDuTemps.Services;
@@ -114,6 +115,72 @@ public sealed class JeunePrestataireInvitationTests(ServiceFixture fixture)
         Assert.Contains(notifsJeune, n => n.TypeCode == "Coaching.JeuneTransfere");
         var notifsCible = await notifService.GetRecentesAsync(coach2UserId, 10);
         Assert.Contains(notifsCible, n => n.TypeCode == "Coaching.JeuneRecuParTransfert");
+    }
+
+    [Fact]
+    public async Task TransfererJeunePrestataire_ConservePeriodeCouranteEtAnamnese_ArchivesRestentSurAncienLien()
+    {
+        var coachingService = fixture.Services.GetRequiredService<ICoachingService>();
+        var objectifs = fixture.Services.GetRequiredService<IObjectifsCoachingService>();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var (coach1UserId, jeuneUserId, _) = await InviterEtAccepterAsync(
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-16)));
+        var coach2UserId = await CreerUtilisateurAsync($"coach-continuite-{Guid.NewGuid()}@test.local");
+
+        var ancienLienId = (await coachingService.GetLiensPourCoachAsync(coach1UserId))
+            .Single(l => l.SuiviUserId == jeuneUserId).Id;
+
+        Assert.True(await objectifs.SaveObjectifsAsync(ancienLienId, coach1UserId, [
+            new ObjectifCoachingInput(null, today, "Période archivée", null, AtteinteObjectifCoaching.Oui, null, 80),
+        ]));
+        Assert.True(await objectifs.TerminerPeriodeAsync(ancienLienId, coach1UserId));
+        Assert.True(await objectifs.SaveObjectifsAsync(ancienLienId, coach1UserId, [
+            new ObjectifCoachingInput(null, today, "Continuer le CV", "Atelier mardi", AtteinteObjectifCoaching.NonDefini, "Note coach", 40),
+        ]));
+
+        var anamneseAvant = await coachingService.GenererAnamneseAsync(ancienLienId, coach1UserId);
+        Assert.NotNull(anamneseAvant);
+        Assert.False(string.IsNullOrWhiteSpace(anamneseAvant.Contenu));
+
+        var couranteAvant = await objectifs.GetPeriodeCourantePourJeuneAsync(jeuneUserId);
+        Assert.NotNull(couranteAvant);
+        Assert.Equal("Continuer le CV", Assert.Single(couranteAvant.Objectifs).Titre);
+
+        Assert.True(await coachingService.TransfererJeunePrestataireAsync(coach1UserId, jeuneUserId, coach2UserId));
+
+        var nouveauLienId = (await coachingService.GetLiensPourCoachAsync(coach2UserId))
+            .Single(l => l.SuiviUserId == jeuneUserId && l.Statut == LienCoachingStatut.Actif).Id;
+        Assert.NotEqual(ancienLienId, nouveauLienId);
+
+        var couranteJeune = await objectifs.GetPeriodeCourantePourJeuneAsync(jeuneUserId);
+        Assert.NotNull(couranteJeune);
+        var objectifJeune = Assert.Single(couranteJeune.Objectifs);
+        Assert.Equal("Continuer le CV", objectifJeune.Titre);
+        Assert.Equal("Atelier mardi", objectifJeune.Moyens);
+
+        var couranteCoach = await objectifs.GetPeriodeCouranteAsync(nouveauLienId, coach2UserId);
+        Assert.NotNull(couranteCoach);
+        Assert.Equal(nouveauLienId, couranteCoach.LienCoachingId);
+        Assert.Equal("Continuer le CV", Assert.Single(couranteCoach.Objectifs).Titre);
+        Assert.Equal("Note coach", Assert.Single(couranteCoach.Objectifs).Observation);
+
+        var anamneseApres = await coachingService.GetAnamneseAsync(nouveauLienId, coach2UserId);
+        Assert.NotNull(anamneseApres);
+        Assert.Equal(anamneseAvant.Contenu, anamneseApres.Contenu);
+        Assert.Null(await coachingService.GetAnamneseAsync(ancienLienId, coach1UserId));
+        Assert.Null(await coachingService.GetAnamneseAsync(nouveauLienId, coach1UserId));
+
+        Assert.Empty(await objectifs.GetArchivesAsync(nouveauLienId, coach2UserId));
+
+        await using var coachingDb = await fixture.Services.GetRequiredService<IDbContextFactory<CoachingDbContext>>().CreateDbContextAsync();
+        var archive = await coachingDb.PeriodesObjectifsCoaching.AsNoTracking()
+            .SingleAsync(p => p.LienCoachingId == ancienLienId && p.Archivee);
+        Assert.Equal(ancienLienId, archive.LienCoachingId);
+        var couranteDb = await coachingDb.PeriodesObjectifsCoaching.AsNoTracking()
+            .Include(p => p.Objectifs)
+            .SingleAsync(p => p.LienCoachingId == nouveauLienId && !p.Archivee);
+        Assert.Equal("Continuer le CV", Assert.Single(couranteDb.Objectifs).Titre);
     }
 
     [Fact]

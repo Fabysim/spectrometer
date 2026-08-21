@@ -185,6 +185,9 @@ public sealed class CoachingService(
 
         await db.SaveChangesAsync(cancellationToken);
 
+        await ReattacherContinuiteAuNouveauLienAsync(db, source.Id, cible.Id, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+
         await notificationService.CreerAsync(
             suiviUserId,
             "Changement de coach",
@@ -279,6 +282,55 @@ public sealed class CoachingService(
 
     private static LienCoachingView ToView(LienCoaching lien) =>
         new(lien.Id, lien.SuiviUserId, lien.CoachUserId, lien.Statut, lien.CreatedAt, lien.AccepteLe);
+
+    /// <summary>
+    /// Suit le jeune, pas le lien : période d'objectifs <c>Archivee == false</c> et anamnèse de l'ancien
+    /// lien. Les périodes déjà archivées restent sur <paramref name="ancienLienId"/> — historique de
+    /// cette relation (cohérent avec <c>GetArchivesAsync</c> qui liste par lien). Les
+    /// <see cref="ObjectifCoaching"/> n'ont pas de <c>LienCoachingId</c> : ils suivent la période.
+    /// </summary>
+    private static async Task ReattacherContinuiteAuNouveauLienAsync(
+        CoachingDbContext db,
+        int ancienLienId,
+        int nouveauLienId,
+        CancellationToken cancellationToken)
+    {
+        if (ancienLienId == nouveauLienId)
+            return;
+
+        var couranteSource = await db.PeriodesObjectifsCoaching
+            .FirstOrDefaultAsync(p => p.LienCoachingId == ancienLienId && !p.Archivee, cancellationToken);
+        if (couranteSource is not null)
+        {
+            var couranteCible = await db.PeriodesObjectifsCoaching
+                .FirstOrDefaultAsync(
+                    p => p.LienCoachingId == nouveauLienId && !p.Archivee && p.Id != couranteSource.Id,
+                    cancellationToken);
+            if (couranteCible is not null)
+            {
+                // Lien réactivé : une période ouverte vestige de la précédente collaboration avec ce
+                // coach. L'archiver sur le nouveau lien pour n'avoir qu'une courante (celle transférée).
+                couranteCible.Archivee = true;
+                couranteCible.DateFin = DateOnly.FromDateTime(DateTime.UtcNow);
+            }
+
+            couranteSource.LienCoachingId = nouveauLienId;
+        }
+
+        var anamneseSource = await db.AnamnesesCoaching
+            .OrderByDescending(a => a.UpdatedAt)
+            .FirstOrDefaultAsync(a => a.LienCoachingId == ancienLienId, cancellationToken);
+        if (anamneseSource is not null)
+        {
+            var anamnesesCible = await db.AnamnesesCoaching
+                .Where(a => a.LienCoachingId == nouveauLienId && a.Id != anamneseSource.Id)
+                .ToListAsync(cancellationToken);
+            if (anamnesesCible.Count > 0)
+                db.AnamnesesCoaching.RemoveRange(anamnesesCible);
+
+            anamneseSource.LienCoachingId = nouveauLienId;
+        }
+    }
 
     public async Task<AnamneseCoachingView?> GetAnamneseAsync(int lienId, string requestingCoachUserId, CancellationToken cancellationToken = default)
     {
