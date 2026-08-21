@@ -25,6 +25,11 @@ public sealed class PlanActionAutoObservationService(
         return ToView(entity, jeuneProfileId);
     }
 
+    /// <summary>
+    /// Upsert du plan d'action. Pas de notification jeune : le geste « le coach a relu ton
+    /// dossier » est <c>ValiderSyntheseAsync</c> (même page, même lien). Notifier ici en plus
+    /// doublerait le message quand le coach enregistre le plan juste après la validation.
+    /// </summary>
     public async Task<bool> SaveAsync(
         string coachUserId,
         int jeuneProfileId,

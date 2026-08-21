@@ -51,6 +51,8 @@ public interface IAutoObservationService
     /// <summary>
     /// Le coach suiveur confirme avoir relu la synthèse auto-générée (horodatage + UserId).
     /// N'édite pas le texte. Une régénération efface cette validation.
+    /// Notifie le jeune une fois (<c>JeunesPrestataires.SyntheseValidee</c>) ; le message
+    /// mentionne le plan d'action s'il est déjà rempli. Pas de notif séparée au Save du plan.
     /// </summary>
     Task<bool> ValiderSyntheseAsync(
         string requestingCoachUserId,

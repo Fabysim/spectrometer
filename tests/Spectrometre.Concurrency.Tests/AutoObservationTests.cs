@@ -119,6 +119,39 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
     }
 
     [Fact]
+    public async Task ValiderSynthese_NotifieLeJeune_PlanNeDupliquePas()
+    {
+        var (coachId, jeuneId, profileId) = await CreerJeuneAvecCoachAsync();
+        var aoSvc = fixture.Services.GetRequiredService<IAutoObservationService>();
+        var planSvc = fixture.Services.GetRequiredService<IPlanActionAutoObservationService>();
+        var notifSvc = fixture.Services.GetRequiredService<INotificationService>();
+
+        Assert.NotNull(await aoSvc.RegenererSyntheseAsync(jeuneId, profileId));
+        Assert.DoesNotContain(
+            await notifSvc.GetRecentesAsync(jeuneId, 20),
+            n => n.TypeCode == "JeunesPrestataires.SyntheseValidee");
+
+        Assert.True(await planSvc.SaveAsync(coachId, profileId, new PlanActionAutoObservationInput(
+            "Objectif", "Action", "coach", null, "indicateur")));
+        Assert.DoesNotContain(
+            await notifSvc.GetRecentesAsync(jeuneId, 20),
+            n => n.TypeCode.StartsWith("JeunesPrestataires.", StringComparison.Ordinal));
+
+        Assert.True(await aoSvc.ValiderSyntheseAsync(coachId, profileId));
+        var notifs = await notifSvc.GetRecentesAsync(jeuneId, 20);
+        Assert.Equal(1, notifs.Count(n => n.TypeCode == "JeunesPrestataires.SyntheseValidee"));
+        var n = notifs.Single(x => x.TypeCode == "JeunesPrestataires.SyntheseValidee");
+        Assert.Equal("/jeune/auto-observation?section=p2.s13", n.Lien);
+        Assert.Contains("plan d'action", n.Message, StringComparison.OrdinalIgnoreCase);
+
+        Assert.True(await planSvc.SaveAsync(coachId, profileId, new PlanActionAutoObservationInput(
+            "Objectif revu", "Action", "coach", null, "indicateur")));
+        Assert.True(await aoSvc.ValiderSyntheseAsync(coachId, profileId));
+        Assert.Equal(1, (await notifSvc.GetRecentesAsync(jeuneId, 20))
+            .Count(x => x.TypeCode == "JeunesPrestataires.SyntheseValidee"));
+    }
+
+    [Fact]
     public void AllSections_InclutPart0EnTete_AvecClesP0()
     {
         var sections = AutoObservationCatalog.AllSections;

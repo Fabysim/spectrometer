@@ -36,6 +36,9 @@ public interface IPlanActionAutoObservationService
         int jeuneProfileId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Upsert. Pas de notification jeune (voir <c>IAutoObservationService.ValiderSyntheseAsync</c>).
+    /// </summary>
     Task<bool> SaveAsync(
         string coachUserId,
         int jeuneProfileId,

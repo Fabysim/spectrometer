@@ -333,9 +333,38 @@ public sealed class AutoObservationService(
         if (synthese is null)
             return false;
 
+        // Une seule notif jeune à la première validation (pas à chaque re-clic).
+        // Pas de notif dans PlanActionAutoObservationService.SaveAsync : même écran, même lien —
+        // le plan déjà rempli est mentionné ici ; un enregistrement plan ensuite ne spam pas.
+        var premiereValidation = synthese.ValideeLe is null;
+        var planRempli = await db.PlansActionAutoObservation.AsNoTracking()
+            .Where(p => p.JeuneProfileId == jeuneProfileId)
+            .Select(p =>
+                p.ObjectifPrincipal != null
+                || p.PremiereAction != null
+                || p.ResponsableSuivi != null
+                || p.Echeance != null
+                || p.IndicateurReussite != null)
+            .FirstOrDefaultAsync(cancellationToken);
+
         synthese.ValideeLe = DateTimeOffset.UtcNow;
         synthese.ValideeParCoachUserId = requestingCoachUserId;
         await db.SaveChangesAsync(cancellationToken);
+
+        if (premiereValidation)
+        {
+            var message = planRempli
+                ? "Ton coach a relu ta synthèse d'auto-observation et a préparé un plan d'action."
+                : "Ton coach a relu et validé ta synthèse d'auto-observation.";
+            await notificationService.CreerAsync(
+                access.Value.Profile.UserId,
+                "Ton coach a relu ta synthèse",
+                message,
+                "/jeune/auto-observation?section=p2.s13",
+                "JeunesPrestataires.SyntheseValidee",
+                cancellationToken);
+        }
+
         return true;
     }
 
