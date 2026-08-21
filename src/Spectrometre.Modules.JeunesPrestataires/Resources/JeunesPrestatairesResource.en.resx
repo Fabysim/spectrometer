@@ -301,6 +301,21 @@
   <data name="AutoObs_AccesRefuse_Titre" xml:space="preserve"><value>Access denied</value></data>
   <data name="AutoObs_AccesRefuse_Message" xml:space="preserve"><value>This questionnaire is reserved for invited young providers and their referring coach.</value></data>
   <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Self-observation questionnaire</value></data>
+  <data name="Orientation_Titre" xml:space="preserve"><value>A few questions to guide you</value></data>
+  <data name="Orientation_Intro" xml:space="preserve"><value>Your answers help us suggest suitable support. You can skip this step: your coach’s choice will then stay unchanged.</value></data>
+  <data name="Orientation_Aide" xml:space="preserve"><value>Once only — then you continue to the self-observation questionnaire.</value></data>
+  <data name="Orientation_Q1" xml:space="preserve"><value>Have you already had work experience, an internship, volunteered, or provided a service to someone outside your family?</value></data>
+  <data name="Orientation_Q2" xml:space="preserve"><value>Have you already been paid for a task, a mission or a small job?</value></data>
+  <data name="Orientation_Q3" xml:space="preserve"><value>Is your main goal today rather to discover the world of work, build confidence and learn basic work habits?</value></data>
+  <data name="Orientation_Q4" xml:space="preserve"><value>Is your main goal rather to clarify a choice of studies, training, occupation or career?</value></data>
+  <data name="Orientation_Q5" xml:space="preserve"><value>Would you first like to try small concrete missions with individuals before defining a more precise professional project?</value></data>
+  <data name="Orientation_Opt_oui" xml:space="preserve"><value>Yes</value></data>
+  <data name="Orientation_Opt_non" xml:space="preserve"><value>No</value></data>
+  <data name="Orientation_Opt_un_peu" xml:space="preserve"><value>A little</value></data>
+  <data name="Orientation_Opt_je_ne_sais_pas" xml:space="preserve"><value>I don’t know</value></data>
+  <data name="Orientation_Valider" xml:space="preserve"><value>Continue</value></data>
+  <data name="Orientation_Passer" xml:space="preserve"><value>Skip these questions</value></data>
+  <data name="Orientation_Erreur" xml:space="preserve"><value>Could not save. Try again, or skip this step.</value></data>
 
   <data name="Charte_Title" xml:space="preserve"><value>Mission charter · Spectrometre</value></data>
   <data name="Charte_Heading" xml:space="preserve"><value>Formal charter of missions, behaviours and support</value></data>

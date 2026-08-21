@@ -30,6 +30,46 @@ else if (_page is null)
         <p>@Localizer["AutoObs_AccesRefuse_Message"]</p>
     </div>
 }
+else if (_page.AccessMode == AutoObservationAccessMode.Jeune && _page.OrientationAFaire)
+{
+    <header class="ao-header">
+        <h1 class="ao-title">@Localizer["Orientation_Titre"]</h1>
+        <p class="ao-accroche">@Localizer["Orientation_Intro"]</p>
+        <p class="ao-hint">@Localizer["Orientation_Aide"]</p>
+    </header>
+    <div class="ao-main ao-card">
+        @foreach (var q in AutoObservationOrientationCatalog.Questions)
+        {
+            <div class="ao-question">
+                <span class="ao-question-label">@Localizer[q.LabelResourceKey]</span>
+                <div class="ao-radios">
+                    @foreach (var code in q.OptionCodes)
+                    {
+                        <label class="ao-radio">
+                            <input type="radio"
+                                   name="@q.Key"
+                                   checked="@(_orientationReponses.GetValueOrDefault(q.Key) == code)"
+                                   @onchange="() => _orientationReponses[q.Key] = code" />
+                            @Localizer[$"Orientation_Opt_{code}"]
+                        </label>
+                    }
+                </div>
+            </div>
+        }
+        <div class="ao-actions">
+            <button type="button" class="ao-btn-primary" @onclick="EnregistrerOrientationAsync" disabled="@(_saving || !OrientationComplete)">
+                @Localizer["Orientation_Valider"]
+            </button>
+            <button type="button" class="ao-btn-secondary" @onclick="PasserOrientationAsync" disabled="@_saving">
+                @Localizer["Orientation_Passer"]
+            </button>
+        </div>
+        @if (_message is not null)
+        {
+            <p class="ao-hint">@_message</p>
+        }
+    </div>
+}
 else
 {
     <header class="ao-header">
@@ -248,6 +288,12 @@ else
 
     private readonly Dictionary<string, string?> _textValues = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int?> _numericValues = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _orientationReponses = new(StringComparer.Ordinal);
+
+    private bool OrientationComplete =>
+        AutoObservationOrientationCatalog.Questions.All(q =>
+            _orientationReponses.TryGetValue(q.Key, out var code)
+            && AutoObservationOrientationCatalog.EstReponseValide(q.Key, code));
 
     protected override async Task OnInitializedAsync()
     {
@@ -275,7 +321,7 @@ else
         _page = await AutoObservationService.TryGetPageAsync(_userId, profileId);
         _synthese = _page?.SyntheseGeneree;
 
-        if (_page is not null)
+        if (_page is not null && !(_page.AccessMode == AutoObservationAccessMode.Jeune && _page.OrientationAFaire))
         {
             var ordonnees = AutoObservationCatalog.GetSectionsOrdonnees(_page.JeuneProfile.ProfilAccompagnement);
             _sectionKey = !string.IsNullOrWhiteSpace(sectionFromQuery)
@@ -399,6 +445,53 @@ else
         }
 
         _saving = false;
+    }
+
+    private async Task EnregistrerOrientationAsync()
+    {
+        if (_page is null || _userId is null || !OrientationComplete)
+            return;
+
+        _saving = true;
+        _message = null;
+        var answers = AutoObservationOrientationCatalog.Questions
+            .Select(q => new AutoObservationAnswerInput(q.Key, _orientationReponses[q.Key], null))
+            .ToList();
+        var ok = await AutoObservationService.EnregistrerOrientationAsync(_userId, _page.JeuneProfile.Id, answers);
+        if (ok)
+            await EntrerDansQuestionnaireApresOrientationAsync();
+        else
+            _message = Localizer["Orientation_Erreur"];
+        _saving = false;
+    }
+
+    private async Task PasserOrientationAsync()
+    {
+        if (_page is null || _userId is null)
+            return;
+
+        _saving = true;
+        _message = null;
+        var ok = await AutoObservationService.PasserOrientationAsync(_userId, _page.JeuneProfile.Id);
+        if (ok)
+            await EntrerDansQuestionnaireApresOrientationAsync();
+        else
+            _message = Localizer["Orientation_Erreur"];
+        _saving = false;
+    }
+
+    private async Task EntrerDansQuestionnaireApresOrientationAsync()
+    {
+        if (_page is null || _userId is null)
+            return;
+
+        _page = await AutoObservationService.TryGetPageAsync(_userId, _page.JeuneProfile.Id);
+        if (_page is null)
+            return;
+
+        var ordonnees = AutoObservationCatalog.GetSectionsOrdonnees(_page.JeuneProfile.ProfilAccompagnement);
+        _sectionKey = ordonnees[0].Key;
+        await LoadSectionAsync(_sectionKey);
     }
 
     private async Task DemanderAideAsync()

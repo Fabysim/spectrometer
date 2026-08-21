@@ -22,7 +22,8 @@ public sealed record AutoObservationPageView(
     JeuneProfileView JeuneProfile,
     string? SyntheseGeneree,
     DateTimeOffset? SyntheseGenereeLe,
-    IReadOnlyList<AutoObservationSectionProgressView> SectionProgress);
+    IReadOnlyList<AutoObservationSectionProgressView> SectionProgress,
+    bool OrientationAFaire);
 
 public sealed record AutoObservationSectionView(
     AutoObservationAccessMode AccessMode,

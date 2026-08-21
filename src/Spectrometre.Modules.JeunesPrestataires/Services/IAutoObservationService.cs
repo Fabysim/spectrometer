@@ -30,4 +30,21 @@ public interface IAutoObservationService
         string requestingUserId,
         int jeuneProfileId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Enregistre les 5 réponses d'orientation (une seule fois), applique la suggestion de
+    /// <c>ProfilAccompagnement</c>. N'écrase pas un profil déjà fixé après cette étape
+    /// (second appel ignoré — le coach reste prioritaire via la fiche de suivi).
+    /// </summary>
+    Task<bool> EnregistrerOrientationAsync(
+        string requestingUserId,
+        int jeuneProfileId,
+        IReadOnlyList<AutoObservationAnswerInput> answers,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Ferme l'écran sans changer le profil choisi par le coach à l'invitation.</summary>
+    Task<bool> PasserOrientationAsync(
+        string requestingUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default);
 }

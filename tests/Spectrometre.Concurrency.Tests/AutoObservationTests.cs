@@ -159,7 +159,159 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
         Assert.Equal(4, section!.Answers.First(a => a.QuestionKey == "p0.s7.piste1.motivation").NumericValue);
     }
 
-    private async Task<(string CoachId, string JeuneId, int ProfileId)> CreerJeuneAvecCoachAsync()
+    [Fact]
+    public void SuggereProfil_AutonomeUniquementSiSignalUnivoque_SinonSansExperience()
+    {
+        Assert.Equal(
+            ProfilAccompagnement.SansExperience,
+            AutoObservationOrientationCatalog.SuggereProfil(Reponses(
+                AutoObservationOrientationCatalog.Non,
+                AutoObservationOrientationCatalog.Non,
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.Non,
+                AutoObservationOrientationCatalog.Oui)));
+
+        Assert.Equal(
+            ProfilAccompagnement.Autonome,
+            AutoObservationOrientationCatalog.SuggereProfil(Reponses(
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.Non,
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.Non)));
+
+        Assert.Equal(
+            ProfilAccompagnement.SansExperience,
+            AutoObservationOrientationCatalog.SuggereProfil(Reponses(
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.Non,
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.JeNeSaisPas)));
+
+        Assert.Equal(
+            ProfilAccompagnement.SansExperience,
+            AutoObservationOrientationCatalog.SuggereProfil(Reponses(
+                AutoObservationOrientationCatalog.UnPeu,
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.Non,
+                AutoObservationOrientationCatalog.Oui,
+                AutoObservationOrientationCatalog.Non)));
+
+        Assert.DoesNotContain(
+            AutoObservationCatalog.AllSections,
+            s => s.Key == AutoObservationOrientationCatalog.SectionKey);
+    }
+
+    [Fact]
+    public async Task Orientation_SansExperienceClaire_EcraseChoixCoachAutonome()
+    {
+        var (coachId, jeuneId, profileId) = await CreerJeuneAvecCoachAsync(ProfilAccompagnement.Autonome);
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+        var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
+
+        var page = await svc.TryGetPageAsync(jeuneId);
+        Assert.True(page!.OrientationAFaire);
+        Assert.False((await svc.TryGetPageAsync(coachId, profileId))!.OrientationAFaire);
+
+        Assert.True(await svc.EnregistrerOrientationAsync(jeuneId, profileId, Inputs(
+            AutoObservationOrientationCatalog.Non,
+            AutoObservationOrientationCatalog.Non,
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Non,
+            AutoObservationOrientationCatalog.Oui)));
+
+        var apres = await jeuneService.TryGetByIdAsync(profileId);
+        Assert.Equal(ProfilAccompagnement.SansExperience, apres!.ProfilAccompagnement);
+        Assert.False((await svc.TryGetPageAsync(jeuneId))!.OrientationAFaire);
+        Assert.Equal(
+            2,
+            AutoObservationCatalog.GetSectionsOrdonnees(apres.ProfilAccompagnement)[0].PartNumber);
+    }
+
+    [Fact]
+    public async Task Orientation_AutonomeClaire_EcraseChoixCoachSansExperience()
+    {
+        var (_, jeuneId, profileId) = await CreerJeuneAvecCoachAsync(ProfilAccompagnement.SansExperience);
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+        var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
+
+        Assert.True(await svc.EnregistrerOrientationAsync(jeuneId, profileId, Inputs(
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Non,
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Non)));
+
+        var apres = await jeuneService.TryGetByIdAsync(profileId);
+        Assert.Equal(ProfilAccompagnement.Autonome, apres!.ProfilAccompagnement);
+        Assert.Equal(0, AutoObservationCatalog.GetSectionsOrdonnees(apres.ProfilAccompagnement)[0].PartNumber);
+    }
+
+    [Fact]
+    public async Task Orientation_ReponsesMixtes_RetombeSurSansExperience()
+    {
+        var (_, jeuneId, profileId) = await CreerJeuneAvecCoachAsync(ProfilAccompagnement.Autonome);
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+        var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
+
+        Assert.True(await svc.EnregistrerOrientationAsync(jeuneId, profileId, Inputs(
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.JeNeSaisPas)));
+
+        Assert.Equal(
+            ProfilAccompagnement.SansExperience,
+            (await jeuneService.TryGetByIdAsync(profileId))!.ProfilAccompagnement);
+    }
+
+    [Fact]
+    public async Task Orientation_Ignoree_GardeProfilCoach_EtCoachPeutCorrigerEnsuite()
+    {
+        var (coachId, jeuneId, profileId) = await CreerJeuneAvecCoachAsync(ProfilAccompagnement.Autonome);
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+        var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
+
+        Assert.True(await svc.PasserOrientationAsync(jeuneId, profileId));
+        Assert.Equal(ProfilAccompagnement.Autonome, (await jeuneService.TryGetByIdAsync(profileId))!.ProfilAccompagnement);
+        Assert.False((await svc.TryGetPageAsync(jeuneId))!.OrientationAFaire);
+
+        var jeuneUserId = (await jeuneService.TryGetByIdAsync(profileId))!.UserId;
+        Assert.True(await jeuneService.MettreAJourProfilAccompagnementAsync(
+            coachId, jeuneUserId, ProfilAccompagnement.SansExperience));
+        Assert.Equal(ProfilAccompagnement.SansExperience, (await jeuneService.TryGetByIdAsync(profileId))!.ProfilAccompagnement);
+
+        Assert.False(await svc.EnregistrerOrientationAsync(jeuneId, profileId, Inputs(
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Non,
+            AutoObservationOrientationCatalog.Oui,
+            AutoObservationOrientationCatalog.Non)));
+        Assert.Equal(ProfilAccompagnement.SansExperience, (await jeuneService.TryGetByIdAsync(profileId))!.ProfilAccompagnement);
+    }
+
+    private static Dictionary<string, string?> Reponses(string q1, string q2, string q3, string q4, string q5) => new(StringComparer.Ordinal)
+    {
+        [AutoObservationOrientationCatalog.Q1] = q1,
+        [AutoObservationOrientationCatalog.Q2] = q2,
+        [AutoObservationOrientationCatalog.Q3] = q3,
+        [AutoObservationOrientationCatalog.Q4] = q4,
+        [AutoObservationOrientationCatalog.Q5] = q5,
+    };
+
+    private static List<AutoObservationAnswerInput> Inputs(string q1, string q2, string q3, string q4, string q5) =>
+    [
+        new(AutoObservationOrientationCatalog.Q1, q1, null),
+        new(AutoObservationOrientationCatalog.Q2, q2, null),
+        new(AutoObservationOrientationCatalog.Q3, q3, null),
+        new(AutoObservationOrientationCatalog.Q4, q4, null),
+        new(AutoObservationOrientationCatalog.Q5, q5, null),
+    ];
+
+    private async Task<(string CoachId, string JeuneId, int ProfileId)> CreerJeuneAvecCoachAsync(
+        ProfilAccompagnement profil = ProfilAccompagnement.SansExperience)
     {
         var coachId = await CreerUtilisateurAsync($"coach-ao-{Guid.NewGuid()}@test.local");
         var jeuneEmail = $"jeune-ao-{Guid.NewGuid()}@test.local";
@@ -172,7 +324,8 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
             "Bernard",
             "Sam",
             DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-15)),
-            "http://localhost");
+            "http://localhost",
+            profil);
         Assert.True(invite.Success);
 
         var jeuneId = await CreerUtilisateurAsync(jeuneEmail);

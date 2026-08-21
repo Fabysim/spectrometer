@@ -33,12 +33,16 @@ public sealed class AutoObservationService(
             .OrderByDescending(s => s.GenereeLe)
             .FirstOrDefaultAsync(cancellationToken);
 
+        var orientationFaite = progress.Any(p => p.SectionKey == AutoObservationOrientationCatalog.SectionKey);
+        var orientationAFaire = access.Value.Mode == AutoObservationAccessMode.Jeune && !orientationFaite;
+
         return new AutoObservationPageView(
             access.Value.Mode,
             access.Value.Profile,
             synthese?.Contenu,
             synthese?.GenereeLe,
-            progress);
+            progress,
+            orientationAFaire);
     }
 
     public async Task<AutoObservationSectionView?> TryGetSectionAsync(
@@ -240,6 +244,95 @@ public sealed class AutoObservationService(
 
         await db.SaveChangesAsync(cancellationToken);
         return contenu;
+    }
+
+    public async Task<bool> EnregistrerOrientationAsync(
+        string requestingUserId,
+        int jeuneProfileId,
+        IReadOnlyList<AutoObservationAnswerInput> answers,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveAccessAsync(requestingUserId, jeuneProfileId, cancellationToken);
+        if (access is null
+            || access.Value.Profile.Id != jeuneProfileId
+            || access.Value.Mode != AutoObservationAccessMode.Jeune)
+            return false;
+
+        var parCle = answers
+            .Where(a => AutoObservationOrientationCatalog.QuestionKeys.Contains(a.QuestionKey))
+            .GroupBy(a => a.QuestionKey, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Last().TextValue, StringComparer.Ordinal);
+
+        if (AutoObservationOrientationCatalog.Questions.Any(q =>
+                !parCle.TryGetValue(q.Key, out var code)
+                || !AutoObservationOrientationCatalog.EstReponseValide(q.Key, code)))
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var dejaFait = await db.AutoObservationSectionProgress.AnyAsync(
+            p => p.JeuneProfileId == jeuneProfileId
+                 && p.SectionKey == AutoObservationOrientationCatalog.SectionKey,
+            cancellationToken);
+        if (dejaFait)
+            return false;
+
+        var maintenant = DateTimeOffset.UtcNow;
+        foreach (var q in AutoObservationOrientationCatalog.Questions)
+        {
+            db.AutoObservationReponses.Add(new AutoObservationReponse
+            {
+                JeuneProfileId = jeuneProfileId,
+                QuestionKey = q.Key,
+                TextValue = parCle[q.Key],
+                NumericValue = null,
+                UpdatedAt = maintenant,
+            });
+        }
+
+        db.AutoObservationSectionProgress.Add(new AutoObservationSectionProgress
+        {
+            JeuneProfileId = jeuneProfileId,
+            SectionKey = AutoObservationOrientationCatalog.SectionKey,
+            SavedAt = maintenant,
+        });
+
+        var jeune = await db.JeuneProfiles.FirstOrDefaultAsync(p => p.Id == jeuneProfileId, cancellationToken);
+        if (jeune is null)
+            return false;
+
+        jeune.ProfilAccompagnement = AutoObservationOrientationCatalog.SuggereProfil(parCle);
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> PasserOrientationAsync(
+        string requestingUserId,
+        int jeuneProfileId,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveAccessAsync(requestingUserId, jeuneProfileId, cancellationToken);
+        if (access is null
+            || access.Value.Profile.Id != jeuneProfileId
+            || access.Value.Mode != AutoObservationAccessMode.Jeune)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var dejaFait = await db.AutoObservationSectionProgress.AnyAsync(
+            p => p.JeuneProfileId == jeuneProfileId
+                 && p.SectionKey == AutoObservationOrientationCatalog.SectionKey,
+            cancellationToken);
+        if (dejaFait)
+            return true;
+
+        db.AutoObservationSectionProgress.Add(new AutoObservationSectionProgress
+        {
+            JeuneProfileId = jeuneProfileId,
+            SectionKey = AutoObservationOrientationCatalog.SectionKey,
+            SavedAt = DateTimeOffset.UtcNow,
+        });
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     private static bool CanEditSection(AutoObservationAccessMode mode, AutoObservationSectionDef section)

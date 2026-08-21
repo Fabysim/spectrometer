@@ -80,6 +80,21 @@
   <data name="AutoObs_AccesRefuse_Titre" xml:space="preserve"><value>Accès non autorisé</value></data>
   <data name="AutoObs_AccesRefuse_Message" xml:space="preserve"><value>Ce questionnaire est réservé aux jeunes prestataires invités et à leur coach référent.</value></data>
   <data name="AutoObs_LienQuestionnaire" xml:space="preserve"><value>Questionnaire d'auto-observation</value></data>
+  <data name="Orientation_Titre" xml:space="preserve"><value>Quelques questions pour t'orienter</value></data>
+  <data name="Orientation_Intro" xml:space="preserve"><value>Tes réponses aident à proposer un accompagnement adapté. Tu peux passer cette étape : le choix de ton coach restera alors inchangé.</value></data>
+  <data name="Orientation_Aide" xml:space="preserve"><value>Une seule fois — ensuite tu continues vers le questionnaire d'auto-observation.</value></data>
+  <data name="Orientation_Q1" xml:space="preserve"><value>As-tu déjà eu une expérience de travail, de stage, de bénévolat ou de service rendu à une personne extérieure à ta famille ?</value></data>
+  <data name="Orientation_Q2" xml:space="preserve"><value>As-tu déjà été rémunéré pour une tâche, une mission ou un petit travail ?</value></data>
+  <data name="Orientation_Q3" xml:space="preserve"><value>Ton objectif principal aujourd'hui est-il plutôt de découvrir le monde du travail, de prendre confiance et d'apprendre les habitudes de base ?</value></data>
+  <data name="Orientation_Q4" xml:space="preserve"><value>Ton objectif principal est-il plutôt de préciser un choix d'études, de formation, de métier ou de carrière ?</value></data>
+  <data name="Orientation_Q5" xml:space="preserve"><value>Souhaites-tu d'abord essayer de petites missions concrètes chez des particuliers avant de définir un projet professionnel plus précis ?</value></data>
+  <data name="Orientation_Opt_oui" xml:space="preserve"><value>Oui</value></data>
+  <data name="Orientation_Opt_non" xml:space="preserve"><value>Non</value></data>
+  <data name="Orientation_Opt_un_peu" xml:space="preserve"><value>Un peu</value></data>
+  <data name="Orientation_Opt_je_ne_sais_pas" xml:space="preserve"><value>Je ne sais pas</value></data>
+  <data name="Orientation_Valider" xml:space="preserve"><value>Continuer</value></data>
+  <data name="Orientation_Passer" xml:space="preserve"><value>Passer ces questions</value></data>
+  <data name="Orientation_Erreur" xml:space="preserve"><value>Enregistrement impossible. Réessaie, ou passe cette étape.</value></data>
 
   <data name="Section1_Title" xml:space="preserve"><value>1. Identification du jeune prestataire</value></data>
   <data name="Section1_Intro" xml:space="preserve"><value>Informations issues de votre profil jeune prestataire (lecture seule).</value></data>

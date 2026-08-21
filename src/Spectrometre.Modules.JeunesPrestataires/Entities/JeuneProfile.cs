@@ -16,8 +16,9 @@ public sealed class JeuneProfile
     public DateOnly DateNaissance { get; set; }
 
     /// <summary>
-    /// Décidé par le coach à l'invitation. Défaut <see cref="ProfilAccompagnement.SansExperience"/>
-    /// (micro-tâches d'abord). Peut être corrigé ensuite sur la fiche de suivi.
+    /// Choisi par le coach à l'invitation, éventuellement remplacé une fois par la suggestion
+    /// d'orientation (5 questions, écran d'auto-observation). Toute correction ultérieure du coach
+    /// via la fiche de suivi reste prioritaire — l'orientation ne se rejoue pas.
     /// </summary>
     public ProfilAccompagnement ProfilAccompagnement { get; set; } = ProfilAccompagnement.SansExperience;
 
