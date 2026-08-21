@@ -233,8 +233,37 @@ public sealed class AutoObservationService(
             return null;
 
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
-        return await PersisterSyntheseAsync(
+
+        var existing = await db.AutoObservationSynthesesGenerees.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.JeuneProfileId == jeuneProfileId, cancellationToken);
+        // Déjà en attente = ASyntheseEnAttenteDeValidationAsync serait déjà true : pas de nouvelle notif.
+        var dejaEnAttenteDeValidation = existing is not null && existing.ValideeLe is null;
+
+        var json = await PersisterSyntheseAsync(
             db, jeuneProfileId, access.Value.Profile.ProfilAccompagnement, cancellationToken);
+
+        if (!dejaEnAttenteDeValidation)
+            await NotifierCoachSyntheseAValiderAsync(access.Value.Profile, cancellationToken);
+
+        return json;
+    }
+
+    private async Task NotifierCoachSyntheseAValiderAsync(
+        JeuneProfileView jeune,
+        CancellationToken cancellationToken)
+    {
+        var coachId = await FindCoachReferentAsync(jeune.UserId, cancellationToken);
+        if (coachId is null)
+            return;
+
+        var jeuneNom = $"{jeune.Prenoms} {jeune.Nom}".Trim();
+        await notificationService.CreerAsync(
+            coachId,
+            "Synthèse d'auto-observation à relire",
+            $"{jeuneNom} a mis à jour son auto-observation. La synthèse attend votre validation.",
+            $"/coach/suivis/{jeune.UserId}/auto-observation?section=p2.s13",
+            "JeunesPrestataires.SyntheseAValider",
+            cancellationToken);
     }
 
     private async Task<string> PersisterSyntheseAsync(

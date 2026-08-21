@@ -93,6 +93,32 @@ public sealed class AutoObservationTests(ServiceFixture fixture)
     }
 
     [Fact]
+    public async Task RegenererSynthese_NotifieLeCoachUniquementSurTransitionVersAttente()
+    {
+        var (coachId, jeuneId, profileId) = await CreerJeuneAvecCoachAsync();
+        var svc = fixture.Services.GetRequiredService<IAutoObservationService>();
+        var notifSvc = fixture.Services.GetRequiredService<INotificationService>();
+
+        Assert.NotNull(await svc.RegenererSyntheseAsync(jeuneId, profileId));
+        var apresPremiere = await notifSvc.GetRecentesAsync(coachId, 20);
+        Assert.Equal(1, apresPremiere.Count(n => n.TypeCode == "JeunesPrestataires.SyntheseAValider"));
+        Assert.Contains(
+            apresPremiere,
+            n => n.TypeCode == "JeunesPrestataires.SyntheseAValider"
+                 && n.Lien == $"/coach/suivis/{jeuneId}/auto-observation?section=p2.s13");
+
+        Assert.NotNull(await svc.RegenererSyntheseAsync(jeuneId, profileId));
+        Assert.NotNull(await svc.RegenererSyntheseAsync(jeuneId, profileId));
+        Assert.Equal(1, (await notifSvc.GetRecentesAsync(coachId, 20))
+            .Count(n => n.TypeCode == "JeunesPrestataires.SyntheseAValider"));
+
+        Assert.True(await svc.ValiderSyntheseAsync(coachId, profileId));
+        Assert.NotNull(await svc.RegenererSyntheseAsync(jeuneId, profileId));
+        Assert.Equal(2, (await notifSvc.GetRecentesAsync(coachId, 20))
+            .Count(n => n.TypeCode == "JeunesPrestataires.SyntheseAValider"));
+    }
+
+    [Fact]
     public void AllSections_InclutPart0EnTete_AvecClesP0()
     {
         var sections = AutoObservationCatalog.AllSections;
