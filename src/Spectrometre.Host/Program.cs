@@ -45,6 +45,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+// Import de CV (PDF/docx jusqu'à 5 Mo) via InputFile en Blazor Server — le plafond SignalR par défaut (32 Ko)
+// ferait échouer l'upload. Marge au-dessus de la limite métier.
+builder.Services.Configure<Microsoft.AspNetCore.SignalR.HubOptions>(options =>
+{
+    options.MaximumReceiveMessageSize = 6 * 1024 * 1024;
+});
+
 // Localisation du « chrome » de l'application (connexion, inscription, menu, tableau de bord) — voir
 // Spectrometre.Host.Resources.SharedResource. Ne couvre PAS le contenu métier des modules (hors périmètre
 // de ce cycle, voir leur propre remarque). Vit dans Host (jamais dans un module), donc aucune dépendance

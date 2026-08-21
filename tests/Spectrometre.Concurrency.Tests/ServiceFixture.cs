@@ -40,6 +40,7 @@ using Spectrometre.Modules.Recrutement.Data;
 using Spectrometre.Modules.Recrutement.Services;
 using Spectrometre.Modules.ProfilCandidat;
 using Spectrometre.Modules.ProfilCandidat.Data;
+using Spectrometre.Modules.ProfilCandidat.Services;
 using Spectrometre.Modules.ProfilEntreprise;
 using Spectrometre.Modules.ProfilEntreprise.Data;
 using Spectrometre.Modules.ProfilEntreprise.Services;
@@ -195,6 +196,7 @@ public sealed class ServiceFixture : IAsyncLifetime
         services.Replace(ServiceDescriptor.Scoped<IAiSynthesisService, FakeAiSynthesisService>());
         services.Replace(ServiceDescriptor.Scoped<Spectrometre.Modules.Recrutement.Services.IAnalysePosteIaService, FakeAnalysePosteIaService>());
         services.Replace(ServiceDescriptor.Scoped<Spectrometre.Modules.ProfilEntreprise.Services.IPosteCritereIaService, FakePosteCritereIaService>());
+        services.Replace(ServiceDescriptor.Scoped<ICvImportIaService, FakeCvImportIaService>());
 
         // Même câblage que Spectrometre.Host.Program : l'implémentation réelle est fournie par
         // ProfilEntreprise (ex-PostesRecrutement) mais enregistrée ici (pas depuis Compatibilite).

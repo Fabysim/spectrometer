@@ -270,6 +270,7 @@
   <data name="FicheSuivi_Guide_Vide" xml:space="preserve"><value>Guide jamais rempli.</value></data>
   <data name="FicheSuivi_Liens_Titre" xml:space="preserve"><value>Écrans détaillés</value></data>
   <data name="FicheSuivi_Lien_AutoObs" xml:space="preserve"><value>Auto-observation</value></data>
+  <data name="FicheSuivi_Lien_Cv" xml:space="preserve"><value>Voir le CV</value></data>
   <data name="FicheSuivi_Lien_Grille" xml:space="preserve"><value>Grille d'observation</value></data>
   <data name="FicheSuivi_Lien_Guide" xml:space="preserve"><value>Guide d'entrevue</value></data>
   <data name="FicheSuivi_Lien_Missions" xml:space="preserve"><value>Missions</value></data>

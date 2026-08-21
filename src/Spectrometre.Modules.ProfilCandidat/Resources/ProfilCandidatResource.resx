@@ -69,6 +69,23 @@
   <data name="CurriculumVitae" xml:space="preserve"><value>Curriculum vitæ</value></data>
   <data name="Cv_Intro" xml:space="preserve"><value>Ce formulaire est distinct du questionnaire de connaissance de soi — il s'agit d'un CV structuré classique, enregistré section par section.</value></data>
   <data name="Cv_TelechargerPdf" xml:space="preserve"><value>Télécharger en PDF</value></data>
+  <data name="Cv_Import_Titre" xml:space="preserve"><value>Importer un CV existant</value></data>
+  <data name="Cv_Import_Intro" xml:space="preserve"><value>PDF ou Word (.docx), 5 Mo maximum. Vous relirez et confirmerez avant tout enregistrement. En cas d'échec, remplissez le formulaire manuellement.</value></data>
+  <data name="Cv_Import_Bouton" xml:space="preserve"><value>Importer un CV existant</value></data>
+  <data name="Cv_Import_EnCours" xml:space="preserve"><value>Analyse du document en cours…</value></data>
+  <data name="Cv_Import_FormatRefuse" xml:space="preserve"><value>Ce format n'est pas accepté. Utilisez un fichier PDF ou Word (.docx), ou remplissez le CV à la main.</value></data>
+  <data name="Cv_Import_FichierTropVolumineux" xml:space="preserve"><value>Le fichier dépasse 5 Mo. Choisissez un document plus léger, ou remplissez le CV à la main.</value></data>
+  <data name="Cv_Import_Illisible" xml:space="preserve"><value>Ce document n'a pas pu être lu. Essayez un autre fichier, ou remplissez le CV à la main.</value></data>
+  <data name="Cv_Import_IaEchec" xml:space="preserve"><value>L'analyse automatique n'a pas abouti. Vous pouvez remplir le CV à la main.</value></data>
+  <data name="Cv_Import_PretARelire" xml:space="preserve"><value>Vérifiez les champs ci-dessous, corrigez si besoin, puis enregistrez.</value></data>
+  <data name="Cv_Import_Relire" xml:space="preserve"><value>Relisez les informations extraites, corrigez-les si besoin, puis confirmez pour les enregistrer dans votre CV. Rien n'est sauvegardé tant que vous n'avez pas confirmé.</value></data>
+  <data name="Cv_Import_Confirmer" xml:space="preserve"><value>Enregistrer dans mon CV</value></data>
+  <data name="Cv_Import_Annuler" xml:space="preserve"><value>Annuler l'import</value></data>
+  <data name="Cv_Import_Enregistre" xml:space="preserve"><value>Les informations ont été enregistrées dans votre CV.</value></data>
+  <data name="Cv_Import_Annule" xml:space="preserve"><value>Import annulé. Votre CV n'a pas été modifié.</value></data>
+  <data name="Cv_ModeCoach" xml:space="preserve"><value>Lecture — CV du jeune suivi (non modifiable ici).</value></data>
+  <data name="Cv_AccesRefuse_Titre" xml:space="preserve"><value>Accès non autorisé</value></data>
+  <data name="Cv_AccesRefuse_Message" xml:space="preserve"><value>Le CV d'un jeune n'est consultable que par son coach suiveur.</value></data>
   <data name="Cv_LienQuestionnaire" xml:space="preserve"><value>questionnaire de connaissance de soi</value></data>
   <data name="Cv_Section1" xml:space="preserve"><value>1. Coordonnées du postulant</value></data>
   <data name="Nom" xml:space="preserve"><value>Nom</value></data>

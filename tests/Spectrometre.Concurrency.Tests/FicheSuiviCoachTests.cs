@@ -164,6 +164,37 @@ public sealed class FicheSuiviCoachTests(ServiceFixture fixture)
         Assert.Null(await consentement.TryGetPourCoachAsync(autreCoach, jeuneProfileId));
     }
 
+    [Fact]
+    public async Task TryGetPourCoachAsync_CoachAutoriseLitLeCv_NonAutoriseRetourneNull()
+    {
+        var cvCoach = fixture.Services.GetRequiredService<ICvCoachQuery>();
+        var candidateService = fixture.Services.GetRequiredService<ICandidateProfileService>();
+
+        var (coachUserId, jeuneUserId, _) = await CreerJeuneAvecCoachAsync(
+            "Leroy", "Inès", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-16)));
+        var autreCoach = await CreerUtilisateurAsync($"autre-coach-cv-{Guid.NewGuid()}@test.local");
+
+        var candidateProfileId = await candidateService.GetOrCreateProfileIdAsync(jeuneUserId);
+        await candidateService.SaveCoordonneesAsync(candidateProfileId, new Spectrometre.Modules.ProfilCandidat.Entities.CvCoordonnees
+        {
+            Nom = "Leroy",
+            Prenoms = "Inès",
+            Telephone = "0470000001",
+            Email = "ines.leroy@example.com",
+        });
+
+        var cv = await cvCoach.TryGetPourCoachAsync(coachUserId, jeuneUserId);
+        Assert.NotNull(cv);
+        Assert.NotNull(cv!.Coordonnees);
+        Assert.Equal("Leroy", cv.Coordonnees!.Nom);
+        Assert.Equal("Inès", cv.Coordonnees.Prenoms);
+        Assert.Equal("0470000001", cv.Coordonnees.Telephone);
+        Assert.Equal("ines.leroy@example.com", cv.Coordonnees.Email);
+
+        Assert.Null(await cvCoach.TryGetPourCoachAsync(autreCoach, jeuneUserId));
+        Assert.Null(await cvCoach.TryGetPourCoachAsync(coachUserId, "user-inexistant"));
+    }
+
     private async Task<(string CoachUserId, string JeuneUserId, int ProfileId)> CreerJeuneAvecCoachAsync(
         string nom,
         string prenoms,

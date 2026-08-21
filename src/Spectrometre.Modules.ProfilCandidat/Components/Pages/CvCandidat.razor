@@ -1,4 +1,5 @@
 @page "/candidat/cv"
+@page "/coach/suivis/{SuiviUserId}/cv"
 @attribute [Authorize]
 @rendermode InteractiveServer
 @using System.Security.Claims
@@ -8,32 +9,93 @@
 @using Spectrometre.Modules.ProfilCandidat.Entities
 @using Spectrometre.Modules.ProfilCandidat.Resources
 @using Spectrometre.Modules.ProfilCandidat.Services
+@using Microsoft.AspNetCore.Components.Forms
 @inject ICandidateProfileService CandidateProfileService
+@inject ICvCoachQuery CvCoachQuery
+@inject ICvImportService CvImportService
 @inject IStringLocalizer<ProfilCandidatResource> Localizer
 
 <PageTitle>@Localizer["CurriculumVitae"]</PageTitle>
 
-<div class="cv-page">
+<div class="cv-page @(_lectureSeule ? "lecture-seule" : null) @(_modeRelectureImport ? "relecture-import" : null)">
+@if (_accesRefuse)
+{
     <header class="cv-header">
         <div>
-            <h1 class="cv-title">@Localizer["CurriculumVitae"]</h1>
-            <p class="cv-subtitle">
-                @Localizer["Cv_Intro"]
-                (<a class="cv-link" href="/candidat/questionnaire">@Localizer["Cv_LienQuestionnaire"]</a>)
-            </p>
+            <h1 class="cv-title">@Localizer["Cv_AccesRefuse_Titre"]</h1>
+            <p class="cv-subtitle">@Localizer["Cv_AccesRefuse_Message"]</p>
         </div>
-        <a class="cv-link" href="/candidat/cv/pdf" data-enhance-nav="false">
-            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
-            @Localizer["Cv_TelechargerPdf"]
-        </a>
     </header>
-
-@if (_cv is null)
-{
-    <p class="cv-state">@Localizer["Chargement"]</p>
 }
 else
 {
+    <header class="cv-header">
+        <div>
+            <h1 class="cv-title">@Localizer["CurriculumVitae"]</h1>
+            @if (_lectureSeule)
+            {
+                <p class="cv-subtitle">@Localizer["Cv_ModeCoach"]</p>
+            }
+            else
+            {
+                <p class="cv-subtitle">
+                    @Localizer["Cv_Intro"]
+                    (<a class="cv-link" href="/candidat/questionnaire">@Localizer["Cv_LienQuestionnaire"]</a>)
+                </p>
+            }
+        </div>
+        @if (!_lectureSeule)
+        {
+            <a class="cv-link" href="/candidat/cv/pdf" data-enhance-nav="false">
+                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+                @Localizer["Cv_TelechargerPdf"]
+            </a>
+        }
+    </header>
+
+    @if (!_lectureSeule)
+    {
+        <section class="cv-card cv-import">
+            <h2 class="cv-section-title">@Localizer["Cv_Import_Titre"]</h2>
+            <p class="cv-subtitle">@Localizer["Cv_Import_Intro"]</p>
+            <label class="cv-btn-secondary cv-import-label">
+                @Localizer["Cv_Import_Bouton"]
+                <InputFile accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                           OnChange="OnImportFichierAsync" />
+            </label>
+            @if (_importEnCours)
+            {
+                <p class="cv-state">@Localizer["Cv_Import_EnCours"]</p>
+            }
+            else if (_importMessage is not null)
+            {
+                <p class="cv-state">@_importMessage</p>
+            }
+        </section>
+    }
+
+    @if (_modeRelectureImport)
+    {
+        <div class="cv-import-banner" role="status">
+            <p>@Localizer["Cv_Import_Relire"]</p>
+            <div class="cv-actions">
+                <button type="button" class="cv-btn-primary" @onclick="ConfirmerImportAsync" disabled="@_importEnCours">
+                    @Localizer["Cv_Import_Confirmer"]
+                </button>
+                <button type="button" class="cv-btn-secondary" @onclick="AnnulerImportAsync" disabled="@_importEnCours">
+                    @Localizer["Cv_Import_Annuler"]
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (_cv is null)
+    {
+        <p class="cv-state">@Localizer["Chargement"]</p>
+    }
+    else
+    {
+        <fieldset class="cv-fieldset" disabled="@_lectureSeule">
     <section class="cv-card">
         <div class="cv-card-icon tone-primary" aria-hidden="true">
             <i class="bi bi-person-vcard"></i>
@@ -368,14 +430,22 @@ else
             </div>
         </div>
     </section>
+        </fieldset>
+    }
 }
 </div>
 
 @code {
+    [Parameter] public string? SuiviUserId { get; set; }
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>? AuthenticationStateTask { get; set; }
 
     private int _candidateProfileId;
     private CvView? _cv;
+    private bool _lectureSeule;
+    private bool _accesRefuse;
+    private bool _modeRelectureImport;
+    private bool _importEnCours;
+    private string? _importMessage;
 
     private readonly CoordonneesModel _coordonnees = new();
     private bool _coordonneesSaved;
@@ -485,77 +555,194 @@ else
             userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? userId;
         }
 
-        _candidateProfileId = await CandidateProfileService.GetOrCreateProfileIdAsync(userId);
+        if (!string.IsNullOrWhiteSpace(SuiviUserId))
+        {
+            _lectureSeule = true;
+            _cv = await CvCoachQuery.TryGetPourCoachAsync(userId, SuiviUserId);
+            if (_cv is null)
+            {
+                _accesRefuse = true;
+                return;
+            }
+        }
+        else
+        {
+            _candidateProfileId = await CandidateProfileService.GetOrCreateProfileIdAsync(userId);
+            _cv = await CandidateProfileService.GetCvAsync(_candidateProfileId);
+        }
+
+        ChargerDansFormulaire(_cv);
+    }
+
+    private void ChargerDansFormulaire(CvView cv)
+    {
+        _coordonnees.Nom = cv.Coordonnees?.Nom;
+        _coordonnees.Prenoms = cv.Coordonnees?.Prenoms;
+        _coordonnees.DateNaissance = cv.Coordonnees?.DateNaissance;
+        _coordonnees.LieuNaissance = cv.Coordonnees?.LieuNaissance;
+        _coordonnees.Nationalite = cv.Coordonnees?.Nationalite;
+        _coordonnees.AdresseComplete = cv.Coordonnees?.AdresseComplete;
+        _coordonnees.Telephone = cv.Coordonnees?.Telephone;
+        _coordonnees.Email = cv.Coordonnees?.Email;
+        _coordonnees.ProfilOuPosteRecherche = cv.Coordonnees?.ProfilOuPosteRecherche;
+
+        _formations.Clear();
+        _formations.AddRange(cv.Formations.Select(f => new FormationRow
+        {
+            Id = f.Id > 0 ? f.Id : null,
+            Periode = f.Periode,
+            Etablissement = f.Etablissement,
+            Diplome = f.DiplomeCertificatOuNiveau,
+            Domaine = f.DomaineEtudes,
+            Saved = f.Id > 0,
+        }));
+
+        _competencesEtudes.SpecialitePrincipale = cv.CompetencesEtudes?.SpecialitePrincipale;
+        _competencesEtudes.CompetencesTechniques = cv.CompetencesEtudes?.CompetencesTechniques;
+        _competencesEtudes.ConnaissancesTheoriques = cv.CompetencesEtudes?.ConnaissancesTheoriques;
+        _competencesEtudes.LanguesMaitrisees = cv.CompetencesEtudes?.LanguesMaitrisees;
+        _competencesEtudes.OutilsLogicielsMethodes = cv.CompetencesEtudes?.OutilsLogicielsMethodes;
+
+        _experiences.Clear();
+        _experiences.AddRange(cv.Experiences.Select(x => new ExperienceRow
+        {
+            Id = x.Id > 0 ? x.Id : null,
+            Periode = x.Periode,
+            Entreprise = x.EntrepriseOrganisationOuStage,
+            Fonction = x.FonctionOuActiviteExercee,
+            Competences = x.CompetencesDeveloppees,
+            Saved = x.Id > 0,
+        }));
+
+        _caracteristiques.QualitesPersonnelles = cv.CaracteristiquesPersonnelles?.QualitesPersonnelles;
+        _caracteristiques.AptitudesProfessionnelles = cv.CaracteristiquesPersonnelles?.AptitudesProfessionnelles;
+        _caracteristiques.AttitudesRelationnelles = cv.CaracteristiquesPersonnelles?.AttitudesRelationnelles;
+        _caracteristiques.CapaciteSousPression = cv.CaracteristiquesPersonnelles?.CapaciteSousPression;
+        _caracteristiques.DisponibiliteMobilite = cv.CaracteristiquesPersonnelles?.DisponibiliteMobilite;
+
+        _loisirs.LoisirsPreferes = cv.Loisirs?.LoisirsPreferes;
+        _loisirs.ActivitesSportivesCulturelles = cv.Loisirs?.ActivitesSportivesCulturelles;
+        _loisirs.EngagementsAssociatifs = cv.Loisirs?.EngagementsAssociatifs;
+        _loisirs.AutresCentresInteret = cv.Loisirs?.AutresCentresInteret;
+
+        _references.Clear();
+        _references.AddRange(cv.References.Select(r => new ReferenceRow
+        {
+            Id = r.Id > 0 ? r.Id : null,
+            NomPrenom = r.NomPrenom,
+            Fonction = r.Fonction,
+            Entreprise = r.EntrepriseOrganisation,
+            Contact = r.TelephoneOuEmail,
+            Lien = r.LienAvecPostulant,
+            Saved = r.Id > 0,
+        }));
+
+        _declaration.CertificationExactitude = cv.Declaration?.CertificationExactitude ?? false;
+        _declaration.ConsentementConsultation = cv.Declaration?.ConsentementConsultation ?? false;
+        _declaration.Date = cv.Declaration?.Date;
+        _declaration.NomSignataire = cv.Declaration?.NomSignataire;
+    }
+
+    private async Task OnImportFichierAsync(InputFileChangeEventArgs e)
+    {
+        if (_lectureSeule || _importEnCours)
+            return;
+
+        var file = e.File;
+        _importEnCours = true;
+        _importMessage = null;
+        try
+        {
+            if (file.Size > ICvDocumentTextExtractor.TailleMaxOctets)
+            {
+                _importMessage = Localizer["Cv_Import_FichierTropVolumineux"];
+                return;
+            }
+
+            await using var stream = file.OpenReadStream(ICvDocumentTextExtractor.TailleMaxOctets);
+            var result = await CvImportService.ImporterAsync(stream, file.Name, file.ContentType, file.Size);
+            _importMessage = Localizer[result.MessageKey];
+            if (!result.Success || result.Brouillon is null)
+                return;
+
+            ChargerDansFormulaire(result.Brouillon);
+            _cv = result.Brouillon;
+            _modeRelectureImport = true;
+        }
+        catch
+        {
+            _importMessage = Localizer["Cv_Import_IaEchec"];
+        }
+        finally
+        {
+            _importEnCours = false;
+        }
+    }
+
+    private async Task ConfirmerImportAsync()
+    {
+        if (_lectureSeule || !_modeRelectureImport)
+            return;
+
+        _importEnCours = true;
+        try
+        {
+            var actuel = await CandidateProfileService.GetCvAsync(_candidateProfileId);
+            foreach (var f in actuel.Formations)
+                await CandidateProfileService.DeleteFormationAsync(_candidateProfileId, f.Id);
+            foreach (var x in actuel.Experiences)
+                await CandidateProfileService.DeleteExperienceAsync(_candidateProfileId, x.Id);
+            foreach (var r in actuel.References)
+                await CandidateProfileService.DeleteReferenceAsync(_candidateProfileId, r.Id);
+
+            _modeRelectureImport = false;
+            await SaveCoordonneesAsync();
+            foreach (var row in _formations.ToList())
+            {
+                row.Id = null;
+                await SaveFormationAsync(row);
+            }
+
+            await SaveCompetencesEtudesAsync();
+            foreach (var row in _experiences.ToList())
+            {
+                row.Id = null;
+                await SaveExperienceAsync(row);
+            }
+
+            await SaveCaracteristiquesAsync();
+            await SaveLoisirsAsync();
+            foreach (var row in _references.ToList())
+            {
+                row.Id = null;
+                await SaveReferenceAsync(row);
+            }
+
+            _cv = await CandidateProfileService.GetCvAsync(_candidateProfileId);
+            ChargerDansFormulaire(_cv);
+            _importMessage = Localizer["Cv_Import_Enregistre"];
+        }
+        finally
+        {
+            _importEnCours = false;
+        }
+    }
+
+    private async Task AnnulerImportAsync()
+    {
+        if (_lectureSeule)
+            return;
+
+        _modeRelectureImport = false;
         _cv = await CandidateProfileService.GetCvAsync(_candidateProfileId);
-
-        if (_cv.Coordonnees is { } c)
-        {
-            _coordonnees.Nom = c.Nom;
-            _coordonnees.Prenoms = c.Prenoms;
-            _coordonnees.DateNaissance = c.DateNaissance;
-            _coordonnees.LieuNaissance = c.LieuNaissance;
-            _coordonnees.Nationalite = c.Nationalite;
-            _coordonnees.AdresseComplete = c.AdresseComplete;
-            _coordonnees.Telephone = c.Telephone;
-            _coordonnees.Email = c.Email;
-            _coordonnees.ProfilOuPosteRecherche = c.ProfilOuPosteRecherche;
-        }
-
-        _formations.AddRange(_cv.Formations.Select(f => new FormationRow
-        {
-            Id = f.Id, Periode = f.Periode, Etablissement = f.Etablissement,
-            Diplome = f.DiplomeCertificatOuNiveau, Domaine = f.DomaineEtudes, Saved = true,
-        }));
-
-        if (_cv.CompetencesEtudes is { } ce)
-        {
-            _competencesEtudes.SpecialitePrincipale = ce.SpecialitePrincipale;
-            _competencesEtudes.CompetencesTechniques = ce.CompetencesTechniques;
-            _competencesEtudes.ConnaissancesTheoriques = ce.ConnaissancesTheoriques;
-            _competencesEtudes.LanguesMaitrisees = ce.LanguesMaitrisees;
-            _competencesEtudes.OutilsLogicielsMethodes = ce.OutilsLogicielsMethodes;
-        }
-
-        _experiences.AddRange(_cv.Experiences.Select(x => new ExperienceRow
-        {
-            Id = x.Id, Periode = x.Periode, Entreprise = x.EntrepriseOrganisationOuStage,
-            Fonction = x.FonctionOuActiviteExercee, Competences = x.CompetencesDeveloppees, Saved = true,
-        }));
-
-        if (_cv.CaracteristiquesPersonnelles is { } cp)
-        {
-            _caracteristiques.QualitesPersonnelles = cp.QualitesPersonnelles;
-            _caracteristiques.AptitudesProfessionnelles = cp.AptitudesProfessionnelles;
-            _caracteristiques.AttitudesRelationnelles = cp.AttitudesRelationnelles;
-            _caracteristiques.CapaciteSousPression = cp.CapaciteSousPression;
-            _caracteristiques.DisponibiliteMobilite = cp.DisponibiliteMobilite;
-        }
-
-        if (_cv.Loisirs is { } l)
-        {
-            _loisirs.LoisirsPreferes = l.LoisirsPreferes;
-            _loisirs.ActivitesSportivesCulturelles = l.ActivitesSportivesCulturelles;
-            _loisirs.EngagementsAssociatifs = l.EngagementsAssociatifs;
-            _loisirs.AutresCentresInteret = l.AutresCentresInteret;
-        }
-
-        _references.AddRange(_cv.References.Select(r => new ReferenceRow
-        {
-            Id = r.Id, NomPrenom = r.NomPrenom, Fonction = r.Fonction, Entreprise = r.EntrepriseOrganisation,
-            Contact = r.TelephoneOuEmail, Lien = r.LienAvecPostulant, Saved = true,
-        }));
-
-        if (_cv.Declaration is { } d)
-        {
-            _declaration.CertificationExactitude = d.CertificationExactitude;
-            _declaration.ConsentementConsultation = d.ConsentementConsultation;
-            _declaration.Date = d.Date;
-            _declaration.NomSignataire = d.NomSignataire;
-        }
+        ChargerDansFormulaire(_cv);
+        _importMessage = Localizer["Cv_Import_Annule"];
     }
 
     private async Task SaveCoordonneesAsync()
     {
+        if (_lectureSeule || _modeRelectureImport)
+            return;
         await CandidateProfileService.SaveCoordonneesAsync(_candidateProfileId, new CvCoordonnees
         {
             CandidateProfileId = _candidateProfileId,
@@ -572,10 +759,17 @@ else
         _coordonneesSaved = true;
     }
 
-    private void AjouterFormation() => _formations.Add(new FormationRow());
+    private void AjouterFormation()
+    {
+        if (_lectureSeule)
+            return;
+        _formations.Add(new FormationRow());
+    }
 
     private async Task SaveFormationAsync(FormationRow row)
     {
+        if (_lectureSeule || _modeRelectureImport)
+            return;
         var id = await CandidateProfileService.SaveFormationAsync(_candidateProfileId, row.Id, new CvFormation
         {
             CandidateProfileId = _candidateProfileId,
@@ -590,13 +784,17 @@ else
 
     private async Task DeleteFormationAsync(FormationRow row)
     {
-        if (row.Id is int id)
+        if (_lectureSeule)
+            return;
+        if (!_modeRelectureImport && row.Id is > 0 and int id)
             await CandidateProfileService.DeleteFormationAsync(_candidateProfileId, id);
         _formations.Remove(row);
     }
 
     private async Task SaveCompetencesEtudesAsync()
     {
+        if (_lectureSeule || _modeRelectureImport)
+            return;
         await CandidateProfileService.SaveCompetencesEtudesAsync(_candidateProfileId, new CvCompetencesEtudes
         {
             CandidateProfileId = _candidateProfileId,
@@ -609,10 +807,17 @@ else
         _competencesEtudesSaved = true;
     }
 
-    private void AjouterExperience() => _experiences.Add(new ExperienceRow());
+    private void AjouterExperience()
+    {
+        if (_lectureSeule)
+            return;
+        _experiences.Add(new ExperienceRow());
+    }
 
     private async Task SaveExperienceAsync(ExperienceRow row)
     {
+        if (_lectureSeule || _modeRelectureImport)
+            return;
         var id = await CandidateProfileService.SaveExperienceAsync(_candidateProfileId, row.Id, new CvExperience
         {
             CandidateProfileId = _candidateProfileId,
@@ -627,13 +832,17 @@ else
 
     private async Task DeleteExperienceAsync(ExperienceRow row)
     {
-        if (row.Id is int id)
+        if (_lectureSeule)
+            return;
+        if (!_modeRelectureImport && row.Id is > 0 and int id)
             await CandidateProfileService.DeleteExperienceAsync(_candidateProfileId, id);
         _experiences.Remove(row);
     }
 
     private async Task SaveCaracteristiquesAsync()
     {
+        if (_lectureSeule || _modeRelectureImport)
+            return;
         await CandidateProfileService.SaveCaracteristiquesPersonnellesAsync(_candidateProfileId, new CvCaracteristiquesPersonnelles
         {
             CandidateProfileId = _candidateProfileId,
@@ -648,6 +857,8 @@ else
 
     private async Task SaveLoisirsAsync()
     {
+        if (_lectureSeule || _modeRelectureImport)
+            return;
         await CandidateProfileService.SaveLoisirsAsync(_candidateProfileId, new CvLoisirs
         {
             CandidateProfileId = _candidateProfileId,
@@ -659,10 +870,17 @@ else
         _loisirsSaved = true;
     }
 
-    private void AjouterReference() => _references.Add(new ReferenceRow());
+    private void AjouterReference()
+    {
+        if (_lectureSeule)
+            return;
+        _references.Add(new ReferenceRow());
+    }
 
     private async Task SaveReferenceAsync(ReferenceRow row)
     {
+        if (_lectureSeule || _modeRelectureImport)
+            return;
         var id = await CandidateProfileService.SaveReferenceAsync(_candidateProfileId, row.Id, new CvReference
         {
             CandidateProfileId = _candidateProfileId,
@@ -678,13 +896,17 @@ else
 
     private async Task DeleteReferenceAsync(ReferenceRow row)
     {
-        if (row.Id is int id)
+        if (_lectureSeule)
+            return;
+        if (!_modeRelectureImport && row.Id is > 0 and int id)
             await CandidateProfileService.DeleteReferenceAsync(_candidateProfileId, id);
         _references.Remove(row);
     }
 
     private async Task SaveDeclarationAsync()
     {
+        if (_lectureSeule || _modeRelectureImport)
+            return;
         await CandidateProfileService.SaveDeclarationAsync(_candidateProfileId, new CvDeclaration
         {
             CandidateProfileId = _candidateProfileId,

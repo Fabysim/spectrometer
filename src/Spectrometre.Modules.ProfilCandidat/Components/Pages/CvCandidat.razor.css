@@ -257,6 +257,57 @@
     font-weight: 600;
 }
 
+.cv-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+}
+
+.cv-page.lecture-seule .cv-btn-primary,
+.cv-page.lecture-seule .cv-btn-secondary,
+.cv-page.lecture-seule .cv-btn-ghost,
+.cv-page.lecture-seule .cv-actions {
+    display: none;
+}
+
+.cv-page.relecture-import .cv-card .cv-actions,
+.cv-page.relecture-import .cv-ligne-actions {
+    display: none;
+}
+
+.cv-import-label {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    cursor: pointer;
+    margin-top: 0.75rem;
+}
+
+.cv-import-label ::deep input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+.cv-import-banner {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 12px;
+    padding: 1rem 1.15rem;
+}
+
+.cv-import-banner p {
+    margin: 0 0 0.75rem;
+    color: #9a3412;
+}
+
 @media (max-width: 640px) {
     .cv-page {
         padding: 1rem;

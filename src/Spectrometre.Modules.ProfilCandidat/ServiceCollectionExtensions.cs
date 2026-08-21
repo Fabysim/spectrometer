@@ -39,6 +39,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICandidateProfileService, CandidateProfileService>();
         services.AddScoped<ICandidateSubjectResolver, CandidateSubjectResolver>();
         services.AddScoped<ICvPdfService, CvPdfService>();
+        services.AddScoped<ICvCoachQuery, CvCoachQuery>();
+        services.AddScoped<ICvDocumentTextExtractor, CvDocumentTextExtractor>();
+        services.AddScoped<ICvImportIaService, CvImportIaService>();
+        services.AddScoped<ICvImportService, CvImportService>();
 
         // Implémentation réelle par-dessus le NoOp enregistré par AddSpectrometreCore (la dernière
         // inscription gagne à la résolution) — consommée par la zone Admin (Spectrometre.Modules.Admin),
