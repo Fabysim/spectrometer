@@ -98,6 +98,7 @@ public static class ServiceCollectionExtensions
 
         // Même filet de sécurité pour Coaching — voir NoOpCoachingAccessChecker.
         services.AddScoped<ICoachingAccessChecker, NoOpCoachingAccessChecker>();
+        services.AddScoped<IJeunePrestatairePresence, NoOpJeunePrestatairePresence>();
 
         // Filets de sécurité pour la zone Admin (lecture seule des métadonnées candidat/coach/coaching) —
         // chaque module concerné branche son implémentation réelle PAR-DESSUS directement dans sa propre

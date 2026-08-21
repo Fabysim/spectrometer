@@ -8,9 +8,14 @@
 @using Spectrometre.Modules.JeunesPrestataires.Entities
 @using Spectrometre.Modules.JeunesPrestataires.Resources
 @using Spectrometre.Modules.JeunesPrestataires.Services
+@using Spectrometre.Modules.Coaching.Services
+@using Spectrometre.Modules.ProfilCoach.Services
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @inject IFicheSuiviCoachService FicheSuiviService
 @inject IJeuneProfileService JeuneProfileService
+@inject ICoachingService CoachingService
+@inject ICoachProfileService CoachProfileService
+@inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<MissionsResource> Localizer
 @inject IStringLocalizer<JeunesPrestatairesResource> JpLocalizer
@@ -59,6 +64,42 @@ else
                 <p class="missions-meta">@_profilMessage</p>
             }
         </div>
+    </div>
+
+    <div class="missions-card">
+        <h2 class="missions-section-title">@Localizer["FicheSuivi_Transfert_Titre"]</h2>
+        <p class="missions-meta">@Localizer["FicheSuivi_Transfert_Aide"]</p>
+        <div class="missions-field">
+            <label for="transfert-recherche">@Localizer["FicheSuivi_Transfert_Recherche"]</label>
+            <input id="transfert-recherche"
+                   @bind="_rechercheCoach"
+                   @bind:event="oninput"
+                   @bind:after="RefreshAnnuaireAsync" />
+        </div>
+        @if (_annuaire.Count == 0)
+        {
+            <p class="missions-meta">@Localizer["FicheSuivi_Transfert_Vide"]</p>
+        }
+        else
+        {
+            <div class="missions-field">
+                <label for="transfert-cible">@Localizer["FicheSuivi_Transfert_Cible"]</label>
+                <select id="transfert-cible" @bind="_cibleProfileId">
+                    <option value="0">@Localizer["FicheSuivi_Transfert_Choisir"]</option>
+                    @foreach (var entry in _annuaire)
+                    {
+                        <option value="@entry.CoachProfileId">@entry.NomAffiche</option>
+                    }
+                </select>
+            </div>
+            <button type="button" class="missions-btn" @onclick="TransfererAsync" disabled="@(_transferEnCours || _cibleProfileId == 0)">
+                @Localizer["FicheSuivi_Transfert_Action"]
+            </button>
+        }
+        @if (_transfertMessage is not null)
+        {
+            <p class="missions-meta">@_transfertMessage</p>
+        }
     </div>
 
     @if (_view.ContactParental is { } contact)
@@ -223,6 +264,11 @@ else
     private FicheSuiviCoachView? _view;
     private ProfilAccompagnement _profilChoisi;
     private string? _profilMessage;
+    private string? _rechercheCoach;
+    private int _cibleProfileId;
+    private bool _transferEnCours;
+    private string? _transfertMessage;
+    private List<CoachAnnuaireEntry> _annuaire = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -230,9 +276,52 @@ else
         _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (_userId is not null && !string.IsNullOrWhiteSpace(SuiviUserId))
             _view = await FicheSuiviService.GetAsync(_userId, SuiviUserId);
-            if (_view is not null)
-                _profilChoisi = _view.ProfilAccompagnement;
+        if (_view is not null)
+            _profilChoisi = _view.ProfilAccompagnement;
+        if (_view is not null)
+            await RefreshAnnuaireAsync();
         _chargement = false;
+    }
+
+    private async Task RefreshAnnuaireAsync()
+    {
+        var entries = await CoachProfileService.GetAnnuaireVisibleAsync(_rechercheCoach);
+        _annuaire = [];
+        foreach (var entry in entries)
+        {
+            var userId = await CoachProfileService.GetUserIdAsync(entry.CoachProfileId);
+            if (userId is null || userId == _userId)
+                continue;
+            _annuaire.Add(entry);
+        }
+        if (_annuaire.All(e => e.CoachProfileId != _cibleProfileId))
+            _cibleProfileId = 0;
+    }
+
+    private async Task TransfererAsync()
+    {
+        if (_userId is null || string.IsNullOrWhiteSpace(SuiviUserId) || _cibleProfileId == 0)
+            return;
+
+        _transferEnCours = true;
+        _transfertMessage = null;
+        var cibleUserId = await CoachProfileService.GetUserIdAsync(_cibleProfileId);
+        if (cibleUserId is null)
+        {
+            _transfertMessage = Localizer["FicheSuivi_Transfert_Erreur"];
+            _transferEnCours = false;
+            return;
+        }
+
+        var ok = await CoachingService.TransfererJeunePrestataireAsync(_userId, SuiviUserId, cibleUserId);
+        if (ok)
+        {
+            Navigation.NavigateTo("/coach/suivis");
+            return;
+        }
+
+        _transfertMessage = Localizer["FicheSuivi_Transfert_Erreur"];
+        _transferEnCours = false;
     }
 
     private async Task EnregistrerProfilAsync()

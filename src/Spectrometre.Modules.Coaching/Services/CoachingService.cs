@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Spectrometre.Core.Ai;
 using Spectrometre.Core.Data;
 using Spectrometre.Core.Invitations;
+using Spectrometre.Core.Modules;
 using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Data;
 using Spectrometre.Modules.Coaching.Entities;
@@ -21,7 +22,8 @@ public sealed class CoachingService(
     IInvitationService invitationService,
     IGestionDuTempsService gestionDuTempsService,
     IAiSynthesisService aiSynthesisService,
-    INotificationService notificationService) : ICoachingService
+    INotificationService notificationService,
+    IJeunePrestatairePresence jeunePrestatairePresence) : ICoachingService
 {
     public async Task<string?> GetSuiviUserIdSiAutoriseAsync(string suiviUserId, string requestingCoachUserId, CancellationToken cancellationToken = default)
     {
@@ -51,6 +53,11 @@ public sealed class CoachingService(
                  && (l.Statut == LienCoachingStatut.EnAttente || l.Statut == LienCoachingStatut.Actif),
             cancellationToken);
         if (existeDeja)
+            return false;
+
+        // Jeune prestataire : un seul coach actif. Ne pas ouvrir une 2e demande qui deviendrait un 2e
+        // lien Actif à l'acceptation. Les candidats classiques (pas de JeuneProfile) restent multi-coachs.
+        if (await JeuneAUnAutreCoachActifAsync(db, suiviUserId, coachUserId, cancellationToken))
             return false;
 
         db.LiensCoaching.Add(new LienCoaching { SuiviUserId = suiviUserId, CoachUserId = coachUserId });
@@ -105,6 +112,9 @@ public sealed class CoachingService(
         if (lien is null || lien.CoachUserId != requestingCoachUserId || lien.Statut != LienCoachingStatut.EnAttente)
             return false;
 
+        if (await JeuneAUnAutreCoachActifAsync(db, lien.SuiviUserId, requestingCoachUserId, cancellationToken))
+            return false;
+
         lien.Statut = LienCoachingStatut.Actif;
         lien.AccepteLe = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
@@ -121,6 +131,76 @@ public sealed class CoachingService(
         lien.Statut = LienCoachingStatut.Refuse;
         lien.ClotureLe = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> TransfererJeunePrestataireAsync(
+        string coachSourceUserId,
+        string suiviUserId,
+        string coachCibleUserId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(coachSourceUserId)
+            || string.IsNullOrWhiteSpace(suiviUserId)
+            || string.IsNullOrWhiteSpace(coachCibleUserId)
+            || string.Equals(coachSourceUserId, coachCibleUserId, StringComparison.Ordinal))
+            return false;
+
+        if (!await jeunePrestatairePresence.EstJeunePrestataireAsync(suiviUserId, cancellationToken))
+            return false;
+
+        await using var db = await coachingDbFactory.CreateDbContextAsync(cancellationToken);
+        var source = await db.LiensCoaching.FirstOrDefaultAsync(
+            l => l.SuiviUserId == suiviUserId
+                 && l.CoachUserId == coachSourceUserId
+                 && l.Statut == LienCoachingStatut.Actif,
+            cancellationToken);
+        if (source is null)
+            return false;
+
+        var maintenant = DateTimeOffset.UtcNow;
+        source.Statut = LienCoachingStatut.Revoque;
+        source.ClotureLe = maintenant;
+
+        var cible = await db.LiensCoaching.FirstOrDefaultAsync(
+            l => l.SuiviUserId == suiviUserId && l.CoachUserId == coachCibleUserId,
+            cancellationToken);
+        if (cible is null)
+        {
+            cible = new LienCoaching
+            {
+                SuiviUserId = suiviUserId,
+                CoachUserId = coachCibleUserId,
+                Statut = LienCoachingStatut.Actif,
+                AccepteLe = maintenant,
+            };
+            db.LiensCoaching.Add(cible);
+        }
+        else
+        {
+            cible.Statut = LienCoachingStatut.Actif;
+            cible.AccepteLe = maintenant;
+            cible.ClotureLe = null;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        await notificationService.CreerAsync(
+            suiviUserId,
+            "Changement de coach",
+            "Votre suivi a été transféré à un autre coach de l'association.",
+            "/mon-coach",
+            "Coaching.JeuneTransfere",
+            cancellationToken);
+
+        await notificationService.CreerAsync(
+            coachCibleUserId,
+            "Jeune transféré",
+            "Un jeune vous a été transféré. Vous en êtes désormais le coach suiveur.",
+            $"/coach/suivis/{suiviUserId}/apercu",
+            "Coaching.JeuneRecuParTransfert",
+            cancellationToken);
+
         return true;
     }
 
@@ -142,12 +222,30 @@ public sealed class CoachingService(
         return new LienCoachingView(lien.Id, lien.SuiviUserId, lien.CoachUserId, lien.Statut, lien.CreatedAt, lien.AccepteLe);
     }
 
-    public async Task<LienCoachingView> FinaliserJeunePrestataireDepuisInvitationAsync(Invitation invitation, string accepteurUserId, CancellationToken cancellationToken = default)
+    public async Task<LienCoachingView?> FinaliserJeunePrestataireDepuisInvitationAsync(Invitation invitation, string accepteurUserId, CancellationToken cancellationToken = default)
     {
         if (invitation.Type != InvitationType.JeunePrestataire)
             throw new InvalidOperationException($"Type d'invitation attendu : {InvitationType.JeunePrestataire}.");
 
         await using var db = await coachingDbFactory.CreateDbContextAsync(cancellationToken);
+
+        var existantMemeCoach = await db.LiensCoaching.AsNoTracking().FirstOrDefaultAsync(
+            l => l.SuiviUserId == accepteurUserId
+                 && l.CoachUserId == invitation.EmetteurUserId
+                 && l.Statut == LienCoachingStatut.Actif,
+            cancellationToken);
+        if (existantMemeCoach is not null)
+            return ToView(existantMemeCoach);
+
+        // Bloquer plutôt que remplacer silencieusement. Le transfert explicite passe par
+        // TransfererJeunePrestataireAsync. Cette méthode est réservée aux invitations jeune.
+        var autreActif = await db.LiensCoaching.AsNoTracking().AnyAsync(
+            l => l.SuiviUserId == accepteurUserId
+                 && l.CoachUserId != invitation.EmetteurUserId
+                 && l.Statut == LienCoachingStatut.Actif,
+            cancellationToken);
+        if (autreActif)
+            return null;
 
         var lien = new LienCoaching
         {
@@ -160,8 +258,27 @@ public sealed class CoachingService(
         db.LiensCoaching.Add(lien);
         await db.SaveChangesAsync(cancellationToken);
 
-        return new LienCoachingView(lien.Id, lien.SuiviUserId, lien.CoachUserId, lien.Statut, lien.CreatedAt, lien.AccepteLe);
+        return ToView(lien);
     }
+
+    private async Task<bool> JeuneAUnAutreCoachActifAsync(
+        CoachingDbContext db,
+        string suiviUserId,
+        string coachUserId,
+        CancellationToken cancellationToken)
+    {
+        if (!await jeunePrestatairePresence.EstJeunePrestataireAsync(suiviUserId, cancellationToken))
+            return false;
+
+        return await db.LiensCoaching.AnyAsync(
+            l => l.SuiviUserId == suiviUserId
+                 && l.CoachUserId != coachUserId
+                 && l.Statut == LienCoachingStatut.Actif,
+            cancellationToken);
+    }
+
+    private static LienCoachingView ToView(LienCoaching lien) =>
+        new(lien.Id, lien.SuiviUserId, lien.CoachUserId, lien.Statut, lien.CreatedAt, lien.AccepteLe);
 
     public async Task<AnamneseCoachingView?> GetAnamneseAsync(int lienId, string requestingCoachUserId, CancellationToken cancellationToken = default)
     {

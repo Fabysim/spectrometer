@@ -739,9 +739,9 @@ public sealed class MissionService(
     }
 
     /// <summary>
-    /// Tous les coachs avec un lien <see cref="LienCoachingStatut.Actif"/> — le modèle n'interdit pas
-    /// plusieurs suivis actifs ; <see cref="FindCoachReferentAsync"/> n'en retient qu'un pour les
-    /// signalements (premier). Ici on notifie chaque suiveur actif (UserId distinct).
+    /// Coachs avec un lien <see cref="LienCoachingStatut.Actif"/>. Un jeune prestataire n'a plus qu'un
+    /// seul coach actif à la création de lien ; la boucle Distinct reste pour d'éventuels liens
+    /// historiques encore multiples.
     /// </summary>
     private async Task NotifierCoachsDemandeAcceptationAsync(
         JeuneProfileView jeune,

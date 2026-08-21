@@ -7,11 +7,13 @@ using Spectrometre.Core.Identity;
 using Spectrometre.Core.Invitations;
 using Spectrometre.Core.JeunesPrestataires;
 using Spectrometre.Core.Modules;
+using Spectrometre.Core.Notifications;
 using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.GestionDuTemps.Services;
 using Spectrometre.Modules.JeunesPrestataires.Entities;
 using Spectrometre.Modules.JeunesPrestataires.Services;
+using Spectrometre.Modules.Missions.Services;
 using Spectrometre.Modules.ProfilCandidat.Services;
 using Xunit;
 
@@ -36,6 +38,99 @@ public sealed class JeunePrestataireInvitationTests(ServiceFixture fixture)
         Assert.Equal("Dupont", profile.Nom);
         Assert.Equal("Léa", profile.Prenoms);
         Assert.Equal(ProfilAccompagnement.SansExperience, profile.ProfilAccompagnement);
+    }
+
+    [Fact]
+    public async Task FinaliserJeunePrestataire_RefuseUnSecondCoachActif_PremierLienInchange()
+    {
+        var jeuneService = fixture.Services.GetRequiredService<IJeuneProfileService>();
+        var coachingService = fixture.Services.GetRequiredService<ICoachingService>();
+
+        var (coach1UserId, jeuneUserId, _) = await InviterEtAccepterAsync(
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-16)));
+
+        var liensAvant = await coachingService.GetLiensPourSuiviAsync(jeuneUserId);
+        var actifAvant = Assert.Single(liensAvant, l => l.Statut == LienCoachingStatut.Actif);
+        Assert.Equal(coach1UserId, actifAvant.CoachUserId);
+
+        var coach2UserId = await CreerUtilisateurAsync($"coach2-{Guid.NewGuid()}@test.local");
+        var jeune = await jeuneService.TryGetByUserIdAsync(jeuneUserId);
+        Assert.NotNull(jeune);
+
+        var invite2 = await jeuneService.InviterJeuneAsync(
+            coach2UserId,
+            $"jeune-relais-{Guid.NewGuid()}@test.local",
+            "Dupont",
+            "Léa",
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-16)),
+            "http://localhost");
+        Assert.True(invite2.Success);
+
+        await using var coreDb = await fixture.Services.GetRequiredService<IDbContextFactory<CoreDbContext>>().CreateDbContextAsync();
+        var invitation2 = await coreDb.Invitations.FirstAsync(i => i.Id == invite2.Invitation!.Id);
+
+        var lien2 = await coachingService.FinaliserJeunePrestataireDepuisInvitationAsync(invitation2, jeuneUserId);
+        Assert.Null(lien2);
+
+        var liensApres = await coachingService.GetLiensPourSuiviAsync(jeuneUserId);
+        Assert.Single(liensApres, l => l.Statut == LienCoachingStatut.Actif);
+        Assert.Equal(coach1UserId, liensApres.Single(l => l.Statut == LienCoachingStatut.Actif).CoachUserId);
+        Assert.DoesNotContain(liensApres, l => l.CoachUserId == coach2UserId && l.Statut == LienCoachingStatut.Actif);
+    }
+
+    [Fact]
+    public async Task TransfererJeunePrestataire_Immediat_ClotureAncien_OuvreNouveau_UnSeulActif()
+    {
+        var coachingService = fixture.Services.GetRequiredService<ICoachingService>();
+        var fiche = fixture.Services.GetRequiredService<IFicheSuiviCoachService>();
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
+
+        var (coach1UserId, jeuneUserId, _) = await InviterEtAccepterAsync(
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-16)));
+        var coach2UserId = await CreerUtilisateurAsync($"coach-cible-{Guid.NewGuid()}@test.local");
+        var etrangerUserId = await CreerUtilisateurAsync($"coach-etranger-{Guid.NewGuid()}@test.local");
+
+        Assert.False(await coachingService.TransfererJeunePrestataireAsync(etrangerUserId, jeuneUserId, coach2UserId));
+        Assert.False(await coachingService.TransfererJeunePrestataireAsync(coach1UserId, jeuneUserId, coach1UserId));
+
+        Assert.Equal(jeuneUserId, await coachingService.GetSuiviUserIdSiAutoriseAsync(jeuneUserId, coach1UserId));
+        Assert.Null(await coachingService.GetSuiviUserIdSiAutoriseAsync(jeuneUserId, coach2UserId));
+
+        Assert.True(await coachingService.TransfererJeunePrestataireAsync(coach1UserId, jeuneUserId, coach2UserId));
+
+        Assert.Null(await coachingService.GetSuiviUserIdSiAutoriseAsync(jeuneUserId, coach1UserId));
+        Assert.Equal(jeuneUserId, await coachingService.GetSuiviUserIdSiAutoriseAsync(jeuneUserId, coach2UserId));
+        Assert.Null(await fiche.GetAsync(coach1UserId, jeuneUserId));
+        Assert.NotNull(await fiche.GetAsync(coach2UserId, jeuneUserId));
+
+        var liens = await coachingService.GetLiensPourSuiviAsync(jeuneUserId);
+        Assert.Single(liens, l => l.Statut == LienCoachingStatut.Actif);
+        var actif = liens.Single(l => l.Statut == LienCoachingStatut.Actif);
+        Assert.Equal(coach2UserId, actif.CoachUserId);
+        var ancien = Assert.Single(liens, l => l.CoachUserId == coach1UserId);
+        Assert.Equal(LienCoachingStatut.Revoque, ancien.Statut);
+
+        var notifsJeune = await notifService.GetRecentesAsync(jeuneUserId, 10);
+        Assert.Contains(notifsJeune, n => n.TypeCode == "Coaching.JeuneTransfere");
+        var notifsCible = await notifService.GetRecentesAsync(coach2UserId, 10);
+        Assert.Contains(notifsCible, n => n.TypeCode == "Coaching.JeuneRecuParTransfert");
+    }
+
+    [Fact]
+    public async Task DemanderCoachDepuisAnnuaire_JeuneAvecCoachActif_RefuseUnSecond_CandidatClassiquePeut()
+    {
+        var coachingService = fixture.Services.GetRequiredService<ICoachingService>();
+        var (coach1UserId, jeuneUserId, _) = await InviterEtAccepterAsync(
+            DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-16)));
+        var coach2UserId = await CreerUtilisateurAsync($"coach-annuaire-{Guid.NewGuid()}@test.local");
+
+        Assert.False(await coachingService.DemanderCoachDepuisAnnuaireAsync(jeuneUserId, coach2UserId));
+        var liensJeune = await coachingService.GetLiensPourSuiviAsync(jeuneUserId);
+        Assert.DoesNotContain(liensJeune, l => l.CoachUserId == coach2UserId);
+
+        var candidatUserId = await CreerUtilisateurAsync($"candidat-multi-{Guid.NewGuid()}@test.local");
+        Assert.True(await coachingService.DemanderCoachDepuisAnnuaireAsync(candidatUserId, coach1UserId));
+        Assert.True(await coachingService.DemanderCoachDepuisAnnuaireAsync(candidatUserId, coach2UserId));
     }
 
     [Fact]

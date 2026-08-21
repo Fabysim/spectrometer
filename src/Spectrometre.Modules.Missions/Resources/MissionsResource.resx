@@ -248,6 +248,14 @@
   <data name="FicheSuivi_Profil_Enregistrer" xml:space="preserve"><value>Enregistrer le profil</value></data>
   <data name="FicheSuivi_Profil_Succes" xml:space="preserve"><value>Profil d'accompagnement mis à jour.</value></data>
   <data name="FicheSuivi_Profil_Erreur" xml:space="preserve"><value>Mise à jour impossible.</value></data>
+  <data name="FicheSuivi_Transfert_Titre" xml:space="preserve"><value>Transférer à un autre coach</value></data>
+  <data name="FicheSuivi_Transfert_Aide" xml:space="preserve"><value>Le jeune passera immédiatement sous le suivi du coach choisi. Vous n'aurez plus accès à sa fiche.</value></data>
+  <data name="FicheSuivi_Transfert_Recherche" xml:space="preserve"><value>Rechercher un coach</value></data>
+  <data name="FicheSuivi_Transfert_Cible" xml:space="preserve"><value>Coach destinataire</value></data>
+  <data name="FicheSuivi_Transfert_Choisir" xml:space="preserve"><value>Choisir…</value></data>
+  <data name="FicheSuivi_Transfert_Vide" xml:space="preserve"><value>Aucun autre coach visible dans l'annuaire.</value></data>
+  <data name="FicheSuivi_Transfert_Action" xml:space="preserve"><value>Transférer à un autre coach</value></data>
+  <data name="FicheSuivi_Transfert_Erreur" xml:space="preserve"><value>Transfert impossible. Vérifiez que vous êtes encore le coach suiveur.</value></data>
   <data name="FicheSuivi_Age" xml:space="preserve"><value>{0} ans</value></data>
   <data name="FicheSuivi_Email" xml:space="preserve"><value>E-mail</value></data>
   <data name="FicheSuivi_Telephone" xml:space="preserve"><value>Téléphone</value></data>

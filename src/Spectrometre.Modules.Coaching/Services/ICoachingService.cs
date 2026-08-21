@@ -29,7 +29,7 @@ public interface ICoachingService
 
     Task<IReadOnlyList<LienCoachingView>> GetLiensPourSuiviAsync(string suiviUserId, CancellationToken cancellationToken = default);
 
-    /// <summary>Demande directe à un coach de l'annuaire (les deux comptes existent déjà) — crée le lien en <see cref="LienCoachingStatut.EnAttente"/>. Ne fait rien si un lien non clos (en attente ou actif) existe déjà pour cette paire.</summary>
+    /// <summary>Demande directe à un coach de l'annuaire (les deux comptes existent déjà) — crée le lien en <see cref="LienCoachingStatut.EnAttente"/>. Ne fait rien si un lien non clos (en attente ou actif) existe déjà pour cette paire, ni si le demandeur est un jeune prestataire qui a déjà un autre coach actif (un seul à la fois ; les candidats classiques restent multi-coachs).</summary>
     Task<bool> DemanderCoachDepuisAnnuaireAsync(string suiviUserId, string coachUserId, CancellationToken cancellationToken = default);
 
     /// <summary>Invite un coach par email (mécanisme générique — voir <see cref="IInvitationService"/>) — utilisé quand la personne recherchée n'apparaît pas dans l'annuaire. Retourne l'invitation créée (jeton compris) pour affichage du lien à partager.</summary>
@@ -47,6 +47,19 @@ public interface ICoachingService
     Task<bool> RefuserAsync(int lienId, string requestingCoachUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Transfert immédiat d'un jeune prestataire vers un autre coach : le coach source doit être le
+    /// suiveur <see cref="LienCoachingStatut.Actif"/>. Clôture son lien (<see cref="LienCoachingStatut.Revoque"/>,
+    /// <c>ClotureLe</c>) et active le lien cible dans la même sauvegarde — jamais deux actifs en parallèle.
+    /// Pas d'étape EnAttente : les coachs de l'association se font déjà confiance (file de modération
+    /// partagée). Hors jeune prestataire, ou si le demandeur n'est pas le coach actif, retourne <c>false</c>.
+    /// </summary>
+    Task<bool> TransfererJeunePrestataireAsync(
+        string coachSourceUserId,
+        string suiviUserId,
+        string coachCibleUserId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Finalise une invitation Coaching acceptée (voir <c>InvitationAcceptanceService</c>, Host) : crée le
     /// lien directement en <see cref="LienCoachingStatut.Actif"/> — confirmer/finaliser une invitation
     /// sécurisée par jeton EST l'acceptation, aucune étape supplémentaire. L'appelant a la responsabilité
@@ -60,8 +73,12 @@ public interface ICoachingService
     /// Finalise une invitation <see cref="InvitationType.JeunePrestataire"/> : coach = émetteur,
     /// accepteur = jeune suivi — sens inverse de <see cref="FinaliserDepuisInvitationAsync"/>.
     /// Ne pas confondre avec l'invitation <see cref="InvitationType.Coaching"/>.
+    /// Un jeune n'a qu'un coach actif : si un lien <see cref="LienCoachingStatut.Actif"/> existe déjà
+    /// avec un autre coach, retourne <c>null</c> sans créer de second lien (blocage, pas de remplacement
+    /// silencieux — le transfert passe par <see cref="TransfererJeunePrestataireAsync"/>). Si le lien avec
+    /// le même coach est déjà actif, le renvoie tel quel (idempotent).
     /// </summary>
-    Task<LienCoachingView> FinaliserJeunePrestataireDepuisInvitationAsync(Invitation invitation, string accepteurUserId, CancellationToken cancellationToken = default);
+    Task<LienCoachingView?> FinaliserJeunePrestataireDepuisInvitationAsync(Invitation invitation, string accepteurUserId, CancellationToken cancellationToken = default);
 
     // ── Anamnèse IA (voir IAiSynthesisService, réutilisé tel quel) ──────────
 

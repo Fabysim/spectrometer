@@ -33,6 +33,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IJeuneProfileService, JeuneProfileService>();
         services.AddScoped<IJeunePrestataireInvitationQuery, JeuneProfileService>();
+        services.AddScoped<IJeunePrestatairePresence, JeunePrestatairePresence>();
         services.AddScoped<IConsentementParentalService, ConsentementParentalService>();
         services.AddScoped<IAutoObservationService, AutoObservationService>();
         services.AddScoped<IGrilleObservationService, GrilleObservationService>();

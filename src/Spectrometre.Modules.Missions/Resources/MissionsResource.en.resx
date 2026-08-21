@@ -248,6 +248,14 @@
   <data name="FicheSuivi_Profil_Enregistrer" xml:space="preserve"><value>Save profile</value></data>
   <data name="FicheSuivi_Profil_Succes" xml:space="preserve"><value>Support profile updated.</value></data>
   <data name="FicheSuivi_Profil_Erreur" xml:space="preserve"><value>Update failed.</value></data>
+  <data name="FicheSuivi_Transfert_Titre" xml:space="preserve"><value>Transfer to another coach</value></data>
+  <data name="FicheSuivi_Transfert_Aide" xml:space="preserve"><value>The young person will immediately be followed by the selected coach. You will no longer have access to their file.</value></data>
+  <data name="FicheSuivi_Transfert_Recherche" xml:space="preserve"><value>Search for a coach</value></data>
+  <data name="FicheSuivi_Transfert_Cible" xml:space="preserve"><value>Destination coach</value></data>
+  <data name="FicheSuivi_Transfert_Choisir" xml:space="preserve"><value>Choose…</value></data>
+  <data name="FicheSuivi_Transfert_Vide" xml:space="preserve"><value>No other coach is visible in the directory.</value></data>
+  <data name="FicheSuivi_Transfert_Action" xml:space="preserve"><value>Transfer to another coach</value></data>
+  <data name="FicheSuivi_Transfert_Erreur" xml:space="preserve"><value>Transfer failed. Check that you are still the following coach.</value></data>
   <data name="FicheSuivi_Age" xml:space="preserve"><value>{0} years old</value></data>
   <data name="FicheSuivi_Email" xml:space="preserve"><value>Email</value></data>
   <data name="FicheSuivi_Telephone" xml:space="preserve"><value>Phone</value></data>

@@ -291,7 +291,11 @@
             return;
         }
 
-        await FinaliserSelonTypeAsync(user.Id);
+        if (!await FinaliserSelonTypeAsync(user.Id))
+        {
+            _message = Localizer["InvitationJeuneDejaUnCoach"];
+            return;
+        }
         await InvitationService.MarquerAccepteeAsync(_invitation.Id, CoreDb);
         await SignInManager.SignInAsync(user, isPersistent: true);
         Navigation.NavigateTo(DestinationApresAcceptation());
@@ -299,29 +303,36 @@
 
     private async Task ConfirmerAsync()
     {
-        await FinaliserSelonTypeAsync(_existingUser!.Id);
+        if (!await FinaliserSelonTypeAsync(_existingUser!.Id))
+        {
+            _message = Localizer["InvitationJeuneDejaUnCoach"];
+            return;
+        }
+
         await InvitationService.MarquerAccepteeAsync(_invitation!.Id, CoreDb);
         _confirme = true;
     }
 
     /// <summary>Étendu au cycle multi-entreprise/employés et candidatures poste — voir la remarque sur <see cref="Invitation.Type"/>.</summary>
-    private async Task FinaliserSelonTypeAsync(string accepteurUserId)
+    private async Task<bool> FinaliserSelonTypeAsync(string accepteurUserId)
     {
         switch (_invitation!.Type)
         {
             case InvitationType.Coaching:
                 await CoachOnboarding.CreateCoachAsync(accepteurUserId, CoreDb);
                 await CoachingService.FinaliserDepuisInvitationAsync(_invitation, accepteurUserId);
-                break;
+                return true;
             case InvitationType.CompanyEmploye:
                 await CompanyProvisioningService.FinaliserEmployeDepuisInvitationAsync(_invitation, accepteurUserId, CoreDb);
-                break;
+                return true;
             case InvitationType.CandidaturePoste:
                 await PosteService.FinaliserCandidatureDepuisInvitationAsync(_invitation, accepteurUserId);
-                break;
+                return true;
             case InvitationType.JeunePrestataire:
                 await JeuneProfileService.FinaliserDepuisInvitationAsync(_invitation, accepteurUserId);
-                await CoachingService.FinaliserJeunePrestataireDepuisInvitationAsync(_invitation, accepteurUserId);
+                var lien = await CoachingService.FinaliserJeunePrestataireDepuisInvitationAsync(_invitation, accepteurUserId);
+                if (lien is null)
+                    return false;
                 // Gestion du temps pour un jeune : pas de self-serve (/candidat/modules) — activation silencieuse
                 // via le canal candidat (ModuleActivationSubjectType n'a pas de sujet « Jeune »).
                 // CreateCandidateAsync ouvre un CandidateSubscription Essai (accès technique gratuit) ;
@@ -331,7 +342,9 @@
                 // CandidateProfile rattachés à un JeuneProfile pour ne pas couper l'agenda jeune.
                 var candidateProfileId = await CandidateOnboarding.CreateCandidateAsync(accepteurUserId, CoreDb);
                 await CandidateOnboarding.ActivateGestionDuTempsAsync(candidateProfileId, CoreDb);
-                break;
+                return true;
+            default:
+                return true;
         }
     }
 

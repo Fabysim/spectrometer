@@ -548,6 +548,9 @@
   <data name="InvitationJeunePrestataireIntro" xml:space="preserve">
     <value>Vous avez été invité(e) à rejoindre Spectromètre en tant que jeune prestataire. Complétez votre compte puis le consentement parental avec vos parents.</value>
   </data>
+  <data name="InvitationJeuneDejaUnCoach" xml:space="preserve">
+    <value>Vous avez déjà un coach. Un jeune prestataire ne peut être suivi que par un seul coach à la fois. Contactez votre coach actuel si un changement est nécessaire.</value>
+  </data>
   <data name="InvitationAllerConsentementParental" xml:space="preserve"><value>Compléter le consentement parental</value></data>
   <data name="GestionManagers_Titre" xml:space="preserve">
     <value>Employés de l'entreprise</value>
