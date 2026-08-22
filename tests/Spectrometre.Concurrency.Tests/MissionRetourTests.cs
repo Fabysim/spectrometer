@@ -80,8 +80,25 @@ public sealed class MissionRetourTests(ServiceFixture fixture)
             jeune1.UserId, acceptationId,
             "Bien passé", "Difficile", "Appris", "Améliorer"));
 
+        var notifRetour = Assert.Single(
+            await notifService.GetRecentesAsync(jeune1.CoachUserId, 20),
+            n => n.TypeCode == "Missions.RetourJeuneDisponible");
+        Assert.Equal($"/coach/suivis/{jeune1.UserId}/missions/{acceptationId}/retour", notifRetour.Lien);
+        Assert.DoesNotContain("Bien passé", notifRetour.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("Difficile", notifRetour.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("Appris", notifRetour.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("Améliorer", notifRetour.Message, StringComparison.Ordinal);
+        Assert.Contains("Mission retour", notifRetour.Message, StringComparison.Ordinal);
+
+        Assert.True(await retourService.SaveAsync(
+            jeune1.UserId, acceptationId,
+            "Bien passé (revu)", "Difficile", "Appris", "Améliorer"));
+        Assert.Single(
+            await notifService.GetRecentesAsync(jeune1.CoachUserId, 20),
+            n => n.TypeCode == "Missions.RetourJeuneDisponible");
+
         vueJeune = await retourService.GetOrCreateAsync(jeune1.UserId, acceptationId);
-        Assert.Equal("Bien passé", vueJeune!.CeQuiSestBienPasse);
+        Assert.Equal("Bien passé (revu)", vueJeune!.CeQuiSestBienPasse);
         Assert.Equal("Difficile", vueJeune.CeQuiAEteDifficile);
 
         // Autre jeune : aucun accès
@@ -93,9 +110,12 @@ public sealed class MissionRetourTests(ServiceFixture fixture)
         Assert.NotNull(vueCoach);
         Assert.Equal(MissionRetourAccessMode.Coach, vueCoach!.AccessMode);
         Assert.False(vueCoach.PeutEcrire);
-        Assert.Equal("Bien passé", vueCoach.CeQuiSestBienPasse);
+        Assert.Equal("Bien passé (revu)", vueCoach.CeQuiSestBienPasse);
         Assert.False(await retourService.SaveAsync(
             jeune1.CoachUserId, acceptationId, "hack", null, null, null));
+        Assert.Single(
+            await notifService.GetRecentesAsync(jeune1.CoachUserId, 20),
+            n => n.TypeCode == "Missions.RetourJeuneDisponible");
 
         // Liste coach des terminées
         var terminees = await missionService.GetMissionsTermineesPourJeuneSuiviAsync(jeune1.CoachUserId, jeune1.UserId);

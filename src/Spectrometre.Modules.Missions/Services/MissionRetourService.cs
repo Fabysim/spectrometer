@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Spectrometre.Core.Notifications;
+using Spectrometre.Modules.Coaching.Entities;
 using Spectrometre.Modules.Coaching.Services;
 using Spectrometre.Modules.JeunesPrestataires.Services;
 using Spectrometre.Modules.Missions.Data;
@@ -9,7 +11,8 @@ namespace Spectrometre.Modules.Missions.Services;
 public sealed class MissionRetourService(
     IDbContextFactory<MissionsDbContext> dbFactory,
     IJeuneProfileService jeuneProfileService,
-    ICoachingService coachingService) : IMissionRetourService
+    ICoachingService coachingService,
+    INotificationService notificationService) : IMissionRetourService
 {
     public async Task<MissionRetourView?> GetOrCreateAsync(
         string requestingUserId,
@@ -42,10 +45,13 @@ public sealed class MissionRetourService(
         if (resolved is null || resolved.Value.Mode != MissionRetourAccessMode.Jeune)
             return false;
 
+        var acceptation = resolved.Value.Acceptation;
         var now = DateTimeOffset.UtcNow;
         var entity = await db.MissionRetours
             .FirstOrDefaultAsync(r => r.MissionAcceptationId == missionAcceptationId, cancellationToken);
 
+        // Première persistance uniquement : un ré-enregistrement ne spam pas le coach.
+        var premiereSauvegarde = entity is null;
         if (entity is null)
         {
             entity = new MissionRetour
@@ -63,7 +69,35 @@ public sealed class MissionRetourService(
         entity.UpdatedAt = now;
 
         await db.SaveChangesAsync(cancellationToken);
+
+        if (premiereSauvegarde)
+            await NotifierCoachRetourDisponibleAsync(acceptation, cancellationToken);
+
         return true;
+    }
+
+    private async Task NotifierCoachRetourDisponibleAsync(
+        MissionAcceptation acceptation,
+        CancellationToken cancellationToken)
+    {
+        var jeune = await jeuneProfileService.TryGetByIdAsync(acceptation.JeuneProfileId, cancellationToken);
+        if (jeune is null)
+            return;
+
+        var liens = await coachingService.GetLiensPourSuiviAsync(jeune.UserId, cancellationToken);
+        var coachId = liens.FirstOrDefault(l => l.Statut == LienCoachingStatut.Actif)?.CoachUserId;
+        if (coachId is null)
+            return;
+
+        var titre = MissionDisplay.TitreAffiche(acceptation.Mission.Categorie, acceptation.Mission.Titre);
+        var jeuneNom = $"{jeune.Prenoms} {jeune.Nom}".Trim();
+        await notificationService.CreerAsync(
+            coachId,
+            "Retour de mission disponible",
+            $"{jeuneNom} a enregistré son retour sur la mission « {titre} ».",
+            $"/coach/suivis/{jeune.UserId}/missions/{acceptation.Id}/retour",
+            "Missions.RetourJeuneDisponible",
+            cancellationToken);
     }
 
     /// <summary>

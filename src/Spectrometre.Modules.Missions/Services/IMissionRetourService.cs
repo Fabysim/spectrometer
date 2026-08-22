@@ -32,7 +32,11 @@ public interface IMissionRetourService
         int missionAcceptationId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Upsert — jeune propriétaire uniquement. <c>false</c> sinon.</summary>
+    /// <summary>
+    /// Upsert — jeune propriétaire uniquement. <c>false</c> sinon (y compris si le coach appelle).
+    /// À la première sauvegarde, notifie le coach référent (<c>Missions.RetourJeuneDisponible</c>)
+    /// sans le contenu des champs.
+    /// </summary>
     Task<bool> SaveAsync(
         string jeuneUserId,
         int missionAcceptationId,
