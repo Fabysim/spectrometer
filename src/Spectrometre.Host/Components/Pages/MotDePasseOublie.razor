@@ -19,22 +19,25 @@
 <div class="login-page-wrapper">
     <div class="container-fluid px-3 px-md-4 px-lg-5 px-xl-4 py-5 login-container">
         <div class="row justify-content-center">
-            <div class="col-lg-7 col-xl-6">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
                 <div class="login-card">
                     <header class="login-header">
                         <h1 class="login-title">@Localizer["MotDePasseOublie_Titre"]</h1>
+                        @if (!_envoye)
+                        {
+                            <p class="login-subtitle">@Localizer["MotDePasseOublie_Instructions"]</p>
+                        }
                     </header>
-                    <div class="p-4 p-lg-5">
+                    <div class="forgot-card-body">
                         @if (_envoye)
                         {
-                            <div class="alert alert-success">@Localizer["MotDePasseOublie_MessageEnvoye"]</div>
+                            <p class="forgot-success" role="status">@Localizer["MotDePasseOublie_MessageEnvoye"]</p>
                             <div class="login-links">
                                 <a href="/login" class="login-link">@Localizer["SeConnecter"]</a>
                             </div>
                         }
                         else
                         {
-                            <p class="login-subtitle">@Localizer["MotDePasseOublie_Instructions"]</p>
                             <EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="mot-de-passe-oublie" method="post">
                                 <div class="login-form-group">
                                     <label for="mdpoublie-email" class="login-form-label">@Localizer["Login_EmailLabel"]</label>
@@ -43,7 +46,7 @@
                                                autocomplete="username" required
                                                placeholder="@Localizer["Login_EmailPlaceholder"]" />
                                 </div>
-                                <div class="mb-4 mt-4">
+                                <div class="login-form-actions">
                                     <button type="submit" class="login-btn login-btn-primary">@Localizer["MotDePasseOublie_SubmitButton"]</button>
                                 </div>
                             </EditForm>
