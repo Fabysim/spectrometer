@@ -225,6 +225,7 @@
   <data name="GrilleObs_SelectionnerEvaluation" xml:space="preserve"><value>Sélectionnez une évaluation dans l'historique ou créez-en une nouvelle.</value></data>
   <data name="GrilleObs_Score" xml:space="preserve"><value>Score</value></data>
   <data name="GrilleObs_NonRenseigne" xml:space="preserve"><value>Non renseigné</value></data>
+  <data name="GrilleObs_Evolution_AriaLabel" xml:space="preserve"><value>Graphique de l'évolution de la moyenne de la grille d'observation au fil des évaluations</value></data>
 
   <data name="GrilleObs_Critere_ponctualite" xml:space="preserve"><value>Ponctualité</value></data>
   <data name="GrilleObs_Def_ponctualite" xml:space="preserve"><value>Arrive à l'heure aux rendez-vous, missions et activités prévues.</value></data>

@@ -87,8 +87,47 @@
   padding: 0;
   font-size: 1rem;
 }
-.go-score-row { display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem; margin-bottom: 0.5rem; }
-.go-score-option { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; }
+.go-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.go-radio-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: 2px solid #dce4eb;
+    background: white;
+    font-size: 0.875rem;
+    cursor: pointer;
+    color: var(--muted-foreground, #64748b);
+    font-family: inherit;
+    font-weight: 500;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.go-radio-btn:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.go-radio-btn:focus-visible {
+    outline: 3px solid rgba(52, 95, 109, 0.35);
+    outline-offset: 2px;
+}
+
+.go-radio-btn--on {
+    border-color: var(--bs-primary);
+    background: rgba(52, 95, 109, 0.08);
+    color: var(--bs-primary);
+    font-weight: 600;
+}
+
+.go-radio-btn--score {
+    min-width: 2.75rem;
+    text-align: center;
+}
 .go-comment { width: 100%; min-height: 2.5rem; }
 
 .go-alert { background: #fef2f2; border-color: #fecaca; }

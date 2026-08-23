@@ -9,12 +9,15 @@
 @using Spectrometre.Core.JeunesPrestataires
 @using Spectrometre.Modules.JeunesPrestataires.Catalog
 @using Spectrometre.Modules.JeunesPrestataires.Services
+@using Microsoft.JSInterop
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
+@implements IDisposable
 @inject IGrilleObservationService GrilleObservationService
 @inject IJeuneProfileService JeuneProfileService
 @inject IRetoursParticuliersCoachQuery RetoursParticuliers
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @inject IStringLocalizer<JeunesPrestatairesResource> Localizer
 
 <PageTitle>@Localizer["GrilleObs_PageTitle"]</PageTitle>
@@ -122,6 +125,15 @@ else
                     }
                 </ul>
             }
+            @if (_page.Historique.Count >= 2)
+            {
+                <div style="position:relative; height:180px; margin-top:1rem;">
+                    <canvas id="go-evolution-chart"
+                            role="img"
+                            aria-label="@Localizer["GrilleObs_Evolution_AriaLabel"]">
+                    </canvas>
+                </div>
+            }
         </aside>
 
         <main class="go-card">
@@ -140,23 +152,22 @@ else
                                 <i class="bi bi-info-circle" aria-hidden="true"></i>
                             </button>
                         </div>
-                        <div class="go-score-row" role="group" aria-label="@CritereLabel(critere.Key)">
+                        <div class="go-radio-group" role="radiogroup" aria-label="@CritereLabel(critere.Key)">
                             @for (var score = 1; score <= 5; score++)
                             {
                                 var s = score;
-                                <label class="go-score-option">
-                                    <input type="radio" name="@($"score_{critere.Key}")"
-                                           checked="@(_scores.GetValueOrDefault(critere.Key) == s)"
-                                           @onchange="() => SetScore(critere.Key, s)" />
-                                    @s
-                                </label>
+                                var on = _scores.GetValueOrDefault(critere.Key) == s;
+                                <button type="button"
+                                        class="go-radio-btn go-radio-btn--score @(on ? "go-radio-btn--on" : "")"
+                                        role="radio"
+                                        aria-checked="@on"
+                                        @onclick="() => SetScore(critere.Key, s)">@s</button>
                             }
-                            <label class="go-score-option">
-                                <input type="radio" name="@($"score_{critere.Key}")"
-                                       checked="@(_scores.GetValueOrDefault(critere.Key) is null)"
-                                       @onchange="() => SetScore(critere.Key, null)" />
-                                @Localizer["GrilleObs_NonRenseigne"]
-                            </label>
+                            <button type="button"
+                                    class="go-radio-btn @(_scores.GetValueOrDefault(critere.Key) is null ? "go-radio-btn--on" : "")"
+                                    role="radio"
+                                    aria-checked="@(_scores.GetValueOrDefault(critere.Key) is null)"
+                                    @onclick="() => SetScore(critere.Key, null)">@Localizer["GrilleObs_NonRenseigne"]</button>
                         </div>
                         <textarea class="go-comment form-control" rows="2"
                                   placeholder="@Localizer["GrilleObs_CommentaireCritere"]"
@@ -246,6 +257,9 @@ else
     private string? _commentaireGeneral;
     private readonly Dictionary<string, int?> _scores = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string?> _comments = new(StringComparer.Ordinal);
+    private int _chartGeneration;
+    private bool _chartInitialized;
+    private int _chartHistoriqueCount = -1;
 
     protected override async Task OnInitializedAsync()
     {
@@ -281,6 +295,26 @@ else
         }
 
         _chargement = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_page is null || _page.Historique.Count < 2)
+            return;
+
+        if (_chartInitialized && _chartHistoriqueCount == _page.Historique.Count)
+            return;
+
+        try
+        {
+            await InitChartAsync();
+            _chartInitialized = true;
+            _chartHistoriqueCount = _page.Historique.Count;
+        }
+        catch
+        {
+            /* Chart.js ou canvas pas encore prêt — nouvel essai au prochain rendu */
+        }
     }
 
     private void InitFormDictionaries()
@@ -359,5 +393,40 @@ else
         await SelectEvaluationAsync(id.Value);
         _message = Localizer["GrilleObs_EvaluationEnregistree"];
         _saving = false;
+        _chartInitialized = false;
+    }
+
+    private async Task InitChartAsync()
+    {
+        if (_page is null)
+            return;
+
+        var chrono = _page.Historique.Reverse().ToList();
+        var labels = chrono
+            .Select(i => i.EvalueeLe.ToLocalTime().ToString("dd/MM", CultureInfo.CurrentCulture))
+            .ToArray();
+        var moyennes = chrono
+            .Select(i => (object?)i.MoyenneScore)
+            .ToArray();
+
+        _chartGeneration++;
+        await JS.InvokeVoidAsync(
+            "grilleObservationChart.initLigneChart",
+            "go-evolution-chart",
+            labels,
+            moyennes,
+            _chartGeneration);
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            _ = JS.InvokeVoidAsync("grilleObservationChart.destroyIf", _chartGeneration);
+        }
+        catch
+        {
+            /* ignore */
+        }
     }
 }

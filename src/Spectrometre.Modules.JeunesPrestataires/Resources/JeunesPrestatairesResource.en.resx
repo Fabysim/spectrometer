@@ -169,6 +169,7 @@
   <data name="GrilleObs_SelectionnerEvaluation" xml:space="preserve"><value>Select an evaluation from the history or create a new one.</value></data>
   <data name="GrilleObs_Score" xml:space="preserve"><value>Score</value></data>
   <data name="GrilleObs_NonRenseigne" xml:space="preserve"><value>Not rated</value></data>
+  <data name="GrilleObs_Evolution_AriaLabel" xml:space="preserve"><value>Chart showing the evolution of the observation grid's average across evaluations</value></data>
 
   <data name="GrilleObs_Critere_ponctualite" xml:space="preserve"><value>Punctuality</value></data>
   <data name="GrilleObs_Def_ponctualite" xml:space="preserve"><value>Arrives on time for appointments, missions, and scheduled activities.</value></data>
