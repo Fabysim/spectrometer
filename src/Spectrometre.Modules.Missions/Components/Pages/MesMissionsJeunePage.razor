@@ -61,7 +61,16 @@
                     <p class="missions-meta">@Localizer["Mission_ChezParticulier", m.ParticulierPrenom]</p>
                 }
                 <p class="missions-meta">@Localizer["AccepteeLe", m.AccepteeLe.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)]</p>
-                @if (m.MissionStatut == MissionStatut.Attribuee && m.AcceptationStatut == MissionAcceptationStatut.ValideeParCoach)
+                @if (m.AcceptationStatut == MissionAcceptationStatut.EnAttenteValidationCoach)
+                {
+                    <div class="missions-actions">
+                        <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
+                                @onclick="() => RetirerCandidatureAsync(m.AcceptationId)">
+                            @Localizer["RetirerCandidature"]
+                        </button>
+                    </div>
+                }
+                else if (m.MissionStatut == MissionStatut.Attribuee && m.AcceptationStatut == MissionAcceptationStatut.ValideeParCoach)
                 {
                     <div class="missions-actions">
                         <a class="missions-btn missions-btn-secondary" href="/jeune/missions/@m.AcceptationId/preparation">
@@ -164,6 +173,24 @@
         }
 
         _missions = await MissionService.GetMesMissionsAsync(_userId);
+    }
+
+    private async Task RetirerCandidatureAsync(int acceptationId)
+    {
+        if (_userId is null || _busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = await MissionService.RetirerCandidatureAsync(_userId, acceptationId);
+            _message = ok ? Localizer["RetirerCandidature_Succes"] : Localizer["Action_Echec"];
+            await RefreshAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private async Task MarquerTermineeAsync(int acceptationId)

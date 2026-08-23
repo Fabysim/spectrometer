@@ -45,6 +45,14 @@ public interface IMissionService
     Task<bool> RefuserAcceptationAsync(string coachUserId, int missionAcceptationId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Le jeune propriétaire retire sa candidature tant qu'elle est
+    /// <see cref="MissionAcceptationStatut.EnAttenteValidationCoach"/>.
+    /// Statut distinct <see cref="MissionAcceptationStatut.RetireeParJeune"/> (pas un refus coach).
+    /// Mission → <c>Disponible</c>. <c>false</c> après validation coach, ou si ce n'est pas sa candidature.
+    /// </summary>
+    Task<bool> RetirerCandidatureAsync(string jeuneUserId, int missionAcceptationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Le jeune propriétaire marque une mission <c>Attribuee</c> comme <c>Terminee</c>.
     /// <c>false</c> si non propriétaire, acceptation non validée, ou statut mission ≠ Attribuee.
     /// </summary>

@@ -99,6 +99,80 @@ public sealed class MissionTests(ServiceFixture fixture)
     }
 
     [Fact]
+    public async Task RetirerCandidature_EnAttente_MissionRedevientDisponible_NotifieCoach()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
+        var (particulierUserId, missionId) = await PublierMissionAsync();
+        var jeune1 = await CreerJeuneAvecCoachAsync();
+        var jeune2 = await CreerJeuneAvecCoachAsync();
+        await fixture.GarantirPublicationValideeAsync(jeune1.CoachUserId, missionId);
+
+        Assert.True(await missionService.AccepterMissionAsync(jeune1.UserId, missionId));
+        var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune1.CoachUserId, jeune1.UserId))
+            .Single().AcceptationId;
+
+        Assert.True(await missionService.RetirerCandidatureAsync(jeune1.UserId, acceptationId));
+
+        await using (var db = await fixture.Services.GetRequiredService<IDbContextFactory<MissionsDbContext>>().CreateDbContextAsync())
+        {
+            var mission = await db.Missions.AsNoTracking().FirstAsync(m => m.Id == missionId);
+            Assert.Equal(MissionStatut.Disponible, mission.Statut);
+            var acceptation = await db.MissionAcceptations.AsNoTracking().FirstAsync(a => a.Id == acceptationId);
+            Assert.Equal(MissionAcceptationStatut.RetireeParJeune, acceptation.Statut);
+        }
+
+        Assert.Empty(await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune1.CoachUserId, jeune1.UserId));
+
+        var notifCoach = Assert.Single(
+            await notifService.GetRecentesAsync(jeune1.CoachUserId, 20),
+            n => n.TypeCode == "Missions.CandidatureRetiree");
+        Assert.Equal($"/coach/suivis/{jeune1.UserId}/missions", notifCoach.Lien);
+        Assert.Contains("Léa", notifCoach.Message);
+
+        Assert.True(await missionService.AccepterMissionAsync(jeune2.UserId, missionId));
+
+        await CleanupMissionAsync(missionId, particulierUserId, jeune1, jeune2);
+    }
+
+    [Fact]
+    public async Task RetirerCandidature_RefuseSiValideeOuAutreJeune()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var (particulierUserId, missionId) = await PublierMissionAsync();
+        var jeune1 = await CreerJeuneAvecCoachAsync();
+        var jeune2 = await CreerJeuneAvecCoachAsync();
+        await fixture.GarantirPublicationValideeAsync(jeune1.CoachUserId, missionId);
+
+        Assert.True(await missionService.AccepterMissionAsync(jeune1.UserId, missionId));
+        var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune1.CoachUserId, jeune1.UserId))
+            .Single().AcceptationId;
+
+        Assert.False(await missionService.RetirerCandidatureAsync(jeune2.UserId, acceptationId));
+
+        await using (var db = await fixture.Services.GetRequiredService<IDbContextFactory<MissionsDbContext>>().CreateDbContextAsync())
+        {
+            var acceptation = await db.MissionAcceptations.AsNoTracking().FirstAsync(a => a.Id == acceptationId);
+            Assert.Equal(MissionAcceptationStatut.EnAttenteValidationCoach, acceptation.Statut);
+            var mission = await db.Missions.AsNoTracking().FirstAsync(m => m.Id == missionId);
+            Assert.Equal(MissionStatut.EnAttenteValidation, mission.Statut);
+        }
+
+        Assert.True(await missionService.ValiderAcceptationAsync(jeune1.CoachUserId, acceptationId));
+        Assert.False(await missionService.RetirerCandidatureAsync(jeune1.UserId, acceptationId));
+
+        await using (var db = await fixture.Services.GetRequiredService<IDbContextFactory<MissionsDbContext>>().CreateDbContextAsync())
+        {
+            var mission = await db.Missions.AsNoTracking().FirstAsync(m => m.Id == missionId);
+            Assert.Equal(MissionStatut.Attribuee, mission.Statut);
+            var acceptation = await db.MissionAcceptations.AsNoTracking().FirstAsync(a => a.Id == acceptationId);
+            Assert.Equal(MissionAcceptationStatut.ValideeParCoach, acceptation.Statut);
+        }
+
+        await CleanupMissionAsync(missionId, particulierUserId, jeune1, jeune2);
+    }
+
+    [Fact]
     public async Task ValiderOuRefuser_CoachNonAutorise_RetourneFalse()
     {
         var missionService = fixture.Services.GetRequiredService<IMissionService>();

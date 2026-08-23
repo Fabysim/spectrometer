@@ -93,6 +93,7 @@
   <data name="StatutAcceptation_EnAttenteValidationCoach" xml:space="preserve"><value>Pending coach approval</value></data>
   <data name="StatutAcceptation_ValideeParCoach" xml:space="preserve"><value>Approved by coach</value></data>
   <data name="StatutAcceptation_RefuseeParCoach" xml:space="preserve"><value>Declined by coach</value></data>
+  <data name="StatutAcceptation_RetireeParJeune" xml:space="preserve"><value>Withdrawn by you</value></data>
 
   <data name="Difficulte_Facile" xml:space="preserve"><value>Easy</value></data>
   <data name="Difficulte_Intermediaire" xml:space="preserve"><value>Intermediate</value></data>
@@ -114,6 +115,8 @@
 
   <data name="MarquerTerminee" xml:space="preserve"><value>Mark as completed</value></data>
   <data name="MarquerTerminee_Succes" xml:space="preserve"><value>Mission marked as completed — you can now fill in your feedback.</value></data>
+  <data name="RetirerCandidature" xml:space="preserve"><value>Withdraw my application</value></data>
+  <data name="RetirerCandidature_Succes" xml:space="preserve"><value>Application withdrawn — the mission is available to others again.</value></data>
   <data name="Retour_Title" xml:space="preserve"><value>Post-mission feedback · Spectromètre</value></data>
   <data name="Retour_Heading" xml:space="preserve"><value>My post-mission feedback</value></data>
   <data name="Retour_Lien" xml:space="preserve"><value>My feedback</value></data>

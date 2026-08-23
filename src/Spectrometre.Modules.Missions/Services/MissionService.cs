@@ -276,6 +276,41 @@ public sealed class MissionService(
         return await DeciderAcceptationAsync(coachUserId, missionAcceptationId, valider: false, cancellationToken);
     }
 
+    public async Task<bool> RetirerCandidatureAsync(
+        string jeuneUserId,
+        int missionAcceptationId,
+        CancellationToken cancellationToken = default)
+    {
+        var jeune = await jeuneProfileService.TryGetByUserIdAsync(jeuneUserId, cancellationToken);
+        if (jeune is null)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+
+        var acceptation = await db.MissionAcceptations
+            .Include(a => a.Mission)
+            .FirstOrDefaultAsync(a => a.Id == missionAcceptationId, cancellationToken);
+
+        if (acceptation is null
+            || acceptation.JeuneProfileId != jeune.Id
+            || acceptation.Statut != MissionAcceptationStatut.EnAttenteValidationCoach
+            || acceptation.Mission.Statut != MissionStatut.EnAttenteValidation)
+        {
+            await tx.RollbackAsync(cancellationToken);
+            return false;
+        }
+
+        acceptation.Statut = MissionAcceptationStatut.RetireeParJeune;
+        acceptation.DecideeLe = DateTimeOffset.UtcNow;
+        acceptation.Mission.Statut = MissionStatut.Disponible;
+        await db.SaveChangesAsync(cancellationToken);
+        await tx.CommitAsync(cancellationToken);
+
+        await NotifierCoachCandidatureRetireeAsync(jeune, acceptation.Mission, cancellationToken);
+        return true;
+    }
+
     public async Task<bool> MarquerTermineeAsync(string jeuneUserId, int missionAcceptationId, CancellationToken cancellationToken = default)
     {
         var jeune = await jeuneProfileService.TryGetByUserIdAsync(jeuneUserId, cancellationToken);
@@ -736,6 +771,29 @@ public sealed class MissionService(
     {
         var liens = await coachingService.GetLiensPourSuiviAsync(jeuneUserId, cancellationToken);
         return liens.FirstOrDefault(l => l.Statut == LienCoachingStatut.Actif)?.CoachUserId;
+    }
+
+    /// <summary>
+    /// Coach référent (lien actif) — même résolution que les autres notifs du fichier.
+    /// </summary>
+    private async Task NotifierCoachCandidatureRetireeAsync(
+        JeuneProfileView jeune,
+        Mission mission,
+        CancellationToken cancellationToken)
+    {
+        var coachUserId = await FindCoachReferentAsync(jeune.UserId, cancellationToken);
+        if (coachUserId is null)
+            return;
+
+        var titreMission = MissionDisplay.TitreAffiche(mission.Categorie, mission.Titre);
+        var jeuneNom = $"{jeune.Prenoms} {jeune.Nom}".Trim();
+        await notificationService.CreerAsync(
+            coachUserId,
+            "Candidature retirée",
+            $"{jeuneNom} a retiré sa candidature pour « {titreMission} ».",
+            $"/coach/suivis/{jeune.UserId}/missions",
+            "Missions.CandidatureRetiree",
+            cancellationToken);
     }
 
     /// <summary>
