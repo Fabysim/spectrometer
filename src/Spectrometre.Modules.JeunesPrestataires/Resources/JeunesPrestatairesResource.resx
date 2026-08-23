@@ -175,6 +175,7 @@
   <data name="Message_BrouillonEnregistre" xml:space="preserve"><value>Brouillon enregistré.</value></data>
   <data name="Message_ConfirmationReussie" xml:space="preserve"><value>Consentement confirmé.</value></data>
   <data name="ErreurChampsManquants" xml:space="preserve"><value>Les éléments suivants doivent être complétés avant confirmation :</value></data>
+  <data name="Message_ChampsManquantsCourt" xml:space="preserve"><value>Champs manquants — voir ci-dessus.</value></data>
 
   <data name="Champ_Parent1Nom" xml:space="preserve"><value>Nom du représentant légal 1</value></data>
   <data name="Champ_Parent1Lien" xml:space="preserve"><value>Lien de parenté du représentant légal 1</value></data>

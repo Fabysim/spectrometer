@@ -119,6 +119,7 @@
   <data name="Message_BrouillonEnregistre" xml:space="preserve"><value>Draft saved.</value></data>
   <data name="Message_ConfirmationReussie" xml:space="preserve"><value>Consent confirmed.</value></data>
   <data name="ErreurChampsManquants" xml:space="preserve"><value>The following must be completed before confirmation:</value></data>
+  <data name="Message_ChampsManquantsCourt" xml:space="preserve"><value>Missing fields — see above.</value></data>
 
   <data name="Champ_Parent1Nom" xml:space="preserve"><value>Legal representative 1 name</value></data>
   <data name="Champ_Parent1Lien" xml:space="preserve"><value>Legal representative 1 relationship</value></data>

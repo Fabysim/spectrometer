@@ -105,12 +105,12 @@ else
 
         <h3 class="jp-subsection">@Localizer["Parent1_Title"]</h3>
         <div class="jp-form">
-            <div class="jp-field"><label>@Localizer["Parent_Nom"]</label><input class="jp-input" @bind="_form.Parent1Nom" /></div>
-            <div class="jp-field"><label>@Localizer["Parent_Lien"]</label><input class="jp-input" @bind="_form.Parent1Lien" /></div>
-            <div class="jp-field"><label>@Localizer["Parent_Adresse"]</label><input class="jp-input" @bind="_form.Parent1Adresse" /></div>
+            <div class="jp-field"><label>@Localizer["Parent_Nom"]</label><input class="@ChampClass(ConsentementChamps.Parent1Nom)" @bind="_form.Parent1Nom" /></div>
+            <div class="jp-field"><label>@Localizer["Parent_Lien"]</label><input class="@ChampClass(ConsentementChamps.Parent1Lien)" @bind="_form.Parent1Lien" /></div>
+            <div class="jp-field"><label>@Localizer["Parent_Adresse"]</label><input class="@ChampClass(ConsentementChamps.Parent1Adresse)" @bind="_form.Parent1Adresse" /></div>
             <div class="jp-form-row">
-                <div class="jp-field"><label>@Localizer["Parent_Telephone"]</label><input class="jp-input" @bind="_form.Parent1Telephone" /></div>
-                <div class="jp-field"><label>@Localizer["Parent_Email"]</label><input class="jp-input" @bind="_form.Parent1Email" /></div>
+                <div class="jp-field"><label>@Localizer["Parent_Telephone"]</label><input class="@ChampClass(ConsentementChamps.Parent1Telephone)" @bind="_form.Parent1Telephone" /></div>
+                <div class="jp-field"><label>@Localizer["Parent_Email"]</label><input class="@ChampClass(ConsentementChamps.Parent1Email)" @bind="_form.Parent1Email" /></div>
             </div>
         </div>
 
@@ -129,7 +129,7 @@ else
     <fieldset class="jp-card" disabled="@(!_modeEdition)">
         <legend class="jp-section-title">@Localizer["Section3_Title"]</legend>
         <p class="jp-hint">@Localizer["Section3_Description"]</p>
-        <label class="jp-checkbox">
+        <label class="@CheckboxClass(ConsentementChamps.AutorisationMissions)">
             <input type="checkbox" @bind="_form.AutorisationMissions" />
             <span>@Localizer["AutorisationMissions_Label"]</span>
         </label>
@@ -138,20 +138,20 @@ else
     <fieldset class="jp-card" disabled="@(!_modeEdition)">
         <legend class="jp-section-title">@Localizer["Section4_Title"]</legend>
         <p class="jp-hint">@Localizer["Section4_Description"]</p>
-        <label class="jp-checkbox">
+        <label class="@CheckboxClass(ConsentementChamps.AutorisationRevenus)">
             <input type="checkbox" @bind="_form.AutorisationRevenus" />
             <span>@Localizer["AutorisationRevenus_Label"]</span>
         </label>
         <div class="jp-form-row">
             <div class="jp-field">
                 <label>@Localizer["PartParascolairePourcent"]</label>
-                <input class="jp-input" type="number" min="0" max="100" step="0.01"
+                <input class="@ChampClass(ConsentementChamps.PartParascolairePourcent)" type="number" min="0" max="100" step="0.01"
                        value="@_partParascolaireText"
                        @onchange="OnPartParascolaireChanged" />
             </div>
             <div class="jp-field">
                 <label>@Localizer["PartArgentDePochePourcent"]</label>
-                <input class="jp-input" type="number" min="0" max="100" step="0.01"
+                <input class="@ChampClass(ConsentementChamps.PartArgentDePochePourcent)" type="number" min="0" max="100" step="0.01"
                        value="@_partArgentText"
                        @onchange="OnPartArgentChanged" />
             </div>
@@ -163,7 +163,7 @@ else
     <fieldset class="jp-card" disabled="@(!_modeEdition)">
         <legend class="jp-section-title">@Localizer["Section5_Title"]</legend>
         <p class="jp-hint">@Localizer["Section5_Description"]</p>
-        <label class="jp-checkbox">
+        <label class="@CheckboxClass(ConsentementChamps.AutorisationDonneesEtImage)">
             <input type="checkbox" @bind="_form.AutorisationDonneesEtImage" />
             <span>@Localizer["AutorisationDonneesEtImage_Label"]</span>
         </label>
@@ -172,11 +172,11 @@ else
     <fieldset class="jp-card" disabled="@(!_modeEdition)">
         <legend class="jp-section-title">@Localizer["Section6_Title"]</legend>
         <p class="jp-hint">@Localizer["Section6_Intro"]</p>
-        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementScolariteSanteEquilibre" /><span>@Localizer["EngagementScolariteSanteEquilibre"]</span></label>
-        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementInformerContraintes" /><span>@Localizer["EngagementInformerContraintes"]</span></label>
-        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementEncouragerCharte" /><span>@Localizer["EngagementEncouragerCharte"]</span></label>
-        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementSignalerMissionInadaptee" /><span>@Localizer["EngagementSignalerMissionInadaptee"]</span></label>
-        <label class="jp-checkbox"><input type="checkbox" @bind="_form.EngagementCollaborerCoach" /><span>@Localizer["EngagementCollaborerCoach"]</span></label>
+        <label class="@CheckboxClass(ConsentementChamps.EngagementScolariteSanteEquilibre)"><input type="checkbox" @bind="_form.EngagementScolariteSanteEquilibre" /><span>@Localizer["EngagementScolariteSanteEquilibre"]</span></label>
+        <label class="@CheckboxClass(ConsentementChamps.EngagementInformerContraintes)"><input type="checkbox" @bind="_form.EngagementInformerContraintes" /><span>@Localizer["EngagementInformerContraintes"]</span></label>
+        <label class="@CheckboxClass(ConsentementChamps.EngagementEncouragerCharte)"><input type="checkbox" @bind="_form.EngagementEncouragerCharte" /><span>@Localizer["EngagementEncouragerCharte"]</span></label>
+        <label class="@CheckboxClass(ConsentementChamps.EngagementSignalerMissionInadaptee)"><input type="checkbox" @bind="_form.EngagementSignalerMissionInadaptee" /><span>@Localizer["EngagementSignalerMissionInadaptee"]</span></label>
+        <label class="@CheckboxClass(ConsentementChamps.EngagementCollaborerCoach)"><input type="checkbox" @bind="_form.EngagementCollaborerCoach" /><span>@Localizer["EngagementCollaborerCoach"]</span></label>
     </fieldset>
 
     @if (_modeEdition)
@@ -185,11 +185,11 @@ else
             <h2 class="jp-section-title">@Localizer["Section7_Title"]</h2>
             <p class="jp-hint">@Localizer["Section7_Intro"]</p>
             <div class="jp-form">
-                <div class="jp-field"><label>@Localizer["NomJeuneConfirmation"]</label><input class="jp-input" @bind="_nomJeuneConfirmation" /></div>
-                <div class="jp-field"><label>@Localizer["NomParent1Confirmation"]</label><input class="jp-input" @bind="_nomParent1Confirmation" /></div>
+                <div class="jp-field"><label>@Localizer["NomJeuneConfirmation"]</label><input class="@ChampClass(ConsentementChamps.NomJeuneConfirmation)" @bind="_nomJeuneConfirmation" /></div>
+                <div class="jp-field"><label>@Localizer["NomParent1Confirmation"]</label><input class="@ChampClass(ConsentementChamps.NomParent1Confirmation)" @bind="_nomParent1Confirmation" /></div>
                 @if (!string.IsNullOrWhiteSpace(_form.Parent2Nom))
                 {
-                    <div class="jp-field"><label>@Localizer["NomParent2Confirmation"]</label><input class="jp-input" @bind="_nomParent2Confirmation" /></div>
+                    <div class="jp-field"><label>@Localizer["NomParent2Confirmation"]</label><input class="@ChampClass(ConsentementChamps.NomParent2Confirmation)" @bind="_nomParent2Confirmation" /></div>
                 }
             </div>
         </section>
@@ -201,6 +201,10 @@ else
             <button type="button" class="jp-btn-primary" @onclick="ConfirmerAsync" disabled="@_operationEnCours">
                 @Localizer["Btn_Confirmer"]
             </button>
+            @if (_actionMessage is not null)
+            {
+                <span class="jp-actions-message @(_champsManquants.Count > 0 ? "jp-actions-message-error" : "jp-actions-message-success")" role="status">@_actionMessage</span>
+            }
         </div>
     }
     else if (_vue!.EstValide)
@@ -237,6 +241,7 @@ else
     private bool _modeEdition = true;
     private bool _operationEnCours;
     private string? _messageSucces;
+    private string? _actionMessage;
     private List<string> _champsManquants = [];
     private string _nomJeuneConfirmation = "";
     private string _nomParent1Confirmation = "";
@@ -284,6 +289,12 @@ else
     private string Afficher(string? value) =>
         string.IsNullOrWhiteSpace(value) ? Localizer["ValeurNonRenseignee"] : value;
 
+    private string ChampClass(string champ) =>
+        _champsManquants.Contains(champ) ? "jp-input jp-input-error" : "jp-input";
+
+    private string CheckboxClass(string champ) =>
+        _champsManquants.Contains(champ) ? "jp-checkbox jp-checkbox-error" : "jp-checkbox";
+
     private void OnPartParascolaireChanged(ChangeEventArgs e)
     {
         _partParascolaireText = e.Value?.ToString() ?? "";
@@ -300,12 +311,14 @@ else
     {
         _operationEnCours = true;
         _messageSucces = null;
+        _actionMessage = null;
         _champsManquants = [];
         try
         {
             await ConsentementService.SaveBrouillonAsync(_jeuneProfile!.Id, _form);
             await ChargerConsentementAsync();
             _messageSucces = Localizer["Message_BrouillonEnregistre"];
+            _actionMessage = _messageSucces;
         }
         finally
         {
@@ -317,6 +330,7 @@ else
     {
         _operationEnCours = true;
         _messageSucces = null;
+        _actionMessage = null;
         _champsManquants = [];
         try
         {
@@ -330,11 +344,13 @@ else
             if (!result.Success)
             {
                 _champsManquants = result.ChampsManquants.ToList();
+                _actionMessage = Localizer["Message_ChampsManquantsCourt"];
                 return;
             }
 
             await ChargerConsentementAsync();
             _messageSucces = Localizer["Message_ConfirmationReussie"];
+            _actionMessage = _messageSucces;
         }
         finally
         {
