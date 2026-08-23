@@ -457,6 +457,25 @@ app.MapGet("/coach/charte/pdf", async (
     return Results.File(pdfBytes, "application/pdf", "charte-missions.pdf");
 }).RequireAuthorization();
 
+// PDF de la charte pour le jeune connecté — même document générique que /coach/charte/pdf,
+// gate sur la présence d'un profil jeune plutôt que sur un rôle coach.
+app.MapGet("/jeune/charte/pdf", async (
+    HttpContext httpContext,
+    Spectrometre.Modules.JeunesPrestataires.Services.IJeuneProfileService jeuneProfileService,
+    Spectrometre.Modules.JeunesPrestataires.Services.IChartePdfService chartePdfService,
+    IStringLocalizer<Spectrometre.Modules.JeunesPrestataires.Resources.JeunesPrestatairesResource> charteLocalizer) =>
+{
+    var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    if (await jeuneProfileService.TryGetByUserIdAsync(userId) is null)
+        return Results.Forbid();
+
+    var pdfBytes = chartePdfService.GeneratePdf(charteLocalizer);
+    return Results.File(pdfBytes, "application/pdf", "charte-missions.pdf");
+}).RequireAuthorization();
+
 // PDF du consentement parental du jeune connecté — jamais un identifiant dans l'URL (même motif que
 // /candidat/cv/pdf). Uniquement si le consentement est validé : il n'y a rien de définitif à télécharger avant.
 app.MapGet("/candidat/consentement-parental/pdf", async (

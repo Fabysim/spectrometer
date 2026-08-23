@@ -31,6 +31,11 @@
             <h1 class="jp-title">@Localizer["Charte_Heading"]</h1>
             <p class="jp-subtitle">@Localizer["Charte_Intro"]</p>
             <p class="jp-subtitle" style="margin-top:0.5rem">@Localizer["Charte_Intro2"]</p>
+            <p style="margin-top:0.75rem">
+                <a class="jp-btn-primary" href="/jeune/charte/pdf" data-enhance-nav="false">
+                    @Localizer["Charte_TelechargerPdf"]
+                </a>
+            </p>
         </header>
 
         @if (_vue.Acceptee && _vue.AccepteeLe is DateTimeOffset accepteeLe)
