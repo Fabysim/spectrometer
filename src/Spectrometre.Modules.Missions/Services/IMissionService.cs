@@ -84,6 +84,18 @@ public interface IMissionService
     Task<bool> AnnulerMissionAsync(string particulierUserId, int missionId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Annule une mission <c>Attribuee</c> du propriétaire (jamais <c>Terminee</c>).
+    /// Motif obligatoire (même garde que <see cref="RefuserPublicationAsync"/>).
+    /// Acceptation validée → <see cref="MissionAcceptationStatut.AnnuleeParParticulier"/>.
+    /// Notifie le jeune et le coach référent.
+    /// </summary>
+    Task<bool> AnnulerMissionAttribueeAsync(
+        string particulierUserId,
+        int missionId,
+        string motif,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Détail pour pré-remplir la modification. Null si non propriétaire ou statut
     /// ≠ Disponible / EnAttenteModeration.
     /// </summary>

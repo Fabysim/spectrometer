@@ -37,7 +37,7 @@
                 {
                     <p class="missions-meta">@Localizer["Moderation_MotifVisible", m.MotifAnnulation]</p>
                 }
-                @if ((m.Statut == MissionStatut.Attribuee || m.Statut == MissionStatut.Terminee)
+                @if ((m.Statut == MissionStatut.Attribuee || m.Statut == MissionStatut.Terminee || m.Statut == MissionStatut.Annulee)
                      && !string.IsNullOrWhiteSpace(m.JeunePrenom))
                 {
                     <p class="missions-meta">@Localizer["Mission_RealiseePar", m.JeunePrenom]</p>
@@ -61,7 +61,23 @@
                 else if (m.Statut == MissionStatut.Attribuee)
                 {
                     <div class="missions-actions">
-                        @if (_formulaireMissionId == m.MissionId)
+                        @if (_formulaireAnnulation && _formulaireMissionId == m.MissionId)
+                        {
+                            <div class="missions-field" style="flex: 1 1 100%">
+                                <label>@Localizer["AnnulerMissionAttribuee_Label"]</label>
+                                <textarea rows="2" @bind="_formulaireMessage" maxlength="2000"
+                                          placeholder="@Localizer["AnnulerMissionAttribuee_Placeholder"]"></textarea>
+                            </div>
+                            <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
+                                    @onclick="() => ConfirmerAnnulationAttribueeAsync(m.MissionId)">
+                                @Localizer["AnnulerMissionAttribuee_Confirmer"]
+                            </button>
+                            <button type="button" class="missions-btn missions-btn-secondary" disabled="@_busy"
+                                    @onclick="FermerFormulaire">
+                                @Localizer["SignalerProbleme_Annuler"]
+                            </button>
+                        }
+                        else if (_formulaireMissionId == m.MissionId)
                         {
                             <div class="missions-field" style="flex: 1 1 100%">
                                 <label>@(_formulaireProbleme ? Localizer["SignalerProbleme_Label"] : Localizer["ContactCoach_Label"])</label>
@@ -87,6 +103,10 @@
                                     @onclick="() => OuvrirFormulaire(m.MissionId, probleme: true)">
                                 @Localizer["SignalerProbleme_Bouton"]
                             </button>
+                            <button type="button" class="missions-btn missions-btn-danger" disabled="@_busy"
+                                    @onclick="() => OuvrirFormulaireAnnulation(m.MissionId)">
+                                @Localizer["AnnulerMissionAttribuee_Bouton"]
+                            </button>
                         }
                     </div>
                 }
@@ -110,6 +130,7 @@
     private bool _busy;
     private int? _formulaireMissionId;
     private bool _formulaireProbleme;
+    private bool _formulaireAnnulation;
     private string _formulaireMessage = "";
 
     protected override async Task OnInitializedAsync()
@@ -152,6 +173,16 @@
     {
         _formulaireMissionId = missionId;
         _formulaireProbleme = probleme;
+        _formulaireAnnulation = false;
+        _formulaireMessage = "";
+        _message = null;
+    }
+
+    private void OuvrirFormulaireAnnulation(int missionId)
+    {
+        _formulaireMissionId = missionId;
+        _formulaireProbleme = false;
+        _formulaireAnnulation = true;
         _formulaireMessage = "";
         _message = null;
     }
@@ -160,7 +191,36 @@
     {
         _formulaireMissionId = null;
         _formulaireProbleme = false;
+        _formulaireAnnulation = false;
         _formulaireMessage = "";
+    }
+
+    private async Task ConfirmerAnnulationAttribueeAsync(int missionId)
+    {
+        if (_userId is null || _busy)
+            return;
+
+        if (string.IsNullOrWhiteSpace(_formulaireMessage))
+        {
+            _message = Localizer["AnnulerMissionAttribuee_MotifRequis"];
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var ok = await MissionService.AnnulerMissionAttribueeAsync(_userId, missionId, _formulaireMessage);
+            _message = ok ? Localizer["AnnulerMissionAttribuee_Succes"] : Localizer["Action_Echec"];
+            if (ok)
+            {
+                FermerFormulaire();
+                await RefreshAsync();
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private async Task ConfirmerFormulaireParticulierAsync(int missionId)

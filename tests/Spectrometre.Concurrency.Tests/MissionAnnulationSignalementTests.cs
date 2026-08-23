@@ -57,6 +57,63 @@ public sealed class MissionAnnulationSignalementTests(ServiceFixture fixture)
     }
 
     [Fact]
+    public async Task AnnulerMissionAttribuee_NotifieJeuneEtCoach_RefuseSiTermineeOuAutreProprietaire()
+    {
+        var missionService = fixture.Services.GetRequiredService<IMissionService>();
+        var notifService = fixture.Services.GetRequiredService<INotificationService>();
+        var (particulierUserId, missionId) = await PublierMissionAsync();
+        var autreParticulier = await CreerParticulierAsync();
+        var jeune = await CreerJeuneAvecCoachAsync();
+
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionId);
+        Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionId));
+        var acceptationId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId))
+            .Single().AcceptationId;
+        Assert.True(await missionService.ValiderAcceptationAsync(jeune.CoachUserId, acceptationId));
+
+        Assert.False(await missionService.AnnulerMissionAttribueeAsync(particulierUserId, missionId, "   "));
+        Assert.False(await missionService.AnnulerMissionAttribueeAsync(autreParticulier, missionId, "Pas chez moi"));
+
+        const string motif = "Empêchement familial imprévu";
+        Assert.True(await missionService.AnnulerMissionAttribueeAsync(particulierUserId, missionId, motif));
+
+        await using (var db = await fixture.Services.GetRequiredService<IDbContextFactory<MissionsDbContext>>().CreateDbContextAsync())
+        {
+            var mission = await db.Missions.AsNoTracking().FirstAsync(m => m.Id == missionId);
+            Assert.Equal(MissionStatut.Annulee, mission.Statut);
+            Assert.Equal(motif, mission.MotifAnnulation);
+            var acceptation = await db.MissionAcceptations.AsNoTracking().FirstAsync(a => a.Id == acceptationId);
+            Assert.Equal(MissionAcceptationStatut.AnnuleeParParticulier, acceptation.Statut);
+        }
+
+        var notifJeune = Assert.Single(
+            await notifService.GetRecentesAsync(jeune.UserId, 20),
+            n => n.TypeCode == "Missions.MissionAnnuleeParParticulier");
+        Assert.Equal("/jeune/mes-missions", notifJeune.Lien);
+        Assert.Contains(motif, notifJeune.Message, StringComparison.Ordinal);
+
+        var notifCoach = Assert.Single(
+            await notifService.GetRecentesAsync(jeune.CoachUserId, 20),
+            n => n.TypeCode == "Missions.MissionAnnuleeParParticulier");
+        Assert.Equal($"/coach/suivis/{jeune.UserId}/missions", notifCoach.Lien);
+        Assert.Contains(motif, notifCoach.Message, StringComparison.Ordinal);
+
+        Assert.False(await missionService.AnnulerMissionAttribueeAsync(particulierUserId, missionId, motif));
+
+        var missionTermineeId = await PublierMissionPourAsync(particulierUserId);
+        await fixture.GarantirPublicationValideeAsync(jeune.CoachUserId, missionTermineeId);
+        Assert.True(await missionService.AccepterMissionAsync(jeune.UserId, missionTermineeId));
+        var accTermineeId = (await missionService.GetDemandesEnAttentePourJeuneSuiviAsync(jeune.CoachUserId, jeune.UserId))
+            .Single().AcceptationId;
+        Assert.True(await missionService.ValiderAcceptationAsync(jeune.CoachUserId, accTermineeId));
+        Assert.True(await missionService.MarquerTermineeAsync(jeune.UserId, accTermineeId));
+        Assert.False(await missionService.AnnulerMissionAttribueeAsync(
+            particulierUserId, missionTermineeId, "Trop tard"));
+
+        await CleanupMissionsAsync([missionId, missionTermineeId], particulierUserId, autreParticulier);
+    }
+
+    [Fact]
     public async Task SignalerProbleme_NotifieCoach_EchoueSiNonAttribueeOuAutreProprietaire()
     {
         var missionService = fixture.Services.GetRequiredService<IMissionService>();

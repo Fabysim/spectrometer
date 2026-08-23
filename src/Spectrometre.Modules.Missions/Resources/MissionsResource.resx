@@ -94,6 +94,7 @@
   <data name="StatutAcceptation_ValideeParCoach" xml:space="preserve"><value>Validée par le coach</value></data>
   <data name="StatutAcceptation_RefuseeParCoach" xml:space="preserve"><value>Refusée par le coach</value></data>
   <data name="StatutAcceptation_RetireeParJeune" xml:space="preserve"><value>Retirée par le jeune</value></data>
+  <data name="StatutAcceptation_AnnuleeParParticulier" xml:space="preserve"><value>Annulée par le particulier</value></data>
 
   <data name="Difficulte_Facile" xml:space="preserve"><value>Facile</value></data>
   <data name="Difficulte_Intermediaire" xml:space="preserve"><value>Intermédiaire</value></data>
@@ -193,6 +194,12 @@
   <data name="PublierMission_LieuConfidentialite" xml:space="preserve"><value>Votre adresse complète n'est utilisée qu'après validation de la mission.</value></data>
   <data name="AnnulerMission_Bouton" xml:space="preserve"><value>Annuler cette tâche</value></data>
   <data name="AnnulerMission_Succes" xml:space="preserve"><value>Mission annulée — elle n'est plus visible pour les jeunes.</value></data>
+  <data name="AnnulerMissionAttribuee_Bouton" xml:space="preserve"><value>Annuler cette mission</value></data>
+  <data name="AnnulerMissionAttribuee_Label" xml:space="preserve"><value>Motif de l'annulation (obligatoire)</value></data>
+  <data name="AnnulerMissionAttribuee_Placeholder" xml:space="preserve"><value>Ex. : imprévu, changement de disponibilité…</value></data>
+  <data name="AnnulerMissionAttribuee_Confirmer" xml:space="preserve"><value>Confirmer l'annulation</value></data>
+  <data name="AnnulerMissionAttribuee_Succes" xml:space="preserve"><value>Mission annulée — le jeune et le coach ont été informés.</value></data>
+  <data name="AnnulerMissionAttribuee_MotifRequis" xml:space="preserve"><value>Indiquez un motif pour annuler une mission déjà attribuée.</value></data>
   <data name="ModifierMission_Bouton" xml:space="preserve"><value>Modifier</value></data>
   <data name="ModifierMission_Title" xml:space="preserve"><value>Modifier la mission · Spectromètre</value></data>
   <data name="ModifierMission_Heading" xml:space="preserve"><value>Modifier la mission</value></data>

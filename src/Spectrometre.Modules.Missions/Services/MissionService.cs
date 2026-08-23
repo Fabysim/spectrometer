@@ -410,13 +410,16 @@ public sealed class MissionService(
         foreach (var m in missions)
         {
             var accValidee = TryGetAcceptationValideeParCoach(m.Acceptations);
+            var accAnnuleeParParticulier = m.Acceptations.FirstOrDefault(
+                a => a.Statut == MissionAcceptationStatut.AnnuleeParParticulier);
+            var accPourPrenom = accValidee ?? accAnnuleeParParticulier;
             int? acceptationIdEval = m.Statut == MissionStatut.Terminee ? accValidee?.Id : null;
             string? jeunePrenom = null;
 
-            if ((m.Statut == MissionStatut.Attribuee || m.Statut == MissionStatut.Terminee)
-                && accValidee is not null)
+            if ((m.Statut is MissionStatut.Attribuee or MissionStatut.Terminee or MissionStatut.Annulee)
+                && accPourPrenom is not null)
             {
-                var jeune = await jeuneProfileService.TryGetByIdAsync(accValidee.JeuneProfileId, cancellationToken);
+                var jeune = await jeuneProfileService.TryGetByIdAsync(accPourPrenom.JeuneProfileId, cancellationToken);
                 jeunePrenom = jeune?.Prenoms;
             }
 
@@ -462,6 +465,53 @@ public sealed class MissionService(
 
         mission.Statut = MissionStatut.Annulee;
         await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> AnnulerMissionAttribueeAsync(
+        string particulierUserId,
+        int missionId,
+        string motif,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(motif))
+            return false;
+
+        var particulier = await particulierProfileService.TryGetByUserIdAsync(particulierUserId, cancellationToken);
+        if (particulier is null)
+            return false;
+
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+        var mission = await db.Missions
+            .Include(m => m.Acceptations)
+            .FirstOrDefaultAsync(m => m.Id == missionId, cancellationToken);
+        if (mission is null)
+            return false;
+
+        if (mission.ParticulierProfileId != particulier.Id)
+            return false;
+
+        if (mission.Statut != MissionStatut.Attribuee)
+            return false;
+
+        var acceptation = TryGetAcceptationValideeParCoach(mission.Acceptations);
+        if (acceptation is null)
+            return false;
+
+        var jeune = await jeuneProfileService.TryGetByIdAsync(acceptation.JeuneProfileId, cancellationToken);
+        if (jeune is null)
+            return false;
+
+        var motifNorme = motif.Trim();
+        if (motifNorme.Length > 2000)
+            motifNorme = motifNorme[..2000];
+
+        mission.Statut = MissionStatut.Annulee;
+        mission.MotifAnnulation = motifNorme;
+        acceptation.Statut = MissionAcceptationStatut.AnnuleeParParticulier;
+        await db.SaveChangesAsync(cancellationToken);
+
+        await NotifierAnnulationMissionAttribueeAsync(jeune, mission, motifNorme, cancellationToken);
         return true;
     }
 
@@ -766,6 +816,37 @@ public sealed class MissionService(
             missionsRefuseesOuAnnuleesCount,
             particulierEmail,
             particulierTelephone);
+
+    private async Task NotifierAnnulationMissionAttribueeAsync(
+        JeuneProfileView jeune,
+        Mission mission,
+        string motif,
+        CancellationToken cancellationToken)
+    {
+        var titreMission = MissionDisplay.TitreAffiche(mission.Categorie, mission.Titre);
+        var jeuneNom = $"{jeune.Prenoms} {jeune.Nom}".Trim();
+        var corps = $"La mission « {titreMission} » a été annulée par le particulier. Motif : {motif}";
+
+        await notificationService.CreerAsync(
+            jeune.UserId,
+            "Mission annulée",
+            corps,
+            "/jeune/mes-missions",
+            "Missions.MissionAnnuleeParParticulier",
+            cancellationToken);
+
+        var coachUserId = await FindCoachReferentAsync(jeune.UserId, cancellationToken);
+        if (coachUserId is null)
+            return;
+
+        await notificationService.CreerAsync(
+            coachUserId,
+            "Mission annulée par le particulier",
+            $"{jeuneNom} : {corps}",
+            $"/coach/suivis/{jeune.UserId}/missions",
+            "Missions.MissionAnnuleeParParticulier",
+            cancellationToken);
+    }
 
     private async Task<string?> FindCoachReferentAsync(string jeuneUserId, CancellationToken cancellationToken)
     {

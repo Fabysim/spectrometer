@@ -11,6 +11,12 @@ public enum MissionAcceptationStatut
     /// Valeur 3 pour ne pas réordonner les statuts déjà persistés (0–2) — pas de migration.
     /// </summary>
     RetireeParJeune = 3,
+    /// <summary>
+    /// Le particulier annule une mission déjà <c>Attribuee</c>. Distinct de
+    /// <see cref="RefuseeParCoach"/> (avant attribution) et de <see cref="RetireeParJeune"/>
+    /// (candidature encore en attente). Valeur 4 — pas de migration (enum stocké en int).
+    /// </summary>
+    AnnuleeParParticulier = 4,
 }
 
 /// <summary>

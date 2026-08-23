@@ -94,6 +94,7 @@
   <data name="StatutAcceptation_ValideeParCoach" xml:space="preserve"><value>Approved by coach</value></data>
   <data name="StatutAcceptation_RefuseeParCoach" xml:space="preserve"><value>Declined by coach</value></data>
   <data name="StatutAcceptation_RetireeParJeune" xml:space="preserve"><value>Withdrawn by you</value></data>
+  <data name="StatutAcceptation_AnnuleeParParticulier" xml:space="preserve"><value>Cancelled by the client</value></data>
 
   <data name="Difficulte_Facile" xml:space="preserve"><value>Easy</value></data>
   <data name="Difficulte_Intermediaire" xml:space="preserve"><value>Intermediate</value></data>
@@ -193,6 +194,12 @@
   <data name="PublierMission_LieuConfidentialite" xml:space="preserve"><value>Your full address is only used after the mission is confirmed.</value></data>
   <data name="AnnulerMission_Bouton" xml:space="preserve"><value>Cancel this task</value></data>
   <data name="AnnulerMission_Succes" xml:space="preserve"><value>Mission cancelled — it is no longer visible to young providers.</value></data>
+  <data name="AnnulerMissionAttribuee_Bouton" xml:space="preserve"><value>Cancel this mission</value></data>
+  <data name="AnnulerMissionAttribuee_Label" xml:space="preserve"><value>Reason for cancellation (required)</value></data>
+  <data name="AnnulerMissionAttribuee_Placeholder" xml:space="preserve"><value>e.g. unexpected change, no longer available…</value></data>
+  <data name="AnnulerMissionAttribuee_Confirmer" xml:space="preserve"><value>Confirm cancellation</value></data>
+  <data name="AnnulerMissionAttribuee_Succes" xml:space="preserve"><value>Mission cancelled — the young person and the coach have been notified.</value></data>
+  <data name="AnnulerMissionAttribuee_MotifRequis" xml:space="preserve"><value>Please give a reason to cancel an assigned mission.</value></data>
   <data name="ModifierMission_Bouton" xml:space="preserve"><value>Edit</value></data>
   <data name="ModifierMission_Title" xml:space="preserve"><value>Edit mission · Spectrometre</value></data>
   <data name="ModifierMission_Heading" xml:space="preserve"><value>Edit mission</value></data>
