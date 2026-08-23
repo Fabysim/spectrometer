@@ -356,8 +356,8 @@ else
         }
 
         _page = await GrilleObservationService.TryGetPageAsync(_userId, _page.JeuneProfile.Id);
-        _message = Localizer["GrilleObs_EvaluationEnregistree"];
         await SelectEvaluationAsync(id.Value);
+        _message = Localizer["GrilleObs_EvaluationEnregistree"];
         _saving = false;
     }
 }
