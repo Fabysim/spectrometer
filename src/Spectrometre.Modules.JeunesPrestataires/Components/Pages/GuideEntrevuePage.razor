@@ -117,6 +117,10 @@ else
         <button type="button" class="ge-btn-primary" disabled="@_saving" @onclick="EnregistrerAsync">
             @Localizer["GuideEntrevue_Enregistrer"]
         </button>
+        @if (!string.IsNullOrEmpty(_message))
+        {
+            <span class="ge-actions-message" role="status">@_message</span>
+        }
     </div>
 }
 </div>

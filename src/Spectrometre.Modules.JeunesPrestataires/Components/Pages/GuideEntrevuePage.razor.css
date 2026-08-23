@@ -18,7 +18,8 @@
 .ge-peur-grid dd { margin: 0; line-height: 1.4; }
 .ge-posture { background: #f8fafc; border-left: 4px solid #6366f1; }
 .ge-posture p { margin: 0; line-height: 1.55; }
-.ge-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
+.ge-actions { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
+.ge-actions-message { color: #374151; font-weight: 600; font-size: 0.92rem; }
 .ge-btn-primary { border: none; border-radius: 0.5rem; padding: 0.55rem 1.25rem; font-weight: 600; cursor: pointer; background: #2563eb; color: #fff; }
 .ge-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .ge-success { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
