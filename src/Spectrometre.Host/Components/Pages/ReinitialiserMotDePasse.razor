@@ -1,0 +1,146 @@
+@page "/reinitialiser-mot-de-passe"
+@layout Spectrometre.Host.Components.Layout.PublicLayout
+@using System.Text
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Identity
+@using Spectrometre.Host.Resources
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["ReinitialiserMotDePasse_Titre"]</PageTitle>
+
+@* Formulaire en rendu statique, par cohérence avec Login/Inscription (voir commentaire dans Login.razor). *@
+<div class="login-page-nav-overlay" aria-hidden="true"></div>
+<div class="login-page-wrapper">
+    <div class="container-fluid px-3 px-md-4 px-lg-5 px-xl-4 py-5 login-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-xl-6">
+                <div class="login-card">
+                    <header class="login-header">
+                        <h1 class="login-title">@Localizer["ReinitialiserMotDePasse_Titre"]</h1>
+                    </header>
+                    <div class="p-4 p-lg-5">
+                        @if (_lienInvalide)
+                        {
+                            <div class="alert alert-danger">@Localizer["ReinitialiserMotDePasse_LienInvalide"]</div>
+                            <div class="login-links">
+                                <a href="/mot-de-passe-oublie" class="login-link">@Localizer["MotDePasseOublie_Titre"]</a>
+                            </div>
+                        }
+                        else if (_succes)
+                        {
+                            <div class="alert alert-success">@Localizer["ReinitialiserMotDePasse_Succes"]</div>
+                            <a href="/login" class="login-btn login-btn-primary">@Localizer["SeConnecter"]</a>
+                        }
+                        else
+                        {
+                            @if (!string.IsNullOrEmpty(_message))
+                            {
+                                <div class="alert alert-danger">@_message</div>
+                            }
+                            <EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="reinitialiser-mot-de-passe" method="post">
+                                <div class="login-form-group">
+                                    <label for="nouveauMotDePasse" class="login-form-label">@Localizer["ReinitialiserMotDePasse_NouveauMotDePasse"]</label>
+                                    <div class="password-field-wrapper">
+                                        <InputText id="nouveauMotDePasse" @bind-Value="_model.NouveauMotDePasse" type="password"
+                                                   class="login-form-control form-control"
+                                                   autocomplete="new-password" required />
+                                        <button type="button" class="password-toggle-btn" data-toggle-password="nouveauMotDePasse"
+                                                data-label-show="@Localizer["Inscription_AfficherMotDePasse"]"
+                                                data-label-hide="@Localizer["Inscription_MasquerMotDePasse"]"
+                                                aria-label="@Localizer["Inscription_AfficherMotDePasse"]"
+                                                title="@Localizer["Inscription_AfficherMotDePasse"]">
+                                            <i class="bi bi-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="login-form-group">
+                                    <label for="confirmationNouveauMotDePasse" class="login-form-label">@Localizer["ReinitialiserMotDePasse_ConfirmationMotDePasse"]</label>
+                                    <div class="password-field-wrapper">
+                                        <InputText id="confirmationNouveauMotDePasse" @bind-Value="_model.ConfirmationMotDePasse" type="password"
+                                                   class="login-form-control form-control"
+                                                   autocomplete="new-password" required />
+                                        <button type="button" class="password-toggle-btn" data-toggle-password="confirmationNouveauMotDePasse"
+                                                data-label-show="@Localizer["Inscription_AfficherMotDePasse"]"
+                                                data-label-hide="@Localizer["Inscription_MasquerMotDePasse"]"
+                                                aria-label="@Localizer["Inscription_AfficherMotDePasse"]"
+                                                title="@Localizer["Inscription_AfficherMotDePasse"]">
+                                            <i class="bi bi-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-4 mt-4">
+                                    <button type="submit" class="login-btn login-btn-primary">@Localizer["ReinitialiserMotDePasse_SubmitButton"]</button>
+                                </div>
+                            </EditForm>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] private string? UserId { get; set; }
+    [SupplyParameterFromQuery] private string? Code { get; set; }
+
+    [SupplyParameterFromForm(FormName = "reinitialiser-mot-de-passe")]
+    private ReinitialisationModel _model { get; set; } = new();
+
+    private string? _message;
+    private bool _succes;
+    private bool _lienInvalide;
+
+    private sealed class ReinitialisationModel
+    {
+        public string NouveauMotDePasse { get; set; } = "";
+        public string ConfirmationMotDePasse { get; set; } = "";
+    }
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(UserId) || string.IsNullOrEmpty(Code))
+            _lienInvalide = true;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_model.NouveauMotDePasse != _model.ConfirmationMotDePasse)
+        {
+            _message = Localizer["ReinitialiserMotDePasse_MotsDePasseNeCorrespondentPas"];
+            return;
+        }
+
+        var user = await UserManager.FindByIdAsync(UserId!);
+        if (user is null)
+        {
+            _lienInvalide = true;
+            return;
+        }
+
+        string decodedCode;
+        try
+        {
+            decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code!));
+        }
+        catch (FormatException)
+        {
+            _lienInvalide = true;
+            return;
+        }
+
+        var result = await UserManager.ResetPasswordAsync(user, decodedCode, _model.NouveauMotDePasse);
+        if (result.Succeeded)
+        {
+            _succes = true;
+        }
+        else
+        {
+            _message = Localizer["ReinitialiserMotDePasse_Echec"];
+        }
+    }
+}

@@ -888,6 +888,45 @@
   <data name="Login_SubmitButton" xml:space="preserve">
     <value>Se connecter</value>
   </data>
+  <data name="Login_ForgotPasswordLink" xml:space="preserve">
+    <value>Mot de passe oublié ?</value>
+  </data>
+  <data name="MotDePasseOublie_Titre" xml:space="preserve">
+    <value>Mot de passe oublié</value>
+  </data>
+  <data name="MotDePasseOublie_Instructions" xml:space="preserve">
+    <value>Saisissez votre adresse email : si un compte lui correspond, vous recevrez un lien pour réinitialiser votre mot de passe.</value>
+  </data>
+  <data name="MotDePasseOublie_SubmitButton" xml:space="preserve">
+    <value>Envoyer le lien de réinitialisation</value>
+  </data>
+  <data name="MotDePasseOublie_MessageEnvoye" xml:space="preserve">
+    <value>Si un compte existe avec cette adresse email, un lien de réinitialisation vient de lui être envoyé.</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_Titre" xml:space="preserve">
+    <value>Réinitialiser le mot de passe</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_NouveauMotDePasse" xml:space="preserve">
+    <value>Nouveau mot de passe</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_ConfirmationMotDePasse" xml:space="preserve">
+    <value>Confirmer le nouveau mot de passe</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_MotsDePasseNeCorrespondentPas" xml:space="preserve">
+    <value>Les mots de passe ne correspondent pas.</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_SubmitButton" xml:space="preserve">
+    <value>Réinitialiser le mot de passe</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_LienInvalide" xml:space="preserve">
+    <value>Ce lien de réinitialisation n'est pas valide ou a expiré.</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_Succes" xml:space="preserve">
+    <value>Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_Echec" xml:space="preserve">
+    <value>La réinitialisation du mot de passe a échoué. Le lien a peut-être expiré.</value>
+  </data>
   <data name="Login_RegisterLink" xml:space="preserve">
     <value>Créer un compte</value>
   </data>

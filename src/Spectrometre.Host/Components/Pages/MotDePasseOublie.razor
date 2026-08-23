@@ -1,0 +1,90 @@
+@page "/mot-de-passe-oublie"
+@layout Spectrometre.Host.Components.Layout.PublicLayout
+@using System.Text
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Localization
+@using Spectrometre.Core.Email
+@using Spectrometre.Core.Identity
+@using Spectrometre.Host.Resources
+@inject UserManager<ApplicationUser> UserManager
+@inject IResendEmailService ResendEmailService
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> Localizer
+
+<PageTitle>@Localizer["MotDePasseOublie_Titre"]</PageTitle>
+
+@* Formulaire en rendu statique, par cohérence avec Login/Inscription (voir commentaire dans Login.razor). *@
+<div class="login-page-nav-overlay" aria-hidden="true"></div>
+<div class="login-page-wrapper">
+    <div class="container-fluid px-3 px-md-4 px-lg-5 px-xl-4 py-5 login-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-xl-6">
+                <div class="login-card">
+                    <header class="login-header">
+                        <h1 class="login-title">@Localizer["MotDePasseOublie_Titre"]</h1>
+                    </header>
+                    <div class="p-4 p-lg-5">
+                        @if (_envoye)
+                        {
+                            <div class="alert alert-success">@Localizer["MotDePasseOublie_MessageEnvoye"]</div>
+                            <div class="login-links">
+                                <a href="/login" class="login-link">@Localizer["SeConnecter"]</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="login-subtitle">@Localizer["MotDePasseOublie_Instructions"]</p>
+                            <EditForm Model="_model" OnValidSubmit="SubmitAsync" FormName="mot-de-passe-oublie" method="post">
+                                <div class="login-form-group">
+                                    <label for="mdpoublie-email" class="login-form-label">@Localizer["Login_EmailLabel"]</label>
+                                    <InputText id="mdpoublie-email" @bind-Value="_model.Email" type="email"
+                                               class="login-form-control form-control"
+                                               autocomplete="username" required
+                                               placeholder="@Localizer["Login_EmailPlaceholder"]" />
+                                </div>
+                                <div class="mb-4 mt-4">
+                                    <button type="submit" class="login-btn login-btn-primary">@Localizer["MotDePasseOublie_SubmitButton"]</button>
+                                </div>
+                            </EditForm>
+                            <div class="login-links">
+                                <a href="/login" class="login-link">@Localizer["SeConnecter"]</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm(FormName = "mot-de-passe-oublie")]
+    private DemandeModel _model { get; set; } = new();
+
+    private bool _envoye;
+
+    private sealed class DemandeModel
+    {
+        public string Email { get; set; } = "";
+    }
+
+    private async Task SubmitAsync()
+    {
+        // Message générique quel que soit le résultat, pour ne pas révéler si l'adresse email
+        // correspond à un compte existant (évite l'énumération d'utilisateurs).
+        _envoye = true;
+
+        var user = await UserManager.FindByEmailAsync(_model.Email);
+        if (user is null || !await UserManager.IsEmailConfirmedAsync(user))
+            return;
+
+        var code = await UserManager.GeneratePasswordResetTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var resetLink = Navigation.GetUriWithQueryParameters(
+            Navigation.ToAbsoluteUri("reinitialiser-mot-de-passe").AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = user.Id, ["code"] = code });
+
+        await ResendEmailService.SendPasswordResetEmailAsync(_model.Email, resetLink);
+    }
+}

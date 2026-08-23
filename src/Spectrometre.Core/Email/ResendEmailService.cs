@@ -110,6 +110,26 @@ public sealed class ResendEmailService(
             cancellationToken);
     }
 
+    /// <inheritdoc />
+    public Task<bool> SendPasswordResetEmailAsync(string email, string resetLink, CancellationToken cancellationToken = default)
+    {
+        var appName = ResolveAppName();
+        var year = DateTime.UtcNow.Year.ToString();
+        var html = BuildHtmlEmail(
+            localizer["Email_ResetPassword_Title"].Value,
+            localizer["Email_ResetPassword_Body"].Value,
+            localizer["Email_ResetPassword_Button"].Value,
+            string.Format(localizer["Email_ResetPassword_Footer"].Value, year, appName),
+            resetLink);
+
+        return SendEmailAsync(
+            email,
+            localizer["Email_ResetPassword_Subject"].Value,
+            html,
+            "réinitialisation de mot de passe",
+            cancellationToken);
+    }
+
     private string ResolveAppName() =>
         string.IsNullOrWhiteSpace(_options.AppName) ? "Spectromètre" : _options.AppName;
 

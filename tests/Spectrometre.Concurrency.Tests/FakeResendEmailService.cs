@@ -16,4 +16,7 @@ public sealed class FakeResendEmailService : IResendEmailService
         string acceptationLink,
         CancellationToken cancellationToken = default) =>
         Task.FromResult(false);
+
+    public Task<bool> SendPasswordResetEmailAsync(string email, string resetLink, CancellationToken cancellationToken = default) =>
+        Task.FromResult(false);
 }

@@ -31,4 +31,14 @@ public interface IResendEmailService
         string coachNomAffiche,
         string acceptationLink,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Envoie l'email de réinitialisation de mot de passe avec le lien de réinitialisation, dans la culture
+    /// courante.
+    /// </summary>
+    /// <returns>
+    /// <see langword="false"/> si <c>Resend:ApiKey</c> n'est pas configuré ou si l'appel à l'API Resend
+    /// échoue — jamais d'exception propagée.
+    /// </returns>
+    Task<bool> SendPasswordResetEmailAsync(string email, string resetLink, CancellationToken cancellationToken = default);
 }

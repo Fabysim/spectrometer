@@ -881,6 +881,45 @@
   <data name="Login_SubmitButton" xml:space="preserve">
     <value>Sign in</value>
   </data>
+  <data name="Login_ForgotPasswordLink" xml:space="preserve">
+    <value>Forgot your password?</value>
+  </data>
+  <data name="MotDePasseOublie_Titre" xml:space="preserve">
+    <value>Forgot password</value>
+  </data>
+  <data name="MotDePasseOublie_Instructions" xml:space="preserve">
+    <value>Enter your email address: if an account matches it, you'll receive a link to reset your password.</value>
+  </data>
+  <data name="MotDePasseOublie_SubmitButton" xml:space="preserve">
+    <value>Send reset link</value>
+  </data>
+  <data name="MotDePasseOublie_MessageEnvoye" xml:space="preserve">
+    <value>If an account exists with this email address, a reset link has just been sent to it.</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_Titre" xml:space="preserve">
+    <value>Reset password</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_NouveauMotDePasse" xml:space="preserve">
+    <value>New password</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_ConfirmationMotDePasse" xml:space="preserve">
+    <value>Confirm new password</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_MotsDePasseNeCorrespondentPas" xml:space="preserve">
+    <value>Passwords do not match.</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_SubmitButton" xml:space="preserve">
+    <value>Reset password</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_LienInvalide" xml:space="preserve">
+    <value>This reset link is invalid or has expired.</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_Succes" xml:space="preserve">
+    <value>Your password has been reset successfully. You can now sign in.</value>
+  </data>
+  <data name="ReinitialiserMotDePasse_Echec" xml:space="preserve">
+    <value>The password reset failed. The link may have expired.</value>
+  </data>
   <data name="Login_RegisterLink" xml:space="preserve">
     <value>Create an account</value>
   </data>
