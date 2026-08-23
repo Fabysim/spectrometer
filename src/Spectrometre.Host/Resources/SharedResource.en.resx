@@ -937,4 +937,6 @@
   <data name="AjouterUnModuleCoach" xml:space="preserve"><value>Add a module (coach)</value></data>
   <data name="Module_Calendrier" xml:space="preserve"><value>Calendar</value></data>
   <data name="Module_GestionDuTempsCoachDescription" xml:space="preserve"><value>Organize your own time (coach personal use).</value></data>
+  <data name="Salutation_Bonjour" xml:space="preserve"><value>Hello</value></data>
+  <data name="VoirMonProfil" xml:space="preserve"><value>View my profile</value></data>
 </root>

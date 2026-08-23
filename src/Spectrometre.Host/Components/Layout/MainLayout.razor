@@ -1,10 +1,12 @@
 @inherits LayoutComponentBase
 @using System.Globalization
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Localization
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Localization
 @using Spectrometre.Core.Data
+@using Spectrometre.Core.Identity
 @using Spectrometre.Core.Modules
 @using Spectrometre.Core.Tenancy
 @using Spectrometre.Host.Onboarding
@@ -25,6 +27,7 @@
 @inject IDbContextFactory<CoreDbContext> CoreDbFactory
 @inject IStringLocalizer<SharedResource> Localizer
 @inject NavigationManager Navigation
+@inject UserManager<ApplicationUser> UserManager
 
 <div class="app-shell">
     <button type="button" class="sidebar-mobile-btn" onclick="spectrometreToggleMobileSidebar()" aria-label="Menu">
@@ -46,7 +49,14 @@
                 <Authorized>
                     <div class="user-info">
                         <i class="bi bi-person-circle" aria-hidden="true"></i>
-                        <span>@context.User.Identity?.Name</span>
+                        @if (!string.IsNullOrWhiteSpace(_userFirstName))
+                        {
+                            <span>@Localizer["Salutation_Bonjour"] @_userFirstName</span>
+                        }
+                        else
+                        {
+                            <span>@context.User.Identity?.Name</span>
+                        }
                     </div>
                 </Authorized>
             </AuthorizeView>
@@ -418,6 +428,13 @@
             </a>
             <AuthorizeView>
                 <Authorized>
+                    @if (_profilHref is not null)
+                    {
+                        <a href="@_profilHref" class="nav-item-auth @ActiveClass(_profilHref)">
+                            <span class="nav-icon"><i class="bi bi-person" aria-hidden="true"></i></span>
+                            <span>@Localizer["VoirMonProfil"]</span>
+                        </a>
+                    }
                     <a href="/logout" class="nav-item-auth" data-enhance-nav="false">
                         <span class="nav-icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
                         <span>@Localizer["Deconnexion"]</span>
@@ -476,6 +493,9 @@
     /// <summary>Sujet Candidat uniquement — voir IGestionDuTempsAccessService.HasCandidateAccessAsync : une entreprise avec Gestion du temps actif ne doit pas voir « Mon coach ».</summary>
     private bool _showMonCoach;
     private bool _isPlatformAdmin;
+    private string? _userFirstName;
+    /// <summary>Null si aucune page de profil n'existe pour la persona (jeune, candidat sans GDT, particulier, admin seul).</summary>
+    private string? _profilHref;
 
     /// <summary>
     /// Menu entièrement dynamique : chaque lien de module (hors Gestion du temps, voir plus bas) n'apparaît
@@ -510,6 +530,10 @@
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
             return;
+
+        var appUser = await UserManager.FindByIdAsync(userId);
+        var prenom = appUser?.FirstName?.Trim();
+        _userFirstName = string.IsNullOrEmpty(prenom) ? null : prenom;
 
         await using var coreDb = await CoreDbFactory.CreateDbContextAsync();
 
@@ -582,6 +606,23 @@
                     _particulierActiveModules.Add(manifest.Code);
             }
         }
+
+        _profilHref = ResolveProfilHref();
+    }
+
+    /// <summary>
+    /// Uniquement des routes déjà existantes : coach, entreprise, gestion du temps.
+    /// Pas de page profil jeune, candidat ni particulier aujourd'hui — le lien est alors masqué.
+    /// </summary>
+    private string? ResolveProfilHref()
+    {
+        if (_coachActiveModules.Contains("ProfilCoach"))
+            return "/coach/profil";
+        if (_hasCompany && !_isPlatformAdmin)
+            return "/entreprise/profil";
+        if (_showGestionDuTemps)
+            return "/gestion-du-temps/profil";
+        return null;
     }
 
     private bool CurrentCultureIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr";
