@@ -12,7 +12,7 @@ public sealed class ResendEmailServiceOptions
     /// <summary>Clé API Resend. Vide par défaut : voir <see cref="IResendEmailService"/> pour le comportement dans ce cas.</summary>
     public string ApiKey { get; set; } = string.Empty;
 
-    public string From { get; set; } = "Spectromètre <noreply@thinkeens.com>";
+    public string From { get; set; } = "Spectromètre <contact@spectrometre-socioprofessionnel.com>";
 
     public string AppName { get; set; } = "Spectromètre";
 }
