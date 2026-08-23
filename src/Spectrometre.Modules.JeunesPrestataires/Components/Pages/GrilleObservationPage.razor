@@ -160,13 +160,13 @@ else
                                 <button type="button"
                                         class="go-radio-btn go-radio-btn--score @(on ? "go-radio-btn--on" : "")"
                                         role="radio"
-                                        aria-checked="@on"
+                                        aria-checked="@(on ? "true" : "false")"
                                         @onclick="() => SetScore(critere.Key, s)">@s</button>
                             }
                             <button type="button"
                                     class="go-radio-btn @(_scores.GetValueOrDefault(critere.Key) is null ? "go-radio-btn--on" : "")"
                                     role="radio"
-                                    aria-checked="@(_scores.GetValueOrDefault(critere.Key) is null)"
+                                    aria-checked="@(_scores.GetValueOrDefault(critere.Key) is null ? "true" : "false")"
                                     @onclick="() => SetScore(critere.Key, null)">@Localizer["GrilleObs_NonRenseigne"]</button>
                         </div>
                         <textarea class="go-comment form-control" rows="2"

@@ -43,16 +43,18 @@ else if (_page.AccessMode == AutoObservationAccessMode.Jeune && _page.Orientatio
         {
             <div class="ao-question">
                 <span class="ao-question-label">@Localizer[q.LabelResourceKey]</span>
-                <div class="ao-radios">
+                <div class="ao-radio-group" role="radiogroup" aria-label="@Localizer[q.LabelResourceKey]">
                     @foreach (var code in q.OptionCodes)
                     {
-                        <label class="ao-radio">
-                            <input type="radio"
-                                   name="@q.Key"
-                                   checked="@(_orientationReponses.GetValueOrDefault(q.Key) == code)"
-                                   @onchange="() => _orientationReponses[q.Key] = code" />
-                            @Localizer[$"Orientation_Opt_{code}"]
-                        </label>
+                        var c = code;
+                        var on = _orientationReponses.GetValueOrDefault(q.Key) == c;
+                        <button type="button"
+                                class="ao-radio-btn @(on ? "ao-radio-btn--on" : "")"
+                                role="radio"
+                                aria-checked="@(on ? "true" : "false")"
+                                @onclick="() => _orientationReponses[q.Key] = c">
+                            @Localizer[$"Orientation_Opt_{c}"]
+                        </button>
                     }
                 </div>
             </div>
@@ -248,68 +250,80 @@ else
                                               @bind="_textValues[q.Key]"></textarea>
                                     break;
                                 case AutoObservationFieldType.MultiCheckbox:
-                                    <div class="ao-checkboxes">
+                                    <div class="ao-check-group" role="group" aria-label="@TexteCatalogue($"AutoObs_Q_{q.Key}", q.Label)">
                                         @{ var optIndex = 0; }
                                         @foreach (var opt in q.Options ?? [])
                                         {
+                                            var option = opt;
                                             var i = optIndex++;
-                                            var isAutre = opt.StartsWith("Autre", StringComparison.Ordinal);
-                                            <label class="ao-checkbox">
-                                                <input type="checkbox" disabled="@(!_canEdit)"
-                                                       checked="@IsChecked(q.Key, opt)"
-                                                       @onchange="e => ToggleMulti(q.Key, opt, (bool)e.Value!)" />
-                                                @TexteCatalogue($"AutoObs_O_{q.Key}_{i}", opt)
-                                            </label>
-                                            @if (isAutre && q.AutreKey is not null)
-                                            {
-                                                <input class="ao-input ao-autre" disabled="@(!_canEdit || !IsChecked(q.Key, opt))"
-                                                       @bind="_textValues[q.AutreKey]" placeholder="@Localizer["AutoObs_AutrePreciser"]" />
-                                            }
+                                            var on = IsChecked(q.Key, option);
+                                            var isAutre = option.StartsWith("Autre", StringComparison.Ordinal);
+                                            <div class="ao-check-item">
+                                                <button type="button"
+                                                        class="ao-check-btn @(on ? "ao-check-btn--on" : "")"
+                                                        role="checkbox"
+                                                        aria-checked="@(on ? "true" : "false")"
+                                                        disabled="@(!_canEdit)"
+                                                        @onclick="() => ToggleMulti(q.Key, option, !on)">
+                                                    @TexteCatalogue($"AutoObs_O_{q.Key}_{i}", option)
+                                                </button>
+                                                @if (isAutre && q.AutreKey is not null)
+                                                {
+                                                    <input class="ao-input ao-autre" disabled="@(!_canEdit || !on)"
+                                                           @bind="_textValues[q.AutreKey]" placeholder="@Localizer["AutoObs_AutrePreciser"]" />
+                                                }
+                                            </div>
                                         }
                                     </div>
                                     break;
                                 case AutoObservationFieldType.SingleChoice:
-                                    <div class="ao-radios">
+                                    <div class="ao-radio-group" role="radiogroup" aria-label="@TexteCatalogue($"AutoObs_Q_{q.Key}", q.Label)">
                                         @{ var radioIndex = 0; }
                                         @foreach (var opt in q.Options ?? [])
                                         {
+                                            var option = opt;
                                             var i = radioIndex++;
-                                            <label class="ao-radio">
-                                                <input type="radio" name="@q.Key" disabled="@(!_canEdit)"
-                                                       checked="@(_textValues.GetValueOrDefault(q.Key) == opt)"
-                                                       @onchange="() => _textValues[q.Key] = opt" />
-                                                @TexteCatalogue($"AutoObs_O_{q.Key}_{i}", opt)
-                                            </label>
+                                            var on = _textValues.GetValueOrDefault(q.Key) == option;
+                                            <button type="button"
+                                                    class="ao-radio-btn @(on ? "ao-radio-btn--on" : "")"
+                                                    role="radio"
+                                                    aria-checked="@(on ? "true" : "false")"
+                                                    disabled="@(!_canEdit)"
+                                                    @onclick="() => _textValues[q.Key] = option">
+                                                @TexteCatalogue($"AutoObs_O_{q.Key}_{i}", option)
+                                            </button>
                                         }
                                     </div>
                                     break;
                                 case AutoObservationFieldType.Scale1To5:
-                                    <div class="ao-scale">
+                                    <div class="ao-radio-group" role="radiogroup" aria-label="@TexteCatalogue($"AutoObs_Q_{q.Key}", q.Label)">
                                         <span class="ao-scale-hint">@Localizer["AutoObs_Echelle1a5"]</span>
                                         @for (var n = 1; n <= 5; n++)
                                         {
                                             var score = n;
-                                            <label class="ao-scale-item">
-                                                <input type="radio" name="@q.Key" disabled="@(!_canEdit)"
-                                                       checked="@(_numericValues.GetValueOrDefault(q.Key) == score)"
-                                                       @onchange="() => _numericValues[q.Key] = score" />
-                                                @score
-                                            </label>
+                                            var on = _numericValues.GetValueOrDefault(q.Key) == score;
+                                            <button type="button"
+                                                    class="ao-radio-btn ao-radio-btn--score @(on ? "ao-radio-btn--on" : "")"
+                                                    role="radio"
+                                                    aria-checked="@(on ? "true" : "false")"
+                                                    disabled="@(!_canEdit)"
+                                                    @onclick="() => _numericValues[q.Key] = score">@score</button>
                                         }
                                     </div>
                                     break;
                                 case AutoObservationFieldType.Scale1To4:
-                                    <div class="ao-scale">
+                                    <div class="ao-radio-group" role="radiogroup" aria-label="@TexteCatalogue($"AutoObs_Q_{q.Key}", q.Label)">
                                         <span class="ao-scale-hint">@Localizer["AutoObs_Echelle1a4"]</span>
                                         @for (var n = 1; n <= 4; n++)
                                         {
                                             var score = n;
-                                            <label class="ao-scale-item">
-                                                <input type="radio" name="@q.Key" disabled="@(!_canEdit)"
-                                                       checked="@(_numericValues.GetValueOrDefault(q.Key) == score)"
-                                                       @onchange="() => _numericValues[q.Key] = score" />
-                                                @score
-                                            </label>
+                                            var on = _numericValues.GetValueOrDefault(q.Key) == score;
+                                            <button type="button"
+                                                    class="ao-radio-btn ao-radio-btn--score @(on ? "ao-radio-btn--on" : "")"
+                                                    role="radio"
+                                                    aria-checked="@(on ? "true" : "false")"
+                                                    disabled="@(!_canEdit)"
+                                                    @onclick="() => _numericValues[q.Key] = score">@score</button>
                                         }
                                     </div>
                                     break;
