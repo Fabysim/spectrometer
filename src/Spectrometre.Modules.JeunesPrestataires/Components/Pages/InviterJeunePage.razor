@@ -124,6 +124,14 @@ else
                 }
                 @Localizer["InviterJeune_Envoyer"]
             </button>
+            @if (_messageSucces is not null)
+            {
+                <span class="inviter-actions-message inviter-actions-message-success" role="status">@_messageSucces</span>
+            }
+            else if (_errorKey is not null)
+            {
+                <span class="inviter-actions-message inviter-actions-message-error" role="alert">@Localizer[_errorKey]</span>
+            }
         </div>
     </section>
     </div>

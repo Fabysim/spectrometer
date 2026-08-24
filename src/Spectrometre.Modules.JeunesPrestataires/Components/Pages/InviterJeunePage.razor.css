@@ -230,11 +230,20 @@
 .inviter-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.75rem;
   margin-top: 1.35rem;
   padding-top: 1.25rem;
   border-top: 1px solid #f1f5f9;
 }
+
+.inviter-actions-message {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.inviter-actions-message-success { color: #065f46; }
+.inviter-actions-message-error { color: #b91c1c; }
 
 .inviter-btn-primary {
   display: inline-flex;
