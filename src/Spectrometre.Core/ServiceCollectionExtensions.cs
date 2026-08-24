@@ -69,6 +69,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IModuleRegistry, ModuleRegistry>();
         services.AddScoped<IRecruitmentIndexService, RecruitmentIndexService>();
         services.AddScoped<IInvitationService, InvitationService>();
+        services.AddSingleton<INotificationBroadcaster, NotificationBroadcaster>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IPreferenceNotificationService, PreferenceNotificationService>();
         services.AddScoped<IFacturationCalculatorService, FacturationCalculatorService>();

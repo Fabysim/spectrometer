@@ -9,7 +9,8 @@ namespace Spectrometre.Core.Notifications;
 /// </summary>
 public sealed class NotificationService(
     IDbContextFactory<CoreDbContext> coreDbFactory,
-    IPreferenceNotificationService preferences) : INotificationService
+    IPreferenceNotificationService preferences,
+    INotificationBroadcaster broadcaster) : INotificationService
 {
     /// <summary>
     /// Crée une notification sauf si la préférence de catégorie est désactivée.
@@ -44,6 +45,7 @@ public sealed class NotificationService(
         };
         db.NotificationsUtilisateur.Add(entity);
         await db.SaveChangesAsync(cancellationToken);
+        broadcaster.Publish(userId);
         return entity.Id;
     }
 
