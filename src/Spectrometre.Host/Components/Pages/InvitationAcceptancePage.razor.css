@@ -277,6 +277,16 @@ a.login-btn {
     color: var(--bs-success);
 }
 
+.invitation-actions-message {
+    margin: 0.75rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.invitation-actions-message-error { color: var(--bs-danger); }
+.invitation-actions-message-success { color: var(--bs-success); }
+
 /* Blazor scoped CSS : InputText rend hors du scope parent */
 ::deep .login-form-control,
 ::deep input.login-form-control {

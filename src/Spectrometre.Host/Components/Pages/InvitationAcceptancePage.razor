@@ -126,6 +126,10 @@
                                     <button type="submit" class="login-btn login-btn-primary">
                                         @Localizer["InvitationCreerVotreCompte"]
                                     </button>
+                                    @if (!string.IsNullOrEmpty(_message))
+                                    {
+                                        <p class="invitation-actions-message invitation-actions-message-error" role="alert">@_message</p>
+                                    }
                                 </div>
                             </EditForm>
                         }
@@ -173,6 +177,10 @@
                                 <button type="submit" class="login-btn login-btn-primary">
                                     @Localizer["InvitationConfirmer"]
                                 </button>
+                                @if (!string.IsNullOrEmpty(_message))
+                                {
+                                    <p class="invitation-actions-message invitation-actions-message-error" role="alert">@_message</p>
+                                }
                             </EditForm>
                         }
                     </div>
